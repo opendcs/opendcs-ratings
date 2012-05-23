@@ -14,6 +14,9 @@ import static hec.data.cwmsRating.RatingConst.specNodeXpathStr;
 import static hec.data.cwmsRating.RatingConst.templateNodeXpathStr;
 import static hec.data.cwmsRating.RatingConst.unitsIdXpath;
 import static hec.data.cwmsRating.RatingConst.xpath;
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.replaceAll;
+import static hec.util.TextUtil.split;
 import static javax.xml.xpath.XPathConstants.NODE;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
@@ -36,6 +39,7 @@ import java.io.StringReader;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -834,7 +838,7 @@ public class RatingSet implements IRating, Observer {
 		}
 		if (ratings.size() == 0) throw new RatingException("No ratings.");
 		String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
-		String[] units = TextUtil.split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
+		String[] units = split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
 		String[] params = ratingSpec.getIndParameters();
 		if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
 		try {
@@ -960,12 +964,12 @@ public class RatingSet implements IRating, Observer {
 			ratedTsc.values = depVals;
 			String paramStr = params[params.length-1];
 			if (tsc.subParameter == null) {
-				ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
+				ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
 			}
 			else {
-				ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
+				ratedTsc.fullName = replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
 			}
-			String[] parts = TextUtil.split(paramStr, "-", "L", 2);
+			String[] parts = split(paramStr, "-", "L", 2);
 			ratedTsc.parameter = parts[0];
 			ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
 			ratedTsc.units = ratedUnitStr;
@@ -1158,12 +1162,12 @@ public class RatingSet implements IRating, Observer {
 			ratedTsc.numberValues = ratedTsc.times.length;
 			String paramStr = params[params.length-1];
 			if (tscs[0].subParameter == null) {
-				ratedTsc.fullName = TextUtil.replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
+				ratedTsc.fullName = replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
 			}
 			else {
-				ratedTsc.fullName = TextUtil.replaceAll(tscs[0].fullName, String.format("%s-%s", tscs[0].parameter, tscs[0].subParameter), paramStr, "IL");
+				ratedTsc.fullName = replaceAll(tscs[0].fullName, String.format("%s-%s", tscs[0].parameter, tscs[0].subParameter), paramStr, "IL");
 			}
-			String[] parts = TextUtil.split(paramStr, "-", "L", 2);
+			String[] parts = split(paramStr, "-", "L", 2);
 			ratedTsc.parameter = parts[0];
 			ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
 			ratedTsc.units = ratedUnitStr;
@@ -1694,12 +1698,12 @@ public class RatingSet implements IRating, Observer {
 		String[] params = getRatingParameters();
 		String paramStr = params[params.length-1];
 		if (tsc.subParameter == null) {
-			ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
+			ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
 		}
 		else {
-			ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
+			ratedTsc.fullName = replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
 		}
-		String[] parts = TextUtil.split(paramStr, "-", "L", 2);
+		String[] parts = split(paramStr, "-", "L", 2);
 		ratedTsc.parameter = parts[0];
 		ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
 		String[] dataUnits = getDataUnits();
@@ -1734,32 +1738,62 @@ public class RatingSet implements IRating, Observer {
 		}
 		return sb.toString();
 	}
-//	/**
-//	 * Stores the rating set to a CWMS database
-//	 * @param conn The connection to the CWMS database
-//	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-//	 * @throws RatingException
-//	 */
-//	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-//		OracleCallableStatement stmt = null;
-//		try {
-//			if (!(conn instanceof OracleConnection)) {
-//				throw new RatingException("Connection is not to an Oracle database");
-//			}
-//			OracleConnection oconn = (OracleConnection)conn;
-//			String sql = "begin cwms_rating.store_ratings_xml(:1, :2); end;";
-//			stmt = (OracleCallableStatement)oconn.prepareCall(sql);
-//			stmt.setStringForClob(1, toXmlString(""));
-//			stmt.setString(2, overwriteExisting ? "T" : "F");
-//			stmt.execute();
-//			stmt.close();
-//		}
-//		catch (Throwable t) {
-//			try {if (stmt != null) stmt.close();} catch(Throwable t1){}
-//			if (t instanceof RatingException) throw (RatingException)t;
-//			throw new RatingException(t);
-//		}
-//	}
+	/**
+	 * Stores the rating set to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @throws RatingException
+	 */
+	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
+		CallableStatement[] stmts = new CallableStatement[3];
+		try {
+			stmts[0] = conn.prepareCall("begin :1 := cwms_msg.get_msg_id; end;");
+			stmts[0].registerOutParameter(1, Types.VARCHAR);
+			stmts[0].execute();
+			String lowerMessageBound = stmts[0].getString(1);
+			
+			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+			stmts[1].setString(1, toXmlString(""));
+			stmts[1].setString(2, overwriteExisting ? "T" : "F");
+			stmts[1].execute();
+			
+			stmts[0].execute();
+			String upperMessageBound = stmts[0].getString(1);
+
+			stmts[2] = conn.prepareCall(
+				"select msg_text " +
+				"  from cwms_v_log_message " +
+				" where msg_id between :1 and :2 " +
+				"   and msg_level = 'Basic' " +
+				"   and properties like 'procedure = cwms\\_rating.store\\_%' escape '\\' " +
+				"   and msg_text like 'ORA-%' " +
+				" order by msg_id"); 
+			stmts[2].setString(1, lowerMessageBound);
+			stmts[2].setString(2, upperMessageBound);
+			ResultSet rs = stmts[2].executeQuery();
+			Vector<String> errors = new Vector<String>();
+			while (rs.next()) {
+				errors.add(rs.getString(1));
+			}
+			rs.close();
+			
+			for (int i = 0; i < stmts.length; ++i) {
+				stmts[i].close();
+				stmts[i] = null;
+			}
+			
+			if (errors.size() > 0) {
+				throw new RatingException(join("\n", errors.toArray(new String[errors.size()])));
+			}
+		}
+		catch (Throwable t) {
+			for (int i = 0; i < stmts.length; ++i) {
+				try {if (stmts[i] != null) stmts[i].close();} catch(Throwable t1){}
+			}
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
 	 */
@@ -1863,7 +1897,7 @@ public class RatingSet implements IRating, Observer {
 	private void validate() throws RatingException {
 		if (ratings.size() == 0) return;
 		String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
-		String[] units = unitsId == null ? null : TextUtil.split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
+		String[] units = unitsId == null ? null : split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
 		String[] params = null;
 		boolean[] validParams = null;
 		boolean[] validUnits = null;
@@ -1925,7 +1959,10 @@ public class RatingSet implements IRating, Observer {
 //		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.128:1521/CWMS22DEV", "cwms_20", "cwms22dev");
 //		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "TULA.Stage;Flow.Logarithmic.Production");
 //		rs.getRatingSpec().setVersion("TESTER");
-//		rs.storeToDatabase(conn, false);
+//		for(AbstractRating rating : rs.getRatings()) {
+//			rating.setRatingSpecId(rs.getRatingSpec().getRatingSpecId());
+//		}
+//		rs.storeToDatabase(conn, true);
 //		conn.commit();
 //		double minStage = -Double.MAX_VALUE;
 //		double maxStage = Double.MAX_VALUE;
