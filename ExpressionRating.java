@@ -240,8 +240,8 @@ public class ExpressionRating extends AbstractRating {
 			for (int i = 0; i < pIndVals.length; ++i) {
 				for (int j = 0; j < variables.length; ++j) {
 					variables[j].setValue(pIndVals[i][j]);
-					rated[i] = expression.evaluate();
 				}
+				rated[i] = expression.evaluate();
 			}
 			return rated;
 		}
