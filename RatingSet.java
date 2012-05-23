@@ -49,9 +49,6 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import oracle.jdbc.OracleCallableStatement;
-import oracle.jdbc.OracleConnection;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
