@@ -20,14 +20,12 @@ import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.IRating;
 import hec.data.Parameter;
 import hec.data.Units;
-import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.heclib.util.HecTime;
-import hec.hecmath.PairedDataMath;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
@@ -50,6 +48,9 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
+
+import oracle.jdbc.OracleCallableStatement;
+import oracle.jdbc.OracleConnection;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -485,8 +486,10 @@ public class RatingSet implements IRating, Observer {
 			rating.addObserver(this);
 			validate();
 		}
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Removes a single rating from the existing ratings.
@@ -1713,6 +1716,12 @@ public class RatingSet implements IRating, Observer {
 	public int getIndParamCount() throws RatingException {
 		return ratingSpec == null ? ratingSpec.getIndParamCount() : ratings.firstEntry().getValue().getIndParamCount();
 	}
+	/**
+	 * Outputs the rating set as an XML instance
+	 * @param indent the text use for indentation
+	 * @return the XML text
+	 * @throws RatingException
+	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
 		StringBuilder sb = new StringBuilder();
 		if(ratingSpec != null) {
@@ -1728,6 +1737,32 @@ public class RatingSet implements IRating, Observer {
 		}
 		return sb.toString();
 	}
+//	/**
+//	 * Stores the rating set to a CWMS database
+//	 * @param conn The connection to the CWMS database
+//	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+//	 * @throws RatingException
+//	 */
+//	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
+//		OracleCallableStatement stmt = null;
+//		try {
+//			if (!(conn instanceof OracleConnection)) {
+//				throw new RatingException("Connection is not to an Oracle database");
+//			}
+//			OracleConnection oconn = (OracleConnection)conn;
+//			String sql = "begin cwms_rating.store_ratings_xml(:1, :2); end;";
+//			stmt = (OracleCallableStatement)oconn.prepareCall(sql);
+//			stmt.setStringForClob(1, toXmlString(""));
+//			stmt.setString(2, overwriteExisting ? "T" : "F");
+//			stmt.execute();
+//			stmt.close();
+//		}
+//		catch (Throwable t) {
+//			try {if (stmt != null) stmt.close();} catch(Throwable t1){}
+//			if (t instanceof RatingException) throw (RatingException)t;
+//			throw new RatingException(t);
+//		}
+//	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
 	 */
@@ -1888,167 +1923,169 @@ public class RatingSet implements IRating, Observer {
 	}
 		
 	
-	public static void main(String[] args) throws Exception {
-		
-		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.128:1521/CWMS22DEV", "cwms_20", "cwms22dev");
-		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "TULA.Stage;Flow.Logarithmic.Production");
-		double minStage = -Double.MAX_VALUE;
-		double maxStage = Double.MAX_VALUE;
-		AbstractRating[] ratings = rs.getRatings();
-		long[] valueTimes = new long[ratings.length * 2 + 1];
-		valueTimes[0] = ratings[0].getEffectiveDate();
-		UsgsRounder indRounder = rs.getRatingSpec().getIndRoundingSpecs()[0];
-		UsgsRounder depRounder = rs.getRatingSpec().getDepRoundingSpec();
-
-		String sql = 
-				"begin " +
-				   ":1 := cwms_rating.rate_f("   +
-				      "p_rating_spec => :2,"     +
-				      "p_value       => :3,"     +
-				      "p_units       => cwms_util.split_text(replace(:4, ';', ','), ',')," +
-				      "p_value_times => cast(cwms_util.to_timestamp(:5) as date),"   +
-				      "p_time_zone   => 'UTC',"  +
-				      "p_office_id   => :6);"    +
-				"end;";
-		CallableStatement rateStmt = conn.prepareCall(sql);
-		rateStmt.registerOutParameter(1, Types.NUMERIC);
-		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-		rateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-		rateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-		
-		CallableStatement revRateStmt = conn.prepareCall(sql.replaceAll("rate_f", "reverse_rate_f"));
-		revRateStmt.registerOutParameter(1, Types.NUMERIC);
-		revRateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-		revRateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-		revRateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-		
-		for (int i = 0; i < ratings.length; ++i) {
-			TableRating tr = (TableRating)ratings[i];
-			TableRatingContainer trc = (TableRatingContainer)tr.getData();
-			int j = 2 * i + 1;
-			int k = 2 * (i + 1);
-			valueTimes[k] = trc.effectiveDateMillis;
-			valueTimes[j] = (valueTimes[i] + valueTimes[k]) / 2;
-			double low = trc.values[0].indValue;
-			double high = trc.values[trc.values.length-1].indValue;
-			if (low > minStage) minStage = low;
-			if (high < maxStage) maxStage = high;
-		}
-		for (long valueTime : valueTimes) System.out.println(valueTime);
-		double flow;
-		double stage2;
-		for (double stage = minStage; stage <= maxStage; stage += 2.5) {
-			System.out.print(String.format("%12s", indRounder.format(stage)));
-			for (int i = 0; i < valueTimes.length; ++i) {
-				flow = rs.rate(valueTimes[i], stage);
-				stage2 = rs.reverseRate(valueTimes[i], flow);
-				System.out.print(String.format("%12s", depRounder.format(flow)));
-				System.out.print(String.format("%12s", indRounder.format(stage2)));
-			}
-			System.out.println("");
-			System.out.print(String.format("%12s", indRounder.format(stage)));
-			for (int i = 0; i < valueTimes.length; ++i) {
-				rateStmt.setDouble(3, stage);
-				rateStmt.setLong(5, valueTimes[i]);
-				rateStmt.execute();
-				flow = rateStmt.getDouble(1);
-				revRateStmt.setDouble(3, flow);
-				revRateStmt.setLong(5, valueTimes[i]);
-				revRateStmt.execute();
-				stage2 = revRateStmt.getDouble(1);
-				System.out.print(String.format("%12s", depRounder.format(flow)));
-				System.out.print(String.format("%12s", indRounder.format(stage2)));
-			}
-			System.out.println("\n");
-			
-		}
-
-		rs = RatingSet.fromDatabase(conn, "SWT", "KEYS.Elev;Stor.Linear.Production");
-		rs.setDefaultValueTime(System.currentTimeMillis());
-		indRounder = rs.getRatingSpec().getIndRoundingSpecs()[0];
-		depRounder = rs.getRatingSpec().getDepRoundingSpec();
-		
-		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-		rateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-		rateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-		
-		revRateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-		revRateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-		revRateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-		
-		for (double elev = 658.; elev < 780.; elev += 5.) {
-			double stor = rs.rate(elev);
-			double elev2 = rs.reverseRate(stor);
-			System.out.print(String.format("%12s", indRounder.format(elev)));
-			System.out.print(String.format("%12s", depRounder.format(stor)));
-			System.out.print(String.format("%12s", indRounder.format(elev2)));
-			System.out.println("");
-			rateStmt.setDouble(3, elev);
-			rateStmt.setLong(5, System.currentTimeMillis());
-			rateStmt.execute();
-			stor = rateStmt.getDouble(1);
-			revRateStmt.setDouble(3, stor);
-			revRateStmt.setLong(5, System.currentTimeMillis());
-			revRateStmt.execute();
-			elev2 = revRateStmt.getDouble(1);
-			System.out.print(String.format("%12s", indRounder.format(elev)));
-			System.out.print(String.format("%12s", depRounder.format(stor)));
-			System.out.print(String.format("%12s", indRounder.format(elev2)));
-			System.out.println("\n");
-		}
-
-		rs = RatingSet.fromDatabase(conn, "SWT", "ARCA.Count-Conduit_Gates,Opening-Conduit_Gates,Elev;Flow-Conduit_Gates.Standard.Production");
-		rs.setDefaultValueTime(System.currentTimeMillis());
-		UsgsRounder[] indRounders = rs.getRatingSpec().getIndRoundingSpecs();
-		indRounders[2] = new UsgsRounder("5555555555");
-		depRounder = rs.getRatingSpec().getDepRoundingSpec();
-		
-		sql = 
-			"begin " +
-			   ":1 := cwms_rating.rateOne_f("   +
-			      "p_rating_spec => :2,"     +
-			      "p_values      => double_tab_t(:3,:4,:5),"     +
-			      "p_units       => cwms_util.split_text(replace(:6, ';', ','), ',')," +
-			      "p_value_time  => cast(cwms_util.to_timestamp(:7) as date),"   +
-			      "p_time_zone   => 'UTC',"  +
-			      "p_office_id   => :8);"    +
-			"end;";
-		rateStmt = conn.prepareCall(sql);
-		rateStmt.registerOutParameter(1, Types.NUMERIC);
-		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-		rateStmt.setString(6, rs.getRatings()[0].getRatingUnitsId());
-		rateStmt.setLong(7, System.currentTimeMillis());
-		rateStmt.setString(8, rs.getRatingSpec().getOfficeId());
-		
-		double[] valueSet = new double[3];
-		for (double count = 1.; count <= 2.; count += 1.) {
-			valueSet[0] = count;
-			rateStmt.setDouble(3, count);
-			for (double opening = .5; opening <= 7.; opening += .5) {
-				valueSet[1] = opening;
-				rateStmt.setDouble(4, opening);
-				for (double elev = 956.; elev <= 1030.; elev += 2.5) {
-					valueSet[2] = elev;
-					rateStmt.setDouble(5, elev);
-					flow = rs.rateOne(valueSet);
-					System.out.println(String.format(
-							"%12s%12s%12s%12s", 
-							indRounders[0].format(count), 
-							indRounders[1].format(opening), 
-							indRounders[2].format(elev), 
-							depRounder.format(flow)));
-					rateStmt.execute();
-					flow = rateStmt.getDouble(1);
-					System.out.println(String.format(
-							"%12s%12s%12s%12s\n", 
-							indRounders[0].format(count), 
-							indRounders[1].format(opening), 
-							indRounders[2].format(elev), 
-							depRounder.format(flow)));
-				}
-			}
-		}
-		
-		conn.close();
-	}
+//	public static void main(String[] args) throws Exception {
+//		
+//		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.128:1521/CWMS22DEV", "cwms_20", "cwms22dev");
+//		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "TULA.Stage;Flow.Logarithmic.Production");
+//		rs.getRatingSpec().setVersion("TESTER");
+//		rs.storeToDatabase(conn, false);
+//		conn.commit();
+//		double minStage = -Double.MAX_VALUE;
+//		double maxStage = Double.MAX_VALUE;
+//		AbstractRating[] ratings = rs.getRatings();
+//		long[] valueTimes = new long[ratings.length * 2 + 1];
+//		valueTimes[0] = ratings[0].getEffectiveDate();
+//		UsgsRounder indRounder = rs.getRatingSpec().getIndRoundingSpecs()[0];
+//		UsgsRounder depRounder = rs.getRatingSpec().getDepRoundingSpec();
+//
+//		String sql = 
+//				"begin " +
+//				   ":1 := cwms_rating.rate_f("   +
+//				      "p_rating_spec => :2,"     +
+//				      "p_value       => :3,"     +
+//				      "p_units       => cwms_util.split_text(replace(:4, ';', ','), ',')," +
+//				      "p_value_times => cast(cwms_util.to_timestamp(:5) as date),"   +
+//				      "p_time_zone   => 'UTC',"  +
+//				      "p_office_id   => :6);"    +
+//				"end;";
+//		CallableStatement rateStmt = conn.prepareCall(sql);
+//		rateStmt.registerOutParameter(1, Types.NUMERIC);
+//		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
+//		rateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
+//		rateStmt.setString(6, rs.getRatingSpec().getOfficeId());
+//		
+//		CallableStatement revRateStmt = conn.prepareCall(sql.replaceAll("rate_f", "reverse_rate_f"));
+//		revRateStmt.registerOutParameter(1, Types.NUMERIC);
+//		revRateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
+//		revRateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
+//		revRateStmt.setString(6, rs.getRatingSpec().getOfficeId());
+//		
+//		for (int i = 0; i < ratings.length; ++i) {
+//			TableRating tr = (TableRating)ratings[i];
+//			TableRatingContainer trc = (TableRatingContainer)tr.getData();
+//			int j = 2 * i + 1;
+//			int k = 2 * (i + 1);
+//			valueTimes[k] = trc.effectiveDateMillis;
+//			valueTimes[j] = (valueTimes[i] + valueTimes[k]) / 2;
+//			double low = trc.values[0].indValue;
+//			double high = trc.values[trc.values.length-1].indValue;
+//			if (low > minStage) minStage = low;
+//			if (high < maxStage) maxStage = high;
+//		}
+//		for (long valueTime : valueTimes) System.out.println(valueTime);
+//		double flow;
+//		double stage2;
+//		for (double stage = minStage; stage <= maxStage; stage += 2.5) {
+//			System.out.print(String.format("%12s", indRounder.format(stage)));
+//			for (int i = 0; i < valueTimes.length; ++i) {
+//				flow = rs.rate(valueTimes[i], stage);
+//				stage2 = rs.reverseRate(valueTimes[i], flow);
+//				System.out.print(String.format("%12s", depRounder.format(flow)));
+//				System.out.print(String.format("%12s", indRounder.format(stage2)));
+//			}
+//			System.out.println("");
+//			System.out.print(String.format("%12s", indRounder.format(stage)));
+//			for (int i = 0; i < valueTimes.length; ++i) {
+//				rateStmt.setDouble(3, stage);
+//				rateStmt.setLong(5, valueTimes[i]);
+//				rateStmt.execute();
+//				flow = rateStmt.getDouble(1);
+//				revRateStmt.setDouble(3, flow);
+//				revRateStmt.setLong(5, valueTimes[i]);
+//				revRateStmt.execute();
+//				stage2 = revRateStmt.getDouble(1);
+//				System.out.print(String.format("%12s", depRounder.format(flow)));
+//				System.out.print(String.format("%12s", indRounder.format(stage2)));
+//			}
+//			System.out.println("\n");
+//			
+//		}
+//
+//		rs = RatingSet.fromDatabase(conn, "SWT", "KEYS.Elev;Stor.Linear.Production");
+//		rs.setDefaultValueTime(System.currentTimeMillis());
+//		indRounder = rs.getRatingSpec().getIndRoundingSpecs()[0];
+//		depRounder = rs.getRatingSpec().getDepRoundingSpec();
+//		
+//		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
+//		rateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
+//		rateStmt.setString(6, rs.getRatingSpec().getOfficeId());
+//		
+//		revRateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
+//		revRateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
+//		revRateStmt.setString(6, rs.getRatingSpec().getOfficeId());
+//		
+//		for (double elev = 658.; elev < 780.; elev += 5.) {
+//			double stor = rs.rate(elev);
+//			double elev2 = rs.reverseRate(stor);
+//			System.out.print(String.format("%12s", indRounder.format(elev)));
+//			System.out.print(String.format("%12s", depRounder.format(stor)));
+//			System.out.print(String.format("%12s", indRounder.format(elev2)));
+//			System.out.println("");
+//			rateStmt.setDouble(3, elev);
+//			rateStmt.setLong(5, System.currentTimeMillis());
+//			rateStmt.execute();
+//			stor = rateStmt.getDouble(1);
+//			revRateStmt.setDouble(3, stor);
+//			revRateStmt.setLong(5, System.currentTimeMillis());
+//			revRateStmt.execute();
+//			elev2 = revRateStmt.getDouble(1);
+//			System.out.print(String.format("%12s", indRounder.format(elev)));
+//			System.out.print(String.format("%12s", depRounder.format(stor)));
+//			System.out.print(String.format("%12s", indRounder.format(elev2)));
+//			System.out.println("\n");
+//		}
+//
+//		rs = RatingSet.fromDatabase(conn, "SWT", "ARCA.Count-Conduit_Gates,Opening-Conduit_Gates,Elev;Flow-Conduit_Gates.Standard.Production");
+//		rs.setDefaultValueTime(System.currentTimeMillis());
+//		UsgsRounder[] indRounders = rs.getRatingSpec().getIndRoundingSpecs();
+//		indRounders[2] = new UsgsRounder("5555555555");
+//		depRounder = rs.getRatingSpec().getDepRoundingSpec();
+//		
+//		sql = 
+//			"begin " +
+//			   ":1 := cwms_rating.rate_one_f("   +
+//			      "p_rating_spec => :2,"     +
+//			      "p_values      => double_tab_t(:3,:4,:5),"     +
+//			      "p_units       => cwms_util.split_text(replace(:6, ';', ','), ',')," +
+//			      "p_value_time  => cast(cwms_util.to_timestamp(:7) as date),"   +
+//			      "p_time_zone   => 'UTC',"  +
+//			      "p_office_id   => :8);"    +
+//			"end;";
+//		rateStmt = conn.prepareCall(sql);
+//		rateStmt.registerOutParameter(1, Types.NUMERIC);
+//		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
+//		rateStmt.setString(6, rs.getRatings()[0].getRatingUnitsId());
+//		rateStmt.setLong(7, System.currentTimeMillis());
+//		rateStmt.setString(8, rs.getRatingSpec().getOfficeId());
+//		
+//		double[] valueSet = new double[3];
+//		for (double count = 1.; count <= 2.; count += 1.) {
+//			valueSet[0] = count;
+//			rateStmt.setDouble(3, count);
+//			for (double opening = .5; opening <= 7.; opening += .5) {
+//				valueSet[1] = opening;
+//				rateStmt.setDouble(4, opening);
+//				for (double elev = 956.; elev <= 1030.; elev += 2.5) {
+//					valueSet[2] = elev;
+//					rateStmt.setDouble(5, elev);
+//					flow = rs.rateOne(valueSet);
+//					System.out.println(String.format(
+//							"%12s%12s%12s%12s", 
+//							indRounders[0].format(count), 
+//							indRounders[1].format(opening), 
+//							indRounders[2].format(elev), 
+//							depRounder.format(flow)));
+//					rateStmt.execute();
+//					flow = rateStmt.getDouble(1);
+//					System.out.println(String.format(
+//							"%12s%12s%12s%12s\n", 
+//							indRounders[0].format(count), 
+//							indRounders[1].format(opening), 
+//							indRounders[2].format(elev), 
+//							depRounder.format(flow)));
+//				}
+//			}
+//		}
+//		conn.close();
+//	}
 }
