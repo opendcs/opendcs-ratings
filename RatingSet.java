@@ -29,6 +29,7 @@ import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.heclib.util.HecTime;
+import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
@@ -1178,6 +1179,61 @@ public class RatingSet implements IRating, Observer {
 			throw new RatingException(t);
 		}
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
+	 */
+	@Override
+	public TimeSeriesMath rate(TimeSeriesMath tsm) throws RatingException {
+		return rate(tsm, null);
+	}
+	/**
+	 * Rates the values in a TimeSeriesMath and returns the results in a new TimeSeriesMath with the specified unit. 
+	 * The rating must be for a single independent parameter. 
+	 * @param tsm The TimeSeriesMath to rate
+	 * @param ratedUnitStr The unit to return the rated values in.
+	 * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
+	 * @throws RatingException
+	 */
+	public TimeSeriesMath rate(TimeSeriesMath tsm, String ratedUnitStr) throws RatingException {
+		try {
+			return new TimeSeriesMath(rate((TimeSeriesContainer)tsm.getData(), ratedUnitStr));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException) t;
+			throw new RatingException(t);
+		}
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath[])
+	 */
+	@Override
+	public TimeSeriesMath rate(TimeSeriesMath[] tsms) throws RatingException {
+		return rate(tsms, null);
+	}
+	/**
+	 * Rates the values in a set of TimeSeriesMaths and returns the results in a new TimeSeriesMath with the specified unit.
+	 * The rating must be for as many independent parameters as the number of TimeSeriesMaths. 
+	 * If all the TimeSeriesMaths have the same interval the rated TimeSeriesMath will have the same interval, otherwise
+	 * the rated TimeSeriesMath will have an interval of 0 (irregular).  The rated TimeSeriesMath will have values
+	 * only at times that are common to all the input TimeSeriesMaths. 
+	 * @param tsms The TimeSeriesMaths to rate, in order of the independent parameters of the rating.
+	 * @param ratedUnitStr The unit to return the rated values in.
+	 * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
+	 * @throws RatingException
+	 */
+	public TimeSeriesMath rate(TimeSeriesMath[] tsms, String ratedUnitStr) throws RatingException {
+		TimeSeriesContainer[] tscs = new TimeSeriesContainer[tsms.length];
+		try {
+			for (int i = 0; i < tsms.length; ++i) {
+				tscs[i] = (TimeSeriesContainer)tsms[i].getData();
+			}
+			return new TimeSeriesMath(rate(tscs, ratedUnitStr));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException) t;
+			throw new RatingException(t);
+		}
+	}
 	/**
 	 * Retrieves the rating specification.
 	 * @return The rating specification
@@ -1709,6 +1765,19 @@ public class RatingSet implements IRating, Observer {
 		String[] dataUnits = getDataUnits();
 		ratedTsc.units = dataUnits == null ? getRatingUnits()[0] : dataUnits[0];
 		return ratedTsc;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
+	 */
+	@Override
+	public TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
+		try {
+			return new TimeSeriesMath(reverseRate((TimeSeriesContainer)tsm.getData()));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException) t;
+			throw new RatingException(t);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getIndParamCount()

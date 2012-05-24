@@ -11,6 +11,8 @@ import hec.data.Units;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.heclib.util.HecTime;
+import hec.hecmath.HecMathException;
+import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.io.Conversion;
 import hec.lang.Observable;
@@ -574,6 +576,36 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 		}
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
+	 */
+	@Override
+	public TimeSeriesMath rate(TimeSeriesMath tsm) throws RatingException {
+		try {
+			return new TimeSeriesMath(rate((TimeSeriesContainer)tsm.getData()));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException) t;
+			throw new RatingException(t);
+		}
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath[])
+	 */
+	@Override
+	public TimeSeriesMath rate(TimeSeriesMath[] tsms) throws RatingException {
+		TimeSeriesContainer[] tscs = new TimeSeriesContainer[tsms.length];
+		try {
+			for (int i = 0; i < tsms.length; ++i) {
+				tscs[i] = (TimeSeriesContainer)tsms[i].getData();
+			}
+			return new TimeSeriesMath(rate(tscs));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException) t;
+			throw new RatingException(t);
+		}
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#reverseRate(double)
 	 */
 	@Override
@@ -651,6 +683,19 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 		String[] dataUnits = getDataUnits();
 		ratedTsc.units = dataUnits == null ? getRatingUnits()[0] : dataUnits[0];
 		return ratedTsc;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
+	 */
+	@Override
+	public TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
+		try {
+			return new TimeSeriesMath(reverseRate((TimeSeriesContainer)tsm.getData()));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException) t;
+			throw new RatingException(t);
+		}
 	}
 	/**
 	 * Fills a AbstractRatingContainer object with info from this rating.
