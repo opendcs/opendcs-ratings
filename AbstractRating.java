@@ -8,13 +8,12 @@ import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
 import hec.data.Parameter;
 import hec.data.Units;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
-import hec.hecmath.HecMathException;
 import hec.hecmath.TimeSeriesMath;
-import hec.io.TimeSeriesContainer;
 import hec.io.Conversion;
+import hec.io.TimeSeriesContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
