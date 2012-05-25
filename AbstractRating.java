@@ -7,6 +7,7 @@ import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
 import hec.data.Parameter;
+import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
@@ -162,6 +163,25 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 	@Override
 	public String getName() {
 		return ratingSpecId;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#setName(java.lang.String)
+	 */
+	@Override
+	public void setName(String name) throws RatingException {
+		String[] parts = split(name, SEPARATOR1, "L");
+		if (parts.length != 4) {
+			throw new RatingException(String.format("Invalid name: %s", name));
+		}
+		parts = split(parts[1], SEPARATOR2, "L");
+		if (parts.length != 2) {
+			throw new RatingException(String.format("Invalid name: %s", name));
+		}
+		String[] newIndParams = split(parts[0], SEPARATOR3, "L");
+		if (newIndParams.length != getIndParamCount()) {
+			throw new RatingException("Name has different number of independent parameters than rating");
+		}
+		ratingSpecId = name;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingParameters()
@@ -668,8 +688,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 		double[] depVals = new double[ivc.indVals.length];
 		for (int i = 0; i < depVals.length; ++i) depVals[i] = ivc.indVals[i][0];
 		ratedTsc.values = reverseRate(ivc.valTimes, depVals);
-		String[] params = getRatingParameters();
-		String paramStr = params[params.length-1];
+		String paramStr = TextUtil.split(TextUtil.split(ratingSpecId, SEPARATOR1, "L")[1], SEPARATOR2, "L")[1];
 		if (tsc.subParameter == null) {
 			ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
 		}

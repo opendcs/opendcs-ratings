@@ -1,6 +1,7 @@
 package hec.data.cwmsRating;
 
 import hec.data.IRating;
+import hec.data.RatingException;
 
 import java.util.Observer;
 

@@ -2,6 +2,8 @@ package hec.data.cwmsRating;
 
 import static hec.lang.Const.*;
 
+import hec.data.RatingException;
+
 import java.util.Arrays;
 import java.util.Map.Entry;
 

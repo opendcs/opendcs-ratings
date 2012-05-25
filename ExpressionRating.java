@@ -15,14 +15,16 @@ import static hec.data.cwmsRating.RatingConst.outRangeHighMethodXpath;
 import static hec.data.cwmsRating.RatingConst.outRangeLowMethodXpath;
 import static hec.data.cwmsRating.RatingConst.ratingSpecIdXpath;
 import static hec.data.cwmsRating.RatingConst.unitsIdXpath;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.util.TextUtil.replaceAll;
 import static javax.xml.xpath.XPathConstants.NODE;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
+import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.Variable;
@@ -239,9 +241,15 @@ public class ExpressionRating extends AbstractRating {
 			double[] rated = new double[pIndVals.length];
 			for (int i = 0; i < pIndVals.length; ++i) {
 				for (int j = 0; j < variables.length; ++j) {
+					if (pIndVals[i][j] == UNDEFINED_DOUBLE) {
+						rated[i] = UNDEFINED_DOUBLE;
+						break;
+					}
 					variables[j].setValue(pIndVals[i][j]);
 				}
-				rated[i] = expression.evaluate();
+				if (rated[i] != UNDEFINED_DOUBLE) {
+					rated[i] = expression.evaluate();
+				}
 			}
 			return rated;
 		}
@@ -336,7 +344,6 @@ public class ExpressionRating extends AbstractRating {
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
 		if (!(rc instanceof ExpressionRatingContainer)) throw new RatingException("setData() requires a ExpressionRatingContainer object.");
-		ExpressionRatingContainer backup = (ExpressionRatingContainer)getData();
 		try {
 			super._setData(rc);
 			ExpressionRatingContainer erc = (ExpressionRatingContainer)rc;
@@ -345,7 +352,6 @@ public class ExpressionRating extends AbstractRating {
 			observationTarget.notifyObservers();
 		}
 		catch (Throwable t) {
-			setData(backup);
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}

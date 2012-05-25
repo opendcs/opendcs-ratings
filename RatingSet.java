@@ -22,6 +22,7 @@ import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.IRating;
 import hec.data.Parameter;
+import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -432,8 +433,10 @@ public class RatingSet implements IRating, Observer {
 		rating.deleteObserver(this);
 		rating.addObserver(this);
 		validate();
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Adds multiple ratings to the existing ratings.
@@ -508,8 +511,10 @@ public class RatingSet implements IRating, Observer {
 		if (activeRatings.containsKey(effectiveDate)) {
 			activeRatings.remove(effectiveDate);
 		}
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Removes all existing ratings.
@@ -520,8 +525,10 @@ public class RatingSet implements IRating, Observer {
 		}
 		ratings.clear();
 		activeRatings.clear();
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Replaces a single rating in the existing ratings
@@ -549,8 +556,10 @@ public class RatingSet implements IRating, Observer {
 		rating.deleteObserver(this);
 		rating.addObserver(this);
 		validate();
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Replaces multiple ratings in the existing ratings.
@@ -603,8 +612,10 @@ public class RatingSet implements IRating, Observer {
 			rating.addObserver(this);
 		}
 		validate();
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Retrieves a rated value for a specified single input value and time. The rating set must
@@ -963,7 +974,7 @@ public class RatingSet implements IRating, Observer {
 			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
 			tsc.clone(ratedTsc);
 			ratedTsc.values = depVals;
-			String paramStr = params[params.length-1];
+			String paramStr = getRatingSpec().getDepParameter();
 			if (tsc.subParameter == null) {
 				ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
 			}
@@ -1390,6 +1401,22 @@ public class RatingSet implements IRating, Observer {
 		return name;
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IRating#setName(java.lang.String)
+	 */
+	@Override
+	public void setName(String name) throws RatingException {
+		for (AbstractRating rating : ratings.values()) {
+			rating.setName(name);
+		}
+		if (ratingSpec != null) {
+			String[] parts = split(name, SEPARATOR1, "L");
+			ratingSpec.setLocationId(parts[0]);
+			ratingSpec.setParametersId(parts[1]);
+			ratingSpec.setTemplateVersion(parts[2]);
+			ratingSpec.setVersion(parts[3]);
+		}
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingParameters()
 	 */
 	@Override
@@ -1752,7 +1779,7 @@ public class RatingSet implements IRating, Observer {
 		for (int i = 0; i < depVals.length; ++i) depVals[i] = ivc.indVals[i][0];
 		ratedTsc.values = reverseRate(ivc.valTimes, depVals);
 		String[] params = getRatingParameters();
-		String paramStr = params[params.length-1];
+		String paramStr = params[0];
 		if (tsc.subParameter == null) {
 			ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
 		}
@@ -1910,7 +1937,6 @@ public class RatingSet implements IRating, Observer {
 	 * @throws RatingException
 	 */
 	public void setData(RatingSetContainer rsc) throws RatingException {
-		RatingSetContainer backup = getData();
 		try {
 			removeAllRatings();
 			if (rsc.ratingSpecContainer == null) {
@@ -1929,11 +1955,12 @@ public class RatingSet implements IRating, Observer {
 					}
 				}
 			}
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 		catch (Throwable t) {
-			setData(backup);
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}
@@ -1956,8 +1983,10 @@ public class RatingSet implements IRating, Observer {
 			_ratings[i].deleteObserver(this);
 			_ratings[i].addObserver(this);
 		}
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		if (observationTarget != null) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/**
 	 * Validates the rating set
@@ -2027,6 +2056,8 @@ public class RatingSet implements IRating, Observer {
 //		
 //		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.128:1521/CWMS22DEV", "cwms_20", "cwms22dev");
 //		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "TULA.Stage;Flow.Logarithmic.Production");
+//		RatingSetContainer rsc = rs.getData();
+//		RatingSet rs2 = new RatingSet(rsc);		
 //		rs.getRatingSpec().setVersion("TESTER");
 //		for(AbstractRating rating : rs.getRatings()) {
 //			rating.setRatingSpecId(rs.getRatingSpec().getRatingSpecId());

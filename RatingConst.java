@@ -1,5 +1,6 @@
 package hec.data.cwmsRating;
 
+import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;

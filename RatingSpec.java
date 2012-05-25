@@ -4,6 +4,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+import hec.data.RatingException;
 import hec.data.RoundingException;
 import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
@@ -702,7 +703,6 @@ public class RatingSpec extends RatingTemplate {
 	 * @throws RatingException
 	 */
 	public void setData(RatingSpecContainer rsc) throws RatingException {
-		RatingSpecContainer backupRsc = this.getData();
 		try {
 			super.setData(rsc);
 			officeId = rsc.officeId;
@@ -728,7 +728,6 @@ public class RatingSpec extends RatingTemplate {
 			description = rsc.specDescription;
 		}
 		catch (Throwable t) {
-			setData(backupRsc);
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}

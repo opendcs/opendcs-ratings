@@ -3,6 +3,7 @@ package hec.data.cwmsRating;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
+import hec.data.RatingException;
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.lang.Observable;

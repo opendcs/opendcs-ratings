@@ -5,6 +5,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
+import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.RatingTemplateContainer;
 
@@ -116,8 +117,7 @@ public class RatingTemplate {
 	 * @return The independent + dependent parameters
 	 */
 	public String[] getParameters() {
-		String[] parameters = new String[indParamCount+1];
-		Arrays.fill(parameters, indParameters);
+		String[] parameters = Arrays.copyOf(indParameters, indParamCount+1);
 		parameters[indParamCount] = depParameter;
 		return parameters;
 	}
@@ -287,10 +287,10 @@ public class RatingTemplate {
 		}
 		parts = split(parts[0], SEPARATOR3, "L");
 		int indParamCount = parts.length;
-		if(!String.format("%s;%s", join(SEPARATOR2, rtc.indParams), rtc.depParam, rtc.templateVersion).equals(rtc.parametersId)) {
+		if(!String.format("%s;%s", join(SEPARATOR3, rtc.indParams), rtc.depParam).equals(rtc.parametersId)) {
 			throw new RatingException("RatingTemplateContainer parameters  not consistent with parameters identifier.");
 		}
-		if(!String.format("%s;%s.%s", join(SEPARATOR2, rtc.indParams), rtc.depParam, rtc.templateVersion).equals(rtc.templateId)) {
+		if(!String.format("%s;%s.%s", join(SEPARATOR3, rtc.indParams), rtc.depParam, rtc.templateVersion).equals(rtc.templateId)) {
 			throw new RatingException("RatingTemplateContainer parameters and/or version are not consistent with template identifier.");
 		}
 		if (rtc.inRangeMethods.length != indParamCount || rtc.outRangeLowMethods.length != indParamCount || rtc.outRangeHighMethods.length != indParamCount) {
@@ -319,10 +319,10 @@ public class RatingTemplate {
 		rtc.templateId = getTemplateId();
 		String[] parts = split(rtc.templateId, SEPARATOR1, "L");
 		rtc.parametersId = parts[0];
+		rtc.templateVersion = parts[1];
 		parts = split(rtc.parametersId, SEPARATOR2, "L");
 		rtc.indParams = split(parts[0], SEPARATOR3, "L");
 		rtc.depParam = parts[1];
-		rtc.templateVersion = parts[1];
 		rtc.inRangeMethods = new String[indParamCount];
 		rtc.outRangeLowMethods = new String[indParamCount];
 		rtc.outRangeHighMethods = new String[indParamCount];

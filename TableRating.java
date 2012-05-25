@@ -8,6 +8,7 @@ import static javax.xml.xpath.XPathConstants.NODE;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
+import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingValueContainer;
@@ -394,7 +395,9 @@ public class TableRating extends AbstractRating {
 			}
 		}
 		if (pIndVals[0].length != getIndParamCount()) {
-			throw new RatingException(String.format("Data has %d independent parameters; rating %s requires %d", pIndVals.length, this.ratingSpecId, this.getIndParamCount()));
+			throw new RatingException(String.format(
+					"Data has %d independent parameters; rating %s requires %d", 
+					pIndVals.length, ratingSpecId, getIndParamCount()));
 		}
 		double[] rated = new double[pIndVals.length];
 		for (int i = 0; i < pIndVals.length; ++i) rated[i] = this.rate(pIndVals[i], 0);
@@ -404,6 +407,7 @@ public class TableRating extends AbstractRating {
 	protected double rate(double[] pIndVals, int p_offset) throws RatingException {
 
 		double ind_val = pIndVals[p_offset];
+		if (ind_val == UNDEFINED_DOUBLE) return UNDEFINED_DOUBLE;
 		boolean out_range_low = false;
 		boolean out_range_high = false;
 		int lo = 0;
@@ -704,7 +708,6 @@ public class TableRating extends AbstractRating {
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
 		if (!(rc instanceof TableRatingContainer)) throw new RatingException("setData() requires a TableRatingContainer object.");
-		TableRatingContainer backup = (TableRatingContainer)getData();
 		try {
 			super._setData(rc);
 			TableRatingContainer trc = (TableRatingContainer)rc;
@@ -734,7 +737,6 @@ public class TableRating extends AbstractRating {
 			observationTarget.notifyObservers();
 		}
 		catch (Throwable t) {
-			setData(backup);
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}
@@ -785,6 +787,17 @@ public class TableRating extends AbstractRating {
 	public int getIndParamCount() throws RatingException {
 		return ratingSpecId == null ? (values == null ? 0 : getIndParamCount(values)) : getRatingParameters().length - 1;
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#setName(java.lang.String)
+	 */
+	@Override
+	public void setName(String name) throws RatingException {
+		if (ratingSpecId == null) {
+			throw new RatingException("Only top level ratings can be named.");
+		}
+		super.setName(name);
+	}
+
 	/**
 	 * Fills the specified TableRatingContainer object with information from this rating.
 	 * @param trc The TableRatingObject to fill
