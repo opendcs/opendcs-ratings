@@ -30,8 +30,11 @@ import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.heclib.util.HecTime;
+import hec.hecmath.HecMathException;
+import hec.hecmath.TextMath;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
+import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
@@ -418,6 +421,36 @@ public class RatingSet implements IRating, Observer {
 	 */
 	public RatingSet(RatingSetContainer rsc) throws RatingException {
 		setData(rsc);
+		allowUnsafe = alwaysAllowUnsafe;
+		warnUnsafe = alwaysWarnUnsafe;
+		observationTarget = new Observable();
+		validate();
+	}
+	/**
+	 * Public Constructor from TextContainer (as read from DSS)
+	 * @param tc The TextContainer object to initialize from
+	 * @throws RatingException
+	 */
+	public RatingSet(TextContainer tc) throws RatingException {
+		setData(tc);
+		allowUnsafe = alwaysAllowUnsafe;
+		warnUnsafe = alwaysWarnUnsafe;
+		observationTarget = new Observable();
+		validate();
+	}
+	/**
+	 * Public Constructor from TextMath (as read from DSS)
+	 * @param tm The TextMath object to initialize from
+	 * @throws RatingException
+	 */
+	public RatingSet(TextMath tm) throws RatingException {
+		try {
+			setData((TextContainer)tm.getData());
+		} 
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
 		allowUnsafe = alwaysAllowUnsafe;
 		warnUnsafe = alwaysWarnUnsafe;
 		observationTarget = new Observable();
@@ -1120,7 +1153,7 @@ public class RatingSet implements IRating, Observer {
 					}
 				} 
 				if (tscUnit != null) {
-					if (!tscs[i].units.equals(units[0])) {
+					if (!tscs[i].units.equals(units[i])) {
 						if(Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
 							convertTscUnit[i] = true;
 						}
@@ -2003,6 +2036,43 @@ public class RatingSet implements IRating, Observer {
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}
+	}
+	/**
+	 * Retrieves a TextContainer containing the data of this object, suitable for storing to DSS. 
+	 * @return The TextContainer
+	 * @throws RatingException 
+	 */
+	public TextContainer getDssData() throws RatingException {
+		try {
+			TextContainer tc = new TextContainer();
+			tc.fullName = getDssPathname();
+			tc.text = String.format("%s\n%s", this.getClass().getName(), toCompressedXmlString());
+			return tc;
+		}		
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
+	/**
+	 * Sets the data from this object from a TextContainer (as read from DSS)
+	 * @param tc The TextContainer with the data
+	 * @throws RatingException
+	 */
+	public void setData(TextContainer tc) throws RatingException {
+		String[] lines = tc.text.split("\\n");
+		String className = getClass().getName();
+		for (int i = 0; i < lines.length-1; ++i) {
+			if (lines[i].equals(className)) {
+				int extra = lines[i+1].length() % 4;
+				int last = lines[i+1].length() - extra;
+				RatingSet other = RatingSet.fromCompressedXml(lines[i+1].substring(0, last));
+				removeAllRatings();
+				setData(other.getData());
+				return;
+			}
+		}
+		throw new RatingException("Invalid text for RatingSet");
 	}
 
 	private void refreshRatings() {
