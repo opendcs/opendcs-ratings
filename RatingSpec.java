@@ -671,6 +671,13 @@ public class RatingSpec extends RatingTemplate {
 		return String.format("%s.%s.%s", locationId, getTemplateId(), version);
 	}
 	/**
+	 * Retrieves the standard HEC-DSS pathname for this rating specification
+	 * @return The standard HEC-DSS pathname for this rating specification
+	 */
+	public String getDssPathname() {
+		return String.format("/%s/%s/%s//%s/%s/", officeId, locationId, getParametersId(), getTemplateVersion(), getVersion());
+	}
+	/**
 	 * Retrieves a RatingSpecContainer containing the data of this object. 
 	 * @return The RatingSpecContainer
 	 */

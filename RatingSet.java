@@ -217,6 +217,24 @@ public class RatingSet implements IRating, Observer {
 		}
 	}
 	/**
+	 * Generates a new RatingSet object from a compressed XML instance.
+	 * @param compressedXml The compressed XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 * @return A new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromCompressedXml(String compressedXml) throws RatingException {
+		try {
+			return fromXml(TextUtil.uncompress(compressedXml, "base64"));
+		} 
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
+	/**
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
@@ -1384,6 +1402,13 @@ public class RatingSet implements IRating, Observer {
 	public void setWarnUnsafe(boolean warnUnsafe) {
 		this.warnUnsafe = warnUnsafe;
 	}
+	/**
+	 * Retrieves the standard HEC-DSS pathname for this rating set
+	 * @return The standard HEC-DSS pathname for this rating set
+	 */
+	public String getDssPathname() {
+		return ratingSpec == null ? null : ratingSpec.getDssPathname();
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getName()
 	 */
@@ -1833,6 +1858,20 @@ public class RatingSet implements IRating, Observer {
 			sb.append("</ratings>\n");
 		}
 		return sb.toString();
+	}
+	/**
+	 * Outputs the rating set in a compress XML instance suitable for storing in DSS
+	 * @return The compressed XML text
+	 * @throws RatingException
+	 */
+	public String toCompressedXmlString() throws RatingException {
+ 		try {
+			return TextUtil.compress(toXmlString("  "), "base64");
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
 	}
 	/**
 	 * Stores the rating set to a CWMS database
