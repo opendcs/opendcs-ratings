@@ -30,7 +30,6 @@ import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.RatingException;
 import hec.data.Units;
-import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingValueContainer;

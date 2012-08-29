@@ -12,7 +12,6 @@ import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
-import hec.gfx2d.PlotSpecification;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;

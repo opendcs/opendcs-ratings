@@ -30,7 +30,6 @@ import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.heclib.util.HecTime;
-import hec.hecmath.HecMathException;
 import hec.hecmath.TextMath;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
