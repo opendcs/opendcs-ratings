@@ -1,20 +1,43 @@
 package hec.data.cwmsRating;
 
-import static hec.data.cwmsRating.RatingConst.*;
-import static hec.util.TextUtil.*;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.activeXpath;
+import static hec.data.cwmsRating.RatingConst.createDateXpath;
+import static hec.data.cwmsRating.RatingConst.descriptionXpath;
+import static hec.data.cwmsRating.RatingConst.effectiveDateXpath;
+import static hec.data.cwmsRating.RatingConst.extensionPointGroupNodesXpath;
+import static hec.data.cwmsRating.RatingConst.inRangeMethodXpath;
+import static hec.data.cwmsRating.RatingConst.indParamNodesXpath;
+import static hec.data.cwmsRating.RatingConst.indParamPosXpath;
+import static hec.data.cwmsRating.RatingConst.indParamsNodeXpath;
+import static hec.data.cwmsRating.RatingConst.initXmlParsing;
+import static hec.data.cwmsRating.RatingConst.officeIdXpath;
+import static hec.data.cwmsRating.RatingConst.otherIndParamNodesXpath;
+import static hec.data.cwmsRating.RatingConst.otherIndValXPath;
+import static hec.data.cwmsRating.RatingConst.outRangeHighMethodXpath;
+import static hec.data.cwmsRating.RatingConst.outRangeLowMethodXpath;
+import static hec.data.cwmsRating.RatingConst.pointNodesXpath;
+import static hec.data.cwmsRating.RatingConst.ratingPointGroupNodesXpath;
+import static hec.data.cwmsRating.RatingConst.ratingSpecIdXpath;
+import static hec.data.cwmsRating.RatingConst.unitsIdXpath;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.split;
 import static javax.xml.xpath.XPathConstants.NODE;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.RatingException;
+import hec.data.Units;
+import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.lang.Observable;
+import hec.util.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -405,9 +428,28 @@ public class TableRating extends AbstractRating {
 	}
 	
 	protected double rate(double[] pIndVals, int p_offset) throws RatingException {
+		String[] dataUnits = getDataUnits();
+		String[] ratingUnits = getRatingUnits();
+		for (int i = 0; i < ratingUnits.length; ++i) {
+			if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+				dataUnits[i] = ratingUnits[i] = null;
+			}
+			else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+			}
+			else {
+				String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
+				if (!allowUnsafe) throw new RatingException(msg);
+				if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+			}
+		}
+		return rate(pIndVals, dataUnits, ratingUnits, p_offset);
+	}
+	
+	protected double rate(double[] pIndVals, String[] dataUnits, String[] ratingUnits, int p_offset) throws RatingException {
 
 		double ind_val = pIndVals[p_offset];
 		if (ind_val == UNDEFINED_DOUBLE) return UNDEFINED_DOUBLE;
+		ind_val = convertUnits(ind_val, dataUnits[p_offset], ratingUnits[p_offset]);
 		boolean out_range_low = false;
 		boolean out_range_high = false;
 		int lo = 0;
@@ -469,26 +511,26 @@ public class TableRating extends AbstractRating {
 			case NEAREST:
 			case CLOSEST:
 				if (effectiveValues[0].hasDepValue()) {
-					return effectiveValues[0].getDepValue();
+					return convertUnits(effectiveValues[0].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 				}
 				else {
-					return effectiveValues[0].getDepValues().rate(pIndVals, p_offset+1);
+					return effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 			case LOWER:
 				if (props.hasIncreasing()) throw new RatingException("No lower value in table.");
 				if (effectiveValues[0].hasDepValue()) {
-					return effectiveValues[0].getDepValue();
+					return convertUnits(effectiveValues[0].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 				}
 				else {
-					return effectiveValues[0].getDepValues().rate(pIndVals, p_offset+1);
+					return effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 			case HIGHER:
 				if (props.hasDecreasing()) throw new RatingException("No higher value in table.");
 				if (effectiveValues[0].hasDepValue()) {
-					return effectiveValues[0].getDepValue();
+					return convertUnits(effectiveValues[0].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 				}
 				else {
-					return effectiveValues[0].getDepValues().rate(pIndVals, p_offset+1);
+					return effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 			default:
 				throw new RatingException(
@@ -519,26 +561,26 @@ public class TableRating extends AbstractRating {
 			case NEAREST:
 			case CLOSEST:
 				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					return effectiveValues[effectiveValues.length-1].getDepValue();
+					return convertUnits(effectiveValues[effectiveValues.length-1].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 				}
 				else {
-					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, p_offset+1);
+					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 			case LOWER:
 				if (props.hasDecreasing()) throw new RatingException("No lower value in table.");
 				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					return effectiveValues[effectiveValues.length-1].getDepValue();
+					return convertUnits(effectiveValues[effectiveValues.length-1].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 				}
 				else {
-					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, p_offset+1);
+					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 			case HIGHER:
 				if (props.hasIncreasing()) throw new RatingException("No higher value in table.");
 				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					return effectiveValues[effectiveValues.length-1].getDepValue();
+					return convertUnits(effectiveValues[effectiveValues.length-1].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 				}
 				else {
-					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, p_offset+1);
+					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 			default:
 				throw new RatingException(
@@ -553,10 +595,10 @@ public class TableRating extends AbstractRating {
 		//-----------------------------------//
 		double lo_ind_val = effectiveValues[lo].getIndValue();
 		double hi_ind_val = effectiveValues[hi].getIndValue();
-		double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, p_offset+1);
-		double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, p_offset+1);
-		if (ind_val == lo_ind_val) return lo_dep_val;
-		if (ind_val == hi_ind_val) return hi_dep_val;
+		double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+		double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+		if (ind_val == lo_ind_val) return convertUnits(lo_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+		if (ind_val == hi_ind_val) return convertUnits(hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 		RatingMethod method = (out_range_low || out_range_high) ? extrap_method : inRangeMethod;
 		switch (method) {
 		case NULL:
@@ -564,15 +606,15 @@ public class TableRating extends AbstractRating {
 		case ERROR:
 			throw new RatingException("No such value in table.");
 		case PREVIOUS:
-			return lo_dep_val;
+			return convertUnits(lo_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 		case NEXT:
-			return hi_dep_val;
+			return convertUnits(hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 		case LOWER:
-			return props.hasIncreasing() ? lo_dep_val : hi_dep_val;
+			return convertUnits(props.hasIncreasing() ? lo_dep_val : hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 		case HIGHER:
-			return props.hasDecreasing() ? lo_dep_val : hi_dep_val;
+			return convertUnits(props.hasDecreasing() ? lo_dep_val : hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 		case CLOSEST:
-			return Math.abs(ind_val - lo_ind_val) < Math.abs(hi_ind_val - ind_val) ? lo_dep_val : hi_dep_val;
+			return convertUnits(Math.abs(ind_val - lo_ind_val) < Math.abs(hi_ind_val - ind_val) ? lo_dep_val : hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 		default:
 			break;
 		}
@@ -619,7 +661,7 @@ public class TableRating extends AbstractRating {
 		}
 		double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 		if (dep_log) y = Math.pow(10, y);
-		return y;
+		return convertUnits(y, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double)
@@ -787,6 +829,67 @@ public class TableRating extends AbstractRating {
 	public int getIndParamCount() throws RatingException {
 		return ratingSpecId == null ? (values == null ? 0 : getIndParamCount(values)) : getRatingParameters().length - 1;
 	}
+	
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#getRatingExtents(long)
+	 */
+	@Override
+	public double[][] getRatingExtents(long ratingTime) throws RatingException {
+		// ratingTime is ignored
+		if (ratingSpecId == null) {
+			throw new RatingException("Only top level ratings can return rating extents.");
+		}
+		double[][] extents = new double[2][getIndParamCount()+1];
+		Arrays.fill(extents[0], Double.POSITIVE_INFINITY);
+		Arrays.fill(extents[1], Double.NEGATIVE_INFINITY);
+		getRatingExtents(extents, 0);
+		String[] dataUnits = getDataUnits();
+		String[] ratingUnits = getRatingUnits();
+		for (int i = 0; i < extents[0].length; ++i) {
+			if (!TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+				extents[0][i] = convertUnits(extents[0][i], ratingUnits[i], dataUnits[i]);
+				extents[1][i] = convertUnits(extents[1][i], ratingUnits[i], dataUnits[i]);
+			}
+		}
+		return extents;
+	}
+	
+	protected void getRatingExtents(double[][] extents, int level) throws RatingException {
+		if (values == null || values.length == 0) {
+			throw new RatingException("Empty rating.");
+		}
+		if (props.hasIncreasing) {
+			if (values[0].indValue < extents[0][level]) {
+				extents[0][level] = values[0].indValue;
+			}
+			if (values[values.length-1].indValue > extents[1][level]) {
+				extents[1][level] = values[values.length-1].indValue;
+			}
+		}
+		else {
+			if (values[values.length-1].indValue < extents[0][level]) {
+				extents[0][level] = values[values.length-1].indValue;
+			}
+			if (values[0].indValue > extents[1][level]) {
+				extents[1][level] = values[0].indValue;
+			}
+		}
+		boolean isLeaf = values[0].hasDepValue();
+		for (int i = 0; i < values.length; ++i) {
+			if (isLeaf) {
+				if (values[i].depValue < extents[0][level+1]) {
+					extents[0][level+1] = values[i].depValue;
+				}
+				if (values[i].depValue > extents[1][level+1]) {
+					extents[1][level+1] = values[i].depValue;
+				}
+			}
+			else {
+				values[i].depTable.getRatingExtents(extents, level+1);
+			}
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#setName(java.lang.String)
 	 */

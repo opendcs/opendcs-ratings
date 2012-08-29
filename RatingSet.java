@@ -56,6 +56,7 @@ import java.util.Observer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
@@ -68,6 +69,8 @@ import org.xml.sax.InputSource;
  * @author Mike Perryman
  */
 public class RatingSet implements IRating, Observer {
+
+	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
 	/**
 	 * Flag specifying whether new RatingSet objects will by default allow "risky" behavior such as using mismatched units, unknown parameters, etc.
@@ -914,7 +917,7 @@ public class RatingSet implements IRating, Observer {
 				if (!tz.getID().equals(tsc.timeZoneID)) {
 					String msg = String.format("TimeSeriesContainer has invalid time zone \"%s\".", tsc.timeZoneID);
 					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) System.err.println("WARNING: " + msg + "  Value times will be treated as UTC.");
+					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
 					tz = null;
 				}
 			}
@@ -931,13 +934,13 @@ public class RatingSet implements IRating, Observer {
 			}
 			catch (Throwable t) {
 				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+				if (warnUnsafe) logger.warning(t.getMessage());
 			}
 			if (tscParam != null) {
 				if (!tscParam.getParameter().equals(params[0])) {
 					String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam.getParameter(), params[0]);
 					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) System.err.println("WARNING: " + msg);
+					if (warnUnsafe) logger.warning(msg);
 				}
 			}
 			try {
@@ -945,14 +948,14 @@ public class RatingSet implements IRating, Observer {
 			}
 			catch (Throwable t) {
 				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+				if (warnUnsafe) logger.warning(t.getMessage());
 			}
 			if (tscParam != null) {
 				if (!Units.canConvertBetweenUnits(tsc.units, tscParam.getUnitsString())) {
 					
 					String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tsc.units, tscParam.getParameter());
 					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) System.err.println("WARNING: " + msg);
+					if (warnUnsafe) logger.warning(msg);
 				}
 			} 
 			if (tscUnit != null) {
@@ -963,7 +966,7 @@ public class RatingSet implements IRating, Observer {
 					else {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tsc.units, units[0]);
 						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) System.err.println("WARNING: " + msg + "  Rating will be performed on unconverted values.");
+						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
 					}
 				}
 			}
@@ -975,7 +978,7 @@ public class RatingSet implements IRating, Observer {
 			}
 			catch (Throwable t) {
 				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+				if (warnUnsafe) logger.warning(t.getMessage());
 			}
 			if (ratedUnit != null) {
 				if (!ratedUnitStr.equals(units[units.length-1])) {
@@ -985,7 +988,7 @@ public class RatingSet implements IRating, Observer {
 					else {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length-1], ratedUnit);
 						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) System.err.println("WARNING: " + msg + "  Rated values will be unconverted.");
+						if (warnUnsafe) logger.warning(msg + "  Rated values will be unconverted.");
 					}
 				}
 			}
@@ -1085,7 +1088,7 @@ public class RatingSet implements IRating, Observer {
 				if (tscs[i].interval != tscs[0].interval) {
 					String msg = "TimeSeriesContainers have inconsistent intervals.";
 					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) System.err.println("WARNING: " + msg + "  Rated values will be irregular interval.");
+					if (warnUnsafe) logger.warning(msg + "  Rated values will be irregular interval.");
 					ratedInterval = 0;
 					break;
 				}
@@ -1098,7 +1101,7 @@ public class RatingSet implements IRating, Observer {
 				if (!TextUtil.equals(tscs[i].timeZoneID, tzid)) {
 					String msg = "TimeSeriesContainers have inconsistent time zones.";
 					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) System.err.println("WARNING: " + msg + "  Value times will be treated as UTC.");
+					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
 					tzid = null;
 					break;
 				}
@@ -1109,7 +1112,7 @@ public class RatingSet implements IRating, Observer {
 				if (!tz.getID().equals(tzid)) {
 					String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tzid);
 					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) System.err.println("WARNING: " + msg + "  Value times will be treated as UTC.");
+					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
 					tz = null;
 				}
 			}
@@ -1128,13 +1131,13 @@ public class RatingSet implements IRating, Observer {
 				}
 				catch (Throwable t) {
 					if (!allowUnsafe) throw new RatingException(t);
-					if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+					if (warnUnsafe) logger.warning(t.getMessage());
 				}
 				if (tscParam[i] != null) {
 					if (!tscParam[i].getParameter().equals(params[i])) {
 						String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam[i].getParameter(), params[i]);
 						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) System.err.println("WARNING: " + msg);
+						if (warnUnsafe) logger.warning(msg);
 					}
 				}
 				try {
@@ -1142,14 +1145,14 @@ public class RatingSet implements IRating, Observer {
 				}
 				catch (Throwable t) {
 					if (!allowUnsafe) throw new RatingException(t);
-					if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+					if (warnUnsafe) logger.warning(t.getMessage());
 				}
 				if (tscParam[i] != null) {
 					if (!Units.canConvertBetweenUnits(tscs[i].units, tscParam[i].getUnitsString())) {
 						
 						String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tscs[i].units, tscParam[i].getParameter());
 						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) System.err.println("WARNING: " + msg);
+						if (warnUnsafe) logger.warning(msg);
 					}
 				} 
 				if (tscUnit != null) {
@@ -1160,7 +1163,7 @@ public class RatingSet implements IRating, Observer {
 						else {
 							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tscs[i].units, units[i]);
 							if (!allowUnsafe) throw new RatingException(msg);
-							if (warnUnsafe) System.err.println("WARNING: " + msg + "  Rating will be performed on unconverted values.");
+							if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
 						}
 					}
 				}
@@ -1173,7 +1176,7 @@ public class RatingSet implements IRating, Observer {
 			}
 			catch (Throwable t) {
 				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+				if (warnUnsafe) logger.warning(t.getMessage());
 			}
 			if (ratedUnit != null) {
 				if (!ratedUnitStr.equals(units[units.length-1])) {
@@ -1183,7 +1186,7 @@ public class RatingSet implements IRating, Observer {
 					else {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length-1], ratedUnit);
 						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) System.err.println("WARNING: " + msg + "  Rated values will be unconverted.");
+						if (warnUnsafe) logger.warning(msg + "  Rated values will be unconverted.");
 					}
 				}
 			}
@@ -1513,6 +1516,24 @@ public class RatingSet implements IRating, Observer {
 		}
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IRating#getRatingExtents()
+	 */
+	@Override
+	public double[][] getRatingExtents() throws RatingException {
+		// TODO Auto-generated method stub
+		return getRatingExtents(getRatingTime());
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#getRatingExtents(long)
+	 */
+	@Override
+	public double[][] getRatingExtents(long ratingTime) throws RatingException {
+		if (activeRatings.size() == 0) {
+			throw new RatingException("No active ratings.");
+		}
+		return activeRatings.floorEntry(ratingTime).getValue().getRatingExtents();
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getDefaultValueTime()
 	 */
 	@Override
@@ -1826,7 +1847,7 @@ public class RatingSet implements IRating, Observer {
 			if (!tz.getID().equals(tsc.timeZoneID)) {
 				String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tsc.timeZoneID);
 				if (!allowUnsafe) throw new RatingException(msg);
-				if (warnUnsafe) System.err.println("WARNING: " + msg + "  Value times will be treated as UTC.");
+				if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
 				tz = null;
 			}
 		}
@@ -2125,7 +2146,7 @@ public class RatingSet implements IRating, Observer {
 						}
 						catch (Throwable t) {
 							if (!allowUnsafe) throw new RatingException(t);
-							if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+							if (warnUnsafe) logger.warning(t.getMessage());
 						}
 					}
 				}
@@ -2138,7 +2159,7 @@ public class RatingSet implements IRating, Observer {
 					}
 					catch (Throwable t) {
 						if (!allowUnsafe) throw new RatingException(t);
-						if (warnUnsafe) System.err.println("WARNING: " + t.getMessage());
+						if (warnUnsafe) logger.warning(t.getMessage());
 					}
 				}
 				for (int i = 0; i < params.length; ++i) {
@@ -2148,7 +2169,7 @@ public class RatingSet implements IRating, Observer {
 						if (!Units.canConvertBetweenUnits(ratingParam.getUnitsString(), ratingUnit.toString())) {
 							String msg = String.format("Unit \"%s\" is not consistent with parameter \"%s\".", units[i], params[i]);
 							if (!allowUnsafe) throw new RatingException(msg);
-							if (warnUnsafe) System.err.println("WARNING: " + msg + "  Rating will be performed on unconverted values.");
+							if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
 						}
 					}
 				}
@@ -2160,6 +2181,29 @@ public class RatingSet implements IRating, Observer {
 		}
 	}
 		
+//	public static void main(String[] args) throws Exception {
+//		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.129:1521/CWMS22DEV", "cwms_20", "cwms22dev");
+//		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "ARCA.Count-Conduit_Gates,Opening-Conduit_Gates,Elev;Flow-Conduit_Gates.Standard.Production");
+//		double[][] extents = rs.getRatingExtents();
+//		String[] params = rs.getRatingParameters();
+//		String[] units = rs.getDataUnits();
+//		for (int i = 0; i < params.length; ++i) {
+//			System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", params[i], extents[0][i], extents[1][i], units[i]));
+//		}
+//		System.out.println("==================================");
+//		rs.setDataUnits(new String[] {"unit", "m", "m", "cms"});
+//		for (int i = 0; i < params.length; ++i) {
+//			System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", params[i], extents[0][i], extents[1][i], units[i]));
+//		}
+//		System.out.println("==================================");
+//		hec.heclib.dss.HecDss dssFile = hec.heclib.dss.HecDss.open("u:/junk/service_level.dss");
+//		hec.hecmath.PairedDataMath r = (hec.hecmath.PairedDataMath)dssFile.read("/MISSOURI/MAINSTEM/DATE-VOLUME/SERVICE_LEVEL///");
+//		hec.io.PairedDataContainer pdc = (hec.io.PairedDataContainer)r.getData();
+//		extents = r.getRatingExtents();
+//		System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", "Service Level", extents[0][0], extents[1][0], "n/a"));
+//		System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", pdc.xparameter,  extents[0][1], extents[1][1], pdc.xunits));
+//		System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", pdc.yparameter,  extents[0][2], extents[1][2], pdc.yunits));
+//	}
 	
 //	public static void main(String[] args) throws Exception {
 //		

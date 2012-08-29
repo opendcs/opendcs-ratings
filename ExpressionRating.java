@@ -22,6 +22,7 @@ import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.RatingException;
+import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
@@ -30,6 +31,7 @@ import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.Variable;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
+import hec.util.TextUtil;
 
 import java.util.Arrays;
 
@@ -185,6 +187,17 @@ public class ExpressionRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
+	 * @see hec.data.IRating#getRatingExtents(long)
+	 */
+	@Override
+	public double[][] getRatingExtents(long ratingTime) throws RatingException {
+		double[][] extents = new double[2][getIndParamCount()+1];
+		Arrays.fill(extents[0], Double.NEGATIVE_INFINITY);
+		Arrays.fill(extents[1], Double.POSITIVE_INFINITY);
+		return extents;
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#rate(double)
 	 */
 	@Override
@@ -211,10 +224,24 @@ public class ExpressionRating extends AbstractRating {
 			throw new RatingException(String.format("Data has 1 independent parameter; rating %s requires %d",  ratingSpecId, this.getIndParamCount()));
 		}
 		try {
+			String[] dataUnits = getDataUnits();
+			String[] ratingUnits = getRatingUnits();
+			for (int i = 0; i < ratingUnits.length; ++i) {
+				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+					dataUnits[i] = ratingUnits[i] = null;
+				}
+				else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+				}
+				else {
+					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
+					if (!allowUnsafe) throw new RatingException(msg);
+					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+				}
+			}
 			double[] rated = new double[pIndVals.length];
 			for (int i = 0; i < pIndVals.length; ++i) {
-				variables[0].setValue(pIndVals[i]);
-				rated[i] = expression.evaluate();
+				variables[0].setValue(convertUnits(pIndVals[i], dataUnits[0], ratingUnits[0]));
+				rated[i] = convertUnits(expression.evaluate(), ratingUnits[1], dataUnits[1]);
 			}
 			return rated;
 		}
@@ -238,6 +265,20 @@ public class ExpressionRating extends AbstractRating {
 			throw new RatingException(String.format("Data has %d independent parameters; rating %s requires %d", pIndVals[0].length, this.ratingSpecId, variables.length));
 		}
 		try {
+			String[] dataUnits = getDataUnits();
+			String[] ratingUnits = getRatingUnits();
+			for (int i = 0; i < ratingUnits.length; ++i) {
+				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+					dataUnits[i] = ratingUnits[i] = null;
+				}
+				else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+				}
+				else {
+					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
+					if (!allowUnsafe) throw new RatingException(msg);
+					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+				}
+			}
 			double[] rated = new double[pIndVals.length];
 			for (int i = 0; i < pIndVals.length; ++i) {
 				for (int j = 0; j < variables.length; ++j) {
@@ -245,10 +286,10 @@ public class ExpressionRating extends AbstractRating {
 						rated[i] = UNDEFINED_DOUBLE;
 						break;
 					}
-					variables[j].setValue(pIndVals[i][j]);
+					variables[j].setValue(convertUnits(pIndVals[i][j], dataUnits[j], ratingUnits[j]));
 				}
 				if (rated[i] != UNDEFINED_DOUBLE) {
-					rated[i] = expression.evaluate();
+					rated[i] = convertUnits(expression.evaluate(), ratingUnits[variables.length], dataUnits[variables.length]);
 				}
 			}
 			return rated;
