@@ -1942,7 +1942,7 @@ public class RatingSet implements IRating, Observer {
 			
 			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
 			stmts[1].setString(1, toXmlString(""));
-			stmts[1].setString(2, overwriteExisting ? "T" : "F");
+			stmts[1].setString(2, overwriteExisting ? "F" : "T");
 			stmts[1].execute();
 			
 			stmts[0].execute();
