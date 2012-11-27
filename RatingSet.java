@@ -158,7 +158,7 @@ public class RatingSet implements IRating, Observer {
 			Document doc = builder.parse(new InputSource(new StringReader(xmlText)));
 			NodeList ratingNodes = (NodeList)ratingNodesXpath.evaluate(doc, NODESET);
 			if (ratingNodes.getLength() == 0) {
-				throw new RatingException("No rating nodes.");
+				throw new RatingException("No ratings found in XML instance.");
 			}
 			String officeId = null;
 			String ratingSpecId = null;
