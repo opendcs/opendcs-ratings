@@ -169,6 +169,35 @@ public class UsgsStreamTableRating extends TableRating {
 		setOffsets(offsets);
 	}
 
+	public UsgsStreamTableRating(UsgsStreamTableRatingContainer urc) throws RatingException {
+		RatingValue[] values = new RatingValue[urc.values.length];
+		RatingValue[] extensionValues = null;
+		for (int i = 0; i < values.length; ++i) values[i] = new RatingValue(urc.values[i]);
+		if (urc.extensionValues != null) {
+			extensionValues = new RatingValue[urc.extensionValues.length];
+			for (int i = 0; i < extensionValues.length; ++i) extensionValues[i] = new RatingValue(urc.extensionValues[i]);
+		}
+		super.init(values,
+				extensionValues,
+				RatingMethod.fromString(urc.inRangeMethod),
+				RatingMethod.fromString(urc.outRangeLowMethod),
+				RatingMethod.fromString(urc.outRangeHighMethod),
+				urc.officeId,
+				urc.ratingSpecId,
+				urc.unitsId,
+				urc.effectiveDateMillis,
+				urc.createDateMillis,
+				urc.active,
+				urc.description);
+		
+		if (urc.offsets != null) {
+			this.offsets = new TableRating(urc.offsets);
+		}
+		if (urc.shifts != null) {
+			this.shifts = new RatingSet(urc.shifts);
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.RatingTable#rate(double)
 	 */

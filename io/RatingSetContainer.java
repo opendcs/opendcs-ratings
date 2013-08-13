@@ -31,6 +31,7 @@ public class RatingSetContainer {
 		else {
 			other.abstractRatingContainers = new AbstractRatingContainer[abstractRatingContainers.length];
 			for (int i = 0; i < abstractRatingContainers.length; ++i) {
+				other.abstractRatingContainers[i] = new TableRatingContainer();
 				abstractRatingContainers[i].clone(other.abstractRatingContainers[i]);
 			}
 		}

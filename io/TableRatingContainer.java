@@ -48,6 +48,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		else {
 			trc.values = new RatingValueContainer[values.length];
 			for (int i = 0; i < values.length; ++i) {
+				trc.values[i] = new RatingValueContainer();
 				values[i].clone(trc.values[i]);
 			}
 		}

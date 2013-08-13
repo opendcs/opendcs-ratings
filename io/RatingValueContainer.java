@@ -36,6 +36,7 @@ public class RatingValueContainer {
 			other.depTable = null;
 		}
 		else {
+			other.depTable = new TableRatingContainer();
 			depTable.clone(other.depTable);
 		}
 	}

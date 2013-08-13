@@ -275,6 +275,8 @@ public class TableRating extends AbstractRating {
 		}
 	}
 	
+	protected TableRating() {}
+	
 	/**
 	 * Protected Constructor for nested rating tables 
 	 * @param values The table of values that comprise the rating.

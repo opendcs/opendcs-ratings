@@ -3,32 +3,20 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.data.cwmsRating.RatingConst.builder;
-import static hec.data.cwmsRating.RatingConst.formulaXpath;
-import static hec.data.cwmsRating.RatingConst.initXmlParsing;
-import static hec.data.cwmsRating.RatingConst.officeIdXpath;
-import static hec.data.cwmsRating.RatingConst.ratingNodesXpath;
-import static hec.data.cwmsRating.RatingConst.ratingPointGroupNodesXpath;
-import static hec.data.cwmsRating.RatingConst.ratingSpecIdXpath;
-import static hec.data.cwmsRating.RatingConst.specNodeXpathStr;
-import static hec.data.cwmsRating.RatingConst.templateNodeXpathStr;
-import static hec.data.cwmsRating.RatingConst.unitsIdXpath;
-import static hec.data.cwmsRating.RatingConst.xpath;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
-import static javax.xml.xpath.XPathConstants.NODE;
-import static javax.xml.xpath.XPathConstants.NODESET;
-import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.IRating;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TextMath;
 import hec.hecmath.TimeSeriesMath;
@@ -39,7 +27,6 @@ import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
-import java.io.StringReader;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -49,19 +36,12 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -153,73 +133,7 @@ public class RatingSet implements IRating, Observer {
 	 * @throws RatingException
 	 */
 	public static RatingSet fromXml(String xmlText) throws RatingException {
-		try {
-			initXmlParsing();
-			Document doc = builder.parse(new InputSource(new StringReader(xmlText)));
-			NodeList ratingNodes = (NodeList)ratingNodesXpath.evaluate(doc, NODESET);
-			if (ratingNodes.getLength() == 0) {
-				throw new RatingException("No ratings found in XML instance.");
-			}
-			String officeId = null;
-			String ratingSpecId = null;
-			String unitsId = null;
-			String parametersId = null;
-			String templateVersion = null;
-			Node templateNode = null;
-			Node specNode = null;
-			RatingSpec ratingSpec = null;
-			List<AbstractRating> ratings = new Vector<AbstractRating>();
-			for (int i = 0; i < ratingNodes.getLength(); ++i) {
-				Node ratingNode = ratingNodes.item(i);
-				if (i == 0) {
-			         officeId = ((String)officeIdXpath.evaluate(ratingNode, STRING)).trim();
-	                 ratingSpecId = ((String)ratingSpecIdXpath.evaluate(ratingNode, STRING)).trim();
-	                 unitsId = ((String)unitsIdXpath.evaluate(ratingNode, STRING)).trim();
-	                 String[] parts = Pattern.compile(SEPARATOR1, Pattern.LITERAL).split(ratingSpecId);
-//	                 location = parts[0];
-	                 parametersId = parts[1];
-	                 templateVersion = parts[2];
-//	                 specVersion = parts[3];
-	                 templateNode = (Node)xpath.compile(String.format(templateNodeXpathStr, officeId, parametersId, templateVersion)).evaluate(doc, NODE);
-	                 specNode = (Node)xpath.compile(String.format(specNodeXpathStr, officeId, ratingSpecId)).evaluate(doc, NODE);
-	                 ratingSpec = RatingSpec.fromXml(templateNode, specNode);
-				}
-				else {
-			         if (!officeId.equals(((String)officeIdXpath.evaluate(ratingNode, STRING)).trim())) {
-			        	 throw new RatingException("Individual ratings have different offices.");
-			         }
-	                 if (!ratingSpecId.equals(((String)ratingSpecIdXpath.evaluate(ratingNode, STRING)).trim())) {
-			        	 throw new RatingException("Individual ratings have different rating specifications.");
-	                 }
-	                 if (!unitsId.equals(((String)unitsIdXpath.evaluate(ratingNode, STRING)).trim())) {
-			        	 throw new RatingException("Individual ratings have different units.");
-	                 }
-				}
-				if (ratingNode.getNodeName().equals("usgs-stream-rating")) {
-					ratings.add(UsgsStreamTableRating.fromXml(templateNode, ratingNode));
-				}
-				else {
-					Node node = (Node)ratingPointGroupNodesXpath.evaluate(ratingNode, NODE);
-					if (node != null)  {
-						ratings.add(TableRating.fromXml(templateNode, ratingNode));
-					}
-					else {
-						node = (Node)formulaXpath.evaluate(ratingNode, NODE);
-						if (node != null) {
-							ratings.add(ExpressionRating.fromXml(templateNode, ratingNode));
-						}
-					}
-					if (node == null) {
-						throw new RatingException("Rating element does not include either rating-points or formula sub-elements");
-					}
-				}
-			}
-			return new RatingSet(ratingSpec, ratings);
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
+		return RatingSetXmlParser.parseString(xmlText);
 	}
 	/**
 	 * Generates a new RatingSet object from a compressed XML instance.
@@ -464,6 +378,9 @@ public class RatingSet implements IRating, Observer {
 	 * @throws RatingException
 	 */
 	public void addRating(AbstractRating rating) throws RatingException {
+		if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
+			throw new RatingException("Cannot add rating with undefined effective date.");
+		}
 		Long effectiveDate = rating.getEffectiveDate();
 		if(ratings.containsKey(effectiveDate)) {
 			throw new RatingException("Rating with same effective date already exists; cannot add rating");
@@ -2039,8 +1956,14 @@ public class RatingSet implements IRating, Observer {
 			}
 			if (rsc.abstractRatingContainers != null) {
 				for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
-					if (rsc.abstractRatingContainers[i] instanceof TableRatingContainer) {
+					if (rsc.abstractRatingContainers[i] instanceof UsgsStreamTableRatingContainer) {
+						this.addRating(new UsgsStreamTableRating((UsgsStreamTableRatingContainer)rsc.abstractRatingContainers[i]));
+					}
+					else if (rsc.abstractRatingContainers[i] instanceof TableRatingContainer) {
 						this.addRating(new TableRating((TableRatingContainer)rsc.abstractRatingContainers[i]));
+					}
+					else if (rsc.abstractRatingContainers[i] instanceof ExpressionRatingContainer) {
+						this.addRating(new ExpressionRating((ExpressionRatingContainer)rsc.abstractRatingContainers[i]));
 					}
 					else {
 						throw new RatingException("Unexpected object type: " + rsc.abstractRatingContainers[i].getClass().getName());

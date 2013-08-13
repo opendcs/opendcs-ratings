@@ -21,7 +21,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public void clone(AbstractRatingContainer other) {
-		if (!(other instanceof TableRatingContainer)) {
+		if (!(other instanceof UsgsStreamTableRatingContainer)) {
 			throw new IllegalArgumentException("Clone-to object must be a UsgsStreamTableRatingContainer.");
 		}
 		super.clone(other);
