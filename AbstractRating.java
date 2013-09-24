@@ -3,6 +3,7 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
@@ -58,11 +59,11 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 	/**
 	 * The earliest date/time at which the rating is considered to be in effect 
 	 */
-	protected long effectiveDate = 0;
+	protected long effectiveDate = UNDEFINED_LONG;
 	/**
 	 * The earliest date/time that the rating was available - the time it was first stored in the database
 	 */
-	protected long createDate = 0;
+	protected long createDate = UNDEFINED_LONG;
 	/**
 	 * Flag specifying whether this rating should be used in the rate(), rateOne(), and reverseRate() methods.
 	 */
@@ -403,12 +404,22 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 	 */
 	@Override
 	public double[][] getRatingExtents() throws RatingException {
-		// TODO Auto-generated method stub
 		return getRatingExtents(getRatingTime());
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#rate(double)
+	 * @see hec.data.IRating#getEffectiveDates()
 	 */
+	@Override
+	public long[] getEffectiveDates() {
+		return new long[] {effectiveDate};
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#getCreateDates()
+	 */
+	@Override
+	public long[] getCreateDates() {
+		return new long[] {createDate};
+	}
 	/**
 	 * Retrieves a AbstractRatingContainer object for this rating.
 	 * @return The RatingConainer object.
@@ -420,9 +431,6 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 	 * @throws RatingException
 	 */
 	public abstract void setData(AbstractRatingContainer rc) throws RatingException;
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#toXmlString(java.lang.CharSequence, int)
-	 */
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#rate(hec.io.TimeSeriesContainer)
 	 */

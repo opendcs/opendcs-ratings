@@ -1450,6 +1450,30 @@ public class RatingSet implements IRating, Observer {
 		return activeRatings.floorEntry(ratingTime).getValue().getRatingExtents();
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IRating#getEffectiveDates()
+	 */
+	@Override
+	public long[] getEffectiveDates() {
+		long[] effectiveDates = new long[activeRatings.size()];
+		Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+		for (int i = 0; i < effectiveDates.length; ++i) {
+			effectiveDates[i] = it.next().effectiveDate;
+		}
+		return effectiveDates;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IRating#getCreateDates()
+	 */
+	@Override
+	public long[] getCreateDates() {
+		long[] createDates = new long[activeRatings.size()];
+		Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+		for (int i = 0; i < createDates.length; ++i) {
+			createDates[i] = it.next().createDate;
+		}
+		return createDates;
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getDefaultValueTime()
 	 */
 	@Override
