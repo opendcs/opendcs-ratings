@@ -192,9 +192,11 @@ public class UsgsStreamTableRating extends TableRating {
 		
 		if (urc.offsets != null) {
 			this.offsets = new TableRating(urc.offsets);
+			this.offsets.addObserver(this);
 		}
 		if (urc.shifts != null) {
 			this.shifts = new RatingSet(urc.shifts);
+			this.shifts.addObserver(this);
 		}
 	}
 
