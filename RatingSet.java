@@ -7,6 +7,7 @@ import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
 import hec.data.IRating;
+import hec.data.IRatingSet;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
@@ -47,7 +48,7 @@ import java.util.logging.Logger;
  *  
  * @author Mike Perryman
  */
-public class RatingSet implements IRating, Observer {
+public class RatingSet implements IRating, IRatingSet, Observer {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
@@ -377,6 +378,7 @@ public class RatingSet implements IRating, Observer {
 	 * @param rating The rating to add
 	 * @throws RatingException
 	 */
+	@Override
 	public void addRating(AbstractRating rating) throws RatingException {
 		if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
 			throw new RatingException("Cannot add rating with undefined effective date.");
@@ -1261,9 +1263,28 @@ public class RatingSet implements IRating, Observer {
 	 * Retrieves the times series of ratings.
 	 * @return The times series of ratings.
 	 */
+	@Override
 	public AbstractRating[] getRatings() {
 		return ratings.values().toArray(new AbstractRating[ratings.size()]);
 	}
+	
+	@Override
+	public TreeMap<Long, AbstractRating> getRatingsMap()
+	{
+		return ratings;
+	}
+	
+	@Override
+	public AbstractRating getRating(Long effectiveDate)
+	{
+		AbstractRating retval = null;
+		if(ratings != null)
+		{
+			retval = ratings.get(effectiveDate);
+		}
+		return retval;
+	}
+	
 	/**
 	 * Sets the times series of ratings, replacing any existing ratings.
 	 * @param ratings The time series of ratings
