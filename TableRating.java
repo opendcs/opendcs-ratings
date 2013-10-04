@@ -1182,4 +1182,10 @@ public class TableRating extends AbstractRating {
 			}
 		}
 	}
+
+	@Override
+	public RatingValue[] getValues(Integer defaultInterval)
+	{
+		return values;
+	}
 }
