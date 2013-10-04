@@ -724,4 +724,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 		}
 		return val;
 	}
+	
+	/**
+	 * Returns an array of Rating Values. The defaultInteger will be used by function based rating curves to
+	 * generate points a fixed number of dependent values apart
+	 * @param defaultInterval
+	 * @return 
+	 */
+	public abstract RatingValue[] getValues(Integer defaultInterval);
 }

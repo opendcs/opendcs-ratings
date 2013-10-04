@@ -460,4 +460,9 @@ public class ExpressionRating extends AbstractRating {
 		setExpression(expr);
 	}
 
+	@Override
+	public RatingValue[] getValues(Integer defaultInterval)
+	{
+		return null; //TODO: Implement me;
+	}
 }
