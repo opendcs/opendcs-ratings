@@ -31,15 +31,17 @@ import java.util.Observer;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
+import rma.lang.Modifiable;
+
 /**
  * Base class for all cwmsRating implementations
  *
  * @author Mike Perryman
  */
-public abstract class AbstractRating implements Observer, ICwmsRating {
+public abstract class AbstractRating implements Observer, ICwmsRating , Modifiable{
 
 	protected static final Logger logger = Logger.getLogger(AbstractRating.class.getPackage().getName());
-	
+
 	/**
 	 * Object that provides the Observable-by-composition functionality
 	 */
@@ -762,5 +764,27 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 		IRatingSpecification ratingSpecification = getRatingSpecification();
 		IRatingTemplate ratingTemplate = ratingSpecification.getTemplate();
 		return ratingTemplate;
-	}	
+	}
+	
+	/**
+	 * A flag to indicate that this rating curve has been modified.
+	 */
+	private boolean modified = false;
+	
+	/**
+	 * Returns the modified state of this rating curve.
+	 */
+    public boolean isModified()
+    {
+    	return modified;
+    }
+    /**
+     * Sets the modified state of this rating curve.
+     */
+    public void setModified(boolean bool)
+    {
+    	modified = bool;
+    }	
+    
+    public abstract AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException; 
 }

@@ -465,4 +465,14 @@ public class ExpressionRating extends AbstractRating {
 	{
 		return null; //TODO: Implement me;
 	}
+	
+	@Override
+	public ExpressionRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException
+	{
+		if (!(ratingContainer instanceof ExpressionRatingContainer))
+		{
+			throw new UnsupportedOperationException("Expression Ratings only support Expression Rating Containers.");
+		}
+		return new ExpressionRating((ExpressionRatingContainer)ratingContainer);
+	}
 }

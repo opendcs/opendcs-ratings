@@ -1188,4 +1188,15 @@ public class TableRating extends AbstractRating {
 	{
 		return values;
 	}
+	
+	
+	@Override
+	public TableRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException
+	{
+		if (!(ratingContainer instanceof TableRatingContainer))
+		{
+			throw new UnsupportedOperationException("Table Ratings only support Table Rating Containers.");
+		}
+		return new TableRating((TableRatingContainer)ratingContainer);
+	}
 }

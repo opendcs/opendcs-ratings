@@ -1038,4 +1038,14 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 		return offset;
 	}
+	
+	@Override
+	public UsgsStreamTableRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException
+	{
+		if (!(ratingContainer instanceof UsgsStreamTableRatingContainer))
+		{
+			throw new UnsupportedOperationException("USGS Stream Table Ratings only support USGS Stream Table Rating Containers.");
+		}
+		return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)ratingContainer);
+	}
 }
