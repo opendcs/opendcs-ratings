@@ -33,6 +33,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * Fills another TableRatingContainer object with information from this one
 	 * @param other The TableRatingContainer object to fill
 	 */
+	@Override
 	public void clone(AbstractRatingContainer other) {
 		if (!(other instanceof TableRatingContainer)) {
 			throw new IllegalArgumentException("Clone-to object must be a TableRatingContainer.");
@@ -62,5 +63,10 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			}
 		}
 	}
-	
+
+	@Override
+	public AbstractRatingContainer getInstance()
+	{
+		return new TableRatingContainer();
+	}
 }

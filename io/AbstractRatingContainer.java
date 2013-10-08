@@ -61,4 +61,13 @@ public class AbstractRatingContainer {
 			return super.toString();
 		}
 	}
+	
+	/**
+	 * Intended to be overriden to allow sub-classes to return empty instances for cloning.
+	 * @return
+	 */
+	public AbstractRatingContainer getInstance()
+	{
+		return new AbstractRatingContainer();
+	}
 }

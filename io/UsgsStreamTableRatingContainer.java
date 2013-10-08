@@ -41,4 +41,10 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			offsets.clone(ustrc.offsets);
 		}
 	}
+	
+	@Override
+	public AbstractRatingContainer getInstance()
+	{
+		return new UsgsStreamTableRatingContainer();
+	}
 }
