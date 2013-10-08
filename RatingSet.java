@@ -6,6 +6,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
+import hec.data.DataSetException;
 import hec.data.IRating;
 import hec.data.IRatingSet;
 import hec.data.Parameter;
@@ -18,6 +19,8 @@ import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import hec.data.rating.IRatingSpecification;
+import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TextMath;
 import hec.hecmath.TimeSeriesMath;
@@ -1217,13 +1220,39 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			throw new RatingException(t);
 		}
 	}
+	
 	/**
-	 * Retrieves the rating specification.
+	 * Retrieves the rating specification including all meta data.
 	 * @return The rating specification
 	 */
 	public RatingSpec getRatingSpec() {
 		return ratingSpec;
 	}
+		
+		
+	/**
+	 * Returns the unique identifying parts for the rating specification.
+	 * 
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingSpecification getRatingSpecification() throws DataSetException
+	{
+		IRatingSpecification ratingSpecification = getRatingSpec().getRatingSpecification();
+		return ratingSpecification;
+	}
+	
+	/**
+	 * Returns the unique identifying parts for the rating template.
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingTemplate getRatingTemplate() throws DataSetException
+	{
+		IRatingTemplate ratingTemplate = getRatingSpec().getRatingTemplate();
+		return ratingTemplate;
+	}
+	
 	/**
 	 * Sets the rating specification.
 	 * @param ratingSpec The rating specification

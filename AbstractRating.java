@@ -7,12 +7,16 @@ import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
+import hec.data.DataSetException;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
+import hec.data.rating.IRatingSpecification;
+import hec.data.rating.IRatingTemplate;
+import hec.data.rating.JDomRatingSpecification;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
@@ -732,4 +736,31 @@ public abstract class AbstractRating implements Observer, ICwmsRating {
 	 * @return 
 	 */
 	public abstract RatingValue[] getValues(Integer defaultInterval);
+	
+	
+	/**
+	 * Returns the unique identifying parts for the rating specification.
+	 * 
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingSpecification getRatingSpecification() throws DataSetException
+	{
+		String officeId2 = getOfficeId();
+		String ratingSpecId2 = getRatingSpecId();
+		JDomRatingSpecification ratingSpecification = new JDomRatingSpecification(officeId2, ratingSpecId2);
+		return ratingSpecification;
+	}
+	
+	/**
+	 * Returns the unique identifying parts for the rating template.
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingTemplate getRatingTemplate() throws DataSetException
+	{
+		IRatingSpecification ratingSpecification = getRatingSpecification();
+		IRatingTemplate ratingTemplate = ratingSpecification.getTemplate();
+		return ratingTemplate;
+	}	
 }

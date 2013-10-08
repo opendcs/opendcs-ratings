@@ -4,11 +4,16 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+import hec.data.DataSetException;
 import hec.data.RatingException;
 import hec.data.RoundingException;
 import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.rating.IRatingSpecification;
+import hec.data.rating.IRatingTemplate;
+import hec.data.rating.JDomRatingSpecification;
+import hec.data.rating.JDomRatingTemplate;
 
 import javax.xml.xpath.XPathConstants;
 
@@ -681,6 +686,7 @@ public class RatingSpec extends RatingTemplate {
 	 * Retrieves a RatingSpecContainer containing the data of this object. 
 	 * @return The RatingSpecContainer
 	 */
+	@Override
 	public RatingSpecContainer getData() {
 		RatingSpecContainer rsc = new RatingSpecContainer();
 		super.getData(rsc);
@@ -820,4 +826,30 @@ public class RatingSpec extends RatingTemplate {
 		return sb.toString();
 	}
 
+	/**
+	 * Returns the unique identifying parts for the rating specification.
+	 * 
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingSpecification getRatingSpecification() throws DataSetException
+	{
+		String officeId = getOfficeId();
+		String specificationId = getRatingSpecId();
+		JDomRatingSpecification specification = new JDomRatingSpecification(officeId, specificationId);
+		return specification;
+	}
+	
+	/**
+	 * Returns the unique identifying parts for the rating template.
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingTemplate getRatingTemplate() throws DataSetException
+	{
+		String officeId = getOfficeId();
+		String templateId = getTemplateId();
+		JDomRatingTemplate template = new JDomRatingTemplate(officeId, templateId);
+		return template;
+	}
 }
