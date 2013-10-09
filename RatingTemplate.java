@@ -11,12 +11,16 @@ import hec.data.cwmsRating.io.RatingTemplateContainer;
 
 import java.util.Arrays;
 
+import rma.lang.Modifiable;
+
 /**
  * Implements CWMS-style rating template.  Holds information about parameters of rating objects.
  * 
  * @author Mike Perryman
  */
-public class RatingTemplate {
+public class RatingTemplate implements Modifiable
+{
+	
 	/**
 	 * The version text of the rating template
 	 */
@@ -333,4 +337,24 @@ public class RatingTemplate {
 		}
 		rtc.templateDescription = description;
 	}
+	
+	/**
+	 * A flag to indicate that this rating curve has been modified.
+	 */
+	private boolean modified = false;
+	
+	/**
+	 * Returns the modified state of this rating curve.
+	 */
+    public boolean isModified()
+    {
+    	return modified;
+    }
+    /**
+     * Sets the modified state of this rating curve.
+     */
+    public void setModified(boolean bool)
+    {
+    	modified = bool;
+    }
 }
