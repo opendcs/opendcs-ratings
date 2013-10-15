@@ -73,7 +73,7 @@ public class RatingTemplate implements Modifiable
 	 * @param description The description of the template
 	 * @throws RatingException
 	 */
-	RatingTemplate(
+	public RatingTemplate(
 			String templateId,
 			RatingMethod[] inRangeMethods,
 			RatingMethod[] outRangeLowMethods,
@@ -90,7 +90,7 @@ public class RatingTemplate implements Modifiable
 	 * @param rtc The RatingTemplateContainer to initialize from
 	 * @throws RatingException
 	 */
-	protected RatingTemplate(RatingTemplateContainer rtc) throws RatingException {
+	public RatingTemplate(RatingTemplateContainer rtc) throws RatingException {
 		setData(rtc);
 	}
 	/**
