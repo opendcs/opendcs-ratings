@@ -337,11 +337,60 @@ public class RatingTemplate implements Modifiable
 		}
 		rtc.templateDescription = description;
 	}
+	/**
+	 * Generates an XML document fragment from this rating specification. 
+	 * @param indent The character(s) for each level of indentation
+	 * @param level The base indentation level for the document fragment
+	 * @return The XML document fragment
+	 */
+	public String toXmlString(CharSequence indent, int level) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < level; ++i) sb.append(indent);
+		String prefix = sb.toString();
+		sb.delete(0, sb.length());
+		//---------------//
+		// template data //
+		//---------------//
+		String[] indParams = getIndParameters();
+		RatingMethod[] inRangeMethods = getInRangeMethods();
+		RatingMethod[] outRangeLowMethods = getOutRangeLowMethods();
+		RatingMethod[] outRangeHighMethods = getOutRangeHighMethods();
+		String paramId = new String();
+		for (String indParam : indParams) paramId = paramId.concat(SEPARATOR3).concat(indParam);
+		paramId = paramId.concat(SEPARATOR2).concat(getDepParameter());
+		sb.append(String.format("%s<rating-template office-id=\"%s\">\n", prefix, officeId))
+		  .append(String.format("%s%s<parameters-id>%s</parameters-id>\n", prefix, indent, paramId.substring(1)))
+		  .append(String.format("%s%s<version>%s</version>\n", prefix, indent, getTemplateVersion()))
+		  .append(String.format("%s%s<ind-parameter-specs>\n", prefix, indent));
+		for (int i = 0; i < indParams.length; ++i) {
+			sb.append(String.format("%s%s%s<ind-parameter-spec position=\"%d\">\n", prefix, indent, indent, i+1))
+			  .append(String.format("%s%s%s%s<parameter>%s</parameter>\n", prefix, indent, indent, indent, indParams[i]))
+			  .append(String.format("%s%s%s%s<in-range-method>%s</in-range-method>\n", prefix, indent, indent, indent, inRangeMethods[i]))
+			  .append(String.format("%s%s%s%s<out-range-low-method>%s</out-range-low-method>\n", prefix, indent, indent, indent, outRangeLowMethods[i]))
+			  .append(String.format("%s%s%s%s<out-range-high-method>%s</out-range-high-method>\n", prefix, indent, indent, indent, outRangeHighMethods[i]))
+			  .append(String.format("%s%s%s</ind-parameter-spec>\n", prefix, indent, indent));
+		}
+		sb.append(String.format("%s%s</ind-parameter-specs>\n", prefix, indent))
+		  .append(String.format("%s%s<dep-parameter>%s</dep-parameter>\n", prefix, indent, getDepParameter()));
+		String description = getTemplateDescription();
+		if (description == null || description.length() == 0) {
+			sb.append(String.format("%s%s<description/>\n", prefix, indent));
+		}
+		else {
+			sb.append(String.format("%s%s<description>%s</description>\n", prefix, indent, description));
+		}
+		sb.append(String.format("%s</rating-template>\n", prefix));
+		return sb.toString();
+	}
 	
 	/**
 	 * A flag to indicate that this rating curve has been modified.
 	 */
 	private boolean modified = false;
+	/**
+	 * The identifier of the office that owns the rating specification
+	 */
+	protected String officeId = null;
 	
 	/**
 	 * Returns the modified state of this rating curve.
@@ -357,4 +406,32 @@ public class RatingTemplate implements Modifiable
     {
     	modified = bool;
     }
+	/**
+	 * Retrieves the version portion of the rating template used by this specification
+	 * @return The version portion of the rating template used by this specification
+	 */
+	public String getTemplateVersion() {
+		return this.getVersion();
+	}
+	/**
+	 * Sets the version portion of the rating template used by this specification
+	 * @param version The version portion of the rating template used by this specification
+	 */
+	public void setTemplateVersion(String version) {
+		this.setVersion(version);
+	}
+	/**
+	 * Retrieves the description portion of the rating template used by this specification
+	 * @return The description portion of the rating template used by this specification
+	 */
+	public String getTemplateDescription() {
+		return this.getDescription();
+	}
+	/**
+	 * Sets the description portion of the rating template used by this specification
+	 * @param description The description portion of the rating template used by this specification
+	 */
+	public void setTemplateDescription(String description) {
+		this.setDescription(description);
+	}
 }
