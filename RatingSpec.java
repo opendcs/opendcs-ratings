@@ -728,11 +728,14 @@ public class RatingSpec extends RatingTemplate {
 	 * @return The XML document fragment
 	 */
 	public String toXmlString(CharSequence indent, int level, boolean includeTemplate) {
-		String template = includeTemplate ? super.toXmlString(indent, level) : "";
-		StringBuilder sb = new StringBuilder(template);
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
 		sb.delete(0, sb.length());
+		//---------------//
+		// template data //
+		//---------------//
+		if(includeTemplate) sb.append(super.toXmlString(indent, level));
 		//--------------------//
 		// specification data //
 		//--------------------//
