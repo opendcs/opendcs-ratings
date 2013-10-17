@@ -10,6 +10,7 @@ import hec.data.RoundingException;
 import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingSpecification;
@@ -652,7 +653,7 @@ public class RatingSpec extends RatingTemplate {
 	 * @return The RatingSpecContainer
 	 */
 	@Override
-	public RatingSpecContainer getData() {
+	public RatingTemplateContainer getData() {
 		RatingSpecContainer rsc = new RatingSpecContainer();
 		super.getData(rsc);
 		rsc.officeId = officeId;

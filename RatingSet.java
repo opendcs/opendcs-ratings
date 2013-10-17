@@ -17,6 +17,7 @@ import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
+import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.rating.IRatingSpecification;
@@ -137,7 +138,7 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public static RatingSet fromXml(String xmlText) throws RatingException {
-		return RatingSetXmlParser.parseString(xmlText);
+		return new RatingSet(RatingSetXmlParser.parseString(xmlText));
 	}
 	/**
 	 * Generates a new RatingSet object from a compressed XML instance.
@@ -2003,7 +2004,7 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	public RatingSetContainer getData() {
 		RatingSetContainer rsc = new RatingSetContainer();
 		if (ratingSpec != null) {
-			rsc.ratingSpecContainer = ratingSpec.getData();
+			rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
 		}
 		if (ratings.size() > 0) {
 			rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];

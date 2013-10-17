@@ -89,8 +89,8 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	//--------------------//
 	private String[] parts = new String[6]; // deepest element is 5
 	private int partsLen = -1;
-	private RatingSet rs = null;
-	private RatingSpecContainer rsc = null;
+	private RatingSetContainer rsc = null;
+	private RatingSpecContainer rspc = null;
 	private AbstractRatingContainer arc = null;
 	private List<AbstractRatingContainer> arcs = null;
 	private ExpressionRatingContainer erc = null;
@@ -242,21 +242,21 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	//--------------------------//
 	
 	/**
-	 * Parses a RatingSet XML instance from a string.
+	 * Parses a RatingSetContainer XML instance from a string.
 	 * @param str The string containing the XML
-	 * @return The resulting RatingSet object
+	 * @return The resulting RatingSetContainer object
 	 * @throws RatingException
 	 */
-	public static RatingSet parseString(String str) throws RatingException {
+	public static RatingSetContainer parseString(String str) throws RatingException {
 		return parseReader(new StringReader(str));
 	}
 	/**
-	 * Parses a RatingSet XML instance from a File object.
+	 * Parses a RatingSetContainer XML instance from a File object.
 	 * @param file The File object containing the XML
-	 * @return The resulting RatingSet object
+	 * @return The resulting RatingSetContainer object
 	 * @throws RatingException
 	 */
-	public static RatingSet parseFile(File file) throws RatingException {
+	public static RatingSetContainer parseFile(File file) throws RatingException {
 		try {
 			return parseReader(new FileReader(file));
 		} 
@@ -266,12 +266,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		}
 	}
 	/**
-	 * Parses a RatingSet XML instance from a file.
+	 * Parses a RatingSetContainer XML instance from a file.
 	 * @param filename The name of the file containing the XML
-	 * @return The resulting RatingSet object
+	 * @return The resulting RatingSetContainer object
 	 * @throws RatingException
 	 */
-	public static RatingSet parseFile(String filename) throws RatingException {
+	public static RatingSetContainer parseFile(String filename) throws RatingException {
 		try {
 			return parseReader(new FileReader(new File(filename)));
 		} 
@@ -281,21 +281,21 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		}
 	}
 	/**
-	 * Parses a RatingSet XML instance from a Reader object.
+	 * Parses a RatingSetContainer XML instance from a Reader object.
 	 * @param r The Reader object to get the XML from
-	 * @return The resulting RatingSet object
+	 * @return The resulting RatingSetContainer object
 	 * @throws RatingException
 	 */
-	public static RatingSet parseReader(Reader r) throws RatingException {
+	public static RatingSetContainer parseReader(Reader r) throws RatingException {
 		return parseInputSource(new InputSource(r));
 	}
 	/**
-	 * Parses a RatingSet XML instance from a InputSource object.
+	 * Parses a RatingSetContainer XML instance from a InputSource object.
 	 * @param is The InputSource object to get the XML from
-	 * @return The resulting RatingSet object
+	 * @return The resulting RatingSetContainer object
 	 * @throws RatingException
 	 */
-	public static RatingSet parseInputSource(InputSource is) throws RatingException {
+	public static RatingSetContainer parseInputSource(InputSource is) throws RatingException {
 		RatingSetXmlParser parser = null;
 		try {
 			parser = new RatingSetXmlParser();
@@ -305,8 +305,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}
-		return parser.getRatingSet();
+		return parser.getRatingSetContainer();
 	}
+
+	
 	/*
 	 * Private constructor 
 	 * @throws SAXException
@@ -315,10 +317,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		super(new ParserAdapter((Parser) XMLReaderFactory.createXMLReader()));
 	}
 	/*
-	 * @return the RatingSet object
+	 * @return the RatingSetContainer object
 	 */
-	private RatingSet getRatingSet() {
-		return rs;
+	private RatingSetContainer getRatingSetContainer() {
+		return rsc;
 	}
 	/**
 	 * @throws a new RuntimeException if XML doesn't match expected structure
@@ -343,17 +345,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void endDocument() {
-		if (rsc != null && arcs != null) {
-			RatingSetContainer ratingSetContainer = new RatingSetContainer();
-			ratingSetContainer.ratingSpecContainer = rsc;
-			ratingSetContainer.abstractRatingContainers = new AbstractRatingContainer[arcs.size()];
+		if (rspc != null && arcs != null) {
+			rsc = new RatingSetContainer();
+			rsc.ratingSpecContainer = rspc;
+			rsc.abstractRatingContainers = new AbstractRatingContainer[arcs.size()];
 			for (int i = 0; i < arcs.size(); ++i) {
-				ratingSetContainer.abstractRatingContainers[i] = arcs.get(i);
-			}
-			try {
-				rs = new RatingSet(ratingSetContainer);
-			} catch (RatingException e) {
-				throw new RuntimeException(e);
+				rsc.abstractRatingContainers[i] = arcs.get(i);
 			}
 		}
 		partsLen = -1;
@@ -372,11 +369,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			break;
 		case 2 :
 			if (localName.equals(RATING_TEMPLATE_STR)) {
-				if (rsc != null) {
+				if (rspc != null) {
 					throw new RuntimeException("Only one rating template may be processed");
 				}
-				rsc = new RatingSpecContainer();
-				rsc.officeId = attrs.getValue(OFFICE_ID_STR);
+				rspc = new RatingSpecContainer();
+				rspc.officeId = attrs.getValue(OFFICE_ID_STR);
 			}
 			else if (localName.equals(RATING_STR) || localName.equals(USGS_STREAM_RATING_STR)) {
 				arc = new AbstractRatingContainer();
@@ -633,13 +630,13 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		case 2 :
 			if (localName.equals(RATING_TEMPLATE_STR)) {
 				try {
-					RatingMethod[] inRangeMethods = new RatingMethod[rsc.indParams.length];
-					RatingMethod[] outRangeLowMethods = new RatingMethod[rsc.indParams.length];
-					RatingMethod[] outRangeHighMethods = new RatingMethod[rsc.indParams.length];
-					for (int i = 0; i < rsc.indParams.length; ++i) {
-						inRangeMethods[i] = RatingMethod.fromString(rsc.inRangeMethods[i]);
-						outRangeLowMethods[i] = RatingMethod.fromString(rsc.outRangeLowMethods[i]);
-						outRangeHighMethods[i] = RatingMethod.fromString(rsc.outRangeHighMethods[i]);
+					RatingMethod[] inRangeMethods = new RatingMethod[rspc.indParams.length];
+					RatingMethod[] outRangeLowMethods = new RatingMethod[rspc.indParams.length];
+					RatingMethod[] outRangeHighMethods = new RatingMethod[rspc.indParams.length];
+					for (int i = 0; i < rspc.indParams.length; ++i) {
+						inRangeMethods[i] = RatingMethod.fromString(rspc.inRangeMethods[i]);
+						outRangeLowMethods[i] = RatingMethod.fromString(rspc.outRangeLowMethods[i]);
+						outRangeHighMethods[i] = RatingMethod.fromString(rspc.outRangeHighMethods[i]);
 					}
 				}
 				catch (Exception e) {
@@ -655,9 +652,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					erc = null;
 				}
 				else if (trc != null) {
-					trc.inRangeMethod = rsc.inRangeMethods[0];
-					trc.outRangeLowMethod = rsc.outRangeLowMethods[0];
-					trc.outRangeHighMethod = rsc.outRangeHighMethods[0];
+					trc.inRangeMethod = rspc.inRangeMethods[0];
+					trc.outRangeLowMethod = rspc.outRangeLowMethods[0];
+					trc.outRangeHighMethod = rspc.outRangeHighMethods[0];
 					if (ratingPointSetCount == 1) {
 						int pointCount = ratingPoints.get(0).getPointCount();
 						trc.values = new RatingValueContainer[pointCount];
@@ -716,9 +713,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							depth, 
 							0, 
 							width, 
-							rsc.inRangeMethods,
-							rsc.outRangeLowMethods,
-							rsc.outRangeHighMethods);
+							rspc.inRangeMethods,
+							rspc.outRangeLowMethods,
+							rspc.outRangeHighMethods);
 					}
 					ratingPoints = null;
 					ratingPointSetCount = 0;
@@ -732,9 +729,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			}
 			else if (localName.equals(USGS_STREAM_RATING_STR)) {
 				if (arcs == null) arcs = new ArrayList<AbstractRatingContainer>();
-				urc.inRangeMethod = rsc.inRangeMethods[0];
-				urc.outRangeLowMethod = rsc.outRangeLowMethods[0];
-				urc.outRangeHighMethod = rsc.outRangeHighMethods[0];
+				urc.inRangeMethod = rspc.inRangeMethods[0];
+				urc.outRangeLowMethod = rspc.outRangeLowMethods[0];
+				urc.outRangeHighMethod = rspc.outRangeHighMethods[0];
 				int pointCount = ratingPoints.get(0).getPointCount();
 				urc.values = new RatingValueContainer[pointCount];
 				for (int i = 0; i < pointCount; ++i) {
@@ -800,7 +797,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						if (shiftCount > 0) {
 							String shiftUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
 							urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = String.format("%s.%s.%s", rsc.locationId, urc.shifts.ratingSpecContainer.templateId, "Production");
+							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = String.format("%s.%s.%s", rspc.locationId, urc.shifts.ratingSpecContainer.templateId, "Production");
 							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
 							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
 							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate == Const.UNDEFINED_TIME ? System.currentTimeMillis() : shiftInfo.get(i).createDate;
@@ -844,67 +841,67 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			case 3 :
 				if (parts[1].equals(RATING_TEMPLATE_STR)) {
 					if (parts[2].equals(PARAMETERS_ID_STR)) {
-						rsc.parametersId = data;
+						rspc.parametersId = data;
 						int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
-						rsc.indParams = new String[count];
-						rsc.inRangeMethods = new String[count];
-						rsc.outRangeLowMethods = new String[count];
-						rsc.outRangeHighMethods = new String[count];
+						rspc.indParams = new String[count];
+						rspc.inRangeMethods = new String[count];
+						rspc.outRangeLowMethods = new String[count];
+						rspc.outRangeHighMethods = new String[count];
 					}
 					else if (parts[2].equals(VERSION_STR)) {
-						rsc.templateVersion = data;
-						rsc.templateId = rsc.parametersId + RatingConst.SEPARATOR1 + rsc.templateVersion;
+						rspc.templateVersion = data;
+						rspc.templateId = rspc.parametersId + RatingConst.SEPARATOR1 + rspc.templateVersion;
 					}
 					else if (parts[2].equals(DEP_PARAMETER_STR)) {
-						rsc.depParam = data;
+						rspc.depParam = data;
 					}
 					else if (parts[2].equals(DESCRIPTION_STR)) {
-						rsc.templateDescription = data;
+						rspc.templateDescription = data;
 					}
 				}
 				else if (parts[1].equals(RATING_SPEC_STR)) {
 					if (parts[2].equals(RATING_SPEC_ID_STR)) {
-						rsc.specId = data;
+						rspc.specId = data;
 					}
 					else if (parts[2].equals(TEMPLATE_ID_STR)) {
 						int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
-						rsc.indRoundingSpecs = new String[count];
+						rspc.indRoundingSpecs = new String[count];
 					}
 					else if (parts[2].equals(LOCATION_ID_STR)) {
-						rsc.locationId = data;
+						rspc.locationId = data;
 					}
 					else if (parts[2].equals(VERSION_STR)) {
-						rsc.specVersion = data;
+						rspc.specVersion = data;
 					}
 					else if (parts[2].equals(SOURCE_AGENCY_STR)) {
-						rsc.sourceAgencyId = data;
+						rspc.sourceAgencyId = data;
 					}
 					else if (parts[2].equals(IN_RANGE_METHOD_STR)) {
-						rsc.inRangeMethod = data;
+						rspc.inRangeMethod = data;
 					}
 					else if (parts[2].equals(OUT_RANGE_LOW_METHOD_STR)) {
-						rsc.outRangeLowMethod = data;
+						rspc.outRangeLowMethod = data;
 					}
 					else if (parts[2].equals(OUT_RANGE_HIGH_METHOD_STR)) {
-						rsc.outRangeHighMethod = data;
+						rspc.outRangeHighMethod = data;
 					}
 					else if (parts[2].equals(ACTIVE_STR)) {
-						rsc.active = Boolean.parseBoolean(data);
+						rspc.active = Boolean.parseBoolean(data);
 					}
 					else if (parts[2].equals(AUTO_UPDATE_STR)) {
-						rsc.autoUpdate = Boolean.parseBoolean(data);
+						rspc.autoUpdate = Boolean.parseBoolean(data);
 					}
 					else if (parts[2].equals(AUTO_ACTIVATE_STR)) {
-						rsc.autoActivate = Boolean.parseBoolean(data);
+						rspc.autoActivate = Boolean.parseBoolean(data);
 					}
 					else if (parts[2].equals(AUTO_MIGRATE_EXTENSION_STR)) {
-						rsc.autoMigrateExtensions = Boolean.parseBoolean(data);
+						rspc.autoMigrateExtensions = Boolean.parseBoolean(data);
 					}
 					else if (parts[2].equals(DEP_ROUNDING_SPEC_STR)) {
-						rsc.depRoundingSpec = data;
+						rspc.depRoundingSpec = data;
 					}
 					else if (parts[2].equals(DESCRIPTION_STR)) {
-						rsc.specDescription = data;
+						rspc.specDescription = data;
 					}
 				}
 				else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
@@ -941,7 +938,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			case 4 :
 				if (parts[1].equals(RATING_SPEC_STR)) {
 					if (parts[2].equals(IND_ROUNDING_SPECS_STR) && parts[3].equals(IND_ROUNDING_SPEC_STR)) {
-						rsc.indRoundingSpecs[pos] = data;
+						rspc.indRoundingSpecs[pos] = data;
 					}
 				}
 				else if (parts[1].equals(USGS_STREAM_RATING_STR)) {
@@ -965,16 +962,16 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				if (parts[1].equals(RATING_TEMPLATE_STR)) {
 					if (parts[2].equals(IND_PARAMETER_SPECS_STR) && parts[3].equals(IND_PARAMETER_SPEC_STR)) {
 						if (parts[4].equals(PARAMETER_STR)) {
-							rsc.indParams[pos] = data;
+							rspc.indParams[pos] = data;
 						}
 						else if (parts[4].equals(IN_RANGE_METHOD_STR)) {
-							rsc.inRangeMethods[pos] = data;
+							rspc.inRangeMethods[pos] = data;
 						}
 						else if (parts[4].equals(OUT_RANGE_LOW_METHOD_STR)) {
-							rsc.outRangeLowMethods[pos] = data;
+							rspc.outRangeLowMethods[pos] = data;
 						}
 						else if (parts[4].equals(OUT_RANGE_HIGH_METHOD_STR)) {
-							rsc.outRangeHighMethods[pos] = data;
+							rspc.outRangeHighMethods[pos] = data;
 						}
 					}
 				}

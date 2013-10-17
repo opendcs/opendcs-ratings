@@ -1,5 +1,10 @@
 package hec.data.cwmsRating.io;
 
+import hec.data.RatingException;
+import hec.io.RatingContainer;
+
+import org.jdom.Element;
+
 /**
  * Data container class for TableRating objects
  *
@@ -68,5 +73,62 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	public AbstractRatingContainer getInstance()
 	{
 		return new TableRatingContainer();
+	}
+	
+	public static TableRatingContainer fromXml(Element ratingElement) throws RatingException {
+		TableRatingContainer trc = new TableRatingContainer();
+		AbstractRatingContainer.fromXml(ratingElement, trc);
+		if (ratingElement.getChildren("rating-points").size() > 0) {
+			trc.values = RatingValueContainer.makeContainers(ratingElement, "rating-points");
+		}
+		if (ratingElement.getChildren("extension-points").size() > 0) {
+			trc.extensionValues = RatingValueContainer.makeContainers(ratingElement, "extension-points");
+		}
+		return trc;
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
+	 */
+	@Override
+	public String toXml(CharSequence indent) {
+		return toXml(indent, 0);
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence, int)
+	 */
+	@Override
+	public String toXml(CharSequence indent, int level) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < level; ++i) sb.append(indent);
+		String prefix = sb.toString();
+		sb.delete(0, sb.length());
+		if (level == 0) {
+			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
+			prefix += indent;
+		}
+		sb.append(super.toXml(prefix, indent, "rating"));
+		String pointPrefix = prefix + indent + indent;
+		if (values != null) {
+			for (RatingValueContainer rvc : values) {
+				sb.append(prefix).append(indent).append("<rating-points>\n");
+				rvc.toXml(pointPrefix, indent, sb);
+				sb.append(prefix).append(indent).append("</rating-points>\n");
+			}
+		}
+		if (extensionValues != null) {
+			for (RatingValueContainer rvc : extensionValues) {
+				sb.append(prefix).append(indent).append("<extension-points>\n");
+				rvc.toXml(pointPrefix, indent, sb);
+				sb.append(prefix).append(indent).append("</extension-points>\n");
+			}
+		}
+		sb.append(prefix).append("</rating>\n");
+		if (level == 0) {
+			sb.append("</ratings>\n");
+		}
+		return sb.toString();
 	}
 }

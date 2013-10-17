@@ -786,5 +786,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
     	modified = bool;
     }	
     
-    public abstract AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException; 
+    public abstract AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException;
+    
+    public static Logger getLogger() {
+    	return logger;
+    }
 }
