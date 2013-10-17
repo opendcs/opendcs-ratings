@@ -22,9 +22,9 @@ public class RatingTemplate implements Modifiable
 {
 	
 	/**
-	 * The version text of the rating template
+	 * The templateVersion text of the rating template
 	 */
-	private String version = null;
+	private String templateVersion = null;
 	/**
 	 * The name(s) of the independent parameter(s)
 	 */
@@ -195,7 +195,7 @@ public class RatingTemplate implements Modifiable
 	 */
 	public String getTemplateId() {
 		StringBuilder sb = new StringBuilder(getParametersId());
-		sb.append(SEPARATOR1).append(version);
+		sb.append(SEPARATOR1).append(templateVersion);
 		return sb.toString();
 	}
 	/**
@@ -207,21 +207,21 @@ public class RatingTemplate implements Modifiable
 		String[] parts = split(templateId, SEPARATOR1, "L");
 		if (parts.length != 2) throw new RatingException("Invalid template identifier: " + templateId);
 		setParametersId(parts[0]);
-		version = parts[1];
+		templateVersion = parts[1];
 	}
 	/**
-	 * Retrieves the version portion of the rating template identifier
-	 * @return The version portion of the rating template identifier
+	 * Retrieves the templateVersion portion of the rating template identifier
+	 * @return The templateVersion portion of the rating template identifier
 	 */
 	public String getVersion() {
-		return version;
+		return templateVersion;
 	}
 	/**
-	 * Sets the version portion of the rating template identifier
-	 * @param version The version portion of the rating template identifier
+	 * Sets the templateVersion portion of the rating template identifier
+	 * @param templateVersion The templateVersion portion of the rating template identifier
 	 */
 	public void setVersion(String version) {
-		this.version = version;
+		this.templateVersion = version;
 	}
 	/**
 	 * Retrieves an array of the independent parameters for ratings using this template
@@ -295,7 +295,7 @@ public class RatingTemplate implements Modifiable
 			throw new RatingException("RatingTemplateContainer parameters  not consistent with parameters identifier.");
 		}
 		if(!String.format("%s;%s.%s", join(SEPARATOR3, rtc.indParams), rtc.depParam, rtc.templateVersion).equals(rtc.templateId)) {
-			throw new RatingException("RatingTemplateContainer parameters and/or version are not consistent with template identifier.");
+			throw new RatingException("RatingTemplateContainer parameters and/or templateVersion are not consistent with template identifier.");
 		}
 		if (rtc.inRangeMethods.length != indParamCount || rtc.outRangeLowMethods.length != indParamCount || rtc.outRangeHighMethods.length != indParamCount) {
 			throw new RatingException("RatingTemplateContainer has inconsistent number of independent parameters");
@@ -360,7 +360,7 @@ public class RatingTemplate implements Modifiable
 		paramId = paramId.concat(SEPARATOR2).concat(getDepParameter());
 		sb.append(String.format("%s<rating-template office-id=\"%s\">\n", prefix, officeId))
 		  .append(String.format("%s%s<parameters-id>%s</parameters-id>\n", prefix, indent, paramId.substring(1)))
-		  .append(String.format("%s%s<version>%s</version>\n", prefix, indent, getTemplateVersion()))
+		  .append(String.format("%s%s<version>%s</version>\n", prefix, indent, templateVersion))
 		  .append(String.format("%s%s<ind-parameter-specs>\n", prefix, indent));
 		for (int i = 0; i < indParams.length; ++i) {
 			sb.append(String.format("%s%s%s<ind-parameter-spec position=\"%d\">\n", prefix, indent, indent, i+1))
@@ -407,15 +407,15 @@ public class RatingTemplate implements Modifiable
     	modified = bool;
     }
 	/**
-	 * Retrieves the version portion of the rating template used by this specification
-	 * @return The version portion of the rating template used by this specification
+	 * Retrieves the templateVersion portion of the rating template used by this specification
+	 * @return The templateVersion portion of the rating template used by this specification
 	 */
 	public String getTemplateVersion() {
 		return this.getVersion();
 	}
 	/**
-	 * Sets the version portion of the rating template used by this specification
-	 * @param version The version portion of the rating template used by this specification
+	 * Sets the templateVersion portion of the rating template used by this specification
+	 * @param templateVersion The templateVersion portion of the rating template used by this specification
 	 */
 	public void setTemplateVersion(String version) {
 		this.setVersion(version);
