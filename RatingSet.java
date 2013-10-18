@@ -159,6 +159,62 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 		}
 	}
 	/**
+	 * Stores the rating set to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @throws RatingException
+	 */
+	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting) throws RatingException {
+		CallableStatement[] stmts = new CallableStatement[3];
+		try {
+			stmts[0] = conn.prepareCall("begin :1 := cwms_msg.get_msg_id; end;");
+			stmts[0].registerOutParameter(1, Types.VARCHAR);
+			stmts[0].execute();
+			String lowerMessageBound = stmts[0].getString(1);
+			
+			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+			stmts[1].setString(1, xml);
+			stmts[1].setString(2, overwriteExisting ? "F" : "T");
+			stmts[1].execute();
+			
+			stmts[0].execute();
+			String upperMessageBound = stmts[0].getString(1);
+
+			stmts[2] = conn.prepareCall(
+				"select msg_text " +
+				"  from cwms_v_log_message " +
+				" where msg_id between :1 and :2 " +
+				"   and msg_level = 'Basic' " +
+				"   and properties like 'procedure = cwms\\_rating.store\\_%' escape '\\' " +
+				"   and msg_text like 'ORA-%' " +
+				" order by msg_id"); 
+			stmts[2].setString(1, lowerMessageBound);
+			stmts[2].setString(2, upperMessageBound);
+			ResultSet rs = stmts[2].executeQuery();
+			Vector<String> errors = new Vector<String>();
+			while (rs.next()) {
+				errors.add(rs.getString(1));
+			}
+			rs.close();
+			
+			for (int i = 0; i < stmts.length; ++i) {
+				stmts[i].close();
+				stmts[i] = null;
+			}
+			
+			if (errors.size() > 0) {
+				throw new RatingException(join("\n", errors.toArray(new String[errors.size()])));
+			}
+		}
+		catch (Throwable t) {
+			for (int i = 0; i < stmts.length; ++i) {
+				try {if (stmts[i] != null) stmts[i].close();} catch(Throwable t1){}
+			}
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
+	/**
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
@@ -1925,54 +1981,7 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		CallableStatement[] stmts = new CallableStatement[3];
-		try {
-			stmts[0] = conn.prepareCall("begin :1 := cwms_msg.get_msg_id; end;");
-			stmts[0].registerOutParameter(1, Types.VARCHAR);
-			stmts[0].execute();
-			String lowerMessageBound = stmts[0].getString(1);
-			
-			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
-			stmts[1].setString(1, toXmlString(""));
-			stmts[1].setString(2, overwriteExisting ? "F" : "T");
-			stmts[1].execute();
-			
-			stmts[0].execute();
-			String upperMessageBound = stmts[0].getString(1);
-
-			stmts[2] = conn.prepareCall(
-				"select msg_text " +
-				"  from cwms_v_log_message " +
-				" where msg_id between :1 and :2 " +
-				"   and msg_level = 'Basic' " +
-				"   and properties like 'procedure = cwms\\_rating.store\\_%' escape '\\' " +
-				"   and msg_text like 'ORA-%' " +
-				" order by msg_id"); 
-			stmts[2].setString(1, lowerMessageBound);
-			stmts[2].setString(2, upperMessageBound);
-			ResultSet rs = stmts[2].executeQuery();
-			Vector<String> errors = new Vector<String>();
-			while (rs.next()) {
-				errors.add(rs.getString(1));
-			}
-			rs.close();
-			
-			for (int i = 0; i < stmts.length; ++i) {
-				stmts[i].close();
-				stmts[i] = null;
-			}
-			
-			if (errors.size() > 0) {
-				throw new RatingException(join("\n", errors.toArray(new String[errors.size()])));
-			}
-		}
-		catch (Throwable t) {
-			for (int i = 0; i < stmts.length; ++i) {
-				try {if (stmts[i] != null) stmts[i].close();} catch(Throwable t1){}
-			}
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
+		RatingSet.storeToDatabase(conn, toXmlString(""), overwriteExisting);
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)

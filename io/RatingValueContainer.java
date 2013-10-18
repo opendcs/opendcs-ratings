@@ -244,7 +244,7 @@ public class RatingValueContainer {
 			sb.append(prefix).append("</point>\n");
 		}
 		else {
-			sb.append(prefix).append("<other-ind position=\"").append(indParamLevel).append("\" value=\"").append(indValue).append("\">\n");
+			sb.append(prefix).append("<other-ind position=\"").append(indParamLevel).append("\" value=\"").append(indValue).append("\"/>\n");
 			for (RatingValueContainer rvc : depTable.values) {
 				rvc.toXml(prefix, indent, indParamLevel+1, sb);
 			}

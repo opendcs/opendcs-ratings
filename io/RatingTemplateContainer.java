@@ -136,6 +136,9 @@ public class RatingTemplateContainer {
 			if (rtc.indParams != null && rtc.indParams.length > 0 && rtc.depParam != null) {
 				rtc.parametersId = String.format("%s%s%s", TextUtil.join(SEPARATOR3, rtc.indParams), SEPARATOR2, rtc.depParam);
 			}
+			if (rtc.parametersId != null && rtc.templateVersion != null) {
+				rtc.templateId = String.format("%s.%s", rtc.parametersId, rtc.templateVersion);
+			}
 		}
 		catch (JDOMException | IOException e) {
 			AbstractRating.getLogger().severe(e.getMessage());

@@ -7,8 +7,16 @@ import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
 import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.RatingTemplateContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
 import java.util.Arrays;
 
 import rma.lang.Modifiable;
@@ -56,6 +64,49 @@ public class RatingTemplate implements Modifiable
 	 * The number of independent parameters for ratings associated with this template
 	 */
 	private int indParamCount = 0;
+	/**
+	 * Generates a new RatingTemplate object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param templateId The rating template identifier
+	 * @throws RatingException
+	 */
+	public static RatingTemplate fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String templateId)
+			throws RatingException {
+		try {
+			String sql = 
+					"begin "                                  +
+					   "cwms_rating.retrieve_templates_xml("   +
+					      "p_templates        => :1,"         +
+					      "p_template_id_mask => :2,"         +
+					      "p_office_id_mask   => :3);"        +
+					"end;";
+			CallableStatement stmt = conn.prepareCall(sql);
+			stmt.registerOutParameter(1, Types.CLOB);
+			stmt.setString(2, templateId);
+			if (officeId == null) {
+				stmt.setNull(3, Types.VARCHAR);
+			}
+			else {
+				stmt.setString(3, officeId);
+			}
+			stmt.execute();
+			Clob clob = stmt.getClob(1);
+			stmt.close();
+			if (clob.length() > Integer.MAX_VALUE) {
+				throw new RatingException("CLOB too long.");
+			}
+			String xmlText = clob.getSubString(1, (int)clob.length());
+			return new RatingTemplate(RatingTemplateContainer.fromXml(xmlText));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
 
 	/**
 	 * Disabled public zero-arg constructor
@@ -281,32 +332,56 @@ public class RatingTemplate implements Modifiable
 	 * @throws RatingException
 	 */
 	public void setData(RatingTemplateContainer rtc) throws RatingException {
-		String[] parts = split(rtc.templateId, SEPARATOR1, "L");
-		if (parts.length != 2) {
-			throw new RatingException("RatingTemplateContainer has invalid rating template identifier.");
+		setData(rtc, false);
+	}
+	/**
+	 * Sets the data from this object from a RatingTemplateContainer
+	 * @param rtc The RatingTemplateContainer with the data
+	 * @throws RatingException
+	 */
+	public void setData(RatingTemplateContainer rtc, boolean allowNulls) throws RatingException {
+		int indParamCount = 0;
+		RatingMethod[] inRangeMethods = null;
+		RatingMethod[] outRangeLowMethods = null;
+		RatingMethod[] outRangeHighMethods = null;
+		if (!allowNulls && rtc.officeId == null) {
+			throw new RatingException("RatingTemplateContainer has no office identifier.");
 		}
-		parts = split(parts[0], SEPARATOR2, "L");
-		if (parts.length != 2) {
-			throw new RatingException("RatingTemplateContainer has invalid rating template identifier.");
+		this.officeId = rtc.officeId;
+		if (!allowNulls || rtc.templateId != null) {
+			String[] parts = split(rtc.templateId, SEPARATOR1, "L");
+			if (parts.length != 2) {
+				throw new RatingException("RatingTemplateContainer has invalid rating template identifier.");
+			}
+			parts = split(parts[0], SEPARATOR2, "L");
+			if (parts.length != 2) {
+				throw new RatingException("RatingTemplateContainer has invalid rating template identifier.");
+			}
+			parts = split(parts[0], SEPARATOR3, "L");
+			indParamCount = parts.length;
 		}
-		parts = split(parts[0], SEPARATOR3, "L");
-		int indParamCount = parts.length;
-		if(!String.format("%s;%s", join(SEPARATOR3, rtc.indParams), rtc.depParam).equals(rtc.parametersId)) {
-			throw new RatingException("RatingTemplateContainer parameters  not consistent with parameters identifier.");
+		if (!allowNulls || (rtc.indParams != null && rtc.depParam != null)) {
+			if(!String.format("%s;%s", join(SEPARATOR3, rtc.indParams), rtc.depParam).equals(rtc.parametersId)) {
+				throw new RatingException("RatingTemplateContainer parameters  not consistent with parameters identifier.");
+			}
+			if (rtc.templateVersion != null) {
+				if(!String.format("%s;%s.%s", join(SEPARATOR3, rtc.indParams), rtc.depParam, rtc.templateVersion).equals(rtc.templateId)) {
+					throw new RatingException("RatingTemplateContainer parameters and/or templateVersion are not consistent with template identifier.");
+				}
+			}
 		}
-		if(!String.format("%s;%s.%s", join(SEPARATOR3, rtc.indParams), rtc.depParam, rtc.templateVersion).equals(rtc.templateId)) {
-			throw new RatingException("RatingTemplateContainer parameters and/or templateVersion are not consistent with template identifier.");
-		}
-		if (rtc.inRangeMethods.length != indParamCount || rtc.outRangeLowMethods.length != indParamCount || rtc.outRangeHighMethods.length != indParamCount) {
-			throw new RatingException("RatingTemplateContainer has inconsistent number of independent parameters");
-		}
-		RatingMethod[] inRangeMethods = new RatingMethod[indParamCount];
-		RatingMethod[] outRangeLowMethods = new RatingMethod[indParamCount];
-		RatingMethod[] outRangeHighMethods = new RatingMethod[indParamCount];
-		for (int i = 0; i < indParamCount; ++i) {
-			inRangeMethods[i] = RatingMethod.fromString(rtc.inRangeMethods[i]);
-			outRangeLowMethods[i] = RatingMethod.fromString(rtc.outRangeLowMethods[i]);
-			outRangeHighMethods[i] = RatingMethod.fromString(rtc.outRangeHighMethods[i]);
+		if (!allowNulls || (rtc.inRangeMethods != null && rtc.outRangeLowMethods != null && rtc.outRangeHighMethods != null)) {
+			if (rtc.inRangeMethods.length != indParamCount || rtc.outRangeLowMethods.length != indParamCount || rtc.outRangeHighMethods.length != indParamCount) {
+				throw new RatingException("RatingTemplateContainer has inconsistent number of independent parameters");
+			}
+			inRangeMethods = new RatingMethod[indParamCount];
+			outRangeLowMethods = new RatingMethod[indParamCount];
+			outRangeHighMethods = new RatingMethod[indParamCount];
+			for (int i = 0; i < indParamCount; ++i) {
+				inRangeMethods[i] = RatingMethod.fromString(rtc.inRangeMethods[i]);
+				outRangeLowMethods[i] = RatingMethod.fromString(rtc.outRangeLowMethods[i]);
+				outRangeHighMethods[i] = RatingMethod.fromString(rtc.outRangeHighMethods[i]);
+			}
 		}
 		setTemplateId(rtc.templateId);
 		description = rtc.templateDescription;
@@ -320,6 +395,7 @@ public class RatingTemplate implements Modifiable
 	 * @param rtc The RatingTemplateConainer object to fill
 	 */
 	protected void getData(RatingTemplateContainer rtc) {
+		rtc.officeId = officeId;
 		rtc.templateId = getTemplateId();
 		String[] parts = split(rtc.templateId, SEPARATOR1, "L");
 		rtc.parametersId = parts[0];
@@ -433,5 +509,14 @@ public class RatingTemplate implements Modifiable
 	 */
 	public void setTemplateDescription(String description) {
 		this.setDescription(description);
+	}
+	/**
+	 * Stores the rating template to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @throws RatingException
+	 */
+	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
+		RatingSet.storeToDatabase(conn, getData().toTemplateXml(""), overwriteExisting);
 	}
 }

@@ -13,7 +13,11 @@ import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
+import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingSpecification;
@@ -24,6 +28,10 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -96,7 +104,73 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 	 * Flag specifying whether this object outputs messages about "risky" operations such as using mismatched units, unknown parameters, etc.
 	 */
 	protected boolean warnUnsafe = true;
-	
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param effectiveDate Specifies (in milliseconds) a time to be an upper bound on the effective date.
+	 *                      The rating with the latest effective date on or before this time is retrieved. If null, the latest rating is retrieved.
+	 * @return The new Abstract Rating object
+	 * @throws RatingException
+	 */
+	public static AbstractRating fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long effectiveDate)
+			throws RatingException {
+		try {
+			String sql = 
+					"declare " +
+					   "l_millis_end           integer := :1;" +
+					   "l_effective_date_start date;" +
+					   "l_effective_date_end   date;" +
+					"begin " +
+					   "if l_millis_end is not null then "    +
+					      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+					   "end if;" +
+					   "cwms_rating.retrieve_ratings_xml2("   +
+					      "p_ratings              => :2,"     +
+					      "p_spec_id_mask         => :3,"     +
+					      "p_effective_date_start => null,"   +
+					      "p_effective_date_end   => l_effective_date_end,"   +
+					      "p_time_zone            => 'UTC',"  +
+					      "p_office_id_mask       => :4);"    +
+					"end;";
+			CallableStatement stmt = conn.prepareCall(sql);
+			stmt.registerOutParameter(2, Types.CLOB);
+			stmt.setString(3, ratingSpecId);
+			if (effectiveDate == null) {
+				stmt.setNull(1, Types.INTEGER);
+			}
+			else {
+				stmt.setLong(1, effectiveDate);
+			}
+			if (officeId == null) {
+				stmt.setNull(4, Types.VARCHAR);
+			}
+			else {
+				stmt.setString(4, officeId);
+			}
+			stmt.execute();
+			Clob clob = stmt.getClob(2);
+			stmt.close();
+			if (clob.length() > Integer.MAX_VALUE) {
+				throw new RatingException("CLOB too long.");
+			}
+			String xmlText = clob.getSubString(1, (int)clob.length());
+			AbstractRatingContainer arc = AbstractRatingContainer.fromXml(xmlText);
+			if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
+			if (arc instanceof UsgsStreamTableRatingContainer) return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)arc);
+			if (arc instanceof ExpressionRatingContainer) return new ExpressionRating((ExpressionRatingContainer)arc);
+			return null;
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#addObserver(java.util.Observer)
 	 */
@@ -791,4 +865,13 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
     public static Logger getLogger() {
     	return logger;
     }
+	/**
+	 * Stores the rating  to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @throws RatingException
+	 */
+	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
+		RatingSet.storeToDatabase(conn, getData().toXml(""), overwriteExisting);
+	}
 }

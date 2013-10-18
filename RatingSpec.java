@@ -4,6 +4,12 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
+
 import hec.data.DataSetException;
 import hec.data.RatingException;
 import hec.data.RoundingException;
@@ -81,6 +87,49 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	protected String description = null;
 	
+	/**
+	 * Generates a new RatingTemplate object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSepcId The rating specification identifier
+	 * @throws RatingException
+	 */
+	public static RatingSpec fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String ratingSepcId)
+			throws RatingException {
+		try {
+			String sql = 
+					"begin "                              +
+					   "cwms_rating.retrieve_specs_xml("  +
+					      "p_specs          => :1,"       +
+					      "p_spec_id_mask   => :2,"       +
+					      "p_office_id_mask => :3);"      +
+					"end;";
+			CallableStatement stmt = conn.prepareCall(sql);
+			stmt.registerOutParameter(1, Types.CLOB);
+			stmt.setString(2, ratingSepcId);
+			if (officeId == null) {
+				stmt.setNull(3, Types.VARCHAR);
+			}
+			else {
+				stmt.setString(3, officeId);
+			}
+			stmt.execute();
+			Clob clob = stmt.getClob(1);
+			stmt.close();
+			if (clob.length() > Integer.MAX_VALUE) {
+				throw new RatingException("CLOB too long.");
+			}
+			String xmlText = clob.getSubString(1, (int)clob.length());
+			return new RatingSpec(RatingSpecContainer.fromXml(xmlText));
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
 	/**
 	 * Generator from XML DOM nodes
 	 * @param templateNode The node containing the rating template information
@@ -654,10 +703,18 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	@Override
 	public RatingTemplateContainer getData() {
+		return getData(true); 
+	}
+	/**
+	 * Retrieves a RatingSpecContainer containing the data of this object. 
+	 * @return The RatingSpecContainer
+	 */
+	public RatingTemplateContainer getData(boolean getTemplate) {
 		RatingSpecContainer rsc = new RatingSpecContainer();
-		super.getData(rsc);
+		if (getTemplate) super.getData(rsc);
 		rsc.officeId = officeId;
-		rsc.specId = String.format("%s.%s.%s", locationId, getTemplateId(), version);
+		rsc.templateId = getTemplateId();
+		rsc.specId = String.format("%s.%s.%s", locationId, rsc.templateId, version);
 		rsc.locationId = locationId;
 		rsc.specVersion = version;
 		rsc.sourceAgencyId = sourceAgencyId;
@@ -683,8 +740,8 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	public void setData(RatingSpecContainer rsc) throws RatingException {
 		try {
-			super.setData(rsc);
-			officeId = rsc.officeId;
+			super.setData(rsc, true);
+			officeId = rsc.specOfficeId;
 			locationId = rsc.locationId;
 			version = rsc.specVersion;
 			sourceAgencyId = rsc.sourceAgencyId;
@@ -720,7 +777,7 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	@Override
 	public String toXmlString(CharSequence indent, int level) {
-		return toXmlString(indent, level, true);
+		return toXmlString(indent, level, false);
 	}
 	/**
 	 * Generates an XML document fragment from this rating specification.
@@ -799,5 +856,14 @@ public class RatingSpec extends RatingTemplate {
 		String templateId = getTemplateId();
 		JDomRatingTemplate template = new JDomRatingTemplate(officeId, templateId);
 		return template;
+	}
+	/**
+	 * Stores the rating specification (without template) to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @throws RatingException
+	 */
+	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
+		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(false)).toSpecXml(""), overwriteExisting);
 	}
 }
