@@ -59,49 +59,6 @@ public class RatingValue implements Observer {
 		}
 		return negative ? "-" + s : s;
 	}
-	
-	/**
-	 * Generates a RatingValue object from the &lt;point&gt; XML element  
-	 * @param pointNode The point XML element
-	 * @return a new RatingValue object
-	 * @throws RatingException
-	 */
-	static RatingValue fromXml(Node pointNode) throws RatingException {
-		try {
-			double indVal = (Double)RatingConst.indValXpath.evaluate(pointNode, NUMBER);
-			double depVal = (Double)RatingConst.depValXpath.evaluate(pointNode, NUMBER);
-			String note = (String)RatingConst.noteXpath.evaluate(pointNode, STRING);
-			return new RatingValue(indVal, depVal, note); 
-		} 
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
-	}
-	/**
-	 * Generates an array RatingValue objects from multiple &lt;point&gt; XML elements  
-	 * @param pointNode The point XML elements
-	 * @return a new RatingValue array
-	 * @throws RatingException
-	 */
-	static RatingValue[] fromXml(NodeList pointNodes) throws RatingException {
-		try {
-			int pointCount = pointNodes.getLength();
-			if (pointCount == 0) {
-				throw new RatingException("No rating points.");
-			}
-			RatingValue[] rv = new RatingValue[pointCount];
-			for (int i = 0; i < pointCount; ++i) {
-				rv[i] = fromXml(pointNodes.item(i));
-			}
-			return rv;
-		} 
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
-	}
-	
 	/**
 	 * Public Constructor
 	 * @param indValue The independent value
@@ -280,24 +237,6 @@ public class RatingValue implements Observer {
 		}
 		observationTarget.setChanged();
 		observationTarget.notifyObservers();
-	}
-	/**
-	 * Returns an XML representation of this object
-	 * @param indent The character(s) to use for each indentation level
-	 * @param indentLevel The initial indentation level
-	 * @param isExtension Flag specifying whether the value is part of a rating extension
-	 * @param indValues A list of "upstream" independent values if this object is part of a dependent rating table
-	 * @return
-	 * @throws RatingException
-	 */
-	public String toXmlString(CharSequence indent, int indentLevel, boolean isExtension, List<Double>indValues) throws RatingException {
-		StringBuilder sb = new StringBuilder();
-		if (hasDepTable) {
-			if (indValues == null) indValues = new ArrayList<Double>();
-			indValues.add(indValue);
-			sb.append(depTable.toXmlString(indent, indentLevel, depTable.values, isExtension, indValues));
-		}
-		return sb.toString();
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)

@@ -60,14 +60,15 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		UsgsStreamTableRatingContainer ustrc = new UsgsStreamTableRatingContainer();
 		AbstractRatingContainer.fromXml(ratingElement, ustrc);
 		Element elem = null;
+		
 		@SuppressWarnings("rawtypes")
 		List elems = ratingElement.getChildren("height-shifts");
-		
 		if (elems.size() > 0) {
 			HecTime hectime = new HecTime();
 			ustrc.shifts = new RatingSetContainer();
 			ustrc.shifts.abstractRatingContainers = new TableRatingContainer[elems.size()];
 			for (int i = 0; i < elems.size(); ++i) {
+				ustrc.shifts.abstractRatingContainers[i] = new TableRatingContainer();
 				elem =  (Element)elems.get(i);
 				String data = elem.getChildTextTrim("effective-date");
 				if (data != null) {
@@ -87,6 +88,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				if (pointElems.size() > 0) {
 					trc.values = new RatingValueContainer[pointElems.size()];
 					for (int j = 0; j < pointElems.size(); ++j) {
+						trc.values[j] = new RatingValueContainer();
 						elem = (Element)pointElems.get(j);
 						trc.values[j].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
 						trc.values[j].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
@@ -104,6 +106,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			if (pointElems.size() > 0) {
 				trc.values = new RatingValueContainer[pointElems.size()];
 				for (int i = 0; i < pointElems.size(); ++i) {
+					trc.values[i] = new RatingValueContainer();
 					elem = (Element)pointElems.get(i);
 					trc.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
 					trc.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
@@ -118,6 +121,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			if (pointElems.size() > 0) {
 				ustrc.values = new RatingValueContainer[pointElems.size()];
 				for (int i = 0; i < pointElems.size(); ++i) {
+					ustrc.values[i] = new RatingValueContainer();
 					elem = (Element)pointElems.get(i);
 					ustrc.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
 					ustrc.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
@@ -132,6 +136,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			if (pointElems.size() > 0) {
 				ustrc.values = new RatingValueContainer[pointElems.size()];
 				for (int i = 0; i < pointElems.size(); ++i) {
+					ustrc.values[i] = new RatingValueContainer();
 					elem = (Element)pointElems.get(i);
 					ustrc.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
 					ustrc.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));

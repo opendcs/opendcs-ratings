@@ -40,87 +40,6 @@ public class UsgsStreamTableRating extends TableRating {
 	protected TableRating offsets = null;
 
 	/**
-	 * Generator from XML DOM nodes
-	 * @param templateNode The node containing the rating template information
-	 * @param ratingNode The node containing the rating information
-	 * @return A new RatingTable object initialized with the data from the XML nodes
-	 * @throws RatingException
-	 */
-	public static UsgsStreamTableRating fromXml(Node templateNode, Node ratingNode) throws RatingException {
-		try {
-			initXmlParsing();
-			TableRating rt = TableRating.fromXml(templateNode, ratingNode);
-			NodeList shiftNodes = (NodeList)shiftNodesXpath.evaluate(ratingNode, NODESET);
-			TableRating[] shifts = shiftNodes.getLength() == 0 ? null : new TableRating[shiftNodes.getLength()];
-			if (shifts != null) {
-				HecTime t = new HecTime(HecTime.SECOND_GRANULARITY);
-				for (int i = 0; i < shifts.length; ++i) {
-					Node shiftNode = shiftNodes.item(i);
-					NodeList pointNodes = (NodeList)pointNodesXpath.evaluate(shiftNode, NODESET);
-					int pointCount = pointNodes.getLength();
-					if (pointCount == 0) continue;
-					String effectiveDateStr = (String)effectiveDateXpath.evaluate(shiftNode, STRING);
-					if (effectiveDateStr.length() == 0) {
-						throw new RatingException("Shift set does not have an effective date.");
-					}
-					String createDateStr = (String)createDateXpath.evaluate(shiftNode, STRING);
-					if (createDateStr.length() == 0) {
-						throw new RatingException("Shift set does not have an create date.");
-					}
-					String activeStr = (String)activeXpath.evaluate(shiftNode, STRING);
-					t.set(effectiveDateStr);
-					long effectiveDate = t.getTimeInMillis();
-					t.set(createDateStr);
-					long createDate = t.getTimeInMillis();
-					boolean active = activeStr.equalsIgnoreCase("true");
-					shifts[i] = new TableRating(
-							RatingValue.fromXml(pointNodes),
-							null,
-							RatingMethod.LINEAR,
-							RatingMethod.NEAREST,
-							RatingMethod.NEAREST);
-					shifts[i].setEffectiveDate(effectiveDate);
-					shifts[i].setCreateDate(createDate);
-					shifts[i].setActive(active);
-				}
-			}
-			Node offsetsNode = (Node)offsetNodeXpath.evaluate(ratingNode, NODE);
-			TableRating offsets = null;
-			if (offsetsNode != null) {
-				NodeList offsetNodes = (NodeList)pointNodesXpath.evaluate(offsetsNode, NODESET);
-				if (offsetNodes.getLength() > 0) {
-					offsets = new TableRating(
-							RatingValue.fromXml(offsetNodes),
-							null,
-							RatingMethod.PREVIOUS,
-							RatingMethod.NEXT,
-							RatingMethod.PREVIOUS);
-				}
-			}
-			UsgsStreamTableRating usrt = new UsgsStreamTableRating(
-					rt.values,
-					rt.extensionValues,
-					rt.inRangeMethod,
-					rt.outRangeLowMethod,
-					rt.outRangeHighMethod,
-					rt.officeId,
-					rt.ratingSpecId,
-					rt.ratingUnitsId,
-					rt.effectiveDate,
-					rt.createDate,
-					shifts == null ? null : new UsgsStageShiftsRatingSet(rt.effectiveDate, shifts),
-					offsets,
-					rt.active,
-					rt.description);
-			return usrt;
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
-	}
-
-	/**
 	 * Public Constructor 
 	 * @param values The table of values that comprise the rating.
 	 * @param in_range_method The prescribed behavior for when the value to rate falls within the range of independent values in the rating table
@@ -179,9 +98,9 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 		super.init(values,
 				extensionValues,
-				RatingMethod.fromString(urc.inRangeMethod),
-				RatingMethod.fromString(urc.outRangeLowMethod),
-				RatingMethod.fromString(urc.outRangeHighMethod),
+				RatingMethod.fromString(urc.inRangeMethod == null ? "LOGARITHMIC" : urc.inRangeMethod),
+				RatingMethod.fromString(urc.outRangeLowMethod == null ? "ERROR" : urc.outRangeLowMethod),
+				RatingMethod.fromString(urc.outRangeHighMethod == null ? "ERROR" : urc.outRangeHighMethod),
 				urc.officeId,
 				urc.ratingSpecId,
 				urc.unitsId,
@@ -834,62 +753,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < indentLevel; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		sb.append(String.format("%s<usgs-stream-rating office-id=\"%s\">\n", prefix, officeId))
-		  .append(String.format("%s%s<rating-spec-id>%s</rating-spec-id>\n", prefix, indent, ratingSpecId))
-		  .append(String.format("%s%s<units-id>%s</units-id>\n", prefix, indent, ratingUnitsId));
-		HecTime t = new HecTime(HecTime.SECOND_GRANULARITY);
-		t.setTimeInMillis(effectiveDate);
-		sb.append(String.format("%s%s<effective-date>%s</effective-date>\n", prefix, indent, t.getXMLDateTime(0).replaceAll("Z", "")));
-		t.setTimeInMillis(createDate);
-		sb.append(String.format("%s%s<create-date>%s</create-date>\n", prefix, indent, t.getXMLDateTime(0).replaceAll("Z", "")))
-		  .append(String.format("%s%s<active>%s</active>\n", prefix, indent, active ? "true" : "false"));
-		if (description == null || description.length() == 0) {
-			sb.append(String.format("%s%s<description/>\n", prefix, indent));
-		}
-		else {
-			sb.append(String.format("%s%s<description>%s</description>\n", prefix, indent, description));
-		}
-		if (this.shifts != null) {
-			AbstractRating[] shifts = this.shifts.getRatings();
-			for (int i = 0; i < shifts.length; ++i) {
-				sb.append(String.format("%s%s<height-shifts>\n", prefix, indent));
-				if (!(shifts[i] instanceof TableRating)) {
-					throw new RatingException("Unexpected rating type for shifts.");
-				}
-				t.setTimeInMillis(shifts[i].getEffectiveDate());
-				sb.append(String.format("%s%s%s<effective-date>%s</effective-date>\n", prefix, indent, indent, t.getXMLDateTime(0).replaceAll("Z","")));
-				t.setTimeInMillis(shifts[i].getCreateDate());
-				sb.append(String.format("%s%s%s<create-date>%s</create-date>\n", prefix, indent, indent, t.getXMLDateTime(0).replaceAll("Z","")))
-				  .append(String.format("%s%s%s<active>%s</active>\n", prefix, indent, indent, shifts[i].isActive() ? "true" : "false"));
-				for (RatingValue rv : ((TableRating)shifts[i]).values) {
-					sb.append(String.format("%s%s%s<point>\n", prefix, indent, indent))
-					  .append(String.format("%s%s%s%s<ind>%s</ind>\n", prefix, indent, indent, indent, RatingValue.format(rv.getIndValue())))
-					  .append(String.format("%s%s%s%s<dep>%s</dep>\n", prefix, indent, indent, indent, RatingValue.format(rv.getDepValue())));
-					if (rv.hasNote()) sb.append(String.format("%s%s%s%s<note>%s</note>\n", prefix, indent, indent, indent, rv.getNote()));
-					sb.append(String.format("%s%s%s</point>\n", prefix, indent, indent));
-				}
-				sb.append(String.format("%s%s</height-shifts>\n", prefix, indent));
-			}
-		}
-		if (this.offsets != null && offsets.values != null && offsets.values.length > 0) {
-			sb.append(String.format("%s%s<height-offsets>\n", prefix, indent));
-			for (RatingValue rv : offsets.values) {
-				sb.append(String.format("%s%s%s<point>\n", prefix, indent, indent))
-				  .append(String.format("%s%s%s%s<ind>%s</ind>\n", prefix, indent, indent, indent, RatingValue.format(rv.getIndValue())))
-				  .append(String.format("%s%s%s%s<dep>%s</dep>\n", prefix, indent, indent, indent, RatingValue.format(rv.getDepValue())));
-				if (rv.hasNote()) sb.append(String.format("%s%s%s%s<note>%s</note>\n", prefix, indent, indent, indent, rv.getNote()));
-				sb.append(String.format("%s%s%s</point>\n", prefix, indent, indent));
-			}
-			sb.append(String.format("%s%s</height-offsets>\n", prefix, indent));
-		}
-		sb.append(toXmlString(indent, indentLevel+1, values, false, null))
-		  .append(toXmlString(indent, indentLevel+1, extensionValues, true, null))
-		  .append(String.format("%s</usgs-stream-rating>\n", prefix));
-		return sb.toString();
+		return getData().toXml(indent, indentLevel);
 	}
 	/**
 	 * Retrieves the stage shift for an unshifted stage at a specified time

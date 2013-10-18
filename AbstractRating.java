@@ -161,8 +161,8 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 			}
 			String xmlText = clob.getSubString(1, (int)clob.length());
 			AbstractRatingContainer arc = AbstractRatingContainer.fromXml(xmlText);
-			if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
 			if (arc instanceof UsgsStreamTableRatingContainer) return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)arc);
+			if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
 			if (arc instanceof ExpressionRatingContainer) return new ExpressionRating((ExpressionRatingContainer)arc);
 			return null;
 		}

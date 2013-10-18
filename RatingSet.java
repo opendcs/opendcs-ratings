@@ -451,10 +451,10 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			throw new RatingException("Number of independent parameters does not match rating specification");
 		}
 		if (ratings.size() > 0) {
-			if (!rating.getRatingSpecId().equals(ratings.firstEntry().getValue().getRatingSpecId())) {
+			if (!TextUtil.equals(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
 				throw new RatingException("Cannot add rating with different rating specification.");
 			}
-			if (!rating.getRatingUnitsId().equals(ratings.firstEntry().getValue().getRatingUnitsId())) {
+			if (!TextUtil.equals(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
 				throw new RatingException("Cannot add rating with different units.");
 			}
 		}

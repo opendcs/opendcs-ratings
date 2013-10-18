@@ -163,79 +163,6 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		public long createDate = Const.UNDEFINED_TIME;
 		public boolean active = false;
 	}
-	/*
-	 * Recursive helper method for parsing multiple independent parameter ratings.
-	 * @param points
-	 * @param notes
-	 * @param top
-	 * @param depth
-	 * @param left
-	 * @param width
-	 * @param inRangeMethods
-	 * @param outRangeLowMethods
-	 * @param outRangeHighMethods
-	 * @return an array of RatingValueContainer objects
-	 */
-	private static RatingValueContainer[] populateValues(
-			double[][] points, 
-			String[] notes, 
-			int top, 
-			int depth, 
-			int left, 
-			int width,
-			String[] inRangeMethods,
-			String[] outRangeLowMethods,
-			String[] outRangeHighMethods) {
-		RatingValueContainer[] rvcs = null;
-		if (width == 2) {
-			rvcs = new RatingValueContainer[depth];
-			for (int i = 0; i < depth; ++i) {
-				rvcs[i] = new RatingValueContainer();
-				rvcs[i].indValue = points[top+i][left+0];
-				rvcs[i].depValue = points[top+i][left+1];
-				rvcs[i].note = notes[top+i];
-			}
-		}
-		else {
-			double lastIndValue = points[top][left];
-			List<Integer> breakpoints = new ArrayList<Integer>();
-			breakpoints.add(0);
-			for (int i = 1; i < depth; ++i) {
-				if (points[top+i][left] != lastIndValue) {
-					breakpoints.add(i);
-					lastIndValue = points[top+i][left]; 
-				}
-			}
-			int count = breakpoints.size();
-			rvcs = new RatingValueContainer[count];
-			for (int i = 0; i < count; ++i) {
-				rvcs[i] = new RatingValueContainer();
-				rvcs[i].indValue = points[top+breakpoints.get(i)][left];
-				rvcs[i].depTable = new TableRatingContainer();
-				int sub_depth;
-				if (i == count - 1) {
-					sub_depth = depth - breakpoints.get(i);
-				}
-				else {
-					sub_depth = breakpoints.get(i+1) - breakpoints.get(i);
-				}
-				rvcs[i].depTable.inRangeMethod = inRangeMethods[left+1];
-				rvcs[i].depTable.outRangeLowMethod = outRangeLowMethods[left+1];
-				rvcs[i].depTable.outRangeHighMethod = outRangeHighMethods[left+1];
-				rvcs[i].depTable.values = populateValues(
-					points, 
-					notes, 
-					top+breakpoints.get(i), 
-					sub_depth, 
-					left+1, 
-					width-1, 
-					inRangeMethods,
-					outRangeLowMethods,
-					outRangeHighMethods);
-			}
-		}
-		return rvcs;
-	}
 	
 	//--------------------------//
 	// public parsing interface //
@@ -706,13 +633,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 								notes[d] = pointSet.getNote(j);
 							}
 						}
-						trc.values = populateValues(
+						trc.values = RatingValueContainer.makeContainers(
 							points, 
 							notes, 
-							0, 
-							depth, 
-							0, 
-							width, 
 							rspc.inRangeMethods,
 							rspc.outRangeLowMethods,
 							rspc.outRangeHighMethods);

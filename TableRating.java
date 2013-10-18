@@ -84,197 +84,6 @@ public class TableRating extends AbstractRating {
 	 */
 	protected SequenceProperties props = null;
 
-	/**
-	 * Generator from XML DOM nodes
-	 * @param templateNode The node containing the rating template information
-	 * @param ratingNode The node containing the rating information
-	 * @return A new RatingTable object initialized with the data from the XML nodes
-	 * @throws RatingException
-	 */
-	public static TableRating fromXml(Node templateNode, Node ratingNode) throws RatingException {
-		try {
-			initXmlParsing();
-			//-------------------------//
-			// parse the template node //
-			//-------------------------//
-			Node indParamsNode = (Node)indParamsNodeXpath.evaluate(templateNode, NODE);
-			NodeList indParamNodes = (NodeList)indParamNodesXpath.evaluate(indParamsNode, NODESET);
-			int indParamCount = indParamNodes.getLength();
-			if (indParamCount == 0) {
-				throw new RatingException("Rating template has no independent parameters.");
-			}
-			RatingMethod[] inRangeMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeLowMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeHighMethods = new RatingMethod[indParamCount];
-			for (int i = 0; i < indParamCount; ++i) {
-				Node indParamNode = indParamNodes.item(i);
-				if ((Double)indParamPosXpath.evaluate(indParamNode, NUMBER) != i+1) {
-					throw new RatingException("Rating template has independent parameters out of order");
-				}
-				inRangeMethods[i] = RatingMethod.fromString((String)inRangeMethodXpath.evaluate(indParamNode, STRING));
-				outRangeLowMethods[i] = RatingMethod.fromString((String)outRangeLowMethodXpath.evaluate(indParamNode, STRING));
-				outRangeHighMethods[i] = RatingMethod.fromString((String)outRangeHighMethodXpath.evaluate(indParamNode, STRING));
-			}
-			//-----------------------//
-			// parse the rating node //
-			//-----------------------//
-			String officeId = (String)officeIdXpath.evaluate(ratingNode, STRING);
-			String ratingSpecId = (String)ratingSpecIdXpath.evaluate(ratingNode, STRING);
-			String unitsId = (String)unitsIdXpath.evaluate(ratingNode, STRING);
-			String effectiveDateStr = (String)effectiveDateXpath.evaluate(ratingNode, STRING);
-			String createDateStr = (String)createDateXpath.evaluate(ratingNode, STRING);
-			String activeStr = (String)activeXpath.evaluate(ratingNode, STRING); 
-			String description = (String)descriptionXpath.evaluate(ratingNode, STRING);
-			HecTime t = new HecTime(HecTime.SECOND_GRANULARITY);
-			t.set(effectiveDateStr);
-			long effectiveDate = t.getTimeInMillis();
-			t.set(createDateStr);
-			long createDate = t.getTimeInMillis();
-			boolean active = activeStr.equalsIgnoreCase("true");
-			//-------------------------//
-			// parse the rating points //
-			//-------------------------//
-			NodeList pointGroupNodes = (NodeList)ratingPointGroupNodesXpath.evaluate(ratingNode, NODESET);
-			int pointGroupCount = pointGroupNodes.getLength();
-			if (pointGroupCount == 0) {
-				throw new RatingException("Rating has no independent parameters.");
-			}
-			if (pointGroupCount > 1 && indParamCount == 1) {
-				throw new RatingException("Multiple point groups is not allowed with a single independent parameter.");
-			}
-			double[] otherIndParamVals = new double[indParamCount-1];
-			double[] lastIndParamVals = new double[indParamCount-1];
-			for (int i = 0; i < indParamCount - 1; ++i) lastIndParamVals[i] = UNDEFINED_DOUBLE;
-			List<List<RatingValue>> vals = new ArrayList<List<RatingValue>>(indParamCount);
-			for (int i = 0; i < indParamCount; ++i) vals.add(new ArrayList<RatingValue>());
-			for (int i = 0; i < pointGroupCount; ++i) {
-				Node pointGroupNode = pointGroupNodes.item(i);
-				NodeList otherIndParamNodes = (NodeList)otherIndParamNodesXpath.evaluate(pointGroupNode, NODESET);
-				if (otherIndParamNodes.getLength() != indParamCount - 1) {
-					throw new RatingException(String.format("Point group %d has incorrect number of independent parameters.", i+1));
-				}
-				for (int j = 0; j < indParamCount-1; ++j) {
-					Node otherIndParamNode = otherIndParamNodes.item(j);
-					if ((Double)indParamPosXpath.evaluate(otherIndParamNode, NUMBER) != j+1) {
-						throw new RatingException("Point group has independent parameters out of order");
-					}
-					otherIndParamVals[j] = (Double)otherIndValXPath.evaluate(otherIndParamNode, NUMBER);
-					if (lastIndParamVals[j] != UNDEFINED_DOUBLE && otherIndParamVals[j] != lastIndParamVals[j]) {
-						for (int k = indParamCount-2; k >=j; --k) {
-							List<RatingValue> list = vals.get(k+1);
-							TableRating rt = new TableRating(
-									list.toArray(new RatingValue[list.size()]),
-									null,
-									inRangeMethods[k+1],
-									outRangeLowMethods[k+1],
-									outRangeHighMethods[k+1]);
-							RatingValue rv = new RatingValue(lastIndParamVals[k], rt); 
-							list = vals.get(k);
-							list.add(rv);
-							for (int m = k+1; m < indParamCount;++m) {
-								vals.get(m).clear();
-								if (m < indParamCount - 1) lastIndParamVals[m] = UNDEFINED_DOUBLE;
-							}
-						}
-					}
-					lastIndParamVals[j] = otherIndParamVals[j];
-				}
-				NodeList pointNodes = (NodeList)pointNodesXpath.evaluate(pointGroupNode, NODESET);
-				for (RatingValue rv : RatingValue.fromXml(pointNodes)) vals.get(indParamCount-1).add(rv);
-			}
-			for (int i = indParamCount-2; i >=0; --i) {
-				List<RatingValue> list = vals.get(i+1);
-				TableRating rt = new TableRating(
-						list.toArray(new RatingValue[list.size()]),
-						null,
-						inRangeMethods[i+1],
-						outRangeLowMethods[i+1],
-						outRangeHighMethods[i+1]);
-				RatingValue rv = new RatingValue(lastIndParamVals[i], rt); 
-				list = vals.get(i);
-				list.add(rv);
-			}
-			//-----------------------------------//
-			// parse the rating extension points //
-			//-----------------------------------//
-			List<List<RatingValue>> extVals = null;
-			NodeList extPointGroupNodes = (NodeList)extensionPointGroupNodesXpath.evaluate(ratingNode, NODESET);
-			int extPointGroupCount = extPointGroupNodes.getLength();
-			if (extPointGroupCount > 0) {
-				if (extPointGroupCount > 1 && indParamCount == 1) {
-					throw new RatingException("Multiple extension point groups is not allowed with a single independent parameter.");
-				}
-				for (int i = 0; i < indParamCount - 1; ++i) lastIndParamVals[i] = UNDEFINED_DOUBLE;
-				extVals = new ArrayList<List<RatingValue>>(indParamCount);
-				for (int i = 0; i < indParamCount; ++i) extVals.add(new ArrayList<RatingValue>());
-				for (int i = 0; i < extPointGroupCount; ++i) {
-					Node pointGroupNode = extPointGroupNodes.item(i);
-					NodeList otherIndParamNodes = (NodeList)otherIndParamNodesXpath.evaluate(pointGroupNode, NODESET);
-					if (otherIndParamNodes.getLength() != indParamCount - 1) {
-						throw new RatingException(String.format("Extension point group %d has incorrect number of independent parameters.", i+1));
-					}
-					for (int j = 0; j < indParamCount-1; ++j) {
-						Node otherIndParamNode = otherIndParamNodes.item(j);
-						if ((Double)indParamPosXpath.evaluate(otherIndParamNode, NUMBER) != j+1) {
-							throw new RatingException("Extension point group has independent parameters out of order");
-						}
-						otherIndParamVals[j] = (Double)otherIndValXPath.evaluate(otherIndParamNode, NUMBER);
-						if (lastIndParamVals[j] != UNDEFINED_DOUBLE && otherIndParamVals[j] != lastIndParamVals[j]) {
-							for (int k = indParamCount-2; k >=j; --k) {
-								List<RatingValue> list = extVals.get(k+1);
-								TableRating rt = new TableRating(
-										list.toArray(new RatingValue[list.size()]),
-										null,
-										inRangeMethods[k+1],
-										outRangeLowMethods[k+1],
-										outRangeHighMethods[k+1]);
-								RatingValue rv = new RatingValue(lastIndParamVals[k], rt); 
-								list = extVals.get(k);
-								list.add(rv);
-								for (int m = k+1; m < indParamCount;++m) {
-									extVals.get(m).clear();
-									if (m < indParamCount - 1) lastIndParamVals[m] = UNDEFINED_DOUBLE;
-								}
-							}
-						}
-						lastIndParamVals[j] = otherIndParamVals[j];
-					}
-					NodeList pointNodes = (NodeList)pointNodesXpath.evaluate(pointGroupNode, NODESET);
-					for (RatingValue rv : RatingValue.fromXml(pointNodes)) extVals.get(indParamCount-1).add(rv);
-				}
-				for (int i = indParamCount-2; i >=0; --i) {
-					List<RatingValue> list = extVals.get(i+1);
-					TableRating rt = new TableRating(
-							list.toArray(new RatingValue[list.size()]),
-							null,
-							inRangeMethods[i+1],
-							outRangeLowMethods[i+1],
-							outRangeHighMethods[i+1]);
-					RatingValue rv = new RatingValue(lastIndParamVals[i], rt); 
-					list = extVals.get(i);
-					list.add(rv);
-				}
-			}
-			return new TableRating(
-					vals.get(0).toArray(new RatingValue[vals.get(0).size()]),
-					extVals == null ? null : extVals.get(0).toArray(new RatingValue[extVals.get(0).size()]),
-					inRangeMethods[0],
-					outRangeLowMethods[0],
-					outRangeHighMethods[0],
-					officeId,
-					ratingSpecId,
-					unitsId,
-					effectiveDate,
-					createDate,
-					active,
-					description);
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
-	}
-	
 	protected TableRating() {}
 	
 	/**
@@ -766,9 +575,9 @@ public class TableRating extends AbstractRating {
 			}
 			init(	values,
 					extensionValues,
-					RatingMethod.fromString(trc.inRangeMethod),
-					RatingMethod.fromString(trc.outRangeLowMethod),
-					RatingMethod.fromString(trc.outRangeHighMethod),
+					RatingMethod.fromString(trc.inRangeMethod == null ? "LOGARITHMIC" : trc.outRangeHighMethod),
+					RatingMethod.fromString(trc.outRangeLowMethod == null ? "ERROR" : trc.outRangeLowMethod),
+					RatingMethod.fromString(trc.outRangeHighMethod == null ? "ERROR" : trc.outRangeHighMethod),
 					trc.officeId,
 					trc.ratingSpecId,
 					trc.unitsId,
@@ -789,29 +598,7 @@ public class TableRating extends AbstractRating {
 	 */
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < indentLevel; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		sb.append(String.format("%s<rating office-id=\"%s\">\n", prefix, officeId))
-		  .append(String.format("%s%s<rating-spec-id>%s</rating-spec-id>\n", prefix, indent, ratingSpecId))
-		  .append(String.format("%s%s<units-id>%s</units-id>\n", prefix, indent, ratingUnitsId));
-		HecTime t = new HecTime(HecTime.SECOND_GRANULARITY);
-		t.setTimeInMillis(effectiveDate);
-		sb.append(String.format("%s%s<effective-date>%s</effective-date>\n", prefix, indent, t.getXMLDateTime(0).replaceAll("Z", "")));
-		t.setTimeInMillis(createDate);
-		sb.append(String.format("%s%s<create-date>%s</create-date>\n", prefix, indent, t.getXMLDateTime(0).replaceAll("Z", "")))
-		  .append(String.format("%s%s<active>%s</active>\n", prefix, indent, active ? "true" : "false"));
-		if (description == null || description.length() == 0) {
-			sb.append(String.format("%s%s<description/>\n", prefix, indent));
-		}
-		else {
-			sb.append(String.format("%s%s<description>%s</description>\n", prefix, indent, description));
-		}
-		sb.append(toXmlString(indent, indentLevel+1, values, false, null))
-		  .append(toXmlString(indent, indentLevel+1, extensionValues, true, null))
-		  .append(String.format("%s</rating>\n", prefix));
-		return sb.toString();
+		return getData().toXml(indent, indentLevel);
 	}
 	
 	/* (non-Javadoc)
@@ -923,50 +710,6 @@ public class TableRating extends AbstractRating {
 		trc.inRangeMethod = inRangeMethod.toString();
 		trc.outRangeLowMethod = outRangeLowMethod.toString();
 		trc.outRangeHighMethod = outRangeHighMethod.toString();
-	}
-	/**
-	 * Retreives an XML representation of this rating
-	 * @param indent The string to use for each indentation level
-	 * @param indentLevel The base indentation level
-	 * @param values The values to output
-	 * @param isExtension Flag specifying whether the "values" parameter represents a rating extension
-	 * @param indValues A list of "upstream" independent values - non-null if this is a multiple independent parameter rating
-	 * @return The XML text
-	 * @throws RatingException
-	 */
-	protected String toXmlString(CharSequence indent, int indentLevel, RatingValue[] values, boolean isExtension, List<Double>indValues) throws RatingException {
-		StringBuilder sb = new StringBuilder();
-		if (values != null) {
-			if (getIndParamCount(values) == 1) {
-				for (int i = 0; i < indentLevel; ++i) sb.append(indent);
-				String prefix = sb.toString();
-				sb.delete(0, sb.length());
-				sb.append(prefix).append(isExtension ? "<extension-points>\n" : "<rating-points>\n");
-				if (indValues != null && indValues.size() > 0) {
-					for (int i = 0; i < indValues.size(); ++i) {
-						sb.append(String.format("%s%s<other-ind position=\"%d\" value=\"%s\"/>\n", prefix, indent, i+1, RatingValue.format(indValues.get(i))));
-					}
-					indValues.remove(indValues.size()-1);
-				}
-				for (RatingValue rv : values) {
-					sb.append(String.format("%s%s<point>\n", prefix, indent))
-					  .append(String.format("%s%s%s<ind>%s</ind>\n", prefix, indent, indent, RatingValue.format(rv.getIndValue())))
-					  .append(String.format("%s%s%s<dep>%s</dep>\n", prefix, indent, indent, RatingValue.format(rv.getDepValue())));
-					if (rv.hasNote()) {
-						sb.append(String.format("%s%s%s<note>%s</note>\n", prefix, indent, indent, rv.getNote()));
-					}
-					sb.append(String.format("%s%s</point>\n", prefix, indent));
-				}
-				sb.append(prefix).append(isExtension ? "</extension-points>\n" : "</rating-points>\n");
-				
-			}
-			else {
-				for (RatingValue rv : values) {
-					sb.append(rv.toXmlString(indent, indentLevel, isExtension, indValues));
-				}
-			}
-		}
-		return sb.toString();
 	}
 	/**
 	 * Retrieves the independent parameter count of an array of rating values
@@ -1126,6 +869,8 @@ public class TableRating extends AbstractRating {
 		switch (inRangeMethod) {
 		case NEAREST:
 			throw new RatingException(inRangeMethod + " is not a valid in range method.");
+		default:
+			break;
 		}
 		switch (outRangeLowMethod) {
 		case PREVIOUS:
@@ -1140,6 +885,8 @@ public class TableRating extends AbstractRating {
 				throw new RatingException("Out of range low method " + outRangeLowMethod + " cannot be used in this context");
 			}
 			break;
+		default:
+			break;
 		}
 		switch (outRangeHighMethod) {
 		case NEXT:
@@ -1153,6 +900,8 @@ public class TableRating extends AbstractRating {
 			if (props.hasIncreasing()) {
 				throw new RatingException("Out of range high method " + outRangeHighMethod + " cannot be used in this context");
 			}
+			break;
+		default:
 			break;
 		}
 		//-----------------------//

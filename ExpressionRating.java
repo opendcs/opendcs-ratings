@@ -57,64 +57,6 @@ public class ExpressionRating extends AbstractRating {
 	protected Variable[] variables = null;
 	
 	/**
-	 * Static Generator from XML DOM nodes
-	 * @param templateNode The node containing the rating template information
-	 * @param ratingNode The node containing the rating information
-	 * @return A new RatingTable object initialized with the data from the XML nodes
-	 * @throws RatingException
-	 */
-	public static ExpressionRating fromXml(Node templateNode, Node ratingNode) throws RatingException {
-		try {
-			initXmlParsing();
-			Node indParamsNode = (Node)indParamsNodeXpath.evaluate(templateNode, NODE);
-			NodeList indParamNodes = (NodeList)indParamNodesXpath.evaluate(indParamsNode, NODESET);
-			int indParamCount = indParamNodes.getLength();
-			if (indParamCount == 0) {
-				throw new RatingException("Rating template has no independent parameters.");
-			}
-			RatingMethod[] inRangeMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeLowMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeHighMethods = new RatingMethod[indParamCount];
-			for (int i = 0; i < indParamCount; ++i) {
-				Node indParamNode = indParamNodes.item(i);
-				if ((Double)indParamPosXpath.evaluate(indParamNode, NUMBER) != i+1) {
-					throw new RatingException("Rating template has independent parameters out of order");
-				}
-				inRangeMethods[i] = RatingMethod.fromString((String)inRangeMethodXpath.evaluate(indParamNode, STRING));
-				outRangeLowMethods[i] = RatingMethod.fromString((String)outRangeLowMethodXpath.evaluate(indParamNode, STRING));
-				outRangeHighMethods[i] = RatingMethod.fromString((String)outRangeHighMethodXpath.evaluate(indParamNode, STRING));
-			}
-			String officeId = (String)officeIdXpath.evaluate(ratingNode, STRING);
-			String ratingSpecId = (String)ratingSpecIdXpath.evaluate(ratingNode, STRING);
-			String ratingUnitsId = (String)unitsIdXpath.evaluate(ratingNode, STRING);
-			String effectiveDateStr = (String)effectiveDateXpath.evaluate(ratingNode, STRING);
-			String createDateStr = (String)createDateXpath.evaluate(ratingNode, STRING);
-			String activeStr = (String)activeXpath.evaluate(ratingNode, STRING); 
-			String description = (String)descriptionXpath.evaluate(ratingNode, STRING);
-			String expression = (String)formulaXpath.evaluate(ratingNode, STRING);
-			HecTime t = new HecTime(HecTime.SECOND_GRANULARITY);
-			t.set(effectiveDateStr);
-			long effectiveDate = t.getTimeInMillis();
-			t.set(createDateStr);
-			long createDate = t.getTimeInMillis();
-			boolean active = activeStr.equalsIgnoreCase("true");
-			return new ExpressionRating(
-					expression,
-					officeId,
-					ratingSpecId,
-					ratingUnitsId,
-					effectiveDate,
-					createDate,
-					active,
-					description);
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
-	}
-
-	/**
 	 * Public Constructor
 	 * @param expr The Mathematical expression for the rating. Independent parameters are specified by ARG1 - ARG9
 	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or 
@@ -403,27 +345,7 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < indentLevel; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		sb.append(String.format("%s<rating office-id=\"%s\">\n", prefix, officeId))
-		  .append(String.format("%s%s<rating-spec-id>%s</rating-spec-id>\n", prefix, indent, ratingSpecId))
-		  .append(String.format("%s%s<units-id>%s</units-id>\n", prefix, indent, ratingUnitsId));
-		HecTime t = new HecTime(HecTime.SECOND_GRANULARITY);
-		t.setTimeInMillis(effectiveDate);
-		sb.append(String.format("%s%s<effective-date>%s</effective-date>\n", prefix, indent, t.getXMLDateTime(0).replaceAll("Z", "")));
-		t.setTimeInMillis(createDate);
-		sb.append(String.format("%s%s<create-date>%s</create-date>\n", prefix, indent, t.getXMLDateTime(0).replaceAll("Z", "")))
-		  .append(String.format("%s%s<active>%s</active>\n", prefix, indent, active ? "true" : "false"));
-		if (description == null || description.length() == 0) {
-			sb.append(String.format("%s%s<description/>\n", prefix, indent));
-		}
-		else {
-			sb.append(String.format("%s%s<description>%s</description>\n", prefix, indent, description));
-		}
-		sb.append(String.format("%s%s<formula>%s</formula>\n", prefix, indent, expressionString));
-		return sb.toString();
+		return getData().toXml(indent, indentLevel);
 	}
 	/**
 	 * Initialization helper for constructors and generators
