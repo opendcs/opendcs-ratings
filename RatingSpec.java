@@ -18,9 +18,7 @@ import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
-import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingSpecification;
-import hec.data.rating.JDomRatingTemplate;
 
 import javax.xml.xpath.XPathConstants;
 
@@ -845,18 +843,6 @@ public class RatingSpec extends RatingTemplate {
 		return specification;
 	}
 	
-	/**
-	 * Returns the unique identifying parts for the rating template.
-	 * @return
-	 * @throws DataSetException
-	 */
-	public IRatingTemplate getRatingTemplate() throws DataSetException
-	{
-		String officeId = getOfficeId();
-		String templateId = getTemplateId();
-		JDomRatingTemplate template = new JDomRatingTemplate(officeId, templateId);
-		return template;
-	}
 	/**
 	 * Stores the rating specification (without template) to a CWMS database
 	 * @param conn The connection to the CWMS database

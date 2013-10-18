@@ -5,13 +5,12 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
+import hec.data.DataSetException;
 import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.RatingTemplateContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import hec.data.rating.IRatingTemplate;
+import hec.data.rating.JDomRatingTemplate;
 
 import java.sql.CallableStatement;
 import java.sql.Clob;
@@ -521,5 +520,18 @@ public class RatingTemplate implements Modifiable
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
 		RatingSet.storeToDatabase(conn, getData().toTemplateXml(""), overwriteExisting);
+	}
+
+	/**
+	 * Returns the unique identifying parts for the rating template.
+	 * @return
+	 * @throws DataSetException
+	 */
+	public IRatingTemplate getRatingTemplate() throws DataSetException
+	{
+		//String officeId = officeId;
+		String templateId = getTemplateId();
+		JDomRatingTemplate template = new JDomRatingTemplate(officeId, templateId);
+		return template;
 	}
 }
