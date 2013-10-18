@@ -4,12 +4,6 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
-
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.Types;
-
 import hec.data.DataSetException;
 import hec.data.RatingException;
 import hec.data.RoundingException;
@@ -19,6 +13,11 @@ import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
+
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
 
 import javax.xml.xpath.XPathConstants;
 
@@ -849,7 +848,15 @@ public class RatingSpec extends RatingTemplate {
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
 	 * @throws RatingException
 	 */
+	@Override
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(false)).toSpecXml(""), overwriteExisting);
+//		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(false)).toSpecXml(""), overwriteExisting);
+		storeToDatabase(conn,overwriteExisting,false);
 	}
+	
+	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean storeTemplate) throws RatingException {
+		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toSpecXml(""), overwriteExisting);
+	}
+
 }
+
