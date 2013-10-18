@@ -114,6 +114,7 @@ public class RatingTemplate implements Modifiable
 	protected RatingTemplate() {}
 	/**
 	 * Package Constructor
+	 * @param officeId The office that owns the template
 	 * @param templateId The CWMS rating template identifier
 	 * @param inRangeMethods The specified rating behavior for when the value to rate 
 	 *        is in the range of independent values, one for each independent parameter 
@@ -125,11 +126,13 @@ public class RatingTemplate implements Modifiable
 	 * @throws RatingException
 	 */
 	public RatingTemplate(
+			String officeId,
 			String templateId,
 			RatingMethod[] inRangeMethods,
 			RatingMethod[] outRangeLowMethods,
 			RatingMethod[] outRangeHighMethods,
 			String description) throws RatingException {
+		this.officeId = officeId;
 		setTemplateId(templateId);
 		setInRangeMethods(inRangeMethods);
 		setOutRangeLowMethods(outRangeLowMethods);
