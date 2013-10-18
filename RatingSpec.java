@@ -855,7 +855,14 @@ public class RatingSpec extends RatingTemplate {
 	}
 	
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean storeTemplate) throws RatingException {
-		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toSpecXml(""), overwriteExisting);
+		if (storeTemplate)
+		{
+			RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toXml(""), overwriteExisting);
+    	}
+    	else
+    	{
+    		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toSpecXml(""), overwriteExisting);
+    	}
 	}
 
 }
