@@ -1985,7 +1985,10 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingSet.storeToDatabase(conn, toXmlString(""), overwriteExisting);
+		storeToDatabase(conn, overwriteExisting, false);
+	}
+	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
+		RatingSet.storeToDatabase(conn, toXmlString("",includeTemplate), overwriteExisting);
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
