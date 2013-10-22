@@ -11,6 +11,7 @@ import hec.data.IRating;
 import hec.data.IRatingSet;
 import hec.data.Parameter;
 import hec.data.RatingException;
+import hec.data.RatingObjectDoesNotExistException;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -2045,7 +2046,10 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			else {
 				setRatingSpec(new RatingSpec(rsc.ratingSpecContainer));
 			}
-			if (rsc.abstractRatingContainers != null) {
+			if (rsc.abstractRatingContainers == null) {
+				throw new RatingObjectDoesNotExistException("RatingSetContainer contains no ratings.");
+			}
+			else {
 				for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
 					if (rsc.abstractRatingContainers[i] instanceof UsgsStreamTableRatingContainer) {
 						this.addRating(new UsgsStreamTableRating((UsgsStreamTableRatingContainer)rsc.abstractRatingContainers[i]));
