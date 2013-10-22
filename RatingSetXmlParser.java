@@ -1,6 +1,7 @@
 package hec.data.cwmsRating;
 
 import hec.data.RatingException;
+import hec.data.RatingObjectDoesNotExistException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
@@ -229,8 +230,13 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			parser.parse(is);
 		}
 		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
+			if (parser.getRatingSetContainer() == null) {
+				throw new RatingObjectDoesNotExistException(t);
+			}
+			else {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
 		}
 		return parser.getRatingSetContainer();
 	}
@@ -273,7 +279,6 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	@Override
 	public void endDocument() {
 		if (rspc != null && arcs != null) {
-			rsc = new RatingSetContainer();
 			rsc.ratingSpecContainer = rspc;
 			rsc.abstractRatingContainers = new AbstractRatingContainer[arcs.size()];
 			for (int i = 0; i < arcs.size(); ++i) {
@@ -290,7 +295,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		parts[partsLen++] = localName;
 		switch (partsLen) {
 		case 1 :
-			if (!localName.equals(RATINGS_STR)) {
+			if (localName.equals(RATINGS_STR)) {
+				rsc = new RatingSetContainer();
+			}
+			else {
 				throw new RuntimeException("Invalid document node name: " + parts[0]);
 			}
 			break;

@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.util.List;
 
 import hec.data.RatingException;
+import hec.data.RatingObjectDoesNotExistException;
 import hec.heclib.util.HecTime;
 
 import org.jdom.Document;
@@ -129,6 +130,9 @@ public class AbstractRatingContainer {
 						arc = UsgsStreamTableRatingContainer.fromXml(elem);
 						break;
 					}
+				}
+				if (arc == null) {
+					throw new RatingObjectDoesNotExistException("No <rating>  or <usgs-stream-rating> element in XML.");
 				}
 			}
 		}

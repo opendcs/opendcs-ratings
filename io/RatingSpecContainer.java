@@ -2,6 +2,7 @@ package hec.data.cwmsRating.io;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import hec.data.RatingObjectDoesNotExistException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.util.TextUtil;
 
@@ -116,7 +117,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
 	 */
-	public static RatingSpecContainer fromXml(String xmlStr) {
+	public static RatingSpecContainer fromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		RatingSpecContainer rsc = new RatingSpecContainer();
 		final String elementName = "rating-spec";
 		RatingTemplateContainer rtc = RatingTemplateContainer.fromXml(xmlStr);
@@ -131,7 +132,10 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 					root = (Element)it.next();
 				}
 			}
-			if (root.getName().equals(elementName)) {
+			if (!root.getName().equals(elementName)) {
+				throw new RatingObjectDoesNotExistException(String.format("No <%s> element in XML.", elementName));
+			}
+			else {
 				Element elem = null;
 				@SuppressWarnings("rawtypes")
 				List elems = null;
