@@ -1946,11 +1946,15 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
+		return toXmlString(indent, false);
+	}
+	
+	public String toXmlString(CharSequence indent,boolean includeTemplate) throws RatingException {
 		StringBuilder sb = new StringBuilder();
 		if(ratingSpec != null) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
 			  .append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n")
-			  .append(ratingSpec.toXmlString(indent, 1));
+			  .append(ratingSpec.toXmlString(indent, 1,includeTemplate));
 		}
 		for (ICwmsRating cwmsRating : ratings.values()) {
 			sb.append(cwmsRating.toXmlString(indent, 1));
