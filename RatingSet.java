@@ -139,7 +139,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public static RatingSet fromXml(String xmlText) throws RatingException {
-		return new RatingSet(RatingSetXmlParser.parseString(xmlText));
+		RatingSetContainer rtc = RatingSetXmlParser.parseString(xmlText);
+		return new RatingSet(rtc);
 	}
 	/**
 	 * Generates a new RatingSet object from a compressed XML instance.
@@ -1947,23 +1948,11 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
-		return toXmlString(indent, false);
+		return toXmlString(indent, true);
 	}
 	
-	public String toXmlString(CharSequence indent,boolean includeTemplate) throws RatingException {
-		StringBuilder sb = new StringBuilder();
-		if(ratingSpec != null) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-			  .append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n")
-			  .append(ratingSpec.toXmlString(indent, 1,includeTemplate));
-		}
-		for (ICwmsRating cwmsRating : ratings.values()) {
-			sb.append(cwmsRating.toXmlString(indent, 1));
-		}
-		if(ratingSpec != null) {
-			sb.append("</ratings>\n");
-		}
-		return sb.toString();
+	public String toXmlString(CharSequence indent, boolean includeTemplate) throws RatingException {
+		return getData().toXml(indent, 0, includeTemplate);
 	}
 	/**
 	 * Outputs the rating set in a compress XML instance suitable for storing in DSS

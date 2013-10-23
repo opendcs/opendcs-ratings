@@ -422,43 +422,7 @@ public class RatingTemplate implements Modifiable
 	 * @return The XML document fragment
 	 */
 	public String toXmlString(CharSequence indent, int level) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		//---------------//
-		// template data //
-		//---------------//
-		String[] indParams = getIndParameters();
-		RatingMethod[] inRangeMethods = getInRangeMethods();
-		RatingMethod[] outRangeLowMethods = getOutRangeLowMethods();
-		RatingMethod[] outRangeHighMethods = getOutRangeHighMethods();
-		String paramId = new String();
-		for (String indParam : indParams) paramId = paramId.concat(SEPARATOR3).concat(indParam);
-		paramId = paramId.concat(SEPARATOR2).concat(getDepParameter());
-		sb.append(String.format("%s<rating-template office-id=\"%s\">\n", prefix, officeId))
-		  .append(String.format("%s%s<parameters-id>%s</parameters-id>\n", prefix, indent, paramId.substring(1)))
-		  .append(String.format("%s%s<version>%s</version>\n", prefix, indent, templateVersion))
-		  .append(String.format("%s%s<ind-parameter-specs>\n", prefix, indent));
-		for (int i = 0; i < indParams.length; ++i) {
-			sb.append(String.format("%s%s%s<ind-parameter-spec position=\"%d\">\n", prefix, indent, indent, i+1))
-			  .append(String.format("%s%s%s%s<parameter>%s</parameter>\n", prefix, indent, indent, indent, indParams[i]))
-			  .append(String.format("%s%s%s%s<in-range-method>%s</in-range-method>\n", prefix, indent, indent, indent, inRangeMethods[i]))
-			  .append(String.format("%s%s%s%s<out-range-low-method>%s</out-range-low-method>\n", prefix, indent, indent, indent, outRangeLowMethods[i]))
-			  .append(String.format("%s%s%s%s<out-range-high-method>%s</out-range-high-method>\n", prefix, indent, indent, indent, outRangeHighMethods[i]))
-			  .append(String.format("%s%s%s</ind-parameter-spec>\n", prefix, indent, indent));
-		}
-		sb.append(String.format("%s%s</ind-parameter-specs>\n", prefix, indent))
-		  .append(String.format("%s%s<dep-parameter>%s</dep-parameter>\n", prefix, indent, getDepParameter()));
-		String description = getTemplateDescription();
-		if (description == null || description.length() == 0) {
-			sb.append(String.format("%s%s<description/>\n", prefix, indent));
-		}
-		else {
-			sb.append(String.format("%s%s<description>%s</description>\n", prefix, indent, description));
-		}
-		sb.append(String.format("%s</rating-template>\n", prefix));
-		return sb.toString();
+		return getData().toTemplateXml(indent, level);
 	}
 	
 	/**

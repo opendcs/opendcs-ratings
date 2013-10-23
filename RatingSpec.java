@@ -783,49 +783,7 @@ public class RatingSpec extends RatingTemplate {
 	 * @return The XML document fragment
 	 */
 	public String toXmlString(CharSequence indent, int level, boolean includeTemplate) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		//---------------//
-		// template data //
-		//---------------//
-		if(includeTemplate) sb.append(super.toXmlString(indent, level));
-		//--------------------//
-		// specification data //
-		//--------------------//
-		String ratingSpecId = String.format("%s%s%s%s%s", locationId, SEPARATOR1, getTemplateId(), SEPARATOR1, version);
-		sb.append(String.format("%s<rating-spec office-id=\"%s\">\n", prefix, officeId))
-		  .append(String.format("%s%s<rating-spec-id>%s</rating-spec-id>\n", prefix, indent, ratingSpecId))
-		  .append(String.format("%s%s<template-id>%s</template-id>\n", prefix, indent, getTemplateId()))
-		  .append(String.format("%s%s<location-id>%s</location-id>\n", prefix, indent, locationId))
-		  .append(String.format("%s%s<version>%s</version>\n", prefix, indent, version));
-		if (sourceAgencyId == null || sourceAgencyId.length() == 0) {
-			sb.append(String.format("%s%s<source-agency/>\n", prefix, indent));
-		}
-		else {
-			sb.append(String.format("%s%s<source-agency>%s</source-agencey>\n", prefix, indent, sourceAgencyId));
-		}
-		sb.append(String.format("%s%s<in-range-method>%s</in-range-method>\n", prefix, indent, inRangeMethod))
-		  .append(String.format("%s%s<out-range-low-method>%s</out-range-low-method>\n", prefix, indent, outRangeLowMethod))
-		  .append(String.format("%s%s<out-range-high-method>%s</out-range-high-method>\n", prefix, indent, outRangeHighMethod))
-		  .append(String.format("%s%s<active>%s</active>\n", prefix, indent, active ? "true" : "false"))
-		  .append(String.format("%s%s<auto-update>%s</auto-update>\n", prefix, indent, autoUpdate ? "true" : "false"))
-		  .append(String.format("%s%s<auto-activate>%s</auto-activate>\n", prefix, indent, autoActivate ? "true" : "false"))
-		  .append(String.format("%s%s<auto-migrate-extension>%s</auto-migrate-extension>\n", prefix, indent, autoMigrateExtensions ? "true" : "false"))
-		  .append(String.format("%s%s<ind-rounding-specs>\n", prefix, indent));
-		for (int i = 0; i < indRoundingSpecs.length; ++i) {
-			sb.append(String.format("%s%s%s<ind-rounding-spec position=\"%d\">%s</ind-rounding-spec>\n", prefix, indent, indent, i+1, indRoundingSpecs[i]));
-		}
-		sb.append(String.format("%s%s</ind-rounding-specs>\n", prefix, indent))
-		  .append(String.format("%s%s<dep-rounding-spec>%s</dep-rounding-spec>\n", prefix, indent, depRoundingSpec));
-		if (description == null || description.length() == 0) {
-		}
-		else {
-			sb.append(String.format("%s%s<description>%s</description>\n", prefix, indent, this.description));
-		}
-		sb.append(String.format("%s</rating-spec>\n", prefix));
-		return sb.toString();
+		return ((RatingSpecContainer)getData()).toXml(indent, level, includeTemplate);
 	}
 
 	/**

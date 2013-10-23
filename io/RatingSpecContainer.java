@@ -204,7 +204,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	 * @param level The initial level of indentation
 	 * @return the generated XML
 	 */
-	public String toXml(CharSequence indent, int level) {
+	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
 		StringBuilder sb = new StringBuilder();
 		int newLevel = level;
 		if (level == 0) {
@@ -212,15 +212,19 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
 		}
-		sb.append(toTemplateXml(indent, newLevel)).append(toSpecXml(indent, newLevel));
+		if (includeTemplate) sb.append(toTemplateXml(indent, newLevel));
+		sb.append(toSpecXml(indent, newLevel));
 		if (level == 0) {
 			sb.append("</ratings>\n");
 		}
 		return sb.toString();
 	}
+	public String toXml(CharSequence indent, int level) {
+		return toXml(indent, level, true);
+	}
 	/**
 	 * Generates a specification XML string from this object
-	 * @param indent The amount to indent each level (initial leve = 0)
+	 * @param indent The amount to indent each level (initial level = 0)
 	 * @return the generated XML
 	 */
 	public String toSpecXml(CharSequence indent) {
@@ -248,6 +252,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		sb.append(prefix).append(indent).append("<template-id>").append(templateId == null ? "" : templateId).append("</template-id>\n");
 		sb.append(prefix).append(indent).append("<location-id>").append(locationId == null ? "" : locationId).append("</location-id>\n");
 		sb.append(prefix).append(indent).append("<version>").append(specVersion == null ? "" : specVersion).append("</version>\n");
+		sb.append(prefix).append(indent).append("<source-agency>").append(sourceAgencyId == null ? "" : sourceAgencyId).append("</source-agency>\n");
 		sb.append(prefix).append(indent).append("<in-range-method>").append(inRangeMethod == null ? "" : inRangeMethod).append("</in-range-method>\n");
 		sb.append(prefix).append(indent).append("<out-range-low-method>").append(outRangeLowMethod == null ? "" : outRangeLowMethod).append("</out-range-low-method>\n");
 		sb.append(prefix).append(indent).append("<out-range-high-method>").append(outRangeHighMethod == null ? "" : outRangeHighMethod).append("</out-range-high-method>\n");

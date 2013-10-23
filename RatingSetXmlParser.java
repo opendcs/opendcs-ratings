@@ -7,6 +7,7 @@ import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
@@ -91,6 +92,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private String[] parts = new String[6]; // deepest element is 5
 	private int partsLen = -1;
 	private RatingSetContainer rsc = null;
+	private RatingTemplateContainer rtc = null;
 	private RatingSpecContainer rspc = null;
 	private AbstractRatingContainer arc = null;
 	private List<AbstractRatingContainer> arcs = null;
@@ -307,14 +309,20 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				if (rspc != null) {
 					throw new RuntimeException("Only one rating template may be processed");
 				}
+				rtc = new RatingTemplateContainer();
+				rtc.officeId = attrs.getValue(OFFICE_ID_STR);
+			}
+			else if (localName.equals(RATING_SPEC_STR)) {
 				rspc = new RatingSpecContainer();
-				rspc.officeId = attrs.getValue(OFFICE_ID_STR);
+				rspc.specOfficeId = attrs.getValue(OFFICE_ID_STR);
+				if (rtc != null) {
+					rtc.clone(rspc);
+				}
 			}
 			else if (localName.equals(RATING_STR) || localName.equals(USGS_STREAM_RATING_STR)) {
 				arc = new AbstractRatingContainer();
 				arc.officeId = attrs.getValue(OFFICE_ID_STR);
 			}
-			else if (localName.equals(RATING_SPEC_STR)) ;
 			else {
 				elementError();
 			}
@@ -565,13 +573,13 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		case 2 :
 			if (localName.equals(RATING_TEMPLATE_STR)) {
 				try {
-					RatingMethod[] inRangeMethods = new RatingMethod[rspc.indParams.length];
-					RatingMethod[] outRangeLowMethods = new RatingMethod[rspc.indParams.length];
-					RatingMethod[] outRangeHighMethods = new RatingMethod[rspc.indParams.length];
-					for (int i = 0; i < rspc.indParams.length; ++i) {
-						inRangeMethods[i] = RatingMethod.fromString(rspc.inRangeMethods[i]);
-						outRangeLowMethods[i] = RatingMethod.fromString(rspc.outRangeLowMethods[i]);
-						outRangeHighMethods[i] = RatingMethod.fromString(rspc.outRangeHighMethods[i]);
+					RatingMethod[] inRangeMethods = new RatingMethod[rtc.indParams.length];
+					RatingMethod[] outRangeLowMethods = new RatingMethod[rtc.indParams.length];
+					RatingMethod[] outRangeHighMethods = new RatingMethod[rtc.indParams.length];
+					for (int i = 0; i < rtc.indParams.length; ++i) {
+						inRangeMethods[i] = RatingMethod.fromString(rtc.inRangeMethods[i]);
+						outRangeLowMethods[i] = RatingMethod.fromString(rtc.outRangeLowMethods[i]);
+						outRangeHighMethods[i] = RatingMethod.fromString(rtc.outRangeHighMethods[i]);
 					}
 				}
 				catch (Exception e) {
@@ -587,9 +595,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					erc = null;
 				}
 				else if (trc != null) {
-					trc.inRangeMethod = rspc.inRangeMethods[0];
-					trc.outRangeLowMethod = rspc.outRangeLowMethods[0];
-					trc.outRangeHighMethod = rspc.outRangeHighMethods[0];
+					trc.inRangeMethod = rtc.inRangeMethods[0];
+					trc.outRangeLowMethod = rtc.outRangeLowMethods[0];
+					trc.outRangeHighMethod = rtc.outRangeHighMethods[0];
 					if (ratingPointSetCount == 1) {
 						int pointCount = ratingPoints.get(0).getPointCount();
 						trc.values = new RatingValueContainer[pointCount];
@@ -644,9 +652,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						trc.values = RatingValueContainer.makeContainers(
 							points, 
 							notes, 
-							rspc.inRangeMethods,
-							rspc.outRangeLowMethods,
-							rspc.outRangeHighMethods);
+							rtc.inRangeMethods,
+							rtc.outRangeLowMethods,
+							rtc.outRangeHighMethods);
 					}
 					ratingPoints = null;
 					ratingPointSetCount = 0;
@@ -660,9 +668,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			}
 			else if (localName.equals(USGS_STREAM_RATING_STR)) {
 				if (arcs == null) arcs = new ArrayList<AbstractRatingContainer>();
-				urc.inRangeMethod = rspc.inRangeMethods[0];
-				urc.outRangeLowMethod = rspc.outRangeLowMethods[0];
-				urc.outRangeHighMethod = rspc.outRangeHighMethods[0];
+				urc.inRangeMethod = rtc.inRangeMethods[0];
+				urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
+				urc.outRangeHighMethod = rtc.outRangeHighMethods[0];
 				int pointCount = ratingPoints.get(0).getPointCount();
 				urc.values = new RatingValueContainer[pointCount];
 				for (int i = 0; i < pointCount; ++i) {
@@ -772,22 +780,22 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			case 3 :
 				if (parts[1].equals(RATING_TEMPLATE_STR)) {
 					if (parts[2].equals(PARAMETERS_ID_STR)) {
-						rspc.parametersId = data;
+						rtc.parametersId = data;
 						int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
-						rspc.indParams = new String[count];
-						rspc.inRangeMethods = new String[count];
-						rspc.outRangeLowMethods = new String[count];
-						rspc.outRangeHighMethods = new String[count];
+						rtc.indParams = new String[count];
+						rtc.inRangeMethods = new String[count];
+						rtc.outRangeLowMethods = new String[count];
+						rtc.outRangeHighMethods = new String[count];
 					}
 					else if (parts[2].equals(VERSION_STR)) {
-						rspc.templateVersion = data;
-						rspc.templateId = rspc.parametersId + RatingConst.SEPARATOR1 + rspc.templateVersion;
+						rtc.templateVersion = data;
+						rtc.templateId = rtc.parametersId + RatingConst.SEPARATOR1 + rtc.templateVersion;
 					}
 					else if (parts[2].equals(DEP_PARAMETER_STR)) {
-						rspc.depParam = data;
+						rtc.depParam = data;
 					}
 					else if (parts[2].equals(DESCRIPTION_STR)) {
-						rspc.templateDescription = data;
+						rtc.templateDescription = data;
 					}
 				}
 				else if (parts[1].equals(RATING_SPEC_STR)) {
@@ -893,16 +901,16 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				if (parts[1].equals(RATING_TEMPLATE_STR)) {
 					if (parts[2].equals(IND_PARAMETER_SPECS_STR) && parts[3].equals(IND_PARAMETER_SPEC_STR)) {
 						if (parts[4].equals(PARAMETER_STR)) {
-							rspc.indParams[pos] = data;
+							rtc.indParams[pos] = data;
 						}
 						else if (parts[4].equals(IN_RANGE_METHOD_STR)) {
-							rspc.inRangeMethods[pos] = data;
+							rtc.inRangeMethods[pos] = data;
 						}
 						else if (parts[4].equals(OUT_RANGE_LOW_METHOD_STR)) {
-							rspc.outRangeLowMethods[pos] = data;
+							rtc.outRangeLowMethods[pos] = data;
 						}
 						else if (parts[4].equals(OUT_RANGE_HIGH_METHOD_STR)) {
-							rspc.outRangeHighMethods[pos] = data;
+							rtc.outRangeHighMethods[pos] = data;
 						}
 					}
 				}

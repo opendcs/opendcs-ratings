@@ -72,6 +72,10 @@ public class RatingSetContainer {
 	}
 
 	public String toXml(CharSequence indent, int level) {
+		return toXml(indent, level, true);
+	}
+
+	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
@@ -81,7 +85,7 @@ public class RatingSetContainer {
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
 		}
 		if (ratingSpecContainer != null) {
-			sb.append(ratingSpecContainer.toXml(indent, level+1));
+			sb.append(ratingSpecContainer.toXml(indent, level+1, includeTemplate));
 		}
 		if (abstractRatingContainers != null) {
 			for (AbstractRatingContainer arc : abstractRatingContainers) {
@@ -93,5 +97,4 @@ public class RatingSetContainer {
 		}
 		return sb.toString();
 	}
-
 }
