@@ -1948,9 +1948,11 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
-		return toXmlString(indent, true);
+		return getData().toXml(indent, 0, true);
 	}
 	
+	// TODO DELETE THIS METHOD AFTER INITIAL RATING EDITOR TASK ORDER IS COMPLETE (Fix dependencies in next task order).
+	@Deprecated
 	public String toXmlString(CharSequence indent, boolean includeTemplate) throws RatingException {
 		return getData().toXml(indent, 0, includeTemplate);
 	}
