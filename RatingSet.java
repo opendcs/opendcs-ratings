@@ -1950,12 +1950,6 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	public String toXmlString(CharSequence indent) throws RatingException {
 		return getData().toXml(indent, 0, true);
 	}
-	
-	// TODO DELETE THIS METHOD AFTER INITIAL RATING EDITOR TASK ORDER IS COMPLETE (Fix dependencies in next task order).
-	@Deprecated
-	public String toXmlString(CharSequence indent, boolean includeTemplate) throws RatingException {
-		return getData().toXml(indent, 0, includeTemplate);
-	}
 	/**
 	 * Outputs the rating set in a compress XML instance suitable for storing in DSS
 	 * @return The compressed XML text
@@ -1980,7 +1974,7 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 		storeToDatabase(conn, overwriteExisting, false);
 	}
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
-		RatingSet.storeToDatabase(conn, toXmlString("",includeTemplate), overwriteExisting);
+		RatingSet.storeToDatabase(conn, toXmlString(""), overwriteExisting);
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
