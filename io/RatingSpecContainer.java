@@ -37,7 +37,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	 */
 	public String locationId = null;
 	/**
-	 * The specification version portio of the specification identifier
+	 * The specification version portion of the specification identifier
 	 */
 	public String specVersion = null;
 	/**
@@ -120,8 +120,14 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	public static RatingSpecContainer fromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		RatingSpecContainer rsc = new RatingSpecContainer();
 		final String elementName = "rating-spec";
-		RatingTemplateContainer rtc = RatingTemplateContainer.fromXml(xmlStr);
-		rtc.clone(rsc);
+		RatingObjectDoesNotExistException noTemplateException = null;
+		try {
+			RatingTemplateContainer rtc = RatingTemplateContainer.fromXml(xmlStr);
+			rtc.clone(rsc);
+		}
+		catch (RatingObjectDoesNotExistException e) {
+			noTemplateException = e;
+		}
 		try {
 			Document doc = new SAXBuilder().build(new StringReader(xmlStr));
 			Element root = doc.getRootElement();
@@ -183,6 +189,9 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 				if (elem != null) rsc.depRoundingSpec = elem.getTextTrim();
 				elem = root.getChild("description");
 				if (elem != null) rsc.specDescription = elem.getTextTrim();
+			}
+			if (noTemplateException != null) {
+				AbstractRating.getLogger().finer(noTemplateException.getMessage());
 			}
 		}
 		catch (JDOMException | IOException e) {

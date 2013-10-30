@@ -409,9 +409,9 @@ public class RatingTemplate implements Modifiable
 		rtc.outRangeLowMethods = new String[indParamCount];
 		rtc.outRangeHighMethods = new String[indParamCount];
 		for (int i = 0; i < indParamCount; ++i) {
-			rtc.inRangeMethods[i] = inRangeMethods[i].toString();
-			rtc.outRangeLowMethods[i] = outRangeLowMethods[i].toString();
-			rtc.outRangeHighMethods[i] = outRangeHighMethods[i].toString();
+			rtc.inRangeMethods[i] = rtc.inRangeMethods[i] == null ? null : inRangeMethods[i].toString();
+			rtc.outRangeLowMethods[i] = rtc.outRangeLowMethods[i] == null ? null : outRangeLowMethods[i].toString();
+			rtc.outRangeHighMethods[i] = rtc.outRangeHighMethods[i] == null ? null : outRangeHighMethods[i].toString();
 		}
 		rtc.templateDescription = description;
 	}
