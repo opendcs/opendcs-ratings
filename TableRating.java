@@ -568,10 +568,20 @@ public class TableRating extends AbstractRating {
 			for (int i = 0; i < trc.values.length; ++i) {
 				values[i] = new RatingValue(trc.values[i]);
 			}
-			for (RatingValue extensionValue : extensionValues) extensionValue.deleteObserver(this);
-			RatingValue[] extensionValues = new RatingValue[trc.extensionValues.length];
-			for (int i = 0; i < trc.extensionValues.length; ++i) {
-				extensionValues[i] = new RatingValue(trc.extensionValues[i]);
+			if(extensionValues != null)
+			{
+				for (RatingValue extensionValue : extensionValues) extensionValue.deleteObserver(this);
+			}
+			if(trc.extensionValues != null)
+			{
+				RatingValue[] extensionValues = new RatingValue[trc.extensionValues.length];
+				for (int i = 0; i < trc.extensionValues.length; ++i) {
+					extensionValues[i] = new RatingValue(trc.extensionValues[i]);
+				}
+			}
+			else
+			{
+				extensionValues = null;
 			}
 			init(	values,
 					extensionValues,
