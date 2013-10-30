@@ -112,18 +112,18 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		sb.append(super.toXml(prefix, indent, "rating"));
 		String pointPrefix = prefix + indent + indent;
 		if (values != null) {
-			sb.append(prefix).append(indent).append("<rating-points>\n");
 			for (RatingValueContainer rvc : values) {
+				sb.append(prefix).append(indent).append("<rating-points>\n");
 				rvc.toXml(pointPrefix, indent, sb);
+				sb.append(prefix).append(indent).append("</rating-points>\n");
 			}
-			sb.append(prefix).append(indent).append("</rating-points>\n");
 		}
 		if (extensionValues != null) {
-			sb.append(prefix).append(indent).append("<extension-points>\n");
 			for (RatingValueContainer rvc : extensionValues) {
+				sb.append(prefix).append(indent).append("<extension-points>\n");
 				rvc.toXml(pointPrefix, indent, sb);
+				sb.append(prefix).append(indent).append("</extension-points>\n");
 			}
-			sb.append(prefix).append(indent).append("</extension-points>\n");
 		}
 		sb.append(prefix).append("</rating>\n");
 		if (level == 0) {

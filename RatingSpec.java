@@ -766,7 +766,74 @@ public class RatingSpec extends RatingTemplate {
 		}
 	}
 	/**
-	 * Generates an XML document fragment from this rating specification. The fragment contains both
+	 * Generates an XML document from this rating specification containing only the
+	 * &lt;rating-spec&gt; element.
+	 * @param indent The character(s) for each level of indentation
+	 * @return The XML document fragment
+	 */
+	public String toSpecXml(CharSequence indent) {
+		return ((RatingSpecContainer)getData()).toSpecXml(indent, 0);
+	}
+	/**
+	 * Generates an XML document fragment from this rating specification containing only the
+	 * &lt;rating-spec&gt; element.
+	 * @param indent The character(s) for each level of indentation
+	 * @param level The base indentation level for the document fragment
+	 * @return The XML document
+	 */
+	public String toSpecXml(CharSequence indent, int level) {
+		return ((RatingSpecContainer)getData()).toSpecXml(indent, level);
+	}
+	/**
+	 * Generates an XML document from this rating specification containing only the
+	 * &lt;rating-template&gt; element.
+	 * @param indent The character(s) for each level of indentation
+	 * @return The XML document
+	 */
+	public String toTemplateXml(CharSequence indent) {
+		return ((RatingSpecContainer)getData()).toTemplateXml(indent, 0);
+	}
+	/**
+	 * Generates an XML document fragment from this rating specification containing only the
+	 * &lt;rating-template&gt; element.
+	 * @param indent The character(s) for each level of indentation
+	 * @param level The base indentation level for the document fragment
+	 * @return The XML document fragment
+	 */
+	public String toTemplateXml(CharSequence indent, int level) {
+		return ((RatingSpecContainer)getData()).toTemplateXml(indent, level);
+	}
+	/**
+	 * Generates an XML document from this rating specification containing both
+	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
+	 * @param indent The character(s) for each level of indentation
+	 * @param level The base indentation level for the document fragment
+	 * @return The XML document
+	 */
+	public String toXml(CharSequence indent) {
+		return toXmlString(indent, 0);
+	}
+	/**
+	 * Generates an XML document fragment from this rating specification containing both
+	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
+	 * @param indent The character(s) for each level of indentation
+	 * @param level The base indentation level for the document fragment
+	 * @return The XML document fragment
+	 */
+	public String toXml(CharSequence indent, int level) {
+		return toXmlString(indent, level);
+	}
+	/**
+	 * Generates an XML document fragment from this rating specification.
+	 * @param indent The character(s) for each level of indentation
+	 * @param level The base indentation level for the document fragment
+	 * @return The XML document fragment
+	 */
+	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
+		return toXmlString(indent, level, includeTemplate);
+	}
+	/**
+	 * Generates an XML document fragment from this rating specification containing both
 	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment

@@ -176,7 +176,7 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			
 			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
 			stmts[1].setString(1, xml);
-			stmts[1].setString(2, overwriteExisting ? "F" : "T");
+			stmts[1].setString(2, overwriteExisting ? "T" : "F");
 			stmts[1].execute();
 			
 			stmts[0].execute();
@@ -1971,10 +1971,17 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 * @throws RatingException
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		storeToDatabase(conn, overwriteExisting, false);
+		storeToDatabase(conn, overwriteExisting, true);
 	}
+	/**
+	 * Stores the rating set to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @param inlcludeTemplate Flag specifying whether to include the rating template in the XML
+	 * @throws RatingException
+	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
-		RatingSet.storeToDatabase(conn, toXmlString(""), overwriteExisting);
+		RatingSet.storeToDatabase(conn, getData().toXml("", 0, includeTemplate), overwriteExisting);
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
