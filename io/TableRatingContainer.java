@@ -1,7 +1,7 @@
 package hec.data.cwmsRating.io;
 
 import hec.data.RatingException;
-import hec.io.RatingContainer;
+import hec.data.cwmsRating.AbstractRating;
 
 import org.jdom.Element;
 
@@ -110,18 +110,25 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			prefix += indent;
 		}
 		sb.append(super.toXml(prefix, indent, "rating"));
-		String pointPrefix = prefix + indent + indent;
+		String pointsPrefix = prefix + indent;
 		if (values != null) {
-			for (RatingValueContainer rvc : values) {
-				sb.append(prefix).append(indent).append("<rating-points>\n");
-				rvc.toXml(pointPrefix, indent, sb);
-				sb.append(prefix).append(indent).append("</rating-points>\n");
+			boolean multiParam = values[0].depTable != null;
+			if (!multiParam) sb.append(prefix).append(indent).append("<rating-points>\n");
+			for (int i = 0; i < values.length; ++i) {
+				values[i].toXml(pointsPrefix, indent, sb);
 			}
+			if (!multiParam) sb.append(prefix).append(indent).append("</rating-points>\n");
 		}
 		if (extensionValues != null) {
-			for (RatingValueContainer rvc : extensionValues) {
+			boolean multiParam = extensionValues[0].depTable != null;
+			if (multiParam) {
+				AbstractRating.getLogger().severe("Multiple independent parameter ratings cannot use extension values, ignoring");
+			}
+			else {
 				sb.append(prefix).append(indent).append("<extension-points>\n");
-				rvc.toXml(pointPrefix, indent, sb);
+				for (int i = 0; i < extensionValues.length; ++i) {
+					extensionValues[i].toXml(pointsPrefix, indent, sb);
+				}
 				sb.append(prefix).append(indent).append("</extension-points>\n");
 			}
 		}

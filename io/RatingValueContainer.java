@@ -207,8 +207,10 @@ public class RatingValueContainer {
 			for (Object otherIndObj : pointsElem.getChildren("other-ind")) {
 				Element otherIndElem = (Element)otherIndObj;
 				int pos = Integer.parseInt(otherIndElem.getAttributeValue("position"));
-				if (pos != col+1) throw new RatingException(String.format("Expected position %d, got %d on %s", col+1, pos, otherIndElem.toString()));
-				otherInds[col] = Double.parseDouble(otherIndElem.getAttributeValue("value"));
+				if (pos != col+1) {
+					throw new RatingException(String.format("Expected position %d, got %d on %s", col+1, pos, otherIndElem.toString()));
+				}
+				otherInds[col++] = Double.parseDouble(otherIndElem.getAttributeValue("value"));
 			}
 			for (Object pointObj : pointsElem.getChildren("point")) {
 				Element pointElem = (Element)pointObj;
@@ -223,30 +225,37 @@ public class RatingValueContainer {
 				++row;
 			}
 		}
-//		for (int i = 0; i < depth; ++i) {
-//			System.out.print(String.format("\n%3d", i));
-//			for (int j = 0; j < width; ++j) {
-//				System.out.print(String.format("\t%10.2f", points[i][j]));
-//			}
-//		}
 		return makeContainers(points, notes, null, null, null);
 	}
 	public String toXml(CharSequence prefix, CharSequence indent, StringBuilder sb) {
-		return toXml(prefix, indent, 1, sb);
+		return toXml(prefix, indent, null, sb);
 	}
 	
-	public String toXml(CharSequence prefix, CharSequence indent, int indParamLevel, StringBuilder sb) {
+	public String toXml(CharSequence prefix, CharSequence indent, List<Double> otherIndParams, StringBuilder sb) {
 		if (depTable == null) {
-			sb.append(prefix).append("<point>\n");
-			sb.append(prefix).append(indent).append("<ind>").append(indValue).append("</ind>\n");
-			sb.append(prefix).append(indent).append("<dep>").append(depValue).append("</dep>\n");
-			if (note != null) sb.append(prefix).append(indent).append("<note>").append(note).append("</note>\n");
-			sb.append(prefix).append("</point>\n");
+			sb.append(prefix).append(indent).append("<point>\n");
+			sb.append(prefix).append(indent).append(indent).append("<ind>").append(indValue).append("</ind>\n");
+			sb.append(prefix).append(indent).append(indent).append("<dep>").append(depValue).append("</dep>\n");
+			if (note != null) sb.append(prefix).append(indent).append(indent).append("<note>").append(note).append("</note>\n");
+			sb.append(prefix).append(indent).append("</point>\n");
 		}
 		else {
-			sb.append(prefix).append("<other-ind position=\"").append(indParamLevel).append("\" value=\"").append(indValue).append("\"/>\n");
+			if (otherIndParams == null) {
+				otherIndParams = new ArrayList<Double>();
+			}
+			otherIndParams.add(indValue);
+			if (depTable.values[0].depTable == null) {
+				sb.append(prefix).append("<rating-points>\n");
+				for (int i = 0; i < otherIndParams.size(); ++i) {
+					sb.append(prefix).append(indent).append("<other-ind position=\"").append(i+1).append("\" value=\"").append(otherIndParams.get(i)).append("\"/>\n");
+				}
+			}
 			for (RatingValueContainer rvc : depTable.values) {
-				rvc.toXml(prefix, indent, indParamLevel+1, sb);
+				rvc.toXml(prefix, indent, otherIndParams, sb);
+			}
+			otherIndParams.remove(otherIndParams.size()-1);
+			if (depTable.values[0].depTable == null) {
+				sb.append(prefix).append("</rating-points>\n");
 			}
 		}
 		return sb.toString();
