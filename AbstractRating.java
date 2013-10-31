@@ -105,13 +105,26 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 	 */
 	protected boolean warnUnsafe = true;
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Generates a new AbstractRating object from XML text
+	 * @param xmlText The XML text to generate the rating object from
+	 * @return The generated rating object.
+	 * @throws RatingException
+	 */
+	public static AbstractRating fromXml(String xmlText) throws RatingException {
+		AbstractRatingContainer arc = AbstractRatingContainer.fromXml(xmlText);
+		if (arc instanceof UsgsStreamTableRatingContainer) return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)arc);
+		if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
+		if (arc instanceof ExpressionRatingContainer) return new ExpressionRating((ExpressionRatingContainer)arc);
+		return null;
+	}
+	/**
+	 * Generates a new AbstractRating object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
 	 * @param ratingSpecId The rating specification identifier
 	 * @param effectiveDate Specifies (in milliseconds) a time to be an upper bound on the effective date.
 	 *                      The rating with the latest effective date on or before this time is retrieved. If null, the latest rating is retrieved.
-	 * @return The new Abstract Rating object
+	 * @return The new AbstractRating object
 	 * @throws RatingException
 	 */
 	public static AbstractRating fromDatabase(
@@ -160,11 +173,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 				throw new RatingException("CLOB too long.");
 			}
 			String xmlText = clob.getSubString(1, (int)clob.length());
-			AbstractRatingContainer arc = AbstractRatingContainer.fromXml(xmlText);
-			if (arc instanceof UsgsStreamTableRatingContainer) return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)arc);
-			if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
-			if (arc instanceof ExpressionRatingContainer) return new ExpressionRating((ExpressionRatingContainer)arc);
-			return null;
+			return fromXml(xmlText);
 		}
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
