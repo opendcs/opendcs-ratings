@@ -726,10 +726,9 @@ public class UsgsStreamTableRating extends TableRating {
 		{
 			for (RatingValue extensionValue : extensionValues) extensionValue.deleteObserver(this);
 		}
-		
-		RatingValue[] extensionValues = new RatingValue[ustrc.extensionValues.length];
-		if(extensionValues != null)
+		if(ustrc.extensionValues != null)
 		{
+			RatingValue[] extensionValues = new RatingValue[ustrc.extensionValues.length];
 			for (int i = 0; i < ustrc.extensionValues.length; ++i) {
 				extensionValues[i] = new RatingValue(ustrc.extensionValues[i]);
 			}
