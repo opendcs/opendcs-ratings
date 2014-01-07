@@ -274,7 +274,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	private void processCharacters() {
 		if (chars.length() > 0) {
-			String data = chars.toString();
+			String data = chars.toString().trim();
 			chars.setLength(0);
 			switch (partsLen) {
 			case 3 :
@@ -975,7 +975,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void characters(char[] ch, int start, int len) {
-		chars.append(new String(ch, start, len).trim());
+		chars.append(ch, start, len);
 	}
 	
 //	public static void main(String[] args) throws Exception {
