@@ -3,14 +3,11 @@ package hec.data.cwmsRating.io;
 import static hec.lang.Const.UNDEFINED_TIME;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringReader;
-import java.util.List;
 
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
 import hec.heclib.util.HecTime;
-import hec.io.DataContainer;
 
 import org.jdom.Document;
 import org.jdom.Element;
