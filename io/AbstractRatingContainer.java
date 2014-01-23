@@ -22,7 +22,7 @@ import org.jdom.input.SAXBuilder;
  *
  * @author Mike Perryman
  */
-public class AbstractRatingContainer  extends DataContainer implements Serializable {
+public class AbstractRatingContainer {
 	/**
 	 * Office that owns the rating
 	 */
