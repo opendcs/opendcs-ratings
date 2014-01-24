@@ -10,7 +10,7 @@ public enum RatingMethodId
 	Error("ERROR", true, false, false, true, true, true),
 	Linear("LINEAR", true, true, true, true, true, true),
 	Logarithmic("LOGARITHMIC", false, false, false, true, true, true),
-	LinLog("LIN-LOG", true, true, true, true, true, true),
+	LinLog("LIN-LOG", false, false, false, true, true, true),
 	LogLin("LOG-LIN", false, false, false, true, true, true),
 	Previous("PREVIOUS", false, true, true, true, true, true),
 	Next("NEXT", true, true, false, true, true, true),
