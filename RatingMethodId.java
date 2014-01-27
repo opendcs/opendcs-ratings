@@ -12,9 +12,9 @@ public enum RatingMethodId
 	Logarithmic("LOGARITHMIC", false, false, false, true, true, true),
 	LinLog("LIN-LOG", false, false, false, true, true, true),
 	LogLin("LOG-LIN", false, false, false, true, true, true),
-	Previous("PREVIOUS", false, true, true, true, true, true),
-	Next("NEXT", true, true, false, true, true, true),
-	Nearest("NEAREST", true, false, true, true, true, true),
+	Previous("PREVIOUS", false, true, true, false, true, true),
+	Next("NEXT", true, true, false, true, true, false),
+	Nearest("NEAREST", true, false, true, true, false, true),
 	Lower("LOWER", false, true, true, true, true, true),
 	Higher("HIGHER", true, true, false, true, true, true),
 	Closest("CLOSEST", true, true, true, true, true, true);
