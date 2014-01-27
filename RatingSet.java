@@ -9,10 +9,12 @@ import static hec.util.TextUtil.split;
 import hec.data.DataSetException;
 import hec.data.IRating;
 import hec.data.IRatingSet;
+import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.Units;
+import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
@@ -53,7 +55,7 @@ import java.util.logging.Logger;
  *  
  * @author Mike Perryman
  */
-public class RatingSet implements IRating, IRatingSet, Observer {
+public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
@@ -766,6 +768,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 						lastUsedRating = activeRatings.firstEntry().getValue(); 
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
+					default:
+						break;
 					}
 					method = ratingSpec.getOutRangeLowMethod();
 					if (activeRatings.size() == 1) {
@@ -792,6 +796,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 						lastUsedRating = activeRatings.lastEntry().getValue();
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
+					default:
+						break;
 					}
 					method = ratingSpec.getOutRangeHighMethod();
 					if (activeRatings.size() == 1) {
@@ -838,6 +844,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 					}
 					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 					continue;
+				default:
+					break;
 				}
 				//------------------------------------//
 				// handle interpolation/extrapolation //
@@ -1329,6 +1337,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			case LOG_LIN:
 			case LIN_LOG:
 				throw new RatingException("Invalid in-range rating method for rating times: "+ratingSpec.getInRangeMethod());
+			default:
+				break;
 			}
 			switch (ratingSpec.getOutRangeLowMethod()) {
 			case LOGARITHMIC :
@@ -1336,6 +1346,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			case LIN_LOG:
 			case PREVIOUS:
 				throw new RatingException("Invalid out-of-range low rating method for rating times: "+ratingSpec.getOutRangeLowMethod());
+			default:
+				break;
 			}
 			switch (ratingSpec.getOutRangeHighMethod()) {
 			case LOGARITHMIC :
@@ -1343,6 +1355,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 			case LIN_LOG:
 			case NEXT:
 				throw new RatingException("Invalid out-of-range high rating method for rating times: "+ratingSpec.getOutRangeHighMethod());
+			default:
+				break;
 			}
 		}
 		this.ratingSpec = ratingSpec;
@@ -1545,7 +1559,6 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 	 */
 	@Override
 	public double[][] getRatingExtents() throws RatingException {
-		// TODO Auto-generated method stub
 		return getRatingExtents(getRatingTime());
 	}
 	/* (non-Javadoc)
@@ -1757,6 +1770,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 						lastUsedRating = activeRatings.firstEntry().getValue(); 
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
+					default:
+						break;
 					}
 					method = ratingSpec.getOutRangeLowMethod();
 					if (activeRatings.size() == 1) {
@@ -1783,6 +1798,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 						lastUsedRating = activeRatings.lastEntry().getValue();
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
+					default:
+						break;
 					}
 					method = ratingSpec.getOutRangeHighMethod();
 					if (activeRatings.size() == 1) {
@@ -1829,6 +1846,8 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 					}
 					Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 					continue;
+				default:
+					break;
 				}
 				//------------------------------------//
 				// handle interpolation/extrapolation //
@@ -2104,7 +2123,172 @@ public class RatingSet implements IRating, IRatingSet, Observer {
 		}
 		throw new RatingException("Invalid text for RatingSet");
 	}
-
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
+	 */
+	@Override
+	public String getNativeVerticalDatum() throws VerticalDatumException {
+		return getData().getNativeVerticalDatum();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentVerticalDatum()
+	 */
+	@Override
+	public String getCurrentVerticalDatum() throws VerticalDatumException {
+		return getData().getCurrentVerticalDatum();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isCurrentVerticalDatumEstimated()
+	 */
+	@Override
+	public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
+		return getData().isCurrentVerticalDatumEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNativeVerticalDatum()
+	 */
+	@Override
+	public boolean toNativeVerticalDatum() throws VerticalDatumException {
+		RatingSetContainer rsc = getData();
+		boolean change = rsc.toNativeVerticalDatum();
+		if (change) {
+			try {
+				setData(rsc);
+			}
+			catch (RatingException e) {
+				throw new VerticalDatumException(e);
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNGVD29()
+	 */
+	@Override
+	public boolean toNGVD29() throws VerticalDatumException {
+		RatingSetContainer rsc = getData();
+		boolean change = rsc.toNGVD29();
+		if (change) {
+			try {
+				setData(rsc);
+			}
+			catch (RatingException e) {
+				throw new VerticalDatumException(e);
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNAVD88()
+	 */
+	@Override
+	public boolean toNAVD88() throws VerticalDatumException {
+		RatingSetContainer rsc = getData();
+		boolean change = rsc.toNAVD88();
+		if (change) {
+			try {
+				setData(rsc);
+			}
+			catch (RatingException e) {
+				throw new VerticalDatumException(e);
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
+		RatingSetContainer rsc = getData();
+		boolean change = rsc.toVerticalDatum(datum);
+		if (change) {
+			try {
+				setData(rsc);
+			}
+			catch (RatingException e) {
+				throw new VerticalDatumException(e);
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentOffset()
+	 */
+	@Override
+	public double getCurrentOffset() throws VerticalDatumException {
+		return getData().getCurrentOffset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
+	 */
+	@Override
+	public double getCurrentOffset(String unit) throws VerticalDatumException {
+		return getData().getCurrentOffset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNGVD29Offset()
+	 */
+	@Override
+	public double getNGVD29Offset() throws VerticalDatumException {
+		return getData().getNGVD29Offset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
+	 */
+	@Override
+	public double getNGVD29Offset(String unit) throws VerticalDatumException {
+		return getData().getNGVD29Offset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNAVD88Offset()
+	 */
+	@Override
+	public double getNAVD88Offset() throws VerticalDatumException {
+		return getData().getNAVD88Offset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
+	 */
+	@Override
+	public double getNAVD88Offset(String unit) throws VerticalDatumException {
+		return getData().getNAVD88Offset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
+	 */
+	@Override
+	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
+		return getData().isNGVD29OffsetEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
+	 */
+	@Override
+	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
+		return getData().isNAVD88OffsetEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
+	 */
+	@Override
+	public String getVerticalDatumInfo() throws VerticalDatumException {
+		return getData().getVerticalDatumInfo();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
+	 */
+	@Override
+	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
+		RatingSetContainer rsc = getData();
+		rsc.setVerticalDatumInfo(xmlStr);
+		try {
+			setData(rsc);
+		}
+		catch (RatingException e) {
+			throw new VerticalDatumException(e);
+		}
+	}
 	private void refreshRatings() {
 		AbstractRating[] _ratings = ratings.values().toArray(new AbstractRating[ratings.size()]);
 		ratings.clear();

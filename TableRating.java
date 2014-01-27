@@ -145,6 +145,9 @@ public class TableRating extends AbstractRating {
 				trc.createDateMillis,
 				trc.active,
 				trc.description);
+		if (trc.vdc != null) {
+			vdc = trc.vdc.clone();
+		}
 	}
 	/**
 	 * Public Constructor 

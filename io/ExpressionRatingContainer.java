@@ -4,6 +4,7 @@
 package hec.data.cwmsRating.io;
 
 import hec.data.RatingException;
+import hec.data.VerticalDatumException;
 
 import org.jdom.Element;
 
@@ -46,7 +47,12 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	
 	public static ExpressionRatingContainer fromXml(Element ratingElement) throws RatingException {
 		ExpressionRatingContainer erc = new ExpressionRatingContainer();
-		AbstractRatingContainer.fromXml(ratingElement, erc);
+		try {
+			AbstractRatingContainer.fromXml(ratingElement, erc);
+		}
+		catch (VerticalDatumException e) {
+			throw new RatingException(e);
+		}
 		erc.expression = ratingElement.getChildTextTrim("formula");
 		return erc;
 	}
@@ -64,6 +70,17 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
+		try {
+			if (vdc != null && vdc.getCurrentOffset() != 0.) {
+				ExpressionRatingContainer _clone = new ExpressionRatingContainer();
+				clone(_clone);
+				_clone.toNativeVerticalDatum();
+				return _clone.toXml(indent, level);
+			}
+		}
+		catch (VerticalDatumException e) {
+			throw new RuntimeException(e);
+		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();

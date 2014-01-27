@@ -3,7 +3,9 @@ package hec.data.cwmsRating.io;
 import java.util.List;
 
 import hec.data.RatingException;
+import hec.data.VerticalDatumException;
 import hec.heclib.util.HecTime;
+import hec.io.VerticalDatumContainer;
 
 import org.jdom.Element;
 
@@ -58,7 +60,12 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	
 	public static UsgsStreamTableRatingContainer fromXml(Element ratingElement) throws RatingException {
 		UsgsStreamTableRatingContainer ustrc = new UsgsStreamTableRatingContainer();
-		AbstractRatingContainer.fromXml(ratingElement, ustrc);
+		try {
+			AbstractRatingContainer.fromXml(ratingElement, ustrc);
+		}
+		catch (VerticalDatumException e1) {
+			throw new RatingException(e1);
+		}
 		Element elem = null;
 		
 		@SuppressWarnings("rawtypes")
@@ -144,8 +151,115 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				}
 			}
 		}
+		Element verticalDatumElement = ratingElement.getChild("vertical-datum-info");
+		if (verticalDatumElement != null) {
+			try {
+				ustrc.vdc = new VerticalDatumContainer(verticalDatumElement.toString());
+			}
+			catch (VerticalDatumException e) {
+				throw new RatingException(e);
+			}
+		}
 		return ustrc;
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNativeVerticalDatum()
+	 */
+	@Override
+	public boolean toNativeVerticalDatum() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		boolean change = false;
+		if (getParamsAndUnits()[1][0].startsWith("Elev")) {
+			double offset = vdc.getCurrentOffset();
+			if (offset != 0.) {
+				change = true;
+				try {
+					addOffset(0, -offset);
+					if (offsets != null) {
+						offsets.addOffset(0, -offset);
+					}
+					if (shifts != null && shifts.abstractRatingContainers != null)
+						for (int i = 0; i < shifts.abstractRatingContainers.length; ++i) {
+							shifts.abstractRatingContainers[i].addOffset(0, -offset);
+					}
+				}
+				catch (RatingException e) {
+					throw new VerticalDatumException(e);
+				}
+			}
+			vdc.toNativeVerticalDatum();
+		}
+		return change;
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNGVD29()
+	 */
+	@Override
+	public boolean toNGVD29() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		boolean change = false;
+		String[][] paramsAndUnits = getParamsAndUnits();
+		String[] params = paramsAndUnits[0];
+		String[] units  = paramsAndUnits[1];
+		if (params[0].startsWith("Elev")) {
+			if (!vdc.getCurrentVerticalDatum().equals("NGVD29")) {
+				change = true;
+				double offset1 = vdc.getNGVD29Offset(units[0]);
+				double offset2 = vdc.getCurrentOffset(units[0]);
+				try {
+					addOffset(0, offset1 - offset2);
+					if (offsets != null) {
+						offsets.addOffset(0, offset1 - offset2);
+					}
+					if (shifts != null && shifts.abstractRatingContainers != null)
+						for (int i = 0; i < shifts.abstractRatingContainers.length; ++i) {
+							shifts.abstractRatingContainers[i].addOffset(0, offset1 - offset2);
+					}
+				}
+				catch (RatingException e) {
+					throw new VerticalDatumException(e);
+				}
+			}
+			vdc.toNGVD29();
+		}
+		return change;
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNAVD88()
+	 */
+	@Override
+	public boolean toNAVD88() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		boolean change = false;
+		String[][] paramsAndUnits = getParamsAndUnits();
+		String[] params = paramsAndUnits[0];
+		String[] units  = paramsAndUnits[1];
+		if (params[0].startsWith("Elev")) {
+			if (!vdc.getCurrentVerticalDatum().equals("NAVD88")) {
+				change = true;
+				double offset1 = vdc.getNAVD88Offset(units[0]);
+				double offset2 = vdc.getCurrentOffset(units[0]);
+				try {
+					addOffset(0, offset1 - offset2);
+					if (offsets != null) {
+						offsets.addOffset(0, offset1 - offset2);
+					}
+					if (shifts != null && shifts.abstractRatingContainers != null)
+						for (int i = 0; i < shifts.abstractRatingContainers.length; ++i) {
+							shifts.abstractRatingContainers[i].addOffset(0, offset1 - offset2);
+					}
+				}
+				catch (RatingException e) {
+					throw new VerticalDatumException(e);
+				}
+			}
+			vdc.toNAVD88();
+		}
+		return change;
+	}
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
 	 */
@@ -159,6 +273,17 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
+		try {
+			if (vdc != null && vdc.getCurrentOffset() != 0.) {
+				UsgsStreamTableRatingContainer _clone = new UsgsStreamTableRatingContainer();
+				clone(_clone);
+				_clone.toNativeVerticalDatum();
+				return _clone.toXml(indent, level);
+			}
+		}
+		catch (VerticalDatumException e) {
+			throw new RuntimeException(e);
+		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
@@ -227,5 +352,21 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			sb.append("</ratings>\n");
 		}
 		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#addOffset(int, double)
+	 */
+	@Override
+	public void addOffset(int paramNum, double offset) throws RatingException {
+		super.addOffset(paramNum, offset);
+		if (paramNum == 0) {
+			if (offsets != null) {
+				offsets.addOffset(paramNum, offset);
+			}
+			if (shifts != null) {
+				shifts.addOffset(paramNum, offset);
+			}
+		}
 	}
 }

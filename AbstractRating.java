@@ -8,10 +8,12 @@ import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
 import hec.data.DataSetException;
+import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
+import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
@@ -25,6 +27,7 @@ import hec.heclib.util.HecTime;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
+import hec.io.VerticalDatumContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
@@ -46,7 +49,7 @@ import rma.lang.Modifiable;
  *
  * @author Mike Perryman
  */
-public abstract class AbstractRating implements Observer, ICwmsRating , Modifiable{
+public abstract class AbstractRating implements Observer, ICwmsRating , IVerticalDatum, Modifiable{
 
 	protected static final Logger logger = Logger.getLogger(AbstractRating.class.getPackage().getName());
 
@@ -86,6 +89,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 	 * Descriptive text about the rating
 	 */
 	protected String description = null;
+	/**
+	 * Contains vertical datum information, if any exists
+	 */
+	protected VerticalDatumContainer vdc = null;
 	/**
 	 * A time to associate with all values that don't specify their own times.  This time, along with the rating
 	 * effective dates, is used to determine which ratings to use to rate values.
@@ -776,31 +783,201 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 			throw new RatingException(t);
 		}
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
+	 */
+	@Override
+	public String getNativeVerticalDatum() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getNativeVerticalDatum();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentVerticalDatum()
+	 */
+	@Override
+	public String getCurrentVerticalDatum() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getCurrentVerticalDatum();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isCurrentVerticalDatumEstimated()
+	 */
+	@Override
+	public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.isCurrentVerticalDatumEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNativeVerticalDatum()
+	 */
+	@Override
+	public boolean toNativeVerticalDatum() throws VerticalDatumException {
+		AbstractRatingContainer arc = getData();
+		boolean change = arc.toNativeVerticalDatum();
+		try {
+			setData(arc);
+		}
+		catch (RatingException e) {
+			throw new VerticalDatumException(e);
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNGVD29()
+	 */
+	@Override
+	public boolean toNGVD29() throws VerticalDatumException {
+		AbstractRatingContainer arc = getData();
+		boolean change = arc.toNGVD29();
+		try {
+			setData(arc);
+		}
+		catch (RatingException e) {
+			throw new VerticalDatumException(e);
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNAVD88()
+	 */
+	@Override
+	public boolean toNAVD88() throws VerticalDatumException {
+		AbstractRatingContainer arc = getData();
+		boolean change = arc.toNAVD88();
+		try {
+			setData(arc);
+		}
+		catch (RatingException e) {
+			throw new VerticalDatumException(e);
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
+		AbstractRatingContainer arc = getData();
+		boolean change = arc.toVerticalDatum(datum);
+		try {
+			setData(arc);
+		}
+		catch (RatingException e) {
+			throw new VerticalDatumException(e);
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentOffset()
+	 */
+	@Override
+	public double getCurrentOffset() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getCurrentOffset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
+	 */
+	@Override
+	public double getCurrentOffset(String unit) throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getCurrentOffset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNGVD29Offset()
+	 */
+	@Override
+	public double getNGVD29Offset() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getNGVD29Offset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
+	 */
+	@Override
+	public double getNGVD29Offset(String unit) throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getNGVD29Offset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNAVD88Offset()
+	 */
+	@Override
+	public double getNAVD88Offset() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getNAVD88Offset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
+	 */
+	@Override
+	public double getNAVD88Offset(String unit) throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getNAVD88Offset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
+	 */
+	@Override
+	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.isNGVD29OffsetEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
+	 */
+	@Override
+	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.isNAVD88OffsetEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
+	 */
+	@Override
+	public String getVerticalDatumInfo() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		return vdc.getVerticalDatumInfo();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
+	 */
+	@Override
+	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		vdc.setVerticalDatumInfo(xmlStr);
+	}
 	/**
 	 * Fills a AbstractRatingContainer object with info from this rating.
-	 * @param rc The AbstractRatingContainer object to fill
+	 * @param arc The AbstractRatingContainer object to fill
 	 */
-	protected void getData(AbstractRatingContainer rc) {
-		rc.officeId = officeId;
-		rc.ratingSpecId = ratingSpecId;
-		rc.unitsId = ratingUnitsId;
-		rc.effectiveDateMillis = effectiveDate;
-		rc.createDateMillis = createDate;
-		rc.active = active;
-		rc.description = description;
+	protected void getData(AbstractRatingContainer arc) {
+		arc.officeId = officeId;
+		arc.ratingSpecId = ratingSpecId;
+		arc.unitsId = ratingUnitsId;
+		arc.effectiveDateMillis = effectiveDate;
+		arc.createDateMillis = createDate;
+		arc.active = active;
+		arc.description = description;
+		if (vdc != null) {
+			arc.vdc = vdc.clone();
+		}
 	}
 	/**
 	 * Sets rating information from the specified AbstractRatingContainer object.
-	 * @param rc The AbstractRatingContainer object containing the rating information
+	 * @param arc The AbstractRatingContainer object containing the rating information
 	 */
-	protected void _setData(AbstractRatingContainer rc) {
-		officeId = rc.officeId;
-		ratingSpecId = rc.ratingSpecId;
-		ratingUnitsId = rc.unitsId;
-		effectiveDate = rc.effectiveDateMillis;
-		createDate = rc.createDateMillis;
-		active = rc.active;
-		description = rc.description;
+	protected void _setData(AbstractRatingContainer arc) {
+		officeId = arc.officeId;
+		ratingSpecId = arc.ratingSpecId;
+		ratingUnitsId = arc.unitsId;
+		effectiveDate = arc.effectiveDateMillis;
+		createDate = arc.createDateMillis;
+		active = arc.active;
+		description = arc.description;
+		if (arc.vdc != null) {
+			vdc = arc.vdc.clone();
+		}
 	}
 	
 	protected double convertUnits(double val, String fromUnit, String toUnit) throws RatingException {
@@ -882,5 +1059,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Modifiab
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
 		RatingSet.storeToDatabase(conn, getData().toXml(""), overwriteExisting);
+	}
+	/**
+	 * Returns whether this rating has vertical datum information
+	 * @return whether this rating has vertical datum information
+	 */
+	public boolean hasVerticalDatum() {
+		return vdc != null;
 	}
 }

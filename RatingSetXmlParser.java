@@ -2,6 +2,7 @@ package hec.data.cwmsRating;
 
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
+import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
@@ -12,6 +13,7 @@ import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.heclib.util.HecTime;
+import hec.io.VerticalDatumContainer;
 import hec.lang.Const;
 import hec.util.TextUtil;
 
@@ -84,6 +86,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private static final String UNITS_ID_STR = "units-id";
 	private static final String USGS_STREAM_RATING_STR = "usgs-stream-rating";
 	private static final String VALUE_STR = "value";
+	private static final String VERTICAL_DATUM_INFO_STR = "vertical-datum-info";
 	private static final String VERSION_STR = "version";
 
 	//--------------------//
@@ -101,6 +104,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private TableRatingContainer trc = null;
 	private UsgsStreamTableRatingContainer urc = null;
 	private List<ShiftInfo> shiftInfo = null;
+	private StringBuilder verticalDatumInfo = null;
+	private List<VerticalDatumContainer> vdcs = null;
+	private boolean inVerticalDatumInfo = false;
 	private int pos = -1;
 	private HecTime hectime = new HecTime();
 	private List<RatingPoints> ratingPoints = null;
@@ -480,6 +486,17 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void endDocument() {
+		if (vdcs != null) {
+			for (int i = 1; i < vdcs.size(); ++i) {
+				if (!vdcs.get(i).equals(vdcs.get(0))) {
+					throw new RuntimeException("XML contains inconsistent vertical datum information");
+				}
+			}
+			for (int i = 0; i < arcs.size(); ++i) {
+				arcs.get(i).vdc = vdcs.get(0).clone();
+			}
+			vdcs = null;
+		}
 		if (rspc != null && arcs != null) {
 			rsc.ratingSpecContainer = rspc;
 			rsc.abstractRatingContainers = new AbstractRatingContainer[arcs.size()];
@@ -494,6 +511,16 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attrs) {
+		if (inVerticalDatumInfo) {
+			verticalDatumInfo.append("<").append(localName);
+			for (int i = 0; i < attrs.getLength(); ++i) {
+				verticalDatumInfo.append(" ")
+				                 .append(attrs.getLocalName(i))
+				                 .append("=\"")
+				                 .append(attrs.getValue(i));
+			}
+			verticalDatumInfo.append(">");
+		}
 		parts[partsLen++] = localName;
 		switch (partsLen) {
 		case 1 :
@@ -597,6 +624,18 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					}
 				}
 				else if (localName.equals(RATING_SPEC_ID_STR)) ;
+				else if (localName.equals(VERTICAL_DATUM_INFO_STR)) {
+					inVerticalDatumInfo = true;
+					verticalDatumInfo.delete(0, verticalDatumInfo.length());
+					verticalDatumInfo.append("<" + VERTICAL_DATUM_INFO_STR);
+					for (int i = 0; i < attrs.getLength(); ++i) {
+						verticalDatumInfo.append(" ")
+						                 .append(attrs.getLocalName(i))
+						                 .append("=\"")
+						                 .append(attrs.getValue(i));
+					}
+					verticalDatumInfo.append(">");
+				}
 				else if (localName.equals(UNITS_ID_STR)) ;
 				else if (localName.equals(EFFECTIVE_DATE_STR)) ;
 				else if (localName.equals(CREATE_DATE_STR)) ;
@@ -967,8 +1006,21 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				arcs.add(urc2);
 				urc = null;
 			}
+		case 3 :
+			if (localName.equals(VERTICAL_DATUM_INFO_STR)) {
+				inVerticalDatumInfo = false;
+				if (vdcs == null) {
+					vdcs = new ArrayList<VerticalDatumContainer>();
+				}
+				try {
+					vdcs.add(new VerticalDatumContainer(this.verticalDatumInfo.toString()));
+				}
+				catch (VerticalDatumException e) {
+					AbstractRating.getLogger().warning(e.getMessage());
 		}
-		--partsLen;
+			}
+		}
+		parts[--partsLen] = null;
 	}
 	/*
 	 * SAX method - collect CDATA from elements

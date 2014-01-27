@@ -1,9 +1,13 @@
 package hec.data.cwmsRating.io;
 
 import hec.data.RatingException;
+import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
+import hec.io.VerticalDatumContainer;
+import hec.util.TextUtil;
 
 import org.jdom.Element;
+import org.jdom.output.XMLOutputter;
 
 /**
  * Data container class for TableRating objects
@@ -77,7 +81,12 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	
 	public static TableRatingContainer fromXml(Element ratingElement) throws RatingException {
 		TableRatingContainer trc = new TableRatingContainer();
-		AbstractRatingContainer.fromXml(ratingElement, trc);
+		try {
+			AbstractRatingContainer.fromXml(ratingElement, trc);
+		}
+		catch (VerticalDatumException e) {
+			throw new RatingException(e);
+		}
 		if (ratingElement.getChildren("rating-points").size() > 0) {
 			trc.values = RatingValueContainer.makeContainers(ratingElement, "rating-points");
 		}
@@ -100,6 +109,17 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
+		try {
+			if (vdc != null && vdc.getCurrentOffset() != 0.) {
+				TableRatingContainer _clone = new TableRatingContainer();
+				clone(_clone);
+				_clone.toNativeVerticalDatum();
+				return _clone.toXml(indent, level);
+			}
+		}
+		catch (VerticalDatumException e) {
+			throw new RuntimeException(e);
+		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
@@ -137,5 +157,145 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			sb.append("</ratings>\n");
 		}
 		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNativeVerticalDatum()
+	 */
+	@Override
+	public boolean toNativeVerticalDatum() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		boolean change = false;
+		double offset = vdc.getCurrentOffset();
+		if (offset != 0.) {
+			change = true;
+			String[][] paramsAndUnits = getParamsAndUnits();
+			String[] params = paramsAndUnits[0];
+			String[] units  = paramsAndUnits[1];
+			for (int i = 0; i < params.length; ++i) {
+				if (params[i].startsWith("Elev")) {
+					int paramNum = i == params.length-1 ? -1 : i;
+					offset = vdc.getCurrentOffset(units[i]);
+					try {
+						addOffset(paramNum, -offset);
+					}
+					catch (RatingException e) {
+						throw new VerticalDatumException(e);
+					}
+				}
+			}
+			vdc.toNativeVerticalDatum();
+		}
+		return change;
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNGVD29()
+	 */
+	@Override
+	public boolean toNGVD29() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		boolean change = false;
+		if (!vdc.getCurrentVerticalDatum().equals("NGVD29")) {
+			change = true;
+			String[][] paramsAndUnits = getParamsAndUnits();
+			String[] params = paramsAndUnits[0];
+			String[] units  = paramsAndUnits[1];
+			for (int i = 0; i < params.length; ++i) {
+				if (params[i].startsWith("Elev")) {
+					int paramNum = i == params.length-1 ? -1 : i;
+					double offset1 = vdc.getNGVD29Offset(units[i]);
+					double offset2 = vdc.getCurrentOffset(units[i]);
+					try {
+						addOffset(paramNum, offset1 - offset2);
+					}
+					catch (RatingException e) {
+						throw new VerticalDatumException(e);
+					}
+				}
+			}
+			vdc.toNGVD29();
+		}
+		return change;
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNAVD88()
+	 */
+	@Override
+	public boolean toNAVD88() throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		boolean change = false;
+		if (!vdc.getCurrentVerticalDatum().equals("NAVD88")) {
+			change = true;
+			String[][] paramsAndUnits = getParamsAndUnits();
+			String[] params = paramsAndUnits[0];
+			String[] units  = paramsAndUnits[1];
+			for (int i = 0; i < params.length; ++i) {
+				if (params[i].startsWith("Elev")) {
+					int paramNum = i == params.length-1 ? -1 : i;
+					double offset1 = vdc.getNAVD88Offset(units[i]);
+					double offset2 = vdc.getCurrentOffset(units[i]);
+					try {
+						addOffset(paramNum, offset1 - offset2);
+					}
+					catch (RatingException e) {
+						throw new VerticalDatumException(e);
+					}
+				}
+			}
+			vdc.toNAVD88();
+		}
+		return change;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#addOffset(int, double)
+	 */
+	@Override
+	public void addOffset(int paramNum, double offset) throws RatingException {
+		if (values != null) {
+			for (int i = 0; i < values.length; ++i) {
+				if (paramNum == 0) {
+					values[i].indValue += offset;
+				}
+				else if (paramNum == -1) {
+					if (values[i].depTable == null) {
+						values[i].depValue += offset;
+					}
+					else {
+						values[i].depTable.addOffset(paramNum, offset);
+					}
+				}
+				else {
+					if (values[i].depTable == null) {
+						throw new RatingException("Invalid parameter number");
+					}
+					values[i].depTable.addOffset(paramNum-1, offset);
+				}
+			}
+		}
+		if (extensionValues != null) {
+			for (int i = 0; i < extensionValues.length; ++i) {
+				if (paramNum == 0) {
+					extensionValues[i].indValue += offset;
+				}
+				else if (paramNum == -1) {
+					if (extensionValues[i].depTable == null) {
+						extensionValues[i].depValue += offset;
+					}
+					else {
+						extensionValues[i].depTable.addOffset(paramNum, offset);
+					}
+				}
+				else {
+					if (extensionValues[i].depTable == null) {
+						throw new RatingException("Invalid parameter number");
+					}
+					extensionValues[i].depTable.addOffset(paramNum-1, offset);
+				}
+			}
+		}
 	}
 }

@@ -1,14 +1,16 @@
 package hec.data.cwmsRating.io;
 
+import hec.data.IVerticalDatum;
 import hec.data.RatingException;
-import hec.data.cwmsRating.RatingSet;
+import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingSetXmlParser;
+import hec.io.VerticalDatumContainer;
 
 /**
  * Data container class for RatingSet
  * @author Mike Perryman
  */
-public class RatingSetContainer {
+public class RatingSetContainer implements IVerticalDatum {
 	/**
 	 * Contains the rating specification
 	 */
@@ -96,5 +98,296 @@ public class RatingSetContainer {
 			sb.append(prefix).append("</ratings>\n");
 		}
 		return sb.toString();
+	}
+	/**
+	 * Add the specified offset to the values of the specified parameter.
+	 * @param paramNum Specifies which parameter to add the offset to. 0, 1 = first, second independent, etc... -1 = dependent parameter
+	 * @param offset The offset to add
+	 * @throws RatingException if not implemented for a specific rating container type or if paramNum is invalid for this container
+	 */
+	public void addOffset(int paramNum, double offset) throws RatingException {
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			abstractRatingContainers[i].addOffset(paramNum, offset);
+		}
+	}
+	/**
+	 * Returns whether this object has any vertical datum info
+	 * @return whether this object has any vertical datum info
+	 */
+	public boolean hasVerticalDatum() {
+		boolean hasVerticalDatum = false;
+		if (abstractRatingContainers != null) {
+			for (int i = 0; i < abstractRatingContainers.length; ++i) {
+				if (abstractRatingContainers[i].hasVerticalDatum()) {
+					hasVerticalDatum = true;
+					break;
+				}
+			}
+		}
+		return hasVerticalDatum;
+	}
+	/**
+	 * Returns whether any included vertical datum info is consistent
+	 * @return true if there are zero or one vertical datum containers, or if multiple vertical
+	 * datum container specify the same information and false if there are multiple vertical datum
+	 * containers with different information 
+	 */
+	public boolean isVerticalDatumInfoConsistent() {
+		boolean isConsistent = true;
+		if (abstractRatingContainers != null && abstractRatingContainers.length > 1) {
+			VerticalDatumContainer vdc = null;
+			for (int i = 0; i < abstractRatingContainers.length; ++i) {
+				if (abstractRatingContainers[i].vdc != null) {
+					if (vdc == null) {
+						vdc = abstractRatingContainers[i].vdc;
+					}
+					else {
+						if (!abstractRatingContainers[i].vdc.equals(vdc)) {
+							isConsistent = false;
+							break;
+						}
+					}
+				}
+			}
+		}
+		return isConsistent;
+	}
+	/**
+	 * Ensures that every rating has the same vertical datum info (possibly none)
+	 * @throws VerticalDatumException if multiple vertical datums are encountered
+	 */
+	public void normalizeVerticalDatumInfo() throws VerticalDatumException {
+		if (abstractRatingContainers != null && abstractRatingContainers.length > 1) {
+			VerticalDatumContainer vdc = null;
+			for (int i = 0; i < abstractRatingContainers.length; ++i) {
+				if (abstractRatingContainers[i].vdc != null) {
+					if (vdc == null) {
+						vdc = abstractRatingContainers[i].vdc;
+						break;
+					}
+				}
+			}
+			for (int i = 0; i < abstractRatingContainers.length; ++i) {
+				if (abstractRatingContainers[i].vdc == null) {
+					vdc = abstractRatingContainers[i].vdc = vdc;
+				}
+				else if (!abstractRatingContainers[i].vdc.equals(vdc)) {
+						throw new VerticalDatumException("Object contains multiple vertical datums");
+				}
+			}
+		}
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
+	 */
+	@Override
+	public String getNativeVerticalDatum() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getNativeVerticalDatum();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentVerticalDatum()
+	 */
+	@Override
+	public String getCurrentVerticalDatum() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getCurrentVerticalDatum();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isCurrentVerticalDatumEstimated()
+	 */
+	@Override
+	public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].isCurrentVerticalDatumEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNativeVerticalDatum()
+	 */
+	@Override
+	public boolean toNativeVerticalDatum() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		boolean change = false;
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			if (abstractRatingContainers[i].toNativeVerticalDatum()) {
+				change = true;
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNGVD29()
+	 */
+	@Override
+	public boolean toNGVD29() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		boolean change = false;
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			if (abstractRatingContainers[i].toNGVD29()) {
+				change = true;
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toNAVD88()
+	 */
+	@Override
+	public boolean toNAVD88() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		boolean change = false;
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			if (abstractRatingContainers[i].toNAVD88()) {
+				change = true;
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#toVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		boolean change = false;
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			if (abstractRatingContainers[i].toVerticalDatum(datum)) {
+				change = true;
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentOffset()
+	 */
+	@Override
+	public double getCurrentOffset() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getCurrentOffset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
+	 */
+	@Override
+	public double getCurrentOffset(String unit) throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getCurrentOffset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNGVD29Offset()
+	 */
+	@Override
+	public double getNGVD29Offset() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getNGVD29Offset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
+	 */
+	@Override
+	public double getNGVD29Offset(String unit) throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getNGVD29Offset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNAVD88Offset()
+	 */
+	@Override
+	public double getNAVD88Offset() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getNAVD88Offset();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
+	 */
+	@Override
+	public double getNAVD88Offset(String unit) throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getNAVD88Offset(unit);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
+	 */
+	@Override
+	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].isNGVD29OffsetEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
+	 */
+	@Override
+	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].isNAVD88OffsetEstimated();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
+	 */
+	@Override
+	public String getVerticalDatumInfo() throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		return abstractRatingContainers[0].getVerticalDatumInfo();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
+	 */
+	@Override
+	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			abstractRatingContainers[i].setVerticalDatumInfo(xmlStr);
+		}
 	}
 }
