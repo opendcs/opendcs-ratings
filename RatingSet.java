@@ -2123,6 +2123,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 		throw new RatingException("Invalid text for RatingSet");
 	}
+	/**
+	 * Returns whether this object has any vertical datum info
+	 * @return whether this object has any vertical datum info
+	 */
+	public boolean hasVerticalDatum() {
+		return getData().hasVerticalDatum();
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
 	 */
