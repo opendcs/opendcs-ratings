@@ -453,28 +453,28 @@ public class RatingTemplate implements Modifiable
 	 * @return The templateVersion portion of the rating template used by this specification
 	 */
 	public String getTemplateVersion() {
-		return this.getVersion();
+		return templateVersion;
 	}
 	/**
 	 * Sets the templateVersion portion of the rating template used by this specification
 	 * @param templateVersion The templateVersion portion of the rating template used by this specification
 	 */
 	public void setTemplateVersion(String version) {
-		this.setVersion(version);
+		templateVersion = version;
 	}
 	/**
 	 * Retrieves the description portion of the rating template used by this specification
 	 * @return The description portion of the rating template used by this specification
 	 */
 	public String getTemplateDescription() {
-		return this.getDescription();
+		return description;
 	}
 	/**
 	 * Sets the description portion of the rating template used by this specification
 	 * @param description The description portion of the rating template used by this specification
 	 */
 	public void setTemplateDescription(String description) {
-		this.setDescription(description);
+		this.description = description;
 	}
 	/**
 	 * Stores the rating template to a CWMS database
