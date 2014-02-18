@@ -268,12 +268,14 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @throws a new RuntimeException if XML doesn't match expected structure
 	 */
 	private void elementError() {
-		StringBuilder message = new StringBuilder("Unexpected element: \"");
-		for (int i = 0; i < partsLen; ++i) {
-			message.append(i == 0 ? "" : "/").append(parts[i]);
+		if (!inVerticalDatumInfo) { // don't worry about structure in here
+			StringBuilder message = new StringBuilder("Unexpected element: \"");
+			for (int i = 0; i < partsLen; ++i) {
+				message.append(i == 0 ? "" : "/").append(parts[i]);
+			}
+			message.append("\"");
+			throw new RuntimeException(message.toString());
 		}
-		message.append("\"");
-		throw new RuntimeException(message.toString());
 	}
 	/**
 	 * Process data collected by characters() SAX method
