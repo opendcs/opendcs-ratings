@@ -104,7 +104,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private TableRatingContainer trc = null;
 	private UsgsStreamTableRatingContainer urc = null;
 	private List<ShiftInfo> shiftInfo = null;
-	private StringBuilder verticalDatumInfo = new StringBuilder();;
+	private StringBuilder verticalDatumInfo = null;
 	private List<VerticalDatumContainer> vdcs = null;
 	private boolean inVerticalDatumInfo = false;
 	private int pos = -1;
@@ -512,7 +512,6 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attrs) {
 		if (inVerticalDatumInfo) {
-            verticalDatumInfo.delete(0, verticalDatumInfo.length());
 			verticalDatumInfo.append("<").append(localName);
 			for (int i = 0; i < attrs.getLength(); ++i) {
 				verticalDatumInfo.append(" ")
@@ -627,7 +626,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				else if (localName.equals(RATING_SPEC_ID_STR)) ;
 				else if (localName.equals(VERTICAL_DATUM_INFO_STR)) {
 					inVerticalDatumInfo = true;
-					verticalDatumInfo.delete(0, verticalDatumInfo.length());
+					if (verticalDatumInfo == null) {
+						verticalDatumInfo = new StringBuilder();
+					}
+					else {
+						verticalDatumInfo.delete(0, verticalDatumInfo.length());
+					}
 					verticalDatumInfo.append("<" + VERTICAL_DATUM_INFO_STR);
 					for (int i = 0; i < attrs.getLength(); ++i) {
 						verticalDatumInfo.append(" ")
