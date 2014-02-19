@@ -524,7 +524,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				verticalDatumInfo.append(" ")
 				                 .append(attrs.getLocalName(i))
 				                 .append("=\"")
-				                 .append(attrs.getValue(i));
+				                 .append(attrs.getValue(i))
+                                 .append("\"");
+                                 
 			}
 			verticalDatumInfo.append(">");
 		}
