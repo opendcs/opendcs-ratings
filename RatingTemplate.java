@@ -202,6 +202,14 @@ public class RatingTemplate implements Modifiable
 		if (inRangeMethods.length != indParamCount) {
 			throw new RatingException("Number of in-range rating methods is not the same as the number of independent parameters.");
 		}
+		for (RatingMethod m : inRangeMethods) {
+			switch(m) {
+			case NEAREST :
+				throw new RatingException("Invalid in range template method: " + m.toString());
+			default :
+				break;
+			}
+		}
 		this.inRangeMethods = inRangeMethods;
 	}
 	/**
@@ -220,6 +228,15 @@ public class RatingTemplate implements Modifiable
 	public void setOutRangeLowMethods(RatingMethod[] outRangeLowMethods) throws RatingException {
 		if (outRangeLowMethods.length != indParamCount) {
 			throw new RatingException("Number of out-of-range low rating methods is not the same as the number of independent parameters.");
+		}
+		for (RatingMethod m : outRangeLowMethods) {
+			switch(m) {
+			case LOWER :
+			case PREVIOUS :
+				throw new RatingException("Invalid out of range low template method: " + m.toString());
+			default :
+				break;
+			}
 		}
 		this.outRangeLowMethods = outRangeLowMethods;
 	}
@@ -240,6 +257,15 @@ public class RatingTemplate implements Modifiable
 			RatingMethod[] outRangeHighMethods) throws RatingException {
 		if (outRangeHighMethods.length != indParamCount) {
 			throw new RatingException("Number of out-of-range high rating methods is not the same as the number of independent parameters.");
+		}
+		for (RatingMethod m : outRangeHighMethods) {
+			switch(m) {
+			case HIGHER :
+			case NEXT :
+				throw new RatingException("Invalid out of range high template method: " + m.toString());
+			default :
+				break;
+			}
 		}
 		this.outRangeHighMethods = outRangeHighMethods;
 	}

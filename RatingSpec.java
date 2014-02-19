@@ -380,7 +380,7 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	public void setInRangeMethod(RatingMethod inRangeMethod) throws RatingException {
 		if (inRangeMethod == RatingMethod.NEAREST) {
-			throw new RatingException("Invalid in range behavior: " + inRangeMethod);
+			throw new RatingException("Invalid in range specification method: " + inRangeMethod);
 		}
 		this.inRangeMethod = inRangeMethod;
 	}
@@ -399,7 +399,7 @@ public class RatingSpec extends RatingTemplate {
 		switch (outRangeLowMethod) {
 		case PREVIOUS:
 		case LOWER:
-			throw new RatingException("Invalid out of range low behavior: " + outRangeLowMethod);
+			throw new RatingException("Invalid out of range low specification method: " + outRangeLowMethod);
 		}
 		this.outRangeLowMethod = outRangeLowMethod;
 	}
@@ -419,7 +419,7 @@ public class RatingSpec extends RatingTemplate {
 		switch (outRangeHighMethod) {
 		case NEXT:
 		case HIGHER:
-			throw new RatingException("Invalid out of range high behavior: " + outRangeHighMethod);
+			throw new RatingException("Invalid out of range high specification method: " + outRangeHighMethod);
 		}
 		this.outRangeHighMethod = outRangeHighMethod;
 	}
