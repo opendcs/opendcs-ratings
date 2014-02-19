@@ -284,195 +284,200 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		if (chars.length() > 0) {
 			String data = chars.toString().trim();
 			chars.setLength(0);
-			switch (partsLen) {
-			case 3 :
-				if (parts[1].equals(RATING_TEMPLATE_STR)) {
-					if (parts[2].equals(PARAMETERS_ID_STR)) {
-						rtc.parametersId = data;
-						int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
-						rtc.indParams = new String[count];
-						rtc.inRangeMethods = new String[count];
-						rtc.outRangeLowMethods = new String[count];
-						rtc.outRangeHighMethods = new String[count];
-					}
-					else if (parts[2].equals(VERSION_STR)) {
-						rtc.templateVersion = data;
-						rtc.templateId = rtc.parametersId + RatingConst.SEPARATOR1 + rtc.templateVersion;
-					}
-					else if (parts[2].equals(DEP_PARAMETER_STR)) {
-						rtc.depParam = data;
-					}
-					else if (parts[2].equals(DESCRIPTION_STR)) {
-						rtc.templateDescription = data;
-					}
-				}
-				else if (parts[1].equals(RATING_SPEC_STR)) {
-					if (parts[2].equals(RATING_SPEC_ID_STR)) {
-						rspc.specId = data;
-					}
-					else if (parts[2].equals(TEMPLATE_ID_STR)) {
-						int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
-						rspc.indRoundingSpecs = new String[count];
-					}
-					else if (parts[2].equals(LOCATION_ID_STR)) {
-						rspc.locationId = data;
-					}
-					else if (parts[2].equals(VERSION_STR)) {
-						rspc.specVersion = data;
-					}
-					else if (parts[2].equals(SOURCE_AGENCY_STR)) {
-						rspc.sourceAgencyId = data;
-					}
-					else if (parts[2].equals(IN_RANGE_METHOD_STR)) {
-						rspc.inRangeMethod = data;
-					}
-					else if (parts[2].equals(OUT_RANGE_LOW_METHOD_STR)) {
-						rspc.outRangeLowMethod = data;
-					}
-					else if (parts[2].equals(OUT_RANGE_HIGH_METHOD_STR)) {
-						rspc.outRangeHighMethod = data;
-					}
-					else if (parts[2].equals(ACTIVE_STR)) {
-						rspc.active = Boolean.parseBoolean(data);
-					}
-					else if (parts[2].equals(AUTO_UPDATE_STR)) {
-						rspc.autoUpdate = Boolean.parseBoolean(data);
-					}
-					else if (parts[2].equals(AUTO_ACTIVATE_STR)) {
-						rspc.autoActivate = Boolean.parseBoolean(data);
-					}
-					else if (parts[2].equals(AUTO_MIGRATE_EXTENSION_STR)) {
-						rspc.autoMigrateExtensions = Boolean.parseBoolean(data);
-					}
-					else if (parts[2].equals(DEP_ROUNDING_SPEC_STR)) {
-						rspc.depRoundingSpec = data;
-					}
-					else if (parts[2].equals(DESCRIPTION_STR)) {
-						rspc.specDescription = data;
-					}
-				}
-				else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
-					if (parts[2].equals(RATING_SPEC_ID_STR)) {
-						arc.ratingSpecId = data;
-					}
-					else if (parts[2].equals(UNITS_ID_STR)) {
-						arc.unitsId = data;
-					}
-					else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
-						hectime.set(data);
-						arc.effectiveDateMillis = hectime.getTimeInMillis();
-					}
-					else if (parts[2].equals(CREATE_DATE_STR)) {
-						hectime.set(data);
-						arc.createDateMillis = hectime.getTimeInMillis();
-					}
-					else if (parts[2].equals(ACTIVE_STR)) {
-						arc.active = Boolean.parseBoolean(data);
-					}
-					else if (parts[2].equals(DESCRIPTION_STR)) {
-						arc.description = data;
-					}
-					else if (parts[2].equals(FORMULA_STR)) {
-						if (!parts[1].equals(RATING_STR)) {
-							elementError(); 
+			if (inVerticalDatumInfo) {
+				verticalDatumInfo.append(data);
+			}
+			else {
+				switch (partsLen) {
+				case 3 :
+					if (parts[1].equals(RATING_TEMPLATE_STR)) {
+						if (parts[2].equals(PARAMETERS_ID_STR)) {
+							rtc.parametersId = data;
+							int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
+							rtc.indParams = new String[count];
+							rtc.inRangeMethods = new String[count];
+							rtc.outRangeLowMethods = new String[count];
+							rtc.outRangeHighMethods = new String[count];
 						}
-						erc = new ExpressionRatingContainer();
-						arc.clone(erc);
-						erc.expression = data;
+						else if (parts[2].equals(VERSION_STR)) {
+							rtc.templateVersion = data;
+							rtc.templateId = rtc.parametersId + RatingConst.SEPARATOR1 + rtc.templateVersion;
+						}
+						else if (parts[2].equals(DEP_PARAMETER_STR)) {
+							rtc.depParam = data;
+						}
+						else if (parts[2].equals(DESCRIPTION_STR)) {
+							rtc.templateDescription = data;
+						}
 					}
-				}
-				break;
-			case 4 :
-				if (parts[1].equals(RATING_SPEC_STR)) {
-					if (parts[2].equals(IND_ROUNDING_SPECS_STR) && parts[3].equals(IND_ROUNDING_SPEC_STR)) {
-						rspc.indRoundingSpecs[pos] = data;
+					else if (parts[1].equals(RATING_SPEC_STR)) {
+						if (parts[2].equals(RATING_SPEC_ID_STR)) {
+							rspc.specId = data;
+						}
+						else if (parts[2].equals(TEMPLATE_ID_STR)) {
+							int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
+							rspc.indRoundingSpecs = new String[count];
+						}
+						else if (parts[2].equals(LOCATION_ID_STR)) {
+							rspc.locationId = data;
+						}
+						else if (parts[2].equals(VERSION_STR)) {
+							rspc.specVersion = data;
+						}
+						else if (parts[2].equals(SOURCE_AGENCY_STR)) {
+							rspc.sourceAgencyId = data;
+						}
+						else if (parts[2].equals(IN_RANGE_METHOD_STR)) {
+							rspc.inRangeMethod = data;
+						}
+						else if (parts[2].equals(OUT_RANGE_LOW_METHOD_STR)) {
+							rspc.outRangeLowMethod = data;
+						}
+						else if (parts[2].equals(OUT_RANGE_HIGH_METHOD_STR)) {
+							rspc.outRangeHighMethod = data;
+						}
+						else if (parts[2].equals(ACTIVE_STR)) {
+							rspc.active = Boolean.parseBoolean(data);
+						}
+						else if (parts[2].equals(AUTO_UPDATE_STR)) {
+							rspc.autoUpdate = Boolean.parseBoolean(data);
+						}
+						else if (parts[2].equals(AUTO_ACTIVATE_STR)) {
+							rspc.autoActivate = Boolean.parseBoolean(data);
+						}
+						else if (parts[2].equals(AUTO_MIGRATE_EXTENSION_STR)) {
+							rspc.autoMigrateExtensions = Boolean.parseBoolean(data);
+						}
+						else if (parts[2].equals(DEP_ROUNDING_SPEC_STR)) {
+							rspc.depRoundingSpec = data;
+						}
+						else if (parts[2].equals(DESCRIPTION_STR)) {
+							rspc.specDescription = data;
+						}
 					}
-				}
-				else if (parts[1].equals(USGS_STREAM_RATING_STR)) {
-					if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
-						if (parts[3].equals(EFFECTIVE_DATE_STR)) {
+					else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+						if (parts[2].equals(RATING_SPEC_ID_STR)) {
+							arc.ratingSpecId = data;
+						}
+						else if (parts[2].equals(UNITS_ID_STR)) {
+							arc.unitsId = data;
+						}
+						else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
 							hectime.set(data);
-							shiftInfo.get(shiftPointSetCount-1).effectiveDate = hectime.getTimeInMillis();
+							arc.effectiveDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[3].equals(CREATE_DATE_STR)) {
+						else if (parts[2].equals(CREATE_DATE_STR)) {
 							hectime.set(data);
-							shiftInfo.get(shiftPointSetCount-1).createDate = hectime.getTimeInMillis();
+							arc.createDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[3].equals(ACTIVE_STR)) {
-							hectime.set(data);
-							shiftInfo.get(shiftPointSetCount-1).active = Boolean.parseBoolean(data);
+						else if (parts[2].equals(ACTIVE_STR)) {
+							arc.active = Boolean.parseBoolean(data);
 						}
-					}
-				}
-				break;
-			case 5 :
-				if (parts[1].equals(RATING_TEMPLATE_STR)) {
-					if (parts[2].equals(IND_PARAMETER_SPECS_STR) && parts[3].equals(IND_PARAMETER_SPEC_STR)) {
-						if (parts[4].equals(PARAMETER_STR)) {
-							rtc.indParams[pos] = data;
+						else if (parts[2].equals(DESCRIPTION_STR)) {
+							arc.description = data;
 						}
-						else if (parts[4].equals(IN_RANGE_METHOD_STR)) {
-							rtc.inRangeMethods[pos] = data;
-						}
-						else if (parts[4].equals(OUT_RANGE_LOW_METHOD_STR)) {
-							rtc.outRangeLowMethods[pos] = data;
-						}
-						else if (parts[4].equals(OUT_RANGE_HIGH_METHOD_STR)) {
-							rtc.outRangeHighMethods[pos] = data;
+						else if (parts[2].equals(FORMULA_STR)) {
+							if (!parts[1].equals(RATING_STR)) {
+								elementError(); 
+							}
+							erc = new ExpressionRatingContainer();
+							arc.clone(erc);
+							erc.expression = data;
 						}
 					}
-				}
-				else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
-					if (parts[3].equals(POINT_STR)) {
-						if (parts[2].equals(RATING_POINTS_STR)) {
-							if (parts[4].equals(IND_STR)) {
-								ratingPoints.get(ratingPointSetCount-1).addIndValue(Double.parseDouble(data));
-							}
-							else if (parts[4].equals(DEP_STR)) {
-								ratingPoints.get(ratingPointSetCount-1).addDepValue(Double.parseDouble(data));
-							}
-							else if (parts[4].equals(NOTE_STR)) {
-								ratingPoints.get(ratingPointSetCount-1).addNote(data);
-							}
+					break;
+				case 4 :
+					if (parts[1].equals(RATING_SPEC_STR)) {
+						if (parts[2].equals(IND_ROUNDING_SPECS_STR) && parts[3].equals(IND_ROUNDING_SPEC_STR)) {
+							rspc.indRoundingSpecs[pos] = data;
 						}
-						else if (parts[2].equals(EXTENSION_POINTS_STR)) {
-							if (parts[4].equals(IND_STR)) {
-								extensionPoints.get(extensionPointSetCount-1).addIndValue(Double.parseDouble(data));
+					}
+					else if (parts[1].equals(USGS_STREAM_RATING_STR)) {
+						if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
+							if (parts[3].equals(EFFECTIVE_DATE_STR)) {
+								hectime.set(data);
+								shiftInfo.get(shiftPointSetCount-1).effectiveDate = hectime.getTimeInMillis();
 							}
-							else if (parts[4].equals(DEP_STR)) {
-								extensionPoints.get(extensionPointSetCount-1).addDepValue(Double.parseDouble(data));
+							else if (parts[3].equals(CREATE_DATE_STR)) {
+								hectime.set(data);
+								shiftInfo.get(shiftPointSetCount-1).createDate = hectime.getTimeInMillis();
 							}
-							else if (parts[4].equals(NOTE_STR)) {
-								extensionPoints.get(extensionPointSetCount-1).addNote(data);
-							}
-						}
-						else if (parts[2].equals(HEIGHT_OFFSETS_STR)) {
-							if (parts[4].equals(IND_STR)) {
-								offsetPoints.add(new RatingPoints());
-								offsetPoints.get(offsetPointSetCount-1).addIndValue(Double.parseDouble(data));
-							}
-							else if (parts[4].equals(DEP_STR)) {
-								offsetPoints.get(offsetPointSetCount-1).addDepValue(Double.parseDouble(data));
-							}
-							else if (parts[4].equals(NOTE_STR)) {
-								offsetPoints.get(offsetPointSetCount-1).addNote(data);
-							}
-						}
-						else if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
-							if (parts[4].equals(IND_STR)) {
-								shiftPoints.add(new RatingPoints());
-								shiftPoints.get(shiftPointSetCount-1).addIndValue(Double.parseDouble(data));
-							}
-							else if (parts[4].equals(DEP_STR)) {
-								shiftPoints.get(shiftPointSetCount-1).addDepValue(Double.parseDouble(data));
-							}
-							else if (parts[4].equals(NOTE_STR)) {
-								shiftPoints.get(shiftPointSetCount-1).addNote(data);
+							else if (parts[3].equals(ACTIVE_STR)) {
+								hectime.set(data);
+								shiftInfo.get(shiftPointSetCount-1).active = Boolean.parseBoolean(data);
 							}
 						}
 					}
+					break;
+				case 5 :
+					if (parts[1].equals(RATING_TEMPLATE_STR)) {
+						if (parts[2].equals(IND_PARAMETER_SPECS_STR) && parts[3].equals(IND_PARAMETER_SPEC_STR)) {
+							if (parts[4].equals(PARAMETER_STR)) {
+								rtc.indParams[pos] = data;
+							}
+							else if (parts[4].equals(IN_RANGE_METHOD_STR)) {
+								rtc.inRangeMethods[pos] = data;
+							}
+							else if (parts[4].equals(OUT_RANGE_LOW_METHOD_STR)) {
+								rtc.outRangeLowMethods[pos] = data;
+							}
+							else if (parts[4].equals(OUT_RANGE_HIGH_METHOD_STR)) {
+								rtc.outRangeHighMethods[pos] = data;
+							}
+						}
+					}
+					else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+						if (parts[3].equals(POINT_STR)) {
+							if (parts[2].equals(RATING_POINTS_STR)) {
+								if (parts[4].equals(IND_STR)) {
+									ratingPoints.get(ratingPointSetCount-1).addIndValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(DEP_STR)) {
+									ratingPoints.get(ratingPointSetCount-1).addDepValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(NOTE_STR)) {
+									ratingPoints.get(ratingPointSetCount-1).addNote(data);
+								}
+							}
+							else if (parts[2].equals(EXTENSION_POINTS_STR)) {
+								if (parts[4].equals(IND_STR)) {
+									extensionPoints.get(extensionPointSetCount-1).addIndValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(DEP_STR)) {
+									extensionPoints.get(extensionPointSetCount-1).addDepValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(NOTE_STR)) {
+									extensionPoints.get(extensionPointSetCount-1).addNote(data);
+								}
+							}
+							else if (parts[2].equals(HEIGHT_OFFSETS_STR)) {
+								if (parts[4].equals(IND_STR)) {
+									offsetPoints.add(new RatingPoints());
+									offsetPoints.get(offsetPointSetCount-1).addIndValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(DEP_STR)) {
+									offsetPoints.get(offsetPointSetCount-1).addDepValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(NOTE_STR)) {
+									offsetPoints.get(offsetPointSetCount-1).addNote(data);
+								}
+							}
+							else if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
+								if (parts[4].equals(IND_STR)) {
+									shiftPoints.add(new RatingPoints());
+									shiftPoints.get(shiftPointSetCount-1).addIndValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(DEP_STR)) {
+									shiftPoints.get(shiftPointSetCount-1).addDepValue(Double.parseDouble(data));
+								}
+								else if (parts[4].equals(NOTE_STR)) {
+									shiftPoints.get(shiftPointSetCount-1).addNote(data);
+								}
+							}
+						}
+					}
+					break;
 				}
-				break;
 			}
 		}
 	}
@@ -639,7 +644,8 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						verticalDatumInfo.append(" ")
 						                 .append(attrs.getLocalName(i))
 						                 .append("=\"")
-						                 .append(attrs.getValue(i));
+						                 .append(attrs.getValue(i))
+						                 .append("\"");
 					}
 					verticalDatumInfo.append(">");
 				}
@@ -813,6 +819,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	@Override
 	public void endElement(String uri, String localName, String qName) {
 		processCharacters();
+		if (inVerticalDatumInfo) {
+			verticalDatumInfo.append("</").append(localName).append(">");
+		}
 		if (!localName.equals(parts[partsLen-1])) {
 			throw new RuntimeException("Expected end element " + parts[partsLen-1] + ", got " + localName);
 		}
