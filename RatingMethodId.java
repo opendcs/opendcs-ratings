@@ -15,8 +15,8 @@ public enum RatingMethodId
 	Previous("PREVIOUS", false, true, true, false, true, true),
 	Next("NEXT", true, true, false, true, true, false),
 	Nearest("NEAREST", true, false, true, true, false, true),
-	Lower("LOWER", false, true, true, true, true, true),
-	Higher("HIGHER", true, true, false, true, true, true),
+	Lower("LOWER", false, true, true, false, true, true),
+	Higher("HIGHER", true, true, false, true, true, false),
 	Closest("CLOSEST", true, true, true, true, true, true);
 
 	// the booleans are to specify whether for a given type of usage, the rating
