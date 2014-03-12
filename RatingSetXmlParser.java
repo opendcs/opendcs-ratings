@@ -856,63 +856,54 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					trc.inRangeMethod = rtc.inRangeMethods[0];
 					trc.outRangeLowMethod = rtc.outRangeLowMethods[0];
 					trc.outRangeHighMethod = rtc.outRangeHighMethods[0];
-					if (ratingPointSetCount == 1) {
-						int pointCount = ratingPoints.get(0).getPointCount();
-						trc.values = new RatingValueContainer[pointCount];
-						for (int i = 0; i < pointCount; ++i) {
-							trc.values[i] = new RatingValueContainer();
-							trc.values[i].indValue = ratingPoints.get(0).getIndValue(i);
-							trc.values[i].depValue = ratingPoints.get(0).getDepValue(i);
-							trc.values[i].note = ratingPoints.get(0).getNote(i);
+					int width = 0;
+					int depth = 0;
+					for (int i = 0; i < ratingPointSetCount; ++i) {
+						RatingPoints pointSet = ratingPoints.get(i);
+						if (i == 0) {
+							width = pointSet.getOtherIndCount();
 						}
-						if (extensionPointSetCount == 1) {
-							pointCount = extensionPoints.get(0).getPointCount();
-							trc.extensionValues = new RatingValueContainer[pointCount];
-							for (int i = 0; i < pointCount; ++i) {
-								trc.extensionValues[i] = new RatingValueContainer();
-								trc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
-								trc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
-								trc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+						else if (pointSet.getOtherIndCount() != width) {
+							throw new RuntimeException("Inconsistent number of independent parameters");
+						}
+						depth += pointSet.getPointCount();							
+					}
+					width += 2;
+					double[][] points = new double[depth][];
+					String[] notes = new String[depth];
+					for (int i = 0; i < depth; ++i) {
+						points[i] = new double[width];
+						notes[i] = null;
+					}
+					for (int i = 0, d = 0; i < ratingPointSetCount; ++i) {
+						RatingPoints pointSet = ratingPoints.get(i);
+						for (int j = 0; j < pointSet.getPointCount(); ++j, ++d) {
+							for (int w = 0; w < width-2; ++w) {
+								points[d][w] = pointSet.getOtherInd(w);
 							}
+							points[d][width-2] = pointSet.getIndValue(j);
+							points[d][width-1] = pointSet.getDepValue(j);
+							notes[d] = pointSet.getNote(j);
 						}
 					}
-					else {
-						int width = 0;
-						int depth = 0;
-						for (int i = 0; i < ratingPointSetCount; ++i) {
-							RatingPoints pointSet = ratingPoints.get(i);
-							if (i == 0) {
-								width = pointSet.getOtherIndCount();
-							}
-							else if (pointSet.getOtherIndCount() != width) {
-								throw new RuntimeException("Inconsistent number of independent parameters");
-							}
-							depth += pointSet.getPointCount();							
+					trc.values = RatingValueContainer.makeContainers(
+						points, 
+						notes, 
+						rtc.inRangeMethods,
+						rtc.outRangeLowMethods,
+						rtc.outRangeHighMethods);
+					if (extensionPointSetCount == 1) {
+						if (width > 2) {
+							throw new RuntimeException("Cannot have extension points with more than one independent parameter");
 						}
-						width += 2;
-						double[][] points = new double[depth][];
-						String[] notes = new String[depth];
-						for (int i = 0; i < depth; ++i) {
-							points[i] = new double[width];
-							notes[i] = null;
+						int pointCount = extensionPoints.get(0).getPointCount();
+						trc.extensionValues = new RatingValueContainer[pointCount];
+						for (int i = 0; i < pointCount; ++i) {
+							trc.extensionValues[i] = new RatingValueContainer();
+							trc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
+							trc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
+							trc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
 						}
-						for (int i = 0, d = 0; i < ratingPointSetCount; ++i) {
-							RatingPoints pointSet = ratingPoints.get(i);
-							for (int j = 0; j < pointSet.getPointCount(); ++j, ++d) {
-								for (int w = 0; w < width-2; ++w) {
-									points[d][w] = pointSet.getOtherInd(w);
-								}
-								points[d][width-2] = pointSet.getIndValue(j);
-								points[d][width-1] = pointSet.getDepValue(j);
-								notes[d] = pointSet.getNote(j);
-							}
-						}
-						trc.values = RatingValueContainer.makeContainers(
-							points, 
-							notes, 
-							rtc.inRangeMethods,
-							rtc.outRangeLowMethods,
-							rtc.outRangeHighMethods);
 					}
 					ratingPoints = null;
 					ratingPointSetCount = 0;
