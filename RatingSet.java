@@ -49,6 +49,7 @@ import java.util.Observer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
  * Implements CWMS-style ratings (time series of ratings)
@@ -285,6 +286,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				throw new RatingException("CLOB too long.");
 			}
 			String xmlText = clob.getSubString(1, (int)clob.length());
+			logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
 			return fromXml(xmlText);
 		}
 		catch (Throwable t) {
