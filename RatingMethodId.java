@@ -6,6 +6,8 @@ import java.util.List;
 // this if from CWMS_RATING_METHOD
 public enum RatingMethodId
 {
+	// the text for the method, spec low, spec in range, spec high, templ low,
+	// templ in range, templ high
 	Null("NULL", true, false, false, true, true, true),
 	Error("ERROR", true, false, false, true, true, true),
 	Linear("LINEAR", true, true, true, true, true, true),
