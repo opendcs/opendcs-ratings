@@ -154,7 +154,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 				if (elem != null) rsc.locationId = elem.getTextTrim();
 				elem = root.getChild("version");
 				if (elem != null) rsc.specVersion = elem.getTextTrim();
-				elem = root.getChild("source-agencey");
+				elem = root.getChild("source-agency");
 				if (elem != null) rsc.sourceAgencyId = elem.getTextTrim();
 				elem = root.getChild("in-range-method");
 				if (elem != null) rsc.inRangeMethod = elem.getTextTrim();
