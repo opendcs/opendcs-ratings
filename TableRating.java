@@ -269,7 +269,8 @@ public class TableRating extends AbstractRating {
 		int hi = values.length-1;
 		int mid;
 		double mid_ind_val;
-		RatingMethod extrap_method = null;
+		RatingMethod extrap_method = null; 
+		double dep_val;
 		//--------------------------------------------------- //
 		// find the interpolation/extrapolation value indices //
 		//--------------------------------------------------- //
@@ -324,7 +325,9 @@ public class TableRating extends AbstractRating {
 			case NEAREST:
 			case CLOSEST:
 				if (effectiveValues[0].hasDepValue()) {
-					return convertUnits(effectiveValues[0].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+					dep_val = effectiveValues[0].getDepValue();
+					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+					return dep_val;
 				}
 				else {
 					return effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
@@ -332,7 +335,9 @@ public class TableRating extends AbstractRating {
 			case LOWER:
 				if (props.hasIncreasing()) throw new RatingException("No lower value in table.");
 				if (effectiveValues[0].hasDepValue()) {
-					return convertUnits(effectiveValues[0].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+					dep_val = effectiveValues[0].getDepValue();
+					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+					return dep_val;
 				}
 				else {
 					return effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
@@ -340,7 +345,9 @@ public class TableRating extends AbstractRating {
 			case HIGHER:
 				if (props.hasDecreasing()) throw new RatingException("No higher value in table.");
 				if (effectiveValues[0].hasDepValue()) {
-					return convertUnits(effectiveValues[0].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+					dep_val = effectiveValues[0].getDepValue();
+					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+					return dep_val;
 				}
 				else {
 					return effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
@@ -374,7 +381,9 @@ public class TableRating extends AbstractRating {
 			case NEAREST:
 			case CLOSEST:
 				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					return convertUnits(effectiveValues[effectiveValues.length-1].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+					dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
+					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+					return dep_val;
 				}
 				else {
 					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
@@ -382,7 +391,9 @@ public class TableRating extends AbstractRating {
 			case LOWER:
 				if (props.hasDecreasing()) throw new RatingException("No lower value in table.");
 				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					return convertUnits(effectiveValues[effectiveValues.length-1].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+					dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
+					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+					return dep_val;
 				}
 				else {
 					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
@@ -390,7 +401,9 @@ public class TableRating extends AbstractRating {
 			case HIGHER:
 				if (props.hasIncreasing()) throw new RatingException("No higher value in table.");
 				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					return convertUnits(effectiveValues[effectiveValues.length-1].getDepValue(), ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+					dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
+					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+					return dep_val;
 				}
 				else {
 					return effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
@@ -410,8 +423,16 @@ public class TableRating extends AbstractRating {
 		double hi_ind_val = effectiveValues[hi].getIndValue();
 		double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 		double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-		if (ind_val == lo_ind_val) return convertUnits(lo_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
-		if (ind_val == hi_ind_val) return convertUnits(hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+		if (ind_val == lo_ind_val) {
+			dep_val = lo_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
+		}
+		if (ind_val == hi_ind_val) {
+			dep_val = hi_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
+		}
 		RatingMethod method = (out_range_low || out_range_high) ? extrap_method : inRangeMethod;
 		switch (method) {
 		case NULL:
@@ -419,15 +440,25 @@ public class TableRating extends AbstractRating {
 		case ERROR:
 			throw new RatingException("No such value in table.");
 		case PREVIOUS:
-			return convertUnits(lo_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+			dep_val = lo_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
 		case NEXT:
-			return convertUnits(hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+			dep_val = hi_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
 		case LOWER:
-			return convertUnits(props.hasIncreasing() ? lo_dep_val : hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+			dep_val = props.hasIncreasing() ? lo_dep_val : hi_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
 		case HIGHER:
-			return convertUnits(props.hasDecreasing() ? lo_dep_val : hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+			dep_val = props.hasDecreasing() ? lo_dep_val : hi_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
 		case CLOSEST:
-			return convertUnits(Math.abs(ind_val - lo_ind_val) < Math.abs(hi_ind_val - ind_val) ? lo_dep_val : hi_dep_val, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+			dep_val = Math.abs(ind_val - lo_ind_val) < Math.abs(hi_ind_val - ind_val) ? lo_dep_val : hi_dep_val;
+			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+			return dep_val;
 		default:
 			break;
 		}
@@ -474,7 +505,9 @@ public class TableRating extends AbstractRating {
 		}
 		double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 		if (dep_log) y = Math.pow(10, y);
-		return convertUnits(y, ratingUnits[p_offset+1], dataUnits[p_offset+1]);
+		dep_val = y;
+		if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+		return dep_val;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double)
