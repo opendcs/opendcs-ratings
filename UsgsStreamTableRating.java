@@ -903,12 +903,34 @@ public class UsgsStreamTableRating extends TableRating {
 				offset = trc.values[0].depValue;
 			}
 			else {
+				if (offsets.ratingUnitsId == null) {
+					offsets.ratingUnitsId = ratingUnitsId;
+				}
 				offset = offsets.rate(indVal);
 			}
 		}
 		return offset;
 	}
 	
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#getRatingExtents()
+	 */
+	@Override
+	public double[][] getRatingExtents() throws RatingException {
+		return getRatingExtents(getRatingTime());
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.TableRating#getRatingExtents(long)
+	 */
+	@Override
+	public double[][] getRatingExtents(long ratingTime) throws RatingException {
+		double[][] extents = super.getRatingExtents(ratingTime);
+		extents[0][0] -= this.getShiftFromShifted(ratingTime, extents[0][0]);
+		extents[1][0] -= this.getShiftFromShifted(ratingTime, extents[1][0]);
+		return extents;
+	}
+
 	@Override
 	public UsgsStreamTableRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException
 	{
