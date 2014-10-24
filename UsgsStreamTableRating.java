@@ -1,29 +1,23 @@
 package hec.data.cwmsRating;
 
-import static hec.data.cwmsRating.RatingConst.activeXpath;
-import static hec.data.cwmsRating.RatingConst.createDateXpath;
-import static hec.data.cwmsRating.RatingConst.effectiveDateXpath;
-import static hec.data.cwmsRating.RatingConst.initXmlParsing;
-import static hec.data.cwmsRating.RatingConst.offsetNodeXpath;
-import static hec.data.cwmsRating.RatingConst.pointNodesXpath;
-import static hec.data.cwmsRating.RatingConst.shiftNodesXpath;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_TIME;
-import static javax.xml.xpath.XPathConstants.NODE;
-import static javax.xml.xpath.XPathConstants.NODESET;
-import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
+import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
-import hec.heclib.util.HecTime;
+import hec.util.TextUtil;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  * TableRating sub-type for USGS-style stream ratings, which may include dated shifts and log interpolation offsets
@@ -940,4 +934,108 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 		return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)ratingContainer);
 	}
+
+	private RatingSetContainer createShiftsRatingSetContainer(Date shiftDate, List<RatingValueContainer> stageShiftValues, boolean shiftActive) throws RatingException
+	{
+		RatingSetContainer retvalShifts = new RatingSetContainer();
+		RatingSpecContainer ratingSpecContainer = new RatingSpecContainer(); 
+		retvalShifts.ratingSpecContainer = ratingSpecContainer;
+		ratingSpecContainer.inRangeMethod = "LINEAR";
+		ratingSpecContainer.outRangeLowMethod = "NEAREST";
+		ratingSpecContainer.outRangeHighMethod = "NEAREST";
+		ratingSpecContainer.indParams = new String[1];
+		ratingSpecContainer.indParams[0] = "Stage";
+		ratingSpecContainer.depParam = "Stage-shifted";
+		ratingSpecContainer.parametersId = String.format("%s;%s", ratingSpecContainer.indParams[0], ratingSpecContainer.depParam);
+		ratingSpecContainer.templateVersion = "Standard";
+		ratingSpecContainer.templateId = String.format("%s.%s", ratingSpecContainer.parametersId, ratingSpecContainer.templateVersion);
+		ratingSpecContainer.inRangeMethods = new String[1];
+		ratingSpecContainer.inRangeMethods[0] = "LINEAR";
+		ratingSpecContainer.outRangeLowMethods = new String[1];
+		ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
+		ratingSpecContainer.outRangeHighMethods = new String[1];
+		ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
+		ratingSpecContainer.indRoundingSpecs = new String[1];
+		ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
+		ratingSpecContainer.depRoundingSpec = "4444444449";
+		retvalShifts.abstractRatingContainers = new TableRatingContainer[1];
+		
+		String unitsId = this.getRatingUnitsId();
+		String shiftUnit = TextUtil.split(TextUtil.split(unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+		
+		TableRatingContainer shiftTableRatingContainer = new TableRatingContainer();
+		retvalShifts.abstractRatingContainers[0] = shiftTableRatingContainer;
+		
+		shiftTableRatingContainer.ratingSpecId = String.format("%s.%s.%s", ratingSpecContainer.locationId, retvalShifts.ratingSpecContainer.templateId, "Production");
+		shiftTableRatingContainer.unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
+		shiftTableRatingContainer.effectiveDateMillis = shiftDate.getTime();
+		shiftTableRatingContainer.createDateMillis = System.currentTimeMillis();
+		shiftTableRatingContainer.active = shiftActive;
+		shiftTableRatingContainer.values = new RatingValueContainer[stageShiftValues.size()];
+		stageShiftValues.toArray(shiftTableRatingContainer.values);
+		shiftTableRatingContainer.inRangeMethod = "LINEAR";
+		shiftTableRatingContainer.outRangeLowMethod = "NEAREST";
+		shiftTableRatingContainer.outRangeHighMethod = "NEAREST";
+		return retvalShifts;
+	}
+
+	private TableRating addShift(RatingSet shiftsRef, Date shiftDate, List<RatingValueContainer> stageShiftValues, boolean shiftActive) throws RatingException
+	{
+		String unitsId = this.getRatingUnitsId();
+		String shiftUnit = TextUtil.split(TextUtil.split(unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+		RatingSpec ratingSpec = shiftsRef.getRatingSpec();
+		String locationId = ratingSpec.getLocationId();
+		String templateId = ratingSpec.getTemplateId();
+		
+		TableRatingContainer shiftTableRatingContainer = new TableRatingContainer();
+		shiftTableRatingContainer.ratingSpecId = String.format("%s.%s.%s", locationId, templateId, "Production");
+		shiftTableRatingContainer.unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
+		shiftTableRatingContainer.effectiveDateMillis = shiftDate.getTime();
+		shiftTableRatingContainer.createDateMillis = System.currentTimeMillis();
+		shiftTableRatingContainer.active = shiftActive;
+		shiftTableRatingContainer.values = new RatingValueContainer[stageShiftValues.size()];
+		stageShiftValues.toArray(shiftTableRatingContainer.values);
+		shiftTableRatingContainer.inRangeMethod = "LINEAR";
+		shiftTableRatingContainer.outRangeLowMethod = "NEAREST";
+		shiftTableRatingContainer.outRangeHighMethod = "NEAREST";
+		TableRating shiftTableRating = new TableRating(shiftTableRatingContainer);
+		shiftsRef.addRating(shiftTableRating);
+		return shiftTableRating;
+	}
+
+
+	public TableRating addShift(Date shiftDate, List<RatingValueContainer> stageShiftValues, boolean shiftActive) throws RatingException
+	{
+		TableRating retval = null;
+		RatingSet shiftsRef = getShifts();
+		long shiftDateTime = shiftDate.getTime();
+		//check if this rating already has a shift at the date time.
+		if (shiftsRef != null && shiftsRef.getRatingsMap().containsKey(shiftDateTime))
+		{
+			//it already exists.
+			StringBuilder sb = new StringBuilder();
+			DateFormat gmtDateFormat = new SimpleDateFormat("HHmm ddMMMyyyy z");
+			gmtDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String strShiftDateTime =  gmtDateFormat.format(effectiveDate);			
+			sb.append(this.getRatingSpecId()).append(" already contains a shift at: ").append(strShiftDateTime);			
+			throw new RatingException(sb.toString());
+		}
+		
+		//does this rating have any shifts?
+		RatingSetContainer shiftsRatingSetContainer = null;
+		if (shiftsRef == null)
+		{
+			//create a new shifts rating set container
+			shiftsRatingSetContainer = createShiftsRatingSetContainer(shiftDate,stageShiftValues,shiftActive);
+			shiftsRef = new RatingSet(shiftsRatingSetContainer);
+			setShifts(shiftsRef);
+		}
+		else
+		{
+			addShift(shiftsRef,shiftDate, stageShiftValues,shiftActive);
+		}
+		retval = (TableRating) shiftsRef.getRating(shiftDateTime);
+		return retval;
+	}
+
 }
