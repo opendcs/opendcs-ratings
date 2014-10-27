@@ -945,7 +945,7 @@ public class UsgsStreamTableRating extends TableRating {
 		ratingSpecContainer.outRangeHighMethod = "NEAREST";
 		ratingSpecContainer.indParams = new String[1];
 		ratingSpecContainer.indParams[0] = "Stage";
-		ratingSpecContainer.depParam = "Stage-shifted";
+		ratingSpecContainer.depParam = "Stage-Shift";
 		ratingSpecContainer.parametersId = String.format("%s;%s", ratingSpecContainer.indParams[0], ratingSpecContainer.depParam);
 		ratingSpecContainer.templateVersion = "Standard";
 		ratingSpecContainer.templateId = String.format("%s.%s", ratingSpecContainer.parametersId, ratingSpecContainer.templateVersion);
