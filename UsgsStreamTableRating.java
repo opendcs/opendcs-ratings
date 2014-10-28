@@ -1001,8 +1001,22 @@ public class UsgsStreamTableRating extends TableRating {
 	{
 		String unitsId = this.getRatingUnitsId();
 		String shiftUnit = TextUtil.split(TextUtil.split(unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+		String locationRefId = null;
+		try 
+		{
+			IRatingSpecification ratingSpecification = this.getRatingSpecification();
+			LocationTemplate locationRef = ratingSpecification.getLocationRef();
+			if (locationRef != null)
+			{
+				locationRefId = locationRef.getLocationId();
+			}
+		}
+		catch(DataSetException e) 
+		{
+			throw new RatingException(e);
+		}
+		String locationId = locationRefId;
 		RatingSpec ratingSpec = shiftsRef.getRatingSpec();
-		String locationId = ratingSpec.getLocationId();
 		String templateId = ratingSpec.getTemplateId();
 		
 		TableRatingContainer shiftTableRatingContainer = new TableRatingContainer();
