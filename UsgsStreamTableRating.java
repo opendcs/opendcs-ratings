@@ -2,6 +2,7 @@ package hec.data.cwmsRating;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_TIME;
+import hec.data.DataSetException;
 import hec.data.RatingException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -10,6 +11,8 @@ import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import hec.data.location.LocationTemplate;
+import hec.data.rating.IRatingSpecification;
 import hec.util.TextUtil;
 
 import java.text.DateFormat;
@@ -940,6 +943,21 @@ public class UsgsStreamTableRating extends TableRating {
 		RatingSetContainer retvalShifts = new RatingSetContainer();
 		RatingSpecContainer ratingSpecContainer = new RatingSpecContainer(); 
 		retvalShifts.ratingSpecContainer = ratingSpecContainer;
+		String locationRefId = null;
+		try 
+		{
+			IRatingSpecification ratingSpecification = this.getRatingSpecification();
+			LocationTemplate locationRef = ratingSpecification.getLocationRef();
+			if (locationRef != null)
+			{
+				locationRefId = locationRef.getLocationId();
+			}
+		}
+		catch(DataSetException e) 
+		{
+			throw new RatingException(e);
+		}
+		ratingSpecContainer.locationId = locationRefId;
 		ratingSpecContainer.inRangeMethod = "LINEAR";
 		ratingSpecContainer.outRangeLowMethod = "NEAREST";
 		ratingSpecContainer.outRangeHighMethod = "NEAREST";
