@@ -961,7 +961,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
 					urc.shifts.ratingSpecContainer.indParams = new String[1];
 					urc.shifts.ratingSpecContainer.indParams[0] = "Stage";
-					urc.shifts.ratingSpecContainer.depParam = "Stage-shifted";
+					urc.shifts.ratingSpecContainer.depParam = "Stage-Shift";
 					urc.shifts.ratingSpecContainer.parametersId = String.format("%s;%s", urc.shifts.ratingSpecContainer.indParams[0], urc.shifts.ratingSpecContainer.depParam);
 					urc.shifts.ratingSpecContainer.templateVersion = "Standard";
 					urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
