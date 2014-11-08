@@ -987,7 +987,7 @@ public class UsgsStreamTableRating extends TableRating {
 		shiftTableRatingContainer.ratingSpecId = String.format("%s.%s.%s", ratingSpecContainer.locationId, retvalShifts.ratingSpecContainer.templateId, "Production");
 		shiftTableRatingContainer.unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
 		shiftTableRatingContainer.effectiveDateMillis = shiftDate.getTime();
-		shiftTableRatingContainer.createDateMillis = System.currentTimeMillis();
+		shiftTableRatingContainer.createDateMillis = UNDEFINED_TIME;//System.currentTimeMillis();
 		shiftTableRatingContainer.active = shiftActive;
 		shiftTableRatingContainer.values = new RatingValueContainer[stageShiftValues.size()];
 		stageShiftValues.toArray(shiftTableRatingContainer.values);
@@ -1023,7 +1023,7 @@ public class UsgsStreamTableRating extends TableRating {
 		shiftTableRatingContainer.ratingSpecId = String.format("%s.%s.%s", locationId, templateId, "Production");
 		shiftTableRatingContainer.unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
 		shiftTableRatingContainer.effectiveDateMillis = shiftDate.getTime();
-		shiftTableRatingContainer.createDateMillis = System.currentTimeMillis();
+		shiftTableRatingContainer.createDateMillis = UNDEFINED_TIME;//System.currentTimeMillis();
 		shiftTableRatingContainer.active = shiftActive;
 		shiftTableRatingContainer.values = new RatingValueContainer[stageShiftValues.size()];
 		stageShiftValues.toArray(shiftTableRatingContainer.values);
