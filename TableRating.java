@@ -621,7 +621,7 @@ public class TableRating extends AbstractRating {
 			}
 			init(	values,
 					extensionValues,
-					RatingMethod.fromString(trc.inRangeMethod == null ? "LOGARITHMIC" : trc.outRangeHighMethod),
+					RatingMethod.fromString(trc.inRangeMethod == null ? "LOGARITHMIC" : trc.inRangeMethod),
 					RatingMethod.fromString(trc.outRangeLowMethod == null ? "ERROR" : trc.outRangeLowMethod),
 					RatingMethod.fromString(trc.outRangeHighMethod == null ? "ERROR" : trc.outRangeHighMethod),
 					trc.officeId,
