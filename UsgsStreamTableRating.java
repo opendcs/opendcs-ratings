@@ -767,17 +767,8 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	protected double getShiftFromUnshifted(long valTime, double height) throws RatingException {
 		double shift = 0;
-		if (shifts != null) {
-			switch (shifts.getRatingCount()) {
-			case 0 :
-				shift = 0;
-				break;
-			case 1 :
-				shift = ((TableRatingContainer)shifts.getData().abstractRatingContainers[0]).values[0].depValue;
-				break;
-			default :
-				shift = shifts.rate(height, valTime);
-			}
+		if (shifts != null && shifts.getRatingCount() > 0) {
+			shift = shifts.rate(height, valTime);
 		}
 		return shift;
 	}
@@ -790,98 +781,24 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	protected double getShiftFromShifted(long valTime, double height) throws RatingException {
 		double shift = 0;
-		if (shifts != null) {
-			switch (shifts.getRatingCount()) {
-			case 0 :
-				shift = 0;
-				break;
-			case 1 :
-				shift = ((TableRatingContainer)shifts.getData().abstractRatingContainers[0]).values[0].depValue;
-				break;
-			default :
-				RatingSetContainer rsc = shifts.getData();
-				int hi = -1, lo = -1;
-				for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
-					AbstractRatingContainer rc = rsc.abstractRatingContainers[i];
-					if (rc.active && rc.createDateMillis <= ratingTime) {
-						if (rc.effectiveDateMillis > valTime) {
-							hi = i;
-							break;
-						}
-						else {
-							lo = i;
-						}
-					}
-				}
-				if (hi > -1) {
-					long hiTime = rsc.abstractRatingContainers[hi].effectiveDateMillis;
-					long loTime;
-					double hiShift = 0, loShift = 0;
-					if (!(rsc.abstractRatingContainers[hi] instanceof TableRatingContainer)) {
-						throw new RatingException("Shift rating is not a TableRating object.");
-					}
-					TableRatingContainer trc = (TableRatingContainer)rsc.abstractRatingContainers[hi];
-					if (height - trc.values[0].depValue <= trc.values[0].indValue) {
-						hiShift = trc.values[0].depValue;
-					}
-					else if (height - trc.values[trc.values.length-1].depValue >= trc.values[trc.values.length-1].indValue) {
-						hiShift = trc.values[trc.values.length-1].depValue;
-					}
-					else {
-						for (int i = 1; i < trc.values.length; ++i) {
-							if (height - trc.values[i].depValue <= trc.values[i].indValue) {
-								int j = i == trc.values.length-1 ? i-1 : i;
-								double s0 = trc.values[j].depValue;
-								double s1 = trc.values[j+1].depValue;
-								double h0 = trc.values[j].indValue;
-								double h1 = trc.values[j+1].indValue;
-								double dsdh = (s1-s0)/(h1-h0);
-								hiShift = height-(height-s0+h0*dsdh)/(1+dsdh);
-								break;
-							}
-						}
-					}
-					if (lo == -1) {
-						loTime = getEffectiveDate();
-						loShift = 0.;
-					}
-					else {
-						loTime = rsc.abstractRatingContainers[lo].effectiveDateMillis;
-						if (!(rsc.abstractRatingContainers[lo] instanceof TableRatingContainer)) {
-							throw new RatingException("Shift rating is not a TableRating object.");
-						}
-						trc = (TableRatingContainer)rsc.abstractRatingContainers[lo];
-						if (height - trc.values[0].depValue <= trc.values[0].indValue) {
-							loShift = trc.values[0].depValue;
-						}
-						else if (height - trc.values[trc.values.length-1].depValue >= trc.values[trc.values.length-1].indValue) {
-							loShift = trc.values[trc.values.length-1].depValue;
-						}
-						else {
-							for (int i = 1; i < trc.values.length; ++i) {
-								if (height - trc.values[i].depValue <= trc.values[i].indValue) {
-									int j = i == trc.values.length-1 ? i-1 : i;
-									double s0 = trc.values[j].depValue;
-									double s1 = trc.values[j+1].depValue;
-									double h0 = trc.values[j].indValue;
-									double h1 = trc.values[j+1].indValue;
-									double dsdh = (s1-s0)/(h1-h0);
-									loShift = height-(height-s0+h0*dsdh)/(1+dsdh);
-									break;
-								}
-							}
-						}
-					}
-					if (valTime == loTime) {
-						shift = loShift;
-					}
-					else if (valTime == hiTime) {
-						shift = hiShift;
-					}
-					else {
-						shift = loShift + (double)(valTime - loTime) / (double)(hiTime - loTime) * (hiShift - loShift);
-					}
-				}
+		if (shifts != null && shifts.getRatingCount() > 0) {
+			double shift1 = getShiftFromUnshifted(valTime, height);
+			double unshifted = height - shift1;
+			double shift2 = getShiftFromUnshifted(valTime, unshifted);
+			double mean = (shift1 + shift2) / 2;
+			double diff = Math.abs(shift2 - shift1);
+			int i = 0;
+			int limit = 100;
+			for (i = 0; i < limit && diff * 1E8 > Math.abs(mean); ++i) {
+				shift1 = shift2;
+				unshifted = height - shift1;
+				shift2 = getShiftFromUnshifted(valTime, unshifted);
+				mean = (shift1 + shift2) / 2;
+				diff = Math.abs(shift2 - shift1);
+			}
+			shift = mean;
+			if (i == limit) {
+				logger.warning("Could not converge on shift for shifted value " + height + " in " + limit + " iterations.");
 			}
 		}
 		return shift;
