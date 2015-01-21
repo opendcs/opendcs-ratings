@@ -465,7 +465,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 		ratings.put(effectiveDate, rating);
-		if (rating.isActive()) {
+		if (rating.isActive() && rating.createDate <= ratingTime) {
 			activeRatings.put(effectiveDate, rating);
 		}
 		rating.deleteObserver(this);
@@ -1445,8 +1445,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void resetRatingTime() {
 		ratingTime = Long.MAX_VALUE;
 		if (ratings != null) {
-			for (AbstractRating rating : ratings.values()) {
-				rating.resetRatingTime();
+			Long[] effectiveDates = ratings.keySet().toArray(new Long[0]);
+			for (Long effectiveDate : effectiveDates) {
+				ratings.get(effectiveDate).resetRatingTime();
 			}
 		}
 		refreshRatings();
@@ -2299,21 +2300,17 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	private void refreshRatings() {
-		AbstractRating[] _ratings = ratings.values().toArray(new AbstractRating[ratings.size()]);
+		AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
 		ratings.clear();
 		activeRatings.clear();
-		for (int i = 0; i < _ratings.length; ++i) {
-			long effectiveDate = _ratings[i].getEffectiveDate();
-			ratings.put(effectiveDate, _ratings[i]);
-			if (i < _ratings.length - 1 && _ratings[i] instanceof UsgsStreamTableRating) {
-				UsgsStreamTableRating ustr = (UsgsStreamTableRating)_ratings[i];
-				ustr.setRatingTime(Math.min(ustr.getRatingTime(), _ratings[i+1].getCreateDate()));
+		for (AbstractRating rating : ratingArray) {
+			long effectiveDate = rating.getEffectiveDate();
+			ratings.put(effectiveDate, rating);
+			if (rating.isActive() && rating.getCreateDate() < ratingTime) {
+				activeRatings.put(effectiveDate, rating);
 			}
-			if (_ratings[i].isActive() && _ratings[i].getCreateDate() < ratingTime) {
-				activeRatings.put(effectiveDate, _ratings[i]);
-			}
-			_ratings[i].deleteObserver(this);
-			_ratings[i].addObserver(this);
+			rating.deleteObserver(this);
+			rating.addObserver(this);
 		}
 		if (observationTarget != null) {
 			observationTarget.setChanged();
