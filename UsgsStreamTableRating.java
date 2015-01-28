@@ -111,7 +111,7 @@ public class UsgsStreamTableRating extends TableRating {
 			this.offsets.addObserver(this);
 		}
 		if (urc.shifts != null) {
-			this.shifts = new RatingSet(urc.shifts);
+			setShifts(new RatingSet(urc.shifts));
 			this.shifts.addObserver(this);
 		}
 	}
@@ -632,16 +632,44 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Retrieves the current shifts
 	 * @return the shifts
+	 * @throws RatingException 
 	 */
-	public RatingSet getShifts() {
+	public RatingSet getShifts() throws RatingException {
+		RatingSet shifts = new RatingSet(this.shifts.getData());
+		if (shifts.getRatings()[0].effectiveDate == effectiveDate) {
+			//----------------------------------------------------//
+			// remove the zero shift at the rating effective date //
+			//----------------------------------------------------//
+			shifts.removeRating(effectiveDate);
+		}
 		return shifts;
 	}
 	/**
 	 * Sets the current shifts
 	 * @param shifts the shifts to set
+	 * @throws RatingException 
 	 */
-	public void setShifts(RatingSet shifts) {
-		this.shifts = shifts;
+	public void setShifts(RatingSet shifts) throws RatingException {
+		RatingSet _shifts = new RatingSet(shifts.getData());
+		AbstractRating[] arcs = _shifts.getRatings();
+		TableRatingContainer trc1 = (TableRatingContainer) arcs[0].getData();
+		if (trc1.effectiveDateMillis > effectiveDate) {
+			//--------------------------------------------------------------------------//
+			// add a zero shift at the rating effective date for interpolation purposes //
+			//--------------------------------------------------------------------------//
+			TableRatingContainer trc0 = new TableRatingContainer();
+			trc1.clone(trc0);
+			trc0.effectiveDateMillis = this.effectiveDate;
+			RatingValueContainer rvc = new RatingValueContainer();
+			rvc.indValue = 0;
+			rvc.depValue = 0;
+			trc0.values = new RatingValueContainer[] {rvc};
+			_shifts.addRating(new TableRating(trc0));
+			this.shifts = _shifts;
+		}
+		else {
+			this.shifts = shifts;
+		}
 	}
 	/**
 	 * Retrieves the log interpolation offsets
@@ -685,7 +713,13 @@ public class UsgsStreamTableRating extends TableRating {
 	public AbstractRatingContainer getData() {
 		UsgsStreamTableRatingContainer ustrc = new UsgsStreamTableRatingContainer();
 		getData(ustrc);
-		if (shifts != null) ustrc.shifts = shifts.getData();
+		if (shifts != null)
+			try {
+				ustrc.shifts = getShifts().getData();
+			}
+			catch (RatingException e) {
+				throw new UnsupportedOperationException(e);
+			}
 		if (offsets != null) ustrc.offsets = (TableRatingContainer)offsets.getData();
 		return ustrc;
 	}
@@ -743,7 +777,7 @@ public class UsgsStreamTableRating extends TableRating {
 				ustrc.active,
 				ustrc.description);
 		if (ustrc.shifts != null) {
-			shifts = new RatingSet(ustrc.shifts);
+			setShifts(new RatingSet(ustrc.shifts));
 		}
 		if (ustrc.offsets != null) {
 			offsets = new TableRating(ustrc.offsets);
@@ -756,7 +790,13 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return getData().toXml(indent, indentLevel);
+		UsgsStreamTableRating clone = new UsgsStreamTableRating((UsgsStreamTableRatingContainer) getData());
+		try {
+			clone.shifts.removeRating(this.effectiveDate);
+		}
+		catch (RatingException e) {
+		}
+		return clone.getData().toXml(indent, indentLevel);
 	}
 	/**
 	 * Retrieves the stage shift for an unshifted stage at a specified time
