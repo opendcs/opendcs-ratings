@@ -1010,7 +1010,7 @@ public class TableRating extends AbstractRating {
 			}
 		}
 		TableRatingContainer trc = (TableRatingContainer)getData();
-		trc.values = rvcs;
+		trc.extensionValues = rvcs;
 		setData(trc);
 	}
 	
