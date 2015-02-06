@@ -1,50 +1,22 @@
 package hec.data.cwmsRating;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.activeXpath;
-import static hec.data.cwmsRating.RatingConst.createDateXpath;
-import static hec.data.cwmsRating.RatingConst.descriptionXpath;
-import static hec.data.cwmsRating.RatingConst.effectiveDateXpath;
-import static hec.data.cwmsRating.RatingConst.extensionPointGroupNodesXpath;
-import static hec.data.cwmsRating.RatingConst.inRangeMethodXpath;
-import static hec.data.cwmsRating.RatingConst.indParamNodesXpath;
-import static hec.data.cwmsRating.RatingConst.indParamPosXpath;
-import static hec.data.cwmsRating.RatingConst.indParamsNodeXpath;
-import static hec.data.cwmsRating.RatingConst.initXmlParsing;
-import static hec.data.cwmsRating.RatingConst.officeIdXpath;
-import static hec.data.cwmsRating.RatingConst.otherIndParamNodesXpath;
-import static hec.data.cwmsRating.RatingConst.otherIndValXPath;
-import static hec.data.cwmsRating.RatingConst.outRangeHighMethodXpath;
-import static hec.data.cwmsRating.RatingConst.outRangeLowMethodXpath;
-import static hec.data.cwmsRating.RatingConst.pointNodesXpath;
-import static hec.data.cwmsRating.RatingConst.ratingPointGroupNodesXpath;
-import static hec.data.cwmsRating.RatingConst.ratingSpecIdXpath;
-import static hec.data.cwmsRating.RatingConst.unitsIdXpath;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
-import static javax.xml.xpath.XPathConstants.NODE;
-import static javax.xml.xpath.XPathConstants.NODESET;
-import static javax.xml.xpath.XPathConstants.NUMBER;
-import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.heclib.util.HecTime;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 /**
  * Table-based (lookup) rating implementation.
  * 
@@ -979,11 +951,68 @@ public class TableRating extends AbstractRating {
 	}
 
 	@Override
+	@Deprecated
 	public RatingValue[] getValues(Integer defaultInterval)
 	{
 		return values;
 	}
 	
+	/**
+	 * @return The mixture of rating values and extension values used to perform lookups. 
+	 */
+	public RatingValue[] getEffectiveValues()
+	{
+		return effectiveValues;
+	}
+	/**
+	 * @return The set of rating values.
+	 */
+	public RatingValue[] getRatingValues() {
+		return values;
+	}
+	/**
+	 * @return The set of extension values.
+	 */
+	public RatingValue[] getExtensionValues() {
+		return extensionValues;
+	}
+	/**
+	 * Sets the rating values to use to perform lookups
+	 * @param values The rating values
+	 * @throws RatingException
+	 */
+	public void setRatingValues(RatingValue[] values) throws RatingException {
+		if (values == null) {
+			throw new RatingException("Cannot set rating values to null");
+		}
+		RatingValueContainer[] rvcs = new RatingValueContainer[values.length];
+		for (int i = 0; i < values.length;++i) {
+			rvcs[i] = values[i].getData();
+		}
+		TableRatingContainer trc = (TableRatingContainer)getData();
+		trc.values = rvcs;
+		setData(trc);
+	}
+	/**
+	 * Sets the extension values to use to perform lookups
+	 * @param values The extension values
+	 * @throws RatingException
+	 */
+	public void setExtensionValues(RatingValue[] values) throws RatingException {
+		if (getIndParamCount() > 1) {
+			throw new RatingException("Cannot set extension values for rating with more than one independent value");
+		}
+		RatingValueContainer[] rvcs = null;
+		if (values != null) {
+			rvcs = new RatingValueContainer[values.length];
+			for (int i = 0; i < values.length;++i) {
+				rvcs[i] = values[i].getData();
+			}
+		}
+		TableRatingContainer trc = (TableRatingContainer)getData();
+		trc.values = rvcs;
+		setData(trc);
+	}
 	
 	@Override
 	public TableRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException

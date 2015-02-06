@@ -175,8 +175,8 @@ public class RatingTemplateContainer {
 			prefix += indent;
 		}
 		sb.append(prefix).append("<rating-template office-id=\"").append(officeId == null ? "" : officeId).append("\">\n");
-		sb.append(prefix).append(indent).append("<parameters-id>").append(parametersId == null ? "" : parametersId).append("</parameters-id>\n");
-		sb.append(prefix).append(indent).append("<version>").append(templateVersion == null ? "" : templateVersion).append("</version>\n");
+		sb.append(prefix).append(indent).append("<parameters-id>").append(parametersId == null ? "" : TextUtil.xmlEntityEncode(parametersId)).append("</parameters-id>\n");
+		sb.append(prefix).append(indent).append("<version>").append(templateVersion == null ? "" : TextUtil.xmlEntityEncode(templateVersion)).append("</version>\n");
 		sb.append(prefix).append(indent).append("<ind-parameter-specs>\n");
 		if (indParams != null) {
 			for (int i = 0; i < indParams.length; ++i) {
@@ -185,7 +185,7 @@ public class RatingTemplateContainer {
 				String outRangeLowMethod = outRangeLowMethods != null && i < outRangeLowMethods.length && outRangeLowMethods[i] != null ? outRangeLowMethods[i] : "";
 				String outRangeHighMethod = outRangeHighMethods != null && i < outRangeHighMethods.length && outRangeHighMethods[i] != null ? outRangeHighMethods[i] : "";
 				sb.append(prefix).append(indent).append(indent).append("<ind-parameter-spec position=\"").append(i+1).append("\">\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append("<parameter>").append(indParam).append("</parameter>\n");
+				sb.append(prefix).append(indent).append(indent).append(indent).append("<parameter>").append(TextUtil.xmlEntityEncode(indParam)).append("</parameter>\n");
 				sb.append(prefix).append(indent).append(indent).append(indent).append("<in-range-method>").append(inRangeMethod).append("</in-range-method>\n");
 				sb.append(prefix).append(indent).append(indent).append(indent).append("<out-range-low-method>").append(outRangeLowMethod).append("</out-range-low-method>\n");
 				sb.append(prefix).append(indent).append(indent).append(indent).append("<out-range-high-method>").append(outRangeHighMethod).append("</out-range-high-method>\n");
@@ -193,8 +193,8 @@ public class RatingTemplateContainer {
 			}
 		}
 		sb.append(prefix).append(indent).append("</ind-parameter-specs>\n");
-		sb.append(prefix).append(indent).append("<dep-parameter>").append(depParam == null ? "" : depParam).append("</dep-parameter>\n");
-		sb.append(prefix).append(indent).append("<description>").append(templateDescription == null ? "" : templateDescription).append("</description>\n");
+		sb.append(prefix).append(indent).append("<dep-parameter>").append(depParam == null ? "" : TextUtil.xmlEntityEncode(depParam)).append("</dep-parameter>\n");
+		sb.append(prefix).append(indent).append("<description>").append(templateDescription == null ? "" : TextUtil.xmlEntityEncode(templateDescription)).append("</description>\n");
 		sb.append(prefix).append("</rating-template>\n");
 		if (level == 0) {
 			sb.append("</ratings>\n");
