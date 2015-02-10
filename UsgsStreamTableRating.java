@@ -630,19 +630,23 @@ public class UsgsStreamTableRating extends TableRating {
 		return unshifted;
 	}
 	/**
-	 * Retrieves the current shifts
+	 * Retrieves the current shifts, can return null
 	 * @return the shifts
 	 * @throws RatingException 
 	 */
 	public RatingSet getShifts() throws RatingException {
-		RatingSet shifts = new RatingSet(this.shifts.getData());
-		if (shifts.getRatings()[0].effectiveDate == effectiveDate) {
-			//----------------------------------------------------//
-			// remove the zero shift at the rating effective date //
-			//----------------------------------------------------//
-			shifts.removeRating(effectiveDate);
+		RatingSet retval = null;
+		if(this.shifts != null)
+		{
+			retval = new RatingSet(this.shifts.getData());
+			if (retval.getRatings()[0].effectiveDate == effectiveDate) {
+				//----------------------------------------------------//
+				// remove the zero shift at the rating effective date //
+				//----------------------------------------------------//
+				retval.removeRating(effectiveDate);
+			}
 		}
-		return shifts;
+		return retval;
 	}
 	/**
 	 * Sets the current shifts
