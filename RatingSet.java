@@ -1406,6 +1406,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return ratings == null ? 0 : ratings.size();
 	}
 	/**
+	 * Retrieves the number of active ratings in this set.
+	 * @return The number of active ratings in this set
+	 */
+	public int getActiveRatingCount() {
+		int count =  0;
+		if (ratings != null) {
+			count = ratings.size();
+			for (Iterator<AbstractRating> it = ratings.values().iterator(); it.hasNext();) {
+				if (!it.next().active) --count;			
+			}
+		}
+		return count;
+	}
+	/**
 	 * Retrieves the default value time. This is used for rating values that have no inherent times.
 	 * @return The default value time
 	 */

@@ -811,7 +811,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	protected double getShiftFromUnshifted(long valTime, double height) throws RatingException {
 		double shift = 0;
-		if (shifts != null && shifts.getRatingCount() > 0) {
+		if (shifts != null && shifts.getActiveRatingCount() > 0) {
 			shift = shifts.rate(height, valTime);
 		}
 		return shift;
@@ -825,7 +825,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	protected double getShiftFromShifted(long valTime, double height) throws RatingException {
 		double shift = 0;
-		if (shifts != null && shifts.getRatingCount() > 0) {
+		if (shifts != null && shifts.getActiveRatingCount() > 0) {
 			double shift1 = getShiftFromUnshifted(valTime, height);
 			double unshifted = height - shift1;
 			double shift2 = getShiftFromUnshifted(valTime, unshifted);
