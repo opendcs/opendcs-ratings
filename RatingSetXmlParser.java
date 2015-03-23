@@ -81,6 +81,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private static final String RATING_SPEC_STR = "rating-spec";
 	private static final String RATING_STR = "rating";
 	private static final String RATING_TEMPLATE_STR = "rating-template";
+	private static final String SIMPLE_RATING_STR = "simple-rating";
 	private static final String SOURCE_AGENCY_STR = "source-agency";
 	private static final String TEMPLATE_ID_STR	= "template-id";
 	private static final String UNITS_ID_STR = "units-id";
@@ -355,7 +356,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							rspc.specDescription = data;
 						}
 					}
-					else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+					else if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
 						if (parts[2].equals(RATING_SPEC_ID_STR)) {
 							arc.ratingSpecId = data;
 						}
@@ -377,7 +378,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							arc.description = data;
 						}
 						else if (parts[2].equals(FORMULA_STR)) {
-							if (!parts[1].equals(RATING_STR)) {
+							if (!parts[1].equals(SIMPLE_RATING_STR) && !parts[1].equals(RATING_STR)) {
 								elementError(); 
 							}
 							erc = new ExpressionRatingContainer();
@@ -426,7 +427,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							}
 						}
 					}
-					else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+					else if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
 						if (parts[3].equals(POINT_STR)) {
 							if (parts[2].equals(RATING_POINTS_STR)) {
 								if (parts[4].equals(IND_STR)) {
@@ -555,7 +556,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					rtc.clone(rspc);
 				}
 			}
-			else if (localName.equals(RATING_STR) || localName.equals(USGS_STREAM_RATING_STR)) {
+			else if (localName.equals(SIMPLE_RATING_STR) || localName.equals(RATING_STR) || localName.equals(USGS_STREAM_RATING_STR)) {
 				arc = new AbstractRatingContainer();
 				arc.officeId = attrs.getValue(OFFICE_ID_STR);
 			}
@@ -564,9 +565,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			}
 			break;
 		case 3 :
-			if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+			if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
 				if (localName.equals(RATING_POINTS_STR)) {
-					if (parts[1].equals(RATING_STR)) {
+					if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR)) {
 						trc = new TableRatingContainer();
 						arc.clone(trc);
 						if (ratingPoints == null) ratingPoints = new ArrayList<RatingPoints>();
@@ -695,7 +696,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			}
 			break;
 		case 4 :
-			if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+			if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
 				if (parts[2].equals(HEIGHT_OFFSETS_STR)) {
 					if(localName.equals(POINT_STR)) ;
 					else {
@@ -775,9 +776,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				}
 				else elementError();
 			}
-			else if (parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
+			else if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR) || parts[1].equals(USGS_STREAM_RATING_STR)) {
 				if (parts[2].equals(HEIGHT_OFFSETS_STR) || parts[2].equals(HEIGHT_SHIFTS_STR)) {
-					if (parts[1].equals(RATING_STR)) {
+					if (parts[1].equals(SIMPLE_RATING_STR) || parts[1].equals(RATING_STR)) {
 						elementError();
 					}
 					if (parts[3].equals(POINT_STR)) {
@@ -844,7 +845,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					throw new RuntimeException(e);
 				}
 			}
-			else if (localName.equals(RATING_STR)) {
+			else if (localName.equals(SIMPLE_RATING_STR) || localName.equals(RATING_STR)) {
 				if (arcs == null) arcs = new ArrayList<AbstractRatingContainer>();
 				if (erc != null) {
 					ExpressionRatingContainer erc2 = new ExpressionRatingContainer();

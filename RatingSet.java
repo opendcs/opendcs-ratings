@@ -39,6 +39,7 @@ import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -170,6 +171,17 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting) throws RatingException {
+		storeToDatabase(conn, xml, overwriteExisting, true);
+	}
+	/**
+	 * Stores the rating set to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @param replaceBase Flag specifying whether to replace the base curves of USGS-style stream ratings (false = only store shifts)
+	 * @throws RatingException
+	 */
+	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) 
+			throws RatingException {
 		CallableStatement[] stmts = new CallableStatement[3];
 		try {
 			stmts[0] = conn.prepareCall("begin :1 := cwms_msg.get_msg_id; end;");
@@ -177,10 +189,24 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			stmts[0].execute();
 			String lowerMessageBound = stmts[0].getString(1);
 			
-			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+			// first try newer schema with 3 parameters on CWMS_RATING.STORE_RATINGS_XML()
+			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2, :3); end;");
 			stmts[1].setString(1, xml);
 			stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
-			stmts[1].execute();
+			stmts[1].setString(3, replaceBase ? "T" : "F");
+			try {
+				stmts[1].execute();
+			}
+			catch (SQLException e) {
+				if (e.getMessage().indexOf("PLS-00306") < 0) {
+					throw e;
+				}
+				// allow for older schema with only 2 parameters on CWMS_RATING.STORE_RATINGS_XML()
+				stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+				stmts[1].setString(1, xml);
+				stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
+				stmts[1].execute();
+			}
 			
 			stmts[0].execute();
 			String upperMessageBound = stmts[0].getString(1);
