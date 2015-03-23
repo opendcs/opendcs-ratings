@@ -654,22 +654,30 @@ public class UsgsStreamTableRating extends TableRating {
 	 * @throws RatingException 
 	 */
 	public void setShifts(RatingSet shifts) throws RatingException {
-		RatingSet _shifts = new RatingSet(shifts.getData());
-		AbstractRating[] arcs = _shifts.getRatings();
-		TableRatingContainer trc1 = (TableRatingContainer) arcs[0].getData();
-		if (trc1.effectiveDateMillis > effectiveDate) {
-			//--------------------------------------------------------------------------//
-			// add a zero shift at the rating effective date for interpolation purposes //
-			//--------------------------------------------------------------------------//
-			TableRatingContainer trc0 = new TableRatingContainer();
-			trc1.clone(trc0);
-			trc0.effectiveDateMillis = this.effectiveDate;
-			RatingValueContainer rvc = new RatingValueContainer();
-			rvc.indValue = 0;
-			rvc.depValue = 0;
-			trc0.values = new RatingValueContainer[] {rvc};
-			_shifts.addRating(new TableRating(trc0));
-			this.shifts = _shifts;
+		if (shifts != null) {
+			RatingSet _shifts = new RatingSet(shifts.getData());
+			AbstractRating[] arcs = _shifts.getRatings();
+			TableRatingContainer trc1 = (TableRatingContainer) arcs[0].getData();
+			if (trc1.effectiveDateMillis < effectiveDate) {
+				throw new RatingException("Effective date of first shift pre-dates base rating");
+			}
+			else if (trc1.effectiveDateMillis > effectiveDate) {
+				//--------------------------------------------------------------------------//
+				// add a zero shift at the rating effective date for interpolation purposes //
+				//--------------------------------------------------------------------------//
+				TableRatingContainer trc0 = new TableRatingContainer();
+				trc1.clone(trc0);
+				trc0.effectiveDateMillis = this.effectiveDate;
+				RatingValueContainer rvc = new RatingValueContainer();
+				rvc.indValue = 0;
+				rvc.depValue = 0;
+				trc0.values = new RatingValueContainer[] {rvc};
+				_shifts.addRating(new TableRating(trc0));
+				this.shifts = _shifts;
+			}
+			else {
+				this.shifts = shifts;
+			}
 		}
 		else {
 			this.shifts = shifts;
