@@ -639,11 +639,15 @@ public class UsgsStreamTableRating extends TableRating {
 		if(this.shifts != null)
 		{
 			retval = new RatingSet(this.shifts.getData());
-			if (retval.getRatings()[0].effectiveDate == effectiveDate) {
-				//----------------------------------------------------//
-				// remove the zero shift at the rating effective date //
-				//----------------------------------------------------//
-				retval.removeRating(effectiveDate);
+			TableRating tr = (TableRating)retval.getRatings()[0];
+			if (tr.effectiveDate == effectiveDate) {
+				TableRatingContainer trc = (TableRatingContainer)tr.getData();
+				if (trc.values.length == 1 && trc.values[0].indValue == 0 && trc.values[0].depValue == 0) {
+					//----------------------------------------------------//
+					// remove the zero shift at the rating effective date //
+					//----------------------------------------------------//
+					retval.removeRating(effectiveDate);
+				}
 			}
 		}
 		return retval;
