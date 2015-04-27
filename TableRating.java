@@ -6,6 +6,8 @@ import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
 import hec.data.RatingException;
+import hec.data.RatingOutOfRangeException;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.*;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -284,7 +286,7 @@ public class TableRating extends AbstractRating {
 			case NULL:
 				return UNDEFINED_DOUBLE;
 			case ERROR:
-				throw new RatingException("Value is out of range low.");
+				throw new RatingOutOfRangeException(OUT_OF_RANGE_LOW);
 			case LINEAR:
 			case LOGARITHMIC:
 			case LIN_LOG:
@@ -340,7 +342,7 @@ public class TableRating extends AbstractRating {
 			case NULL:
 				return UNDEFINED_DOUBLE;
 			case ERROR:
-				throw new RatingException("Value is out of range high.");
+				throw new RatingOutOfRangeException(OUT_OF_RANGE_HIGH);
 			case LINEAR:
 			case LOGARITHMIC:
 			case LIN_LOG:
