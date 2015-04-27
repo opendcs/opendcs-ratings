@@ -490,6 +490,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				throw new RatingException("Cannot add rating with different units.");
 			}
 		}
+		if (rating instanceof UsgsStreamTableRating) {
+			UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
+			if (streamRating.shifts != null) {
+				streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
+			}
+		}
 		ratings.put(effectiveDate, rating);
 		if (rating.isActive() && rating.createDate <= ratingTime) {
 			activeRatings.put(effectiveDate, rating);
@@ -547,6 +553,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 		for (AbstractRating rating : ratings) {
+			if (rating instanceof UsgsStreamTableRating) {
+				UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
+				if (streamRating.shifts != null) {
+					streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
+				}
+			}
 			this.ratings.put(rating.getEffectiveDate(), rating);
 			if (rating.isActive() && rating.createDate <= ratingTime) {
 				activeRatings.put(rating.getEffectiveDate(), rating);
