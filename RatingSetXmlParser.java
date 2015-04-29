@@ -494,7 +494,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void endDocument() {
-		if (vdcs != null) {
+		if (vdcs != null && vdcs.size() > 0) {
 			for (int i = 1; i < vdcs.size(); ++i) {
 				if (!vdcs.get(i).equals(vdcs.get(0))) {
 					throw new RuntimeException("XML contains inconsistent vertical datum information");
