@@ -778,13 +778,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		IRating lastUsedRating = null;
 		RatingMethod method = null;
 		for (int i = 0; i < valueSets.length; ++i) {
-			if (i > 0 && valueTimes[i] == valueTimes[i-1]) {
-				if (lastUsedRating == null) {
-					Y[i] = Y[i-1];
-				}
-				else {
-					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-				}
+			if (i > 0 && valueTimes[i] == valueTimes[i-1] && lastUsedRating != null) {
+				Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 				continue;
 			}
 			else {
