@@ -397,6 +397,9 @@ public class TableRating extends AbstractRating {
 		double hi_ind_val = effectiveValues[hi].getIndValue();
 		double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 		double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+		if (lo_dep_val == UNDEFINED_DOUBLE || hi_dep_val == UNDEFINED_DOUBLE) {
+			return UNDEFINED_DOUBLE;
+		}
 		if (ind_val == lo_ind_val) {
 			dep_val = lo_dep_val;
 			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
