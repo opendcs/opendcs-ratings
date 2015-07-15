@@ -1667,6 +1667,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double rate(double indVal) throws RatingException {
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
 		return rate(indVal, defaultValueTime);
 	}
 	/* (non-Javadoc)
@@ -1674,6 +1677,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double rateOne(double... indVals) throws RatingException {
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
 		return rateOne(indVals, defaultValueTime);
 	}
 	/* (non-Javadoc)
@@ -1681,6 +1687,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[] rate(double[] indVals) throws RatingException {
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
 		return rate(indVals, defaultValueTime);
 	}
 	/* (non-Javadoc)
@@ -1688,6 +1697,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[] rate(double[][] indVals) throws RatingException {
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
 		long[] valTimes = new long[indVals.length];
 		Arrays.fill(valTimes, defaultValueTime);
 		return rate(indVals, valTimes);
