@@ -1,5 +1,6 @@
 package hec.data.cwmsRating;
 
+import hec.data.NotMonotonicRatingException;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
@@ -830,7 +831,7 @@ public class TableRating extends AbstractRating {
 		for (int i = 0; i < values.length; ++i) ind_vals[i] = values[i].getIndValue();
 		props = new SequenceProperties(ind_vals);
 		if (props.hasUndefined() || props.hasConstant() || (props.hasIncreasing() && props.hasDecreasing())) {
-			throw new RatingException("Specifed values do not monotonically increase or decrease, cannot use for rating.");
+			throw new NotMonotonicRatingException("Specifed values do not monotonically increase or decrease, cannot use for rating.");
 		}
 		//-----------------------------------------------//
 		// validate the incoming rating extension values //
@@ -847,7 +848,7 @@ public class TableRating extends AbstractRating {
 			for (int i = 0; i < extensionValues.length; ++i) ind_vals[i] = extensionValues[i].getIndValue();
 			SequenceProperties extensionProps = new SequenceProperties(ind_vals);
 			if (extensionProps.hasUndefined() || extensionProps.hasConstant() || (extensionProps.hasIncreasing() && extensionProps.hasDecreasing())) {
-				throw new RatingException("Specifed extension values do not monotonically increase or decrease, cannot use for rating.");
+				throw new NotMonotonicRatingException("Specifed extension values do not monotonically increase or decrease, cannot use for rating.");
 			}
 			if (extensionProps.hasIncreasing() != props.hasIncreasing()) {
 				throw new RatingException("Extension values are ordered in opposite direction of rating values.");
