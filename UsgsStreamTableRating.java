@@ -108,10 +108,20 @@ public class UsgsStreamTableRating extends TableRating {
 		
 		if (urc.offsets != null) {
 			this.offsets = new TableRating(urc.offsets);
+			if (urc.unitsId != null && urc.unitsId.length() > 0) {
+				String heightUnit = TextUtil.split(urc.unitsId, ";")[0];
+				this.offsets.ratingUnitsId = String.format("%s;%s", heightUnit, heightUnit);
+			}
 			this.offsets.addObserver(this);
 		}
 		if (urc.shifts != null) {
 			setShifts(new RatingSet(urc.shifts));
+			if (urc.unitsId != null && urc.unitsId.length() > 0) {
+				String heightUnit = TextUtil.split(urc.unitsId, ";")[0];
+				for (AbstractRating shift : getShifts().getRatings()) {
+					shift.ratingUnitsId = String.format("%s;%s", heightUnit, heightUnit);
+				}
+			}
 			this.shifts.addObserver(this);
 		}
 	}
