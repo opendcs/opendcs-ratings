@@ -143,8 +143,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromXml(String xmlText) throws RatingException {
-		RatingSetContainer rtc = RatingSetXmlParser.parseString(xmlText);
-		return new RatingSet(rtc);
+		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText);
+		return new RatingSet(rsc);
 	}
 	/**
 	 * Generates a new RatingSet object from a compressed XML instance.
@@ -1757,6 +1757,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double reverseRate(double depVal) throws RatingException {
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
 		long[] valTimes = {defaultValueTime};
 		double[] depVals = {depVal};
 		return reverseRate(valTimes, depVals)[0];
@@ -1766,8 +1769,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[] reverseRate(double[] depVals) throws RatingException {
-		long[] valTimes = {defaultValueTime};
-		return reverseRate(valTimes, depVals);
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
+		return reverseRate(defaultValueTime, depVals);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#reverseRate(long, double)
@@ -1785,7 +1790,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public double[] reverseRate(long valTime, double[] depVals)
 			throws RatingException {
-		long[] valTimes = {valTime};
+		long[] valTimes = new long[depVals.length];
+		Arrays.fill(valTimes, valTime);
 		return reverseRate(valTimes, depVals);
 	}
 	/* (non-Javadoc)
