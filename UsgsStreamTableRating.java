@@ -802,12 +802,10 @@ public class UsgsStreamTableRating extends TableRating {
 				ustrc.createDateMillis,
 				ustrc.active,
 				ustrc.description);
-		if (ustrc.shifts != null) {
-			setShifts(new RatingSet(ustrc.shifts));
-		}
-		if (ustrc.offsets != null) {
-			offsets = new TableRating(ustrc.offsets);
-		}
+		
+		setShifts(ustrc.shifts == null ? null : new RatingSet(ustrc.shifts));
+		setOffsets(ustrc.offsets == null ? null : new TableRating(ustrc.offsets));
+		
 		observationTarget.setChanged();
 		observationTarget.notifyObservers();
 	}
