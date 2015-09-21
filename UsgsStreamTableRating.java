@@ -875,7 +875,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	protected double getOffset(double indVal) throws RatingException {
 		double offset = 0.;
-		if (offsets != null || offsets.values != null || offsets.values.length > 0) {
+		if (offsets != null && offsets.values != null && offsets.values.length > 0) {
 			TableRatingContainer trc = (TableRatingContainer)offsets.getData();
 			if (trc.values.length == 1) {
 				offset = trc.values[0].depValue;
