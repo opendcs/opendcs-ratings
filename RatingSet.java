@@ -789,7 +789,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				// handle out of range low //
 				//-------------------------//
 				if (lowerRating == null) {
-					switch(ratingSpec.getOutRangeLowMethod()) {
+					method = ratingSpec.getOutRangeLowMethod();
+					switch(method) {
 					case ERROR:
 						throw new RatingException("Effective date is before earliest rating");
 					case NULL:
@@ -806,7 +807,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					default:
 						break;
 					}
-					method = ratingSpec.getOutRangeLowMethod();
 					if (activeRatings.size() == 1) {
 						throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
 					}
@@ -817,7 +817,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				// handle out of range high //
 				//--------------------------//
 				if (upperRating == null) {
-					switch(ratingSpec.getOutRangeHighMethod()) {
+					method = ratingSpec.getOutRangeHighMethod();
+					switch(method) {
 					case ERROR:
 						throw new RatingException("Effective date is after latest rating");
 					case NULL:
@@ -834,9 +835,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					default:
 						break;
 					}
-					method = ratingSpec.getOutRangeHighMethod();
 					if (activeRatings.size() == 1) {
-						throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+						switch (method) {
+						case LINEAR :
+							//-----------------------------------------------------------------//
+							// allow LINEAR out of range high method with single active rating //
+							//-----------------------------------------------------------------//
+							lastUsedRating = activeRatings.lastEntry().getValue();
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
+						default :
+							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+						}
 					}
 					upperRating = activeRatings.lastEntry();
 					lowerRating = activeRatings.lowerEntry(upperRating.getKey());
@@ -1824,7 +1834,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				// handle out of range low //
 				//-------------------------//
 				if (lowerRating == null) {
-					switch(ratingSpec.getOutRangeLowMethod()) {
+					method = ratingSpec.getOutRangeLowMethod();
+					switch(method) {
 					case ERROR:
 						throw new RatingException("Effective date is before earliest rating");
 					case NULL:
@@ -1841,7 +1852,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					default:
 						break;
 					}
-					method = ratingSpec.getOutRangeLowMethod();
 					if (activeRatings.size() == 1) {
 						throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
 					}
@@ -1852,7 +1862,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				// handle out of range high //
 				//--------------------------//
 				if (upperRating == null) {
-					switch(ratingSpec.getOutRangeHighMethod()) {
+					method = ratingSpec.getOutRangeHighMethod();
+					switch(method) {
 					case ERROR:
 						throw new RatingException("Effective date is after latest rating");
 					case NULL:
@@ -1869,9 +1880,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					default:
 						break;
 					}
-					method = ratingSpec.getOutRangeHighMethod();
 					if (activeRatings.size() == 1) {
-						throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+						switch (method) {
+						case LINEAR :
+							//-----------------------------------------------------------------//
+							// allow LINEAR out of range high method with single active rating //
+							//-----------------------------------------------------------------//
+							lastUsedRating = activeRatings.lastEntry().getValue();
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
+						default :
+							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+						}
 					}
 					upperRating = activeRatings.lastEntry();
 					lowerRating = activeRatings.lowerEntry(upperRating.getKey());
