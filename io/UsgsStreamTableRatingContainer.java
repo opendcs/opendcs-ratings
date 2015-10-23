@@ -4,8 +4,11 @@ import java.util.List;
 
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.UsgsStreamTableRating;
 import hec.heclib.util.HecTime;
 import hec.io.VerticalDatumContainer;
+import hec.util.TextUtil;
 
 import org.jdom.Element;
 
@@ -53,11 +56,19 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 	
 	@Override
-	public AbstractRatingContainer getInstance()
-	{
+	public AbstractRatingContainer getInstance() {
 		return new UsgsStreamTableRatingContainer();
 	}
 	
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#newRating()
+	 */
+	@Override
+	public AbstractRating newRating() throws RatingException {
+		UsgsStreamTableRating rating = new UsgsStreamTableRating(this);
+		return rating;
+	}
+
 	public static UsgsStreamTableRatingContainer fromXml(Element ratingElement) throws RatingException {
 		UsgsStreamTableRatingContainer ustrc = new UsgsStreamTableRatingContainer();
 		try {
@@ -315,7 +326,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				}
 				sb.append(prefix).append(indent).append(indent).append("<active>").append(arc.active).append("</active>\n");
 				if (arc.description != null) {
-					sb.append(prefix).append(indent).append(indent).append("<description>").append(arc.description).append("</description>\n");
+					sb.append(prefix).append(indent).append(indent).append("<description>").append(TextUtil.xmlEntityEncode(arc.description)).append("</description>\n");
 				}
 				TableRatingContainer trc = (TableRatingContainer)arc;
 				if (trc.values != null) {

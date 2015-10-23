@@ -463,14 +463,16 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Returns the modified state of this rating curve.
 	 */
-    public boolean isModified()
+    @Override
+	public boolean isModified()
     {
     	return modified;
     }
     /**
      * Sets the modified state of this rating curve.
      */
-    public void setModified(boolean bool)
+    @Override
+	public void setModified(boolean bool)
     {
     	modified = bool;
     }

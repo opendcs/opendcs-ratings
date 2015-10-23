@@ -5,6 +5,8 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
 import hec.data.DataSetException;
+import hec.data.DataSetIllegalArgumentException;
+import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RoundingException;
 import hec.data.UsgsRounder;
@@ -13,6 +15,7 @@ import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
+import hec.util.TextUtil;
 
 import java.sql.CallableStatement;
 import java.sql.Clob;
@@ -83,6 +86,32 @@ public class RatingSpec extends RatingTemplate {
 	 * Descripive text about the rating specification
 	 */
 	protected String description = null;
+	/**
+	 * Tests a rating specification identifier for validity.
+	 * 
+	 * @param ratingSpecId The rating specification identifier to test
+	 * @return Whether the supplied rating specification identifier is valid
+	 */
+	public static boolean isValidRatingSpecId(String ratingSpecId) {
+		boolean isValid = false;
+		test:
+		do {
+			String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
+			if (parts.length != 4) break;
+			for (String part : parts) {
+				if (part.length() == 0) break test;
+			}
+			parts = TextUtil.split(parts[1].replace(SEPARATOR2, SEPARATOR3), SEPARATOR3);
+			if (parts.length < 2) break;
+			Parameter p = null;
+			for (String part : parts) {
+				try {p = new Parameter(part);}
+				catch (DataSetIllegalArgumentException e) {break test;}
+			}
+			isValid = true;
+		} while (false);
+		return isValid;
+	}
 	
 	/**
 	 * Generates a new RatingTemplate object from a CWMS database connection
@@ -163,21 +192,21 @@ public class RatingSpec extends RatingTemplate {
 				if (pos != i+1) {
 					throw new RatingException("Parameters out of order in rating template.");
 				}
-				if (!paramIds[i].equals((String)RatingConst.parameterXpath.evaluate(indParamNode, XPathConstants.STRING))) {
+				if (!paramIds[i].equals(RatingConst.parameterXpath.evaluate(indParamNode, XPathConstants.STRING))) {
 					throw new RatingException(String.format("Rating template has inconsistent independent parameter %d.", (i+1)));
 				}
 				inRangeMethods[i] = RatingMethod.fromString((String)RatingConst.inRangeMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
 				outRangeLowMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeLowMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
 				outRangeHighMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeHighMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
 			}
-			if (!depParam.equals((String)RatingConst.depParamXpath.evaluate(templateNode, XPathConstants.STRING))) {
+			if (!depParam.equals(RatingConst.depParamXpath.evaluate(templateNode, XPathConstants.STRING))) {
 				throw new RatingException("Rating template has inconsistent dependent parameter.");
 			}
 			String templateDescription = (String)RatingConst.descriptionXpath.evaluate(templateNode, XPathConstants.STRING);
 			//----------------------------//
 			// parse the rating spec node //
 			//----------------------------//
-			if (!officeId.equals((String)RatingConst.officeIdXpath.evaluate(specNode, XPathConstants.STRING))) {
+			if (!officeId.equals(RatingConst.officeIdXpath.evaluate(specNode, XPathConstants.STRING))) {
 				throw new RatingException("Rating template and specification have different office identifiers.");
 			}
 			String ratingSpecId = (String)RatingConst.ratingSpecIdXpath.evaluate(specNode, XPathConstants.STRING);
@@ -738,7 +767,9 @@ public class RatingSpec extends RatingTemplate {
 	public void setData(RatingSpecContainer rsc) throws RatingException {
 		try {
 			super.setData(rsc, true);
-			officeId = rsc.specOfficeId;
+			if (officeId == null && rsc.specOfficeId != null) {
+				officeId = rsc.specOfficeId;
+			}
 			locationId = rsc.locationId;
 			version = rsc.specVersion;
 			sourceAgencyId = rsc.sourceAgencyId;

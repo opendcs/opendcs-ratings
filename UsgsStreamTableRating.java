@@ -4,6 +4,8 @@ import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_TIME;
 import hec.data.DataSetException;
 import hec.data.RatingException;
+import hec.data.RoundingException;
+import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
@@ -35,6 +37,10 @@ public class UsgsStreamTableRating extends TableRating {
 	 * The log interpolation offsets
 	 */
 	protected TableRating offsets = null;
+	/**
+	 * The rounder for shift values
+	 */
+	protected UsgsRounder shiftRounder = null;
 
 	/**
 	 * Public Constructor 
@@ -221,8 +227,10 @@ public class UsgsStreamTableRating extends TableRating {
 			if (valTimes[i] == UNDEFINED_TIME && shifts != null && shifts.getRatingCount() > 0) {
 				throw new RatingException("Value time is undefined in the presence of dated shifts - cannot rate.");
 			}
+//			System.out.println("usgs-rate : height = " + indVals[i]);
 			double shift = getShiftFromUnshifted(valTimes[i], indVals[i]);
 			double ind_val = indVals[i] + shift;
+//			System.out.println("usgs-rate : height = " + ind_val);
 			boolean out_range_low = false;
 			boolean out_range_high = false;
 			int lo = 0;
@@ -233,17 +241,22 @@ public class UsgsStreamTableRating extends TableRating {
 			//--------------------------------------------------- //
 			// find the interpolation/extrapolation value indices //
 			//--------------------------------------------------- //
-			if (ind_val < effectiveValues[lo].getIndValue()) {
+			if (lt(ind_val, effectiveValues[lo].getIndValue())) {
 				out_range_low = true;
 			}
-			else if (ind_val > effectiveValues[hi].getIndValue()) {
+			else if (gt(ind_val, effectiveValues[hi].getIndValue())) {
 				out_range_high = true;
 			}
 			else {
 				while (hi - lo > 1) {
 					mid = (lo + hi) / 2;
 					mid_ind_val = effectiveValues[mid].getIndValue();
-					if (ind_val < mid_ind_val) hi = mid; else lo = mid;
+					if (lt(ind_val, mid_ind_val)) {
+						hi = mid; 
+					}
+					else {
+						lo = mid;
+					}
 				}
 			}
 			//-------------------------//
@@ -253,6 +266,7 @@ public class UsgsStreamTableRating extends TableRating {
 				switch (outRangeLowMethod) {
 				case NULL:
 					Y[i] = UNDEFINED_DOUBLE;
+//					System.out.println("usgs-rate : dep_val 1 = " + Y[i]);
 					continue;
 				case ERROR:
 					throw new RatingException("Value is out of range low.");
@@ -269,6 +283,7 @@ public class UsgsStreamTableRating extends TableRating {
 				case HIGHER:
 				case CLOSEST:
 					Y[i] = effectiveValues[0].getDepValue();
+//					System.out.println("usgs-rate : dep_val 2 = " + Y[i]);
 					continue;
 				case LOWER:
 					throw new RatingException("No lower value in table.");
@@ -287,6 +302,7 @@ public class UsgsStreamTableRating extends TableRating {
 				switch (outRangeHighMethod) {
 				case NULL:
 					Y[i] = UNDEFINED_DOUBLE;
+//					System.out.println("usgs-rate : dep_val 3 = " + Y[i]);
 					continue;
 				case ERROR:
 					throw new RatingException("Value is out of range high.");
@@ -303,6 +319,7 @@ public class UsgsStreamTableRating extends TableRating {
 				case CLOSEST:
 				case LOWER:
 					Y[i] =  effectiveValues[effectiveValues.length].getDepValue();
+//					System.out.println("usgs-rate : dep_val 4 = " + Y[i]);
 					continue;
 				case HIGHER:
 					throw new RatingException("No higher value in table.");
@@ -323,6 +340,7 @@ public class UsgsStreamTableRating extends TableRating {
 			switch (method) {
 			case NULL:
 				Y[i] = UNDEFINED_DOUBLE;
+//				System.out.println("usgs-rate : dep_val 5 = " + Y[i]);
 				continue;
 			case ERROR:
 				throw new RatingException("No such value in table.");
@@ -331,25 +349,30 @@ public class UsgsStreamTableRating extends TableRating {
 			}
 			double lo_dep_val = effectiveValues[lo].getDepValue();
 			double hi_dep_val = effectiveValues[hi].getDepValue();
-			if (ind_val == lo_ind_val) {
+			if (eq(ind_val, lo_ind_val)) {
 				Y[i] = lo_dep_val;
+//				System.out.println("usgs-rate : dep_val 6 = " + Y[i]);
 				continue;
 			}
-			if (ind_val == hi_ind_val) {
+			if (eq(ind_val, hi_ind_val)) {
 				Y[i] = hi_dep_val;
+//				System.out.println("usgs-rate : dep_val = 7 " + Y[i]);
 				continue;
 			}
 			switch (method) {
 			case PREVIOUS:
 			case LOWER:
 				Y[i] = lo_dep_val;
+//				System.out.println("usgs-rate : dep_val = 8 " + Y[i]);
 				continue;
 			case NEXT:
 			case HIGHER:
 				Y[i] = hi_dep_val;
+//				System.out.println("usgs-rate : dep_val 9 = " + Y[i]);
 				continue;
 			case CLOSEST:
-				Y[i] =  Math.abs(ind_val - lo_ind_val) < Math.abs(hi_ind_val - ind_val) ? lo_dep_val : hi_dep_val;
+				Y[i] =  lt(Math.abs(ind_val - lo_ind_val), Math.abs(hi_ind_val - ind_val)) ? lo_dep_val : hi_dep_val;
+//				System.out.println("usgs-rate : dep_val 10 = " + Y[i]);
 				continue;
 			default:
 				break;
@@ -365,7 +388,7 @@ public class UsgsStreamTableRating extends TableRating {
 			double y1 = lo_dep_val;
 			double y2 = hi_dep_val;
 			if (ind_log) {
-				double offset = getOffset(Math.min(x2, indVals[i]));
+				double offset = getOffset(Math.min(x, x1));
 				x  = Math.log10(x - offset);
 				x1 = Math.log10(x1 - offset);
 				x2 = Math.log10(x2 - offset);
@@ -399,6 +422,7 @@ public class UsgsStreamTableRating extends TableRating {
 			double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 			if (dep_log) y = Math.pow(10, y);
 			Y[i] = y;
+//			System.out.println("usgs-rate : dep_val 11 = " + Y[i]);
 		}
 		return Y;
 	}
@@ -450,32 +474,32 @@ public class UsgsStreamTableRating extends TableRating {
 		// find the interpolation/extrapolation value indices //
 		//--------------------------------------------------- //
 		if (props.hasIncreasing()) {
-			if (flow < effectiveValues[lo].getDepValue()) {
+			if (lt(flow, effectiveValues[lo].getDepValue())) {
 				out_range_low = true;
 			}
-			else if (flow > effectiveValues[hi].getDepValue()) {
+			else if (gt(flow, effectiveValues[hi].getDepValue())) {
 				out_range_high = true;
 			}
 			else {
 				while (hi - lo > 1) {
 					mid = (lo + hi) / 2;
 					midFlow = effectiveValues[mid].getDepValue();
-					if (flow < midFlow) hi = mid; else lo = mid;
+					if (lt(flow, midFlow)) hi = mid; else lo = mid;
 				}
 			}
 		}
 		else {
-			if (flow > effectiveValues[lo].getDepValue()) {
+			if (gt(flow, effectiveValues[lo].getDepValue())) {
 				out_range_low = true;
 			}
-			else if (flow < effectiveValues[hi].getDepValue()) {
+			else if (lt(flow, effectiveValues[hi].getDepValue())) {
 				out_range_high = true;
 			}
 			else {
 				while (hi - lo > 1) {
 					mid = (lo + hi) / 2;
 					midFlow = effectiveValues[mid].getDepValue();
-					if (flow > midFlow) hi = mid; else lo = mid;
+					if (gt(flow, midFlow)) hi = mid; else lo = mid;
 				}
 			}
 		}
@@ -577,7 +601,7 @@ public class UsgsStreamTableRating extends TableRating {
 		case HIGHER:
 			shifted = props.hasIncreasing() ? hiHeight : loHeight;
 		case CLOSEST:
-			shifted = Math.abs(flow - loFlow) < Math.abs(hiHeight - hiFlow) ? loHeight : hiHeight;
+			shifted = lt(Math.abs(flow - loFlow), Math.abs(hiHeight - hiFlow)) ? loHeight : hiHeight;
 		default:
 			break;
 		}
@@ -831,9 +855,26 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	protected double getShiftFromUnshifted(long valTime, double height) throws RatingException {
 		double shift = 0;
+//		System.out.println("getShift : height = " + height);
+		try {
+			if (this.shiftRounder == null) {
+				if (ratingSpec == null) {
+					shiftRounder = new UsgsRounder("2223456782");
+				}
+				else {
+					shiftRounder = ratingSpec.getIndRoundingSpecs()[0];
+				}
+			}
 		if (shifts != null && shifts.getActiveRatingCount() > 0) {
 			shift = shifts.rate(height, valTime);
+//				System.out.println("getShift : shift  = " + shift);
+				shift = shiftRounder.round(shift, true);
+			}
 		}
+		catch (RoundingException e) {
+			throw new RatingException(e);
+		}
+//		System.out.println("getShift : shift  = " + shift);
 		return shift;
 	}
 	/**
@@ -887,6 +928,7 @@ public class UsgsStreamTableRating extends TableRating {
 				offset = offsets.rate(indVal);
 			}
 		}
+//		System.out.println("getOffset : offset = " + offset);
 		return offset;
 	}
 	

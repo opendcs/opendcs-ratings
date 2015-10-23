@@ -5,6 +5,9 @@ package hec.data.cwmsRating.io;
 
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.ExpressionRating;
+import hec.util.TextUtil;
 
 import org.jdom.Element;
 
@@ -45,6 +48,15 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 		return new ExpressionRatingContainer();
 	}
 	
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#newRating()
+	 */
+	@Override
+	public AbstractRating newRating() throws RatingException {
+		ExpressionRating rating = new ExpressionRating(this);
+		return rating;
+	}
+
 	public static ExpressionRatingContainer fromXml(Element ratingElement) throws RatingException {
 		ExpressionRatingContainer erc = new ExpressionRatingContainer();
 		try {
@@ -90,9 +102,9 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
 			prefix += indent;
 		}
-		sb.append(super.toXml(prefix, indent, "rating"));
-		sb.append(prefix).append(indent).append("<formula>").append(expression).append("</formula>\n");
-		sb.append(prefix).append("</rating>\n");
+		sb.append(super.toXml(prefix, indent, "simple-rating"));
+		sb.append(prefix).append(indent).append("<formula>").append(TextUtil.xmlEntityEncode(expression)).append("</formula>\n");
+		sb.append(prefix).append("</simple-rating>\n");
 		if (level == 0) {
 			sb.append("</ratings>\n");
 		}

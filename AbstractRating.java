@@ -17,7 +17,6 @@ import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.rating.IRatingSpecification;
@@ -61,6 +60,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * The identifier of the office that owns the rating
 	 */
 	protected String officeId = null;
+	/**
+	 * A RatingSpec object for this rating if one is known.
+	 */
+	protected RatingSpec ratingSpec = null;
 	/**
 	 * The CWMS-style rating specification identifier
 	 */
@@ -111,6 +114,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * Flag specifying whether this object outputs messages about "risky" operations such as using mismatched units, unknown parameters, etc.
 	 */
 	protected boolean warnUnsafe = true;
+	/**
+	 * Object to use for rating TimeSeriesContainer and TimeSeriesMath objects
+	 */
+	protected TimeSeriesRater tsRater = null;
 	/**
 	 * Generates a new AbstractRating object from XML text
 	 * @param xmlText The XML text to generate the rating object from
@@ -458,7 +465,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public long getDefaultValueTime() {
-		return defaultValueTime;
+		return defaultValueTime == UNDEFINED_TIME ? System.currentTimeMillis() : defaultValueTime;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setDefaultValuetime(long)
@@ -541,126 +548,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
-		String[] dataUnits = getDataUnits();
-		String[] newDataUnits = new String[dataUnits.length];
-		String[] ratingUnits = getRatingUnits();
-		String[] params = getRatingParameters();
-		int ratedInterval = tscs[0].interval;
-		try {
-			if (tscs.length != getIndParamCount()) {
-				throw new RatingException(String.format("%d data sets specified, %d required.", tscs.length, getIndParamCount()));
-			}
-			//------------------------//
-			// validate the intervals //
-			//------------------------//
-			for (int i = 1; i < tscs.length; ++i) {
-				if (tscs[i].interval != tscs[0].interval) {
-					String msg = "TimeSeriesContainers have inconsistent intervals.";
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Rated values will be irregular interval.");
-					ratedInterval = 0;
-					break;
-				}
-			}
-			//--------------------------------------//
-			// validate the time zones if specified //
-			//--------------------------------------//
-			String tzid = tscs[0].timeZoneID;
-			for (int i = 1; i < tscs.length; ++i) {
-				if (!TextUtil.equals(tscs[i].timeZoneID, tzid)) {
-					String msg = "TimeSeriesContainers have inconsistent time zones.";
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-					tzid = null;
-					break;
-				}
-			}
-			TimeZone tz = null;
-			if (tzid != null) {
-				tz = TimeZone.getTimeZone(tzid);
-				if (!tz.getID().equals(tzid)) {
-					String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tzid);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-					tz = null;
-				}
-			}
-			//-------------------------//
-			// validate the parameters //
-			//-------------------------//
-			for (int i = 0; i < tscs.length; ++i) {
-				Parameter tscParam = null;
-				try {
-					tscParam = new Parameter(tscs[i].parameter);
-				}
-				catch (Throwable t) {
-					if (!allowUnsafe) throw new RatingException(t);
-					if (warnUnsafe) logger.warning(t.getMessage());
-				}
-				if (tscParam != null) {
-					if (!tscParam.getParameter().equals(params[i])) {
-						String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam.getParameter(), params[i]);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg);
-					}
-				}
-				newDataUnits[i] = tscs[i].units;
-			}
-			//-------------------------//
-			// finally - do the rating //
-			//-------------------------//
-			newDataUnits[tscs.length] = dataUnits[tscs.length];
-			setDataUnits(newDataUnits);
-			IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, ratingUnits, tz, allowUnsafe, warnUnsafe);
-			double[] depVals = rate(ivc.valTimes, ivc.indVals);
-			setDataUnits(dataUnits);
-			//-----------------------------------------//
-			// construct the rated TimeSeriesContainer //
-			//-----------------------------------------//
-			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
-			tscs[0].clone(ratedTsc);
-			ratedTsc.interval = ratedInterval;
-			if (ivc.valTimes.length == tscs[0].times.length) {
-				ratedTsc.times = Arrays.copyOf(tscs[0].times, tscs[0].times.length);
-			}
-			else {
-				ratedTsc.times = new int[ivc.valTimes.length];
-				if (tz == null) {
-					for (int i = 0; i < ivc.valTimes.length; ++i) {
-						ratedTsc.times[i] = Conversion.toMinutes(ivc.valTimes[i]);
-					}
-				}
-				else {
-					Calendar cal = Calendar.getInstance();
-					cal.setTimeZone(tz);
-					SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
-					HecTime t = new HecTime();
-					for (int i = 0; i < ivc.valTimes.length; ++i) {
-						cal.setTimeInMillis(ivc.valTimes[i]);
-						t.set(sdf.format(cal.getTime()));
-						ratedTsc.times[i] = t.value();
-					}
-				}
-			}
-			ratedTsc.values = depVals;
-			ratedTsc.numberValues = ratedTsc.times.length;
-			String paramStr = params[params.length-1];
-			if (tscs[0].subParameter == null) {
-				ratedTsc.fullName = TextUtil.replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
-			}
-			else {
-				ratedTsc.fullName = TextUtil.replaceAll(tscs[0].fullName, String.format("%s-%s", tscs[0].parameter, tscs[0].subParameter), paramStr, "IL");
-			}
-			String[] parts = TextUtil.split(paramStr, "-", "L", 2);
-			ratedTsc.parameter = parts[0];
-			ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
-			ratedTsc.units = dataUnits[tscs.length];
-			return ratedTsc;
+		if (tsRater == null) {
+			tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
 		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException) t;
-			throw new RatingException(t);
-		}
+		return tsRater.rate(tscs);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
@@ -697,7 +588,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public double reverseRate(double depVal) throws RatingException {
-		long[] valTimes = {defaultValueTime};
+		long[] valTimes = {getDefaultValueTime()};
 		double[] depVals = {depVal};
 		return reverseRate(valTimes, depVals)[0];
 	}
@@ -707,7 +598,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	@Override
 	public double[] reverseRate(double[] depVals) throws RatingException {
 		long[] valTimes = new long[depVals.length];
-		Arrays.fill(valTimes, defaultValueTime);
+		Arrays.fill(valTimes, getDefaultValueTime());
 		return reverseRate(valTimes, depVals);
 	}
 	/* (non-Javadoc)
@@ -738,37 +629,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
-		TimeSeriesContainer[] tscs = {tsc};
-		String[] units = {tsc.units};
-		TimeZone tz = null;
-		if (tsc.timeZoneID != null) {
-			tz = TimeZone.getTimeZone(tsc.timeZoneID);
-			if (!tz.getID().equals(tsc.timeZoneID)) {
-				String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tsc.timeZoneID);
-				if (!allowUnsafe) throw new RatingException(msg);
-				if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-				tz = null;
-			}
+		if (tsRater == null) {
+			tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
 		}
-		IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
-		TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
-		tsc.clone(ratedTsc);
-		double[] depVals = new double[ivc.indVals.length];
-		for (int i = 0; i < depVals.length; ++i) depVals[i] = ivc.indVals[i][0];
-		ratedTsc.values = reverseRate(ivc.valTimes, depVals);
-		String paramStr = TextUtil.split(TextUtil.split(ratingSpecId, SEPARATOR1, "L")[1], SEPARATOR2, "L")[1];
-		if (tsc.subParameter == null) {
-			ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
-		}
-		else {
-			ratedTsc.fullName = TextUtil.replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
-		}
-		String[] parts = TextUtil.split(paramStr, "-", "L", 2);
-		ratedTsc.parameter = parts[0];
-		ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
-		String[] dataUnits = getDataUnits();
-		ratedTsc.units = dataUnits == null ? getRatingUnits()[0] : dataUnits[0];
-		return ratedTsc;
+		return tsRater.reverseRate(tsc);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
@@ -859,6 +723,21 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
 		AbstractRatingContainer arc = getData();
 		boolean change = arc.toVerticalDatum(datum);
+		try {
+			setData(arc);
+		}
+		catch (RatingException e) {
+			throw new VerticalDatumException(e);
+		}
+		return change;
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
+		AbstractRatingContainer arc = getData();
+		boolean change = arc.forceVerticalDatum(datum);
 		try {
 			setData(arc);
 		}
@@ -1034,14 +913,16 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	/**
 	 * Returns the modified state of this rating curve.
 	 */
-    public boolean isModified()
+    @Override
+	public boolean isModified()
     {
     	return modified;
     }
     /**
      * Sets the modified state of this rating curve.
      */
-    public void setModified(boolean bool)
+    @Override
+	public void setModified(boolean bool)
     {
     	modified = bool;
     }	
@@ -1067,4 +948,30 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	public boolean hasVerticalDatum() {
 		return vdc != null;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof AbstractRating) {
+			AbstractRating other = (AbstractRating)obj;
+			result = other.getClass() == this.getClass();
+			if (result) {
+				result = toString().equals(other.toString()) && effectiveDate == other.effectiveDate;
+				if (result) {
+					try {
+						result = toXmlString("", 0).trim().equals(other.toXmlString("", 0).trim());
+					}
+					catch (RatingException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		}
+		return result;
+	}
+	@Override
+	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 }

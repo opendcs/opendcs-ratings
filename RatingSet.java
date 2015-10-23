@@ -17,12 +17,9 @@ import hec.data.Units;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
@@ -276,7 +273,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					   "if l_millis_end is not null then "   +
 					      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
 					   "end if;" +
-					   "cwms_rating.retrieve_ratings_xml2("  +
+					   "cwms_rating.retrieve_ratings_xml3("  +
 					      "p_ratings              => :3,"    +
 					      "p_spec_id_mask         => :4,"    +
 					      "p_effective_date_start => l_effective_date_start," +
@@ -497,8 +494,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 		ratings.put(effectiveDate, rating);
+		ratings.get(effectiveDate).ratingSpec = ratingSpec;
 		if (rating.isActive() && rating.createDate <= ratingTime) {
 			activeRatings.put(effectiveDate, rating);
+			activeRatings.get(effectiveDate).ratingSpec = ratingSpec;
 		}
 		rating.deleteObserver(this);
 		rating.addObserver(this);
@@ -513,6 +512,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @param ratings The ratings to add
 	 * @throws RatingException
 	 */
+	@Override
 	public void addRatings(AbstractRating[] ratings) throws RatingException {
 		addRatings(Arrays.asList(ratings));
 	}
@@ -560,8 +560,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				}
 			}
 			this.ratings.put(rating.getEffectiveDate(), rating);
+			this.ratings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
 			if (rating.isActive() && rating.createDate <= ratingTime) {
 				activeRatings.put(rating.getEffectiveDate(), rating);
+				activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
 			}
 			rating.deleteObserver(this);
 			rating.addObserver(this);
@@ -898,9 +900,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				method = ratingSpec.getInRangeMethod();
 			}
 			lastUsedRating = null;
-			double x  = (double)valueTimes[i];
-			double x1 = (double)lowerRating.getKey();
-			double x2 = (double)upperRating.getKey();
+			double x  = valueTimes[i];
+			double x1 = lowerRating.getKey();
+			double x2 = upperRating.getKey();
 			double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 			double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 			double y1 = Y1;
@@ -920,6 +922,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of dependent parameter of the rating.
 	 * @throws RatingException
 	 */
+	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer tsc) throws RatingException {
 		return rate(tsc, null);
 	}
@@ -1089,6 +1092,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of the dependent parameter of the rating.
 	 * @throws RatingException
 	 */
+	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
 		return rate(tscs, null);
 	}
@@ -1167,7 +1171,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					if (warnUnsafe) logger.warning(t.getMessage());
 				}
 				if (tscParam[i] != null) {
-					if (!tscParam[i].getParameter().equals(params[i])) {
+					String[] parts = TextUtil.split(params[i], "-", 2);
+					if (!tscParam[i].getBaseParameter().equals(parts[0]) || 
+							(parts.length == 2 && !tscParam[i].getSubParameter().equals(parts[1]))) {
 						String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam[i].getParameter(), params[i]);
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg);
@@ -1259,8 +1265,11 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 			ratedTsc.values = depVals;
 			ratedTsc.numberValues = ratedTsc.times.length;
-			String paramStr = params[params.length-1];
-			if (tscs[0].subParameter == null) {
+			String paramStr = ratingSpec.getDepParameter();
+			if (ratedTsc.fullName.startsWith("/")) {
+				paramStr = paramStr.toUpperCase();
+			}
+			if (tscs[0].subParameter == null || tscs[0].subParameter.length() == 0) {
 				ratedTsc.fullName = replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
 			}
 			else {
@@ -1405,6 +1414,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 		this.ratingSpec = ratingSpec;
+		for (Long effectiveDate : ratings.keySet()) {
+			ratings.get(effectiveDate).ratingSpec = this.ratingSpec;
+		}
+		for (Long effectiveDate : activeRatings.keySet()) {
+			activeRatings.get(effectiveDate).ratingSpec = this.ratingSpec;
+		}
 	}
 	/**
 	 * Retrieves the times series of ratings.
@@ -1472,6 +1487,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Resets the default value time. This is used for rating values that have no inherent times.
 	 */
+	@Override
 	public void resetDefaultValuetime() {
 		this.defaultValueTime = Const.UNDEFINED_TIME;
 	}
@@ -1693,6 +1709,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return rateOne(indVals, defaultValueTime);
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.IRating#rate(double[])
+	 */
+	@Override
+	public double rateOne2(double[] indVals) throws RatingException {
+		if (defaultValueTime == Const.UNDEFINED_TIME) {
+			throw new RatingException("Default value time is not set");
+		}
+		return rateOne(indVals, defaultValueTime);
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#rateOne(double[])
 	 */
 	@Override
@@ -1726,6 +1752,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double rateOne(long valTime, double... indVals) throws RatingException {
+		return rateOne(indVals, valTime);
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.IRating#rate(long, double[])
+	 */
+	@Override
+	public double rateOne2(long valTime, double... indVals) throws RatingException {
 		return rateOne(indVals, valTime);
 	}
 	/* (non-Javadoc)
@@ -1945,9 +1978,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			lastUsedRating = null;
 			boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
 			boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
-			double x  = (double)valTimes[i];
-			double x1 = (double)lowerRating.getKey();
-			double x2 = (double)upperRating.getKey();
+			double x  = valTimes[i];
+			double x1 = lowerRating.getKey();
+			double x2 = upperRating.getKey();
 			double Y1 = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
 			double Y2 = upperRating.getValue().reverseRate(valTimes[i], depVals[i]);
 			double y1 = Y1;
@@ -1962,9 +1995,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					//-------------------------------------------------//
 					// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
 					//-------------------------------------------------//
-					x  = (double)valTimes[i];
-					x1 = (double)lowerRating.getKey();
-					x2 = (double)upperRating.getKey();
+					x  = valTimes[i];
+					x1 = lowerRating.getKey();
+					x2 = upperRating.getKey();
 					dep_log = false;
 				}
 			}
@@ -1975,9 +2008,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					//-------------------------------------------------//
 					// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
 					//-------------------------------------------------//
-					x  = (double)valTimes[i];
-					x1 = (double)lowerRating.getKey();
-					x2 = (double)upperRating.getKey();
+					x  = valTimes[i];
+					x1 = lowerRating.getKey();
+					x2 = upperRating.getKey();
 					y1 = Y1;
 					y2 = Y2;
 					dep_log = false;
@@ -2150,20 +2183,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 			else {
 				for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
-					if (rsc.abstractRatingContainers[i] instanceof UsgsStreamTableRatingContainer) {
-						this.addRating(new UsgsStreamTableRating((UsgsStreamTableRatingContainer)rsc.abstractRatingContainers[i]));
+					addRating(rsc.abstractRatingContainers[i].newRating());
 					}
-					else if (rsc.abstractRatingContainers[i] instanceof TableRatingContainer) {
-						this.addRating(new TableRating((TableRatingContainer)rsc.abstractRatingContainers[i]));
 					}
-					else if (rsc.abstractRatingContainers[i] instanceof ExpressionRatingContainer) {
-						this.addRating(new ExpressionRating((ExpressionRatingContainer)rsc.abstractRatingContainers[i]));
-					}
-					else {
-						throw new RatingException("Unexpected object type: " + rsc.abstractRatingContainers[i].getClass().getName());
-					}
-				}
-			}
 			if (observationTarget != null) {
 				observationTarget.setChanged();
 				observationTarget.notifyObservers();
@@ -2308,6 +2330,23 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return change;
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
+		RatingSetContainer rsc = getData();
+		boolean change = rsc.forceVerticalDatum(datum);
+		if (change) {
+			try {
+				setData(rsc);
+			}
+			catch (RatingException e) {
+				throw new VerticalDatumException(e);
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getCurrentOffset()
 	 */
 	@Override
@@ -2384,6 +2423,24 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			throw new VerticalDatumException(e);
 		}
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof RatingSet) {
+			RatingSet other = (RatingSet)obj;
+			try {
+				result = other.toXmlString("").equals(this.toXmlString(""));
+			}
+			catch (RatingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return result;
+	}
+	
 	private void refreshRatings() {
 		AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
 		ratings.clear();
@@ -2434,6 +2491,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 					}
 				}
+				if (units != null) {
 				for (int i = 0; i < units.length; ++i) {
 					ratingUnit = null;
 					validUnits[i] = false;
@@ -2445,6 +2503,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						if (!allowUnsafe) throw new RatingException(t);
 						if (warnUnsafe) logger.warning(t.getMessage());
 					}
+				}
 				}
 				for (int i = 0; i < params.length; ++i) {
 					if (validParams[i] && validUnits[i]) {

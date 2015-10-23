@@ -1,8 +1,14 @@
 package hec.data.cwmsRating.io;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import hec.data.IVerticalDatum;
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
+import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.io.VerticalDatumContainer;
 
@@ -82,17 +88,41 @@ public class RatingSetContainer implements IVerticalDatum {
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
 		sb.delete(0, sb.length());
+		List<String> ratingXmlStrings = new ArrayList<String>();
+		SortedSet<String> templateXmlStrings = new TreeSet<String>();
+		SortedSet<String> specXmlStrings = new TreeSet<String>();
 		if (level == 0) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
+			if (abstractRatingContainers != null) {
+				for (AbstractRatingContainer arc : abstractRatingContainers) {
+					if (arc instanceof VirtualRatingContainer) {
+						VirtualRatingContainer vrc = (VirtualRatingContainer)arc;
+						vrc.getSoucreRatingsXml(indent, level+1, templateXmlStrings, specXmlStrings, ratingXmlStrings);
+					}
+					else if (arc instanceof TransitionalRatingContainer) {
+						TransitionalRatingContainer trrc = (TransitionalRatingContainer)arc;
+						trrc.getSoucreRatingsXml(indent, level+1, templateXmlStrings, specXmlStrings, ratingXmlStrings);
+					}
+				}
+			}
+		}
+		for (String templateXml : templateXmlStrings) {
+			sb.append(templateXml);
 		}
 		if (ratingSpecContainer != null) {
 			sb.append(ratingSpecContainer.toXml(indent, level+1, includeTemplate));
+		}
+		for (String specXml : specXmlStrings) {
+			sb.append(specXml);
 		}
 		if (abstractRatingContainers != null) {
 			for (AbstractRatingContainer arc : abstractRatingContainers) {
 				sb.append(arc.toXml(indent, level+1));
 			}
+		}
+		for (String specXml : ratingXmlStrings) {
+			sb.append(specXml);
 		}
 		if (level == 0) {
 			sb.append(prefix).append("</ratings>\n");
@@ -279,6 +309,23 @@ public class RatingSetContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		boolean change = false;
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			if (abstractRatingContainers[i].forceVerticalDatum(datum)) {
+				change = true;
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getCurrentOffset()
 	 */
 	@Override
@@ -389,5 +436,25 @@ public class RatingSetContainer implements IVerticalDatum {
 		for (int i = 0; i < abstractRatingContainers.length; ++i) {
 			abstractRatingContainers[i].setVerticalDatumInfo(xmlStr);
 		}
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!(obj instanceof RatingSetContainer)) break;
+			RatingSetContainer other = (RatingSetContainer)obj;
+			if(!toString().equals(other.toString())) break;
+			if (abstractRatingContainers != null) {
+				for (int i = 0; i < abstractRatingContainers.length; ++i) {
+					if (!abstractRatingContainers[i].equals(other.abstractRatingContainers[i])) break test;
+				}
+			}
+			result = true;
+		} while (false);
+		return result;
 	}
 }

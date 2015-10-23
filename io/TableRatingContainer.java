@@ -3,6 +3,7 @@ package hec.data.cwmsRating.io;
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.TableRating;
 import hec.io.VerticalDatumContainer;
 import hec.util.TextUtil;
 
@@ -74,11 +75,19 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	}
 
 	@Override
-	public AbstractRatingContainer getInstance()
-	{
+	public AbstractRatingContainer getInstance() {
 		return new TableRatingContainer();
 	}
 	
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#newRating()
+	 */
+	@Override
+	public AbstractRating newRating() throws RatingException {
+		TableRating rating = new TableRating(this);
+		return rating;
+	}
+
 	public static TableRatingContainer fromXml(Element ratingElement) throws RatingException {
 		TableRatingContainer trc = new TableRatingContainer();
 		try {
@@ -129,7 +138,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
 			prefix += indent;
 		}
-		sb.append(super.toXml(prefix, indent, "rating"));
+		sb.append(super.toXml(prefix, indent, "simple-rating"));
 		String pointsPrefix = prefix + indent;
 		if (values != null) {
 			boolean multiParam = values[0].depTable != null;
@@ -152,7 +161,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 				sb.append(prefix).append(indent).append("</extension-points>\n");
 			}
 		}
-		sb.append(prefix).append("</rating>\n");
+		sb.append(prefix).append("</simple-rating>\n");
 		if (level == 0) {
 			sb.append("</ratings>\n");
 		}

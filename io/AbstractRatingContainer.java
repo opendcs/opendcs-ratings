@@ -9,6 +9,7 @@ import hec.data.IVerticalDatum;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.VerticalDatumException;
+import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst;
 import hec.heclib.util.HecTime;
 import hec.io.VerticalDatumContainer;
@@ -25,7 +26,7 @@ import org.jdom.output.XMLOutputter;
  *
  * @author Mike Perryman
  */
-public class AbstractRatingContainer implements IVerticalDatum {
+public class AbstractRatingContainer implements IVerticalDatum, Comparable<AbstractRatingContainer> {
 	/**
 	 * Office that owns the rating
 	 */
@@ -72,7 +73,15 @@ public class AbstractRatingContainer implements IVerticalDatum {
 		other.description = description;
 		if (vdc != null) {
 			other.vdc = vdc.clone();
+		}
 	}
+	/**
+	 * Returns a new AbstractRatingContainer cloned from this one.
+	 */
+	public AbstractRatingContainer clone() {
+		AbstractRatingContainer other = getInstance();
+		clone(other);
+		return other;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -173,6 +182,43 @@ public class AbstractRatingContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
+	 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+	 */
+	@Override
+	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
+		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
+		datum = datum.trim().toUpperCase();
+		boolean change = false;
+		if (change) {
+			switch (datum) {
+			case "NGVD29" :
+			case "NAVD88" :
+				change = !vdc.currentDatum.equals(datum);
+				vdc.currentDatum = datum;
+				break;
+			case "NATIVE" :
+				change = !vdc.currentDatum.equals(vdc.getNativeVerticalDatum());
+				vdc.currentDatum = vdc.getNativeVerticalDatum();
+				break;
+			case "LOCAL" :
+				if (!vdc.nativeDatum.equals("LOCAL")) {
+					throw new VerticalDatumException("Object does not have LOCAL vertical datum");
+				}
+				change = !vdc.currentDatum.equals(vdc.localDatumName);
+				vdc.currentDatum = vdc.localDatumName;
+				break;
+			default :
+				if (!(vdc.nativeDatum.equals("LOCAL") && TextUtil.equals(datum, vdc.localDatumName))) {
+					throw new VerticalDatumException("Unexpected datum: " + datum);
+				}
+				change = !vdc.currentDatum.equals(vdc.getNativeVerticalDatum());
+				vdc.currentDatum = vdc.getNativeVerticalDatum();
+				break;
+			}
+		}
+		return change;
+	}
+	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getCurrentOffset()
 	 */
 	@Override
@@ -256,9 +302,12 @@ public class AbstractRatingContainer implements IVerticalDatum {
 	 * Intended to be overridden to allow sub-classes to return empty instances for cloning.
 	 * @return
 	 */
-	public AbstractRatingContainer getInstance()
-	{
+	public AbstractRatingContainer getInstance() {
 		return new AbstractRatingContainer();
+	}
+	
+	public AbstractRating newRating() throws RatingException {
+		throw new RatingException("Cannot call newRating() on AbstractRatingContainer class");
 	}
 	
 	/**
@@ -410,13 +459,15 @@ public class AbstractRatingContainer implements IVerticalDatum {
 	protected String toXml(CharSequence prefix, CharSequence indent, String elementName) {
 		HecTime hectime = new HecTime();
 		StringBuilder sb = new StringBuilder();
-		sb.append(prefix).append("<").append(elementName).append(" office-id=\"").append(officeId).append("\">\n");
-		sb.append(prefix).append(indent).append("<rating-spec-id>").append(ratingSpecId == null ? "" : ratingSpecId).append("</rating-spec-id>\n");
+		sb.append(prefix).append("<").append(elementName).append(" office-id=\"").append(officeId == null ? "" : TextUtil.xmlEntityEncode(officeId)).append("\">\n");
+		sb.append(prefix).append(indent).append("<rating-spec-id>").append(ratingSpecId == null ? "" : TextUtil.xmlEntityEncode(ratingSpecId)).append("</rating-spec-id>\n");
 		if (vdc != null) {
 			int level = indent.length() == 0 ? 0 : prefix.length() / indent.length();
 			sb.append(vdc.toXml(indent, level+1));
 		}
-		sb.append(prefix).append(indent).append("<units-id>").append(unitsId == null ? "" : unitsId).append("</units-id>\n");
+		if (!(this instanceof VirtualRatingContainer)) {
+			sb.append(prefix).append(indent).append("<units-id>").append(unitsId == null ? "" : TextUtil.xmlEntityEncode(unitsId)).append("</units-id>\n");
+		}
 		if (effectiveDateMillis == UNDEFINED_TIME) {
 			sb.append(prefix).append(indent).append("<effective-date/>\n");
 		}
@@ -436,8 +487,39 @@ public class AbstractRatingContainer implements IVerticalDatum {
 			sb.append(prefix).append(indent).append("<description/>\n");
 		}
 		else{
-			sb.append(prefix).append(indent).append("<description>").append(description).append("</description>\n");
+			sb.append(prefix).append(indent).append("<description>").append(TextUtil.xmlEntityEncode(description)).append("</description>\n");
 		}
 		return sb.toString();
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(AbstractRatingContainer o) {
+		int result;
+		result = toString().compareTo(o.toString());
+		if (result == 0) {
+			result = (int)(Math.signum(effectiveDateMillis - o.effectiveDateMillis));
+		}
+		return result;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof AbstractRatingContainer) {
+			AbstractRatingContainer other = (AbstractRatingContainer)obj;
+			result = toString().equals(other.toString()) && effectiveDateMillis == other.effectiveDateMillis;
+			if (result) {
+				result = toXml("").trim().equals(other.toXml("").trim());
+			}
+		}
+		return result;
+	}
+	
+	
 }

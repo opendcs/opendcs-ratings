@@ -1,32 +1,11 @@
 package hec.data.cwmsRating;
 
-import static hec.data.cwmsRating.RatingConst.activeXpath;
-import static hec.data.cwmsRating.RatingConst.createDateXpath;
-import static hec.data.cwmsRating.RatingConst.descriptionXpath;
-import static hec.data.cwmsRating.RatingConst.effectiveDateXpath;
-import static hec.data.cwmsRating.RatingConst.formulaXpath;
-import static hec.data.cwmsRating.RatingConst.inRangeMethodXpath;
-import static hec.data.cwmsRating.RatingConst.indParamNodesXpath;
-import static hec.data.cwmsRating.RatingConst.indParamPosXpath;
-import static hec.data.cwmsRating.RatingConst.indParamsNodeXpath;
-import static hec.data.cwmsRating.RatingConst.initXmlParsing;
-import static hec.data.cwmsRating.RatingConst.officeIdXpath;
-import static hec.data.cwmsRating.RatingConst.outRangeHighMethodXpath;
-import static hec.data.cwmsRating.RatingConst.outRangeLowMethodXpath;
-import static hec.data.cwmsRating.RatingConst.ratingSpecIdXpath;
-import static hec.data.cwmsRating.RatingConst.unitsIdXpath;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.util.TextUtil.replaceAll;
-import static javax.xml.xpath.XPathConstants.NODE;
-import static javax.xml.xpath.XPathConstants.NODESET;
-import static javax.xml.xpath.XPathConstants.NUMBER;
-import static javax.xml.xpath.XPathConstants.STRING;
 import hec.data.RatingException;
 import hec.data.Units;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.heclib.util.HecTime;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.Variable;
 import hec.hecmath.computation.VariableSet;
@@ -34,9 +13,6 @@ import hec.lang.Observable;
 import hec.util.TextUtil;
 
 import java.util.Arrays;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Class for using mathematical expressions for ratings
@@ -153,6 +129,14 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public double rateOne(double... pIndVals) throws RatingException {
+		return rateOne2(pIndVals);
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#rate(double[])
+	 */
+	@Override
+	public double rateOne2(double[] pIndVals) throws RatingException {
 		double[][] indVals = {pIndVals};
 		return rate(indVals)[0];
 	}
@@ -258,6 +242,15 @@ public class ExpressionRating extends AbstractRating {
 	public double rateOne(long pValTime, double... pIndVals) throws RatingException {
 		// ignores time
 		return rateOne(pIndVals);
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double[])
+	 */
+	@Override
+	public double rateOne2(long pValTime, double[] pIndVals) throws RatingException {
+		// ignores time
+		return rateOne2(pIndVals);
 	}
 
 	/* (non-Javadoc)

@@ -220,6 +220,7 @@ public class RatingConst {
 		/**
 		 * Returns the XML representation of the rating method.
 		 */
+		@Override
 		public String toString() {return this.xmlName;}
 	}
 	/**

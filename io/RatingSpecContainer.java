@@ -113,6 +113,14 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		other.specDescription = specDescription;
 	}
 	/**
+	 * Returns a new RatingSpecContainer object cloned from this one
+	 */
+	public RatingSpecContainer clone() {
+		RatingSpecContainer other = new RatingSpecContainer();
+		clone(other);
+		return other;
+	}
+	/**
 	 * Constructs a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
@@ -257,11 +265,11 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 			prefix += indent;
 		}
 		sb.append(prefix).append("<rating-spec office-id=\"").append(specOfficeId == null ? officeId == null ? "" : officeId : specOfficeId).append("\">\n");
-		sb.append(prefix).append(indent).append("<rating-spec-id>").append(specId == null ? "" : specId).append("</rating-spec-id>\n");
-		sb.append(prefix).append(indent).append("<template-id>").append(templateId == null ? "" : templateId).append("</template-id>\n");
-		sb.append(prefix).append(indent).append("<location-id>").append(locationId == null ? "" : locationId).append("</location-id>\n");
-		sb.append(prefix).append(indent).append("<version>").append(specVersion == null ? "" : specVersion).append("</version>\n");
-		sb.append(prefix).append(indent).append("<source-agency>").append(sourceAgencyId == null ? "" : sourceAgencyId).append("</source-agency>\n");
+		sb.append(prefix).append(indent).append("<rating-spec-id>").append(specId == null ? "" : TextUtil.xmlEntityEncode(specId)).append("</rating-spec-id>\n");
+		sb.append(prefix).append(indent).append("<template-id>").append(templateId == null ? "" : TextUtil.xmlEntityEncode(templateId)).append("</template-id>\n");
+		sb.append(prefix).append(indent).append("<location-id>").append(locationId == null ? "" : TextUtil.xmlEntityEncode(locationId)).append("</location-id>\n");
+		sb.append(prefix).append(indent).append("<version>").append(specVersion == null ? "" : TextUtil.xmlEntityEncode(specVersion)).append("</version>\n");
+		sb.append(prefix).append(indent).append("<source-agency>").append(sourceAgencyId == null ? "" : TextUtil.xmlEntityEncode(sourceAgencyId)).append("</source-agency>\n");
 		sb.append(prefix).append(indent).append("<in-range-method>").append(inRangeMethod == null ? "" : inRangeMethod).append("</in-range-method>\n");
 		sb.append(prefix).append(indent).append("<out-range-low-method>").append(outRangeLowMethod == null ? "" : outRangeLowMethod).append("</out-range-low-method>\n");
 		sb.append(prefix).append(indent).append("<out-range-high-method>").append(outRangeHighMethod == null ? "" : outRangeHighMethod).append("</out-range-high-method>\n");
@@ -277,7 +285,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		}
 		sb.append(prefix).append(indent).append("</ind-rounding-specs>\n");
 		sb.append(prefix).append(indent).append("<dep-rounding-spec>").append(depRoundingSpec == null ? "" : depRoundingSpec).append("</dep-rounding-spec>\n");
-		sb.append(prefix).append(indent).append("<description>").append(specDescription == null ? "" : specDescription).append("</description>\n");
+		sb.append(prefix).append(indent).append("<description>").append(specDescription == null ? "" : TextUtil.xmlEntityEncode(specDescription)).append("</description>\n");
 		sb.append(prefix).append("</rating-spec>\n");
 		if (level == 0) {
 			sb.append("</ratings>\n");
@@ -290,7 +298,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	@Override
 	public String toString() {
 		try {
-			return String.format("%s/%s", officeId, specId);
+			return String.format("%s/%s", specOfficeId, specId);
 		}
 		catch (Throwable t) {
 			return ((Object)this).toString();

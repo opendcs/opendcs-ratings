@@ -71,16 +71,16 @@ public class UsgsStageShiftsRatingSet extends RatingSet {
 						else {
 							double x1, y1, x2, y2;
 							if (loEntry == null) {
-								x1 = (double)baseRatingEffectiveDate;
+								x1 = baseRatingEffectiveDate;
 								y1 = 0.;
 							}
 							else {
-								x1 = (double)loEntry.getKey();
+								x1 = loEntry.getKey();
 								y1 = loEntry.getValue().rate(valueSets[i][0]);
 							}
-							x2 = (double)hiEntry.getKey();
+							x2 = hiEntry.getKey();
 							y2 = hiEntry.getValue().rate(valueSets[i][0]);
-							shifts[i] = y1 + ((double)valueTimes[i] - x1) / (x2 - x1) * (y2 - y1); 
+							shifts[i] = y1 + (valueTimes[i] - x1) / (x2 - x1) * (y2 - y1); 
 						}
 					}
 				}
