@@ -632,217 +632,225 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void endDocument() {
-		if (rspcsById != null && arcs != null) {
-			int rtcCount = rtcsById.size();
-			int rspcCount = rspcsById.size();
-			int vrcCount = 0;
-			int trcCount = 0;
-			for (AbstractRatingContainer arc : arcs) {
-				if (arc instanceof VirtualRatingContainer) {
-					vrcCount++;
-				}
-				else if (arc instanceof TransitionalRatingContainer) {
-					trcCount++;
-				}
-			}
-		if (vdcs != null && vdcs.size() > 0) {
-			for (int i = 1; i < vdcs.size(); ++i) {
-				if (!vdcs.get(i).equals(vdcs.get(0))) {
-					throw new RuntimeException("XML contains inconsistent vertical datum information");
-				}
-			}
-				for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
-					it.next().vdc = vdcs.get(0).clone();
-			}
-			vdcs = null;
+		
+		if (rtcsById == null || rtcsById.size() == 0) {
+			throw new RuntimeException("No rating templates in data");
 		}
-			if (vrcCount + trcCount > 0) {
-				//------------------------------------//
-				// determine the usage of each rating //
-				//------------------------------------//
-				final int NO_INFO = 0;
-				final int HAS_SOURCE_RATINGS = 1;
-				final int IS_SOURCE_RATING = 2;
-				Map<String, Integer> usageById = new HashMap<String, Integer>();
-				for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
-					String specId = rcs.first().toString();
-					usageById.put(specId, NO_INFO);
+		if(rspcsById == null || rspcsById.size() == 0) {
+			throw new RuntimeException("No rating specifications in data");
+		}
+		if(arcs == null || arcs.size() == 0) {
+			throw new RuntimeException("No ratings in data");
+		}
+		int rtcCount = rtcsById.size();
+		int rspcCount = rspcsById.size();
+		int vrcCount = 0;
+		int trcCount = 0;
+		for (AbstractRatingContainer arc : arcs) {
+			if (arc instanceof VirtualRatingContainer) {
+				vrcCount++;
+			}
+			else if (arc instanceof TransitionalRatingContainer) {
+				trcCount++;
+			}
+		}
+	if (vdcs != null && vdcs.size() > 0) {
+		for (int i = 1; i < vdcs.size(); ++i) {
+			if (!vdcs.get(i).equals(vdcs.get(0))) {
+				throw new RuntimeException("XML contains inconsistent vertical datum information");
+			}
+		}
+			for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
+				it.next().vdc = vdcs.get(0).clone();
+		}
+		vdcs = null;
+	}
+		if (vrcCount + trcCount > 0) {
+			//------------------------------------//
+			// determine the usage of each rating //
+			//------------------------------------//
+			final int NO_INFO = 0;
+			final int HAS_SOURCE_RATINGS = 1;
+			final int IS_SOURCE_RATING = 2;
+			Map<String, Integer> usageById = new HashMap<String, Integer>();
+			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				String specId = rcs.first().toString();
+				usageById.put(specId, NO_INFO);
+			}
+			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				AbstractRatingContainer rc = rcs.first();
+				if (rc instanceof VirtualRatingContainer) {
+					String specId = rc.toString();
+					usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
+					for (String srcSpecId : ((VirtualRatingContainer)rc).sourceRatingIds) {
+						srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
+						if (usageById.containsKey(srcSpecId)) {
+							usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
+						}
+					}
 				}
-				for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
-					AbstractRatingContainer rc = rcs.first();
-					if (rc instanceof VirtualRatingContainer) {
-						String specId = rc.toString();
-						usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
-						for (String srcSpecId : ((VirtualRatingContainer)rc).sourceRatingIds) {
+				else if (rc instanceof TransitionalRatingContainer) {
+					String specId = rc.toString();
+					usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
+					TransitionalRatingContainer trrc = (TransitionalRatingContainer)rc;
+					if (trrc.sourceRatingIds != null) {
+						for (String srcSpecId : trrc.sourceRatingIds) {
 							srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
 							if (usageById.containsKey(srcSpecId)) {
 								usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
 							}
 						}
 					}
-					else if (rc instanceof TransitionalRatingContainer) {
-						String specId = rc.toString();
-						usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
-						TransitionalRatingContainer trrc = (TransitionalRatingContainer)rc;
-						if (trrc.sourceRatingIds != null) {
-							for (String srcSpecId : trrc.sourceRatingIds) {
-								srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
-								if (usageById.containsKey(srcSpecId)) {
-									usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
-								}
-							}
-						}
-					}
 				}
-				List<String> noInfoIds = new ArrayList<String>();
-				List<String> topLevelIds = new ArrayList<String>();
-				for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
-					String specId = rcs.first().toString();
-					switch (usageById.get(specId)) {
-					case NO_INFO :
-						noInfoIds.add(specId);
-						break;
-					case HAS_SOURCE_RATINGS :
-						if (!topLevelIds.contains(specId)) {
-							topLevelIds.add(specId);
-						}
-						break;
-					case HAS_SOURCE_RATINGS | IS_SOURCE_RATING :
-						// source rating that has source ratings
-						break;
+			}
+			List<String> noInfoIds = new ArrayList<String>();
+			List<String> topLevelIds = new ArrayList<String>();
+			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				String specId = rcs.first().toString();
+				switch (usageById.get(specId)) {
+				case NO_INFO :
+					noInfoIds.add(specId);
+					break;
+				case HAS_SOURCE_RATINGS :
+					if (!topLevelIds.contains(specId)) {
+						topLevelIds.add(specId);
 					}
+					break;
+				case HAS_SOURCE_RATINGS | IS_SOURCE_RATING :
+					// source rating that has source ratings
+					break;
 				}
-				//--------------------------------------------//
-				// raise exceptions on invalid configurations //
-				//--------------------------------------------//
-				if (topLevelIds.size() > 1) {
-					StringBuilder sb = new StringBuilder();
-					sb.append("XML includes more than one top level rating:");
-					for (int i = 0; i < topLevelIds.size(); ++i) {
-						sb.append("\n\t").append((i+1)).append(": ").append(topLevelIds.get(i));
-					}
-					throw new RuntimeException(sb.toString());
+			}
+			//--------------------------------------------//
+			// raise exceptions on invalid configurations //
+			//--------------------------------------------//
+			if (topLevelIds.size() > 1) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("XML includes more than one top level rating:");
+				for (int i = 0; i < topLevelIds.size(); ++i) {
+					sb.append("\n\t").append((i+1)).append(": ").append(topLevelIds.get(i));
 				}
-				else if (noInfoIds.size() > 0) {
-					StringBuilder sb = new StringBuilder();
-					sb.append("XML includes one or more unused ratings:");
-					for (int i = 0; i < noInfoIds.size(); ++i) {
-						sb.append("\n\t").append((i+1)).append(": ").append(noInfoIds.get(i));
-					}
-					throw new RuntimeException(sb.toString());
+				throw new RuntimeException(sb.toString());
+			}
+			else if (noInfoIds.size() > 0) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("XML includes one or more unused ratings:");
+				for (int i = 0; i < noInfoIds.size(); ++i) {
+					sb.append("\n\t").append((i+1)).append(": ").append(noInfoIds.get(i));
 				}
-				String topLevelSpecId = topLevelIds.get(0);
-				//-----------------------------//
-				// build the rating containers //
-				//-----------------------------//
-				arcs = arcsById.get(topLevelSpecId);
-				for (AbstractRatingContainer arc : arcs) {
-					if (arc instanceof VirtualRatingContainer) {
-						vrc = (VirtualRatingContainer)arc;
-						vrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
-					}
-					else if (arc instanceof TransitionalRatingContainer) {
-						trrc = (TransitionalRatingContainer)arc;
-						trrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
-					}
-				}
-				//------------------------------------//
-				// populate the rating spec container //
-				//------------------------------------//
-				rspc = rspcsById.get(topLevelSpecId).clone();
-				String[] parts = TextUtil.split(topLevelSpecId, SEPARATOR1);
-				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
-				rtcsById.get(templateId).clone(rspc);
-				//-----------------------------------//
-				// populate the rating set container //
-				//-----------------------------------//
-			rsc.ratingSpecContainer = rspc;
-				rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
-				
-				//----------------------------------------------//
-				// output info about unused specs and templates //
-				//----------------------------------------------//
-				Set<String> usedIds = new TreeSet<String>();
-				usedIds.add(topLevelSpecId);
-				parts = TextUtil.split(topLevelSpecId, SEPARATOR1);
-				usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-				arc = arcsById.get(topLevelSpecId).first();
+				throw new RuntimeException(sb.toString());
+			}
+			String topLevelSpecId = topLevelIds.get(0);
+			//-----------------------------//
+			// build the rating containers //
+			//-----------------------------//
+			arcs = arcsById.get(topLevelSpecId);
+			for (AbstractRatingContainer arc : arcs) {
 				if (arc instanceof VirtualRatingContainer) {
 					vrc = (VirtualRatingContainer)arc;
-					for (String srcSpecId : vrc.sourceRatingIds) {
-						srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
-						if (usageById.containsKey(srcSpecId)) {
-							if (RatingSpec.isValidRatingSpecId(srcSpecId)) {
-								usedIds.add(srcSpecId);
-								parts = TextUtil.split(srcSpecId, SEPARATOR1);
-								usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-							}
-							else {
-								// math expression, not a rating spec
-							}
-						}
-					}
+					vrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
 				}
 				else if (arc instanceof TransitionalRatingContainer) {
 					trrc = (TransitionalRatingContainer)arc;
-					if (trrc.sourceRatingIds != null) {
-						for (String srcSpecId : trrc.sourceRatingIds) {
-							srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
-							if (usageById.containsKey(srcSpecId)) {
-								usedIds.add(srcSpecId);
-								parts = TextUtil.split(srcSpecId, SEPARATOR1);
-								usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-							}
+					trrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+				}
+			}
+			//------------------------------------//
+			// populate the rating spec container //
+			//------------------------------------//
+			rspc = rspcsById.get(topLevelSpecId).clone();
+			String[] parts = TextUtil.split(topLevelSpecId, SEPARATOR1);
+			String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+			rtcsById.get(templateId).clone(rspc);
+			//-----------------------------------//
+			// populate the rating set container //
+			//-----------------------------------//
+		rsc.ratingSpecContainer = rspc;
+			rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
+			
+			//----------------------------------------------//
+			// output info about unused specs and templates //
+			//----------------------------------------------//
+			Set<String> usedIds = new TreeSet<String>();
+			usedIds.add(topLevelSpecId);
+			parts = TextUtil.split(topLevelSpecId, SEPARATOR1);
+			usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+			arc = arcsById.get(topLevelSpecId).first();
+			if (arc instanceof VirtualRatingContainer) {
+				vrc = (VirtualRatingContainer)arc;
+				for (String srcSpecId : vrc.sourceRatingIds) {
+					srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
+					if (usageById.containsKey(srcSpecId)) {
+						if (RatingSpec.isValidRatingSpecId(srcSpecId)) {
+							usedIds.add(srcSpecId);
+							parts = TextUtil.split(srcSpecId, SEPARATOR1);
+							usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+						}
+						else {
+							// math expression, not a rating spec
 						}
 					}
 				}
-				StringBuilder sb1 = new StringBuilder();
-				StringBuilder sb2 = new StringBuilder();
-				for (Iterator<String> it = rspcsById.keySet().iterator(); it.hasNext();) {
-					String specId = it.next();
-					if (!usedIds.contains(specId)) {
-						sb2.append("\n\tspecification: ").append(specId);
-					}
-					parts = TextUtil.split(specId, SEPARATOR1);
-					templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
-					if (!usedIds.contains(templateId)) {
-						sb1.append("\n\ttemplate     : ").append(templateId);
-					}
-				}
-				sb1.append(sb2);
-				if (sb1.length() > 0) {
-					AbstractRating.logger.info("XML conatins unused templates and/or specifications:" + sb1.toString());
-				}
-				AbstractRating.logger.fine("Top level rating = " + topLevelIds.get(0));
 			}
-			else {
-				//------------------------------------------------------------------------------------------------//
-				// simple ratings only, must have only one template, one spec, and they should agree with ratings //
-				//------------------------------------------------------------------------------------------------//
-				if (rtcCount > 1) {
-					throw new RuntimeException("XML specifies more than one rating template.");
+			else if (arc instanceof TransitionalRatingContainer) {
+				trrc = (TransitionalRatingContainer)arc;
+				if (trrc.sourceRatingIds != null) {
+					for (String srcSpecId : trrc.sourceRatingIds) {
+						srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
+						if (usageById.containsKey(srcSpecId)) {
+							usedIds.add(srcSpecId);
+							parts = TextUtil.split(srcSpecId, SEPARATOR1);
+							usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+						}
+					}
 				}
-				if (rspcCount > 1) {
-					throw new RuntimeException("XML specifies more than one rating specification.");
-				}
-				//------------------------------------//
-				// populate the rating spec container //
-				//------------------------------------//
-				rspc = rspcsById.values().iterator().next();
-				rtc = rtcsById.values().iterator().next();
-				String specId = rspc.toString();
-				String templateId = rtc.toString();
-				String[] parts = TextUtil.split(specId, SEPARATOR1);
-				if (!(TextUtil.join(SEPARATOR1, parts[1], parts[2])).equals(templateId)) {
-					throw new RuntimeException("Specification ("+specId+") does not agree with template ("+templateId+")");
-				}
-				rtc.clone(rspc);
-				//-----------------------------------//
-				// populate the rating set container //
-				//-----------------------------------//
-				rsc.ratingSpecContainer = rspc.clone();
-				rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
 			}
+			StringBuilder sb1 = new StringBuilder();
+			StringBuilder sb2 = new StringBuilder();
+			for (Iterator<String> it = rspcsById.keySet().iterator(); it.hasNext();) {
+				String specId = it.next();
+				if (!usedIds.contains(specId)) {
+					sb2.append("\n\tspecification: ").append(specId);
+				}
+				parts = TextUtil.split(specId, SEPARATOR1);
+				templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+				if (!usedIds.contains(templateId)) {
+					sb1.append("\n\ttemplate     : ").append(templateId);
+				}
+			}
+			sb1.append(sb2);
+			if (sb1.length() > 0) {
+				AbstractRating.logger.info("XML conatins unused templates and/or specifications:" + sb1.toString());
+			}
+			AbstractRating.logger.fine("Top level rating = " + topLevelIds.get(0));
+		}
+		else {
+			//------------------------------------------------------------------------------------------------//
+			// simple ratings only, must have only one template, one spec, and they should agree with ratings //
+			//------------------------------------------------------------------------------------------------//
+			if (rtcCount > 1) {
+				throw new RuntimeException("XML specifies more than one rating template.");
+			}
+			if (rspcCount > 1) {
+				throw new RuntimeException("XML specifies more than one rating specification.");
+			}
+			//------------------------------------//
+			// populate the rating spec container //
+			//------------------------------------//
+			rspc = rspcsById.values().iterator().next();
+			rtc = rtcsById.values().iterator().next();
+			String specId = rspc.toString();
+			String templateId = rtc.toString();
+			String[] parts = TextUtil.split(specId, SEPARATOR1);
+			if (!(TextUtil.join(SEPARATOR1, parts[1], parts[2])).equals(templateId)) {
+				throw new RuntimeException("Specification ("+specId+") does not agree with template ("+templateId+")");
+			}
+			rtc.clone(rspc);
+			//-----------------------------------//
+			// populate the rating set container //
+			//-----------------------------------//
+			rsc.ratingSpecContainer = rspc.clone();
+			rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
 		}
 		
 		partsLen = -1;
