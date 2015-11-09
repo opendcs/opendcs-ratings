@@ -905,13 +905,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			double x2 = upperRating.getKey();
 			double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 			double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-			double y1 = Y1;
-			double y2 = Y2;
-			if (lowerRating instanceof UsgsStreamTableRating) {
-				x1 = ((UsgsStreamTableRating)lowerRating).getLatestEffectiveDate(valueTimes[i]);
+			if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
+				Y[i] = Const.UNDEFINED_DOUBLE;
 			}
-			double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
-			Y[i] = y;
+			else {
+				double y1 = Y1;
+				double y2 = Y2;
+				if (lowerRating instanceof UsgsStreamTableRating) {
+					x1 = ((UsgsStreamTableRating)lowerRating).getLatestEffectiveDate(valueTimes[i]);
+				}
+				double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
+				Y[i] = y;
+			}
 		}
 		return Y;
 	}
