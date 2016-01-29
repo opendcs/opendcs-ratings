@@ -284,6 +284,14 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
+		boolean hasShifts = shifts != null && shifts.abstractRatingContainers != null;
+		boolean hasOffsets = offsets != null && offsets.values != null; 
+		if (!hasShifts && !hasOffsets) {
+			//-----------------------------//
+			// serialize as a table rating //
+			//-----------------------------//
+			return super.toXml(indent, level);
+		}
 		try {
 			if (vdc != null && vdc.getCurrentOffset() != 0.) {
 				UsgsStreamTableRatingContainer _clone = new UsgsStreamTableRatingContainer();
@@ -306,7 +314,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		}
 		sb.append(super.toXml(prefix, indent, "usgs-stream-rating"));
 		String pointPrefix = prefix + indent + indent;
-		if (shifts != null && shifts.abstractRatingContainers != null) {
+		if (hasShifts) {
 			HecTime hectime = new HecTime();
 			for (AbstractRatingContainer arc : shifts.abstractRatingContainers) {
 				sb.append(prefix).append(indent).append("<height-shifts>\n");
@@ -337,7 +345,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				sb.append(prefix).append(indent).append("</height-shifts>\n");
 			}
 		}
-		if (offsets != null && offsets.values != null) {
+		if (hasOffsets) {
 			sb.append(prefix).append(indent).append("<height-offsets>\n");
 			for (RatingValueContainer rvc : offsets.values) {
 				rvc.toXml(pointPrefix, indent, sb);
