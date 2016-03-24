@@ -102,6 +102,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private static final String TEMPLATE_ID_STR	= "template-id";
 	private static final String THEN_STR = "then";
 	private static final String TRANSITIONAL_RATING_STR = "transitional-rating";
+	private static final String TRANSITION_START_DATE_STR = "transition-start-date";
 	private static final String UNITS_ID_STR = "units-id";
 	private static final String USGS_STREAM_RATING_STR = "usgs-stream-rating";
 	private static final String VALUE_STR = "value";
@@ -200,6 +201,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	
 	class ShiftInfo {
 		public long effectiveDate = Const.UNDEFINED_TIME;
+		public long transitionStartDate = Const.UNDEFINED_TIME;
 		public long createDate = Const.UNDEFINED_TIME;
 		public boolean active = false;
 	}
@@ -398,11 +400,17 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							hectime.set(data);
 							arc.effectiveDateMillis = hectime.getTimeInMillis();
 						}
+						else if (parts[2].equals(TRANSITION_START_DATE_STR)) {
+							if (data.length() > 0) {
+								hectime.set(data);
+								arc.transitionStartDateMillis = hectime.getTimeInMillis();
+							}
+						}
 						else if (parts[2].equals(CREATE_DATE_STR)) {
 							if (data.length() > 0) {
-							hectime.set(data);
-							arc.createDateMillis = hectime.getTimeInMillis();
-						}
+								hectime.set(data);
+								arc.createDateMillis = hectime.getTimeInMillis();
+							}
 						}
 						else if (parts[2].equals(ACTIVE_STR)) {
 							arc.active = Boolean.parseBoolean(data);
@@ -426,6 +434,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
 							hectime.set(data);
 							vrc.effectiveDateMillis = hectime.getTimeInMillis();
+						}
+						else if (parts[2].equals(TRANSITION_START_DATE_STR)) {
+							if (data.length() > 0) {
+								hectime.set(data);
+								vrc.transitionStartDateMillis = hectime.getTimeInMillis();
+							}
 						}
 						else if (parts[2].equals(CREATE_DATE_STR)) {
 							if (data.length() > 0) {
@@ -453,6 +467,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
 							hectime.set(data);
 							trrc.effectiveDateMillis = hectime.getTimeInMillis();
+						}
+						else if (parts[2].equals(TRANSITION_START_DATE_STR)) {
+							if (data.length() > 0) {
+								hectime.set(data);
+								trrc.transitionStartDateMillis = hectime.getTimeInMillis();
+							}
 						}
 						else if (parts[2].equals(CREATE_DATE_STR)) {
 							if (data.length() > 0) {
@@ -483,6 +503,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							else if (parts[3].equals(CREATE_DATE_STR)) {
 								hectime.set(data);
 								shiftInfo.get(shiftPointSetCount-1).createDate = hectime.getTimeInMillis();
+							}
+							else if (parts[3].equals(TRANSITION_START_DATE_STR)) {
+								hectime.set(data);
+								shiftInfo.get(shiftPointSetCount-1).transitionStartDate = hectime.getTimeInMillis();
 							}
 							else if (parts[3].equals(ACTIVE_STR)) {
 								hectime.set(data);
@@ -1021,6 +1045,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				}
 				else if (localName.equals(UNITS_ID_STR)) ;
 				else if (localName.equals(EFFECTIVE_DATE_STR)) ;
+				else if (localName.equals(TRANSITION_START_DATE_STR)) ;
 				else if (localName.equals(CREATE_DATE_STR)) ;
 				else if (localName.equals(ACTIVE_STR)) ;
 				else if (localName.equals(DESCRIPTION_STR)) ;
@@ -1032,6 +1057,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					arc.clone(vrc);
 				}
 				else if (localName.equals(EFFECTIVE_DATE_STR));
+				else if (localName.equals(TRANSITION_START_DATE_STR)) ;
 				else if (localName.equals(CREATE_DATE_STR));
 				else if (localName.equals(ACTIVE_STR));
 				else if (localName.equals(DESCRIPTION_STR));
@@ -1046,6 +1072,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				}
 				else if (localName.equals(UNITS_ID_STR)) ;
 				else if (localName.equals(EFFECTIVE_DATE_STR));
+				else if (localName.equals(TRANSITION_START_DATE_STR)) ;
 				else if (localName.equals(CREATE_DATE_STR));
 				else if (localName.equals(ACTIVE_STR));
 				else if (localName.equals(DESCRIPTION_STR));
@@ -1102,6 +1129,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					}
 				else if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
 					if      (localName.equals(EFFECTIVE_DATE_STR)) ;
+					else if (localName.equals(TRANSITION_START_DATE_STR)) ;
 					else if (localName.equals(CREATE_DATE_STR)) ;
 					else if (localName.equals(ACTIVE_STR)) ;
 					else if (localName.equals(DESCRIPTION_STR)) ;

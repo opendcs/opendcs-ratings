@@ -525,6 +525,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		String ratingSpecId = null;
 		String unitsId = null;
 		for (AbstractRating rating : ratings) {
+			if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
+				throw new RatingException("Cannot add rating with undefined effective date.");
+			}
 			if(this.ratings.containsKey(rating.getEffectiveDate())) {
 				throw new RatingException("Rating with same effective date already exists; cannot add rating");
 			}
@@ -900,9 +903,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				method = ratingSpec.getInRangeMethod();
 			}
 			lastUsedRating = null;
-			double x  = valueTimes[i];
-			double x1 = lowerRating.getKey();
-			double x2 = upperRating.getKey();
+			long transitionStartMillis = upperRating.getValue().getTransitionStartDate();
+			long t  = valueTimes[i];
+			long t1 = lowerRating.getKey();
+			long t2 = upperRating.getKey();
 			double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 			double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 			if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
@@ -912,10 +916,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				double y1 = Y1;
 				double y2 = Y2;
 				if (lowerRating instanceof UsgsStreamTableRating) {
-					x1 = ((UsgsStreamTableRating)lowerRating).getLatestEffectiveDate(valueTimes[i]);
+					t1 = ((UsgsStreamTableRating)lowerRating).getLatestEffectiveDate(valueTimes[i]);
 				}
-				double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
-				Y[i] = y;
+				boolean useTransitionStart = t1 < transitionStartMillis && transitionStartMillis < t2;
+				if (useTransitionStart) {
+					t1 = transitionStartMillis;
+				}
+				Y[i] = y1;
+				if (t > t1 || !useTransitionStart) {
+					Y[i] += (((double)t - t1) / (t2 - t1)) * (y2 - y1);
+				}
 			}
 		}
 		return Y;

@@ -48,6 +48,11 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	 */
 	public long effectiveDateMillis = UNDEFINED_TIME;
 	/**
+	 * The time to begin transition (interpolation) from the previous rating to this one.
+	 * If undefined, transition from the previous rating effective date.
+	 */
+	public long transitionStartDateMillis = UNDEFINED_TIME;
+	/**
 	 * The date/time that the rating was loaded into the database
 	 */
 	public long createDateMillis = UNDEFINED_TIME;
@@ -474,6 +479,13 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 		else {
 			hectime.setTimeInMillis(effectiveDateMillis);
 			sb.append(prefix).append(indent).append("<effective-date>").append(hectime.getXMLDateTime(0)).append("</effective-date>\n");
+		}
+		if (transitionStartDateMillis == UNDEFINED_TIME) {
+			sb.append(prefix).append(indent).append("<transition-start-date/>\n");
+		}
+		else {
+			hectime.setTimeInMillis(transitionStartDateMillis);
+			sb.append(prefix).append(indent).append("<transition-start-date>").append(hectime.getXMLDateTime(0)).append("</transition-start-date>\n");
 		}
 		if (createDateMillis == UNDEFINED_TIME) {
 			sb.append(prefix).append(indent).append("<create-date/>\n");

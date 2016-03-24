@@ -108,6 +108,7 @@ public class UsgsStreamTableRating extends TableRating {
 				urc.ratingSpecId,
 				urc.unitsId,
 				urc.effectiveDateMillis,
+				urc.transitionStartDateMillis,
 				urc.createDateMillis,
 				urc.active,
 				urc.description);
@@ -823,6 +824,7 @@ public class UsgsStreamTableRating extends TableRating {
 				ustrc.ratingSpecId,
 				ustrc.unitsId,
 				ustrc.effectiveDateMillis,
+				ustrc.transitionStartDateMillis,
 				ustrc.createDateMillis,
 				ustrc.active,
 				ustrc.description);

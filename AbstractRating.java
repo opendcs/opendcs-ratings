@@ -79,11 +79,16 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	/**
 	 * The earliest date/time at which the rating is considered to be in effect 
 	 */
-	protected long effectiveDate = UNDEFINED_LONG;
+	protected long effectiveDate = UNDEFINED_TIME;
+	/**
+	 * The date/time at which to begin transition (interpolation) from the previous rating to this one.
+	 * If undefined, transition from the previous rating effective date. 
+	 */
+	protected long transitionStartDate = UNDEFINED_TIME;
 	/**
 	 * The earliest date/time that the rating was available - the time it was first stored in the database
 	 */
-	protected long createDate = UNDEFINED_LONG;
+	protected long createDate = UNDEFINED_TIME;
 	/**
 	 * Flag specifying whether this rating should be used in the rate(), rateOne(), and reverseRate() methods.
 	 */
@@ -403,6 +408,22 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	public void setEffectiveDate(long effectiveDate) {
 		this.effectiveDate = effectiveDate;
+		observationTarget.setChanged();
+		observationTarget.notifyObservers();
+	}
+	/**
+	 * Retrieves the transition start date of the rating. The transition start date is the date/time to being transition (interpolation) from any previous rating
+	 * @return The transition start date of the rating in epoch milliseconds
+	 */
+	public long getTransitionStartDate() {
+		return transitionStartDate;
+	}
+	/**
+	 * Sets the transition start date of the rating. The transition start date is the date/time to being transition (interpolation) from any previous rating
+	 * @param transitionStartDate The transition start date of the rating in epoch milliseconds
+	 */
+	public void setTransitionStartDate(long transitionStartDate) {
+		this.transitionStartDate = transitionStartDate;
 		observationTarget.setChanged();
 		observationTarget.notifyObservers();
 	}

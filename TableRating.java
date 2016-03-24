@@ -85,6 +85,7 @@ public class TableRating extends AbstractRating {
 				null,
 				UNDEFINED_LONG,
 				UNDEFINED_LONG,
+				UNDEFINED_LONG,
 				true,
 				null);
 	}
@@ -117,6 +118,7 @@ public class TableRating extends AbstractRating {
 				trc.ratingSpecId,
 				trc.unitsId,
 				trc.effectiveDateMillis,
+				trc.transitionStartDateMillis,
 				trc.createDateMillis,
 				trc.active,
 				trc.description);
@@ -138,7 +140,7 @@ public class TableRating extends AbstractRating {
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
 	 *        This may be later than the effective date 
 	 * @param active Specifies whether the rating is currently active
-	 * @param desription The description of the rating        
+	 * @param description The description of the rating        
 	 * @throws RatingException
 	 */
 	public TableRating(
@@ -163,6 +165,53 @@ public class TableRating extends AbstractRating {
 				ratingSpecId,
 				unitsId,
 				effectiveDate,
+				UNDEFINED_LONG,
+				createDate,
+				active,
+				description);
+	}
+	/**
+	 * Public Constructor 
+	 * @param values The table of values that comprise the rating.
+	 * @param extensionValues The rating extension values
+	 * @param inRangeMethod The prescribed behavior for when the value to rate falls within the range of independent values in the rating table
+	 * @param outRangeLowMethod The prescribed behavior for when the value to rate would sort before the first independent value in the rating table
+	 * @param outRangeHighMethod The prescribed behavior for when the value to rate would sort after the last independent value in the rating table
+	 * @param officeId The identifier of the office that owns this rating
+	 * @param ratingSpecId The rating specification identifier
+	 * @param unitsId The units identifier
+	 * @param effectiveDate The effective date of the rating. The effective date is the earliest date/time for which the rating should be applied.
+	 * @param transitionStartDate The date to start the transition (interpolation) from the previous rating
+	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
+	 *        This may be later than the effective date 
+	 * @param active Specifies whether the rating is currently active
+	 * @param description The description of the rating        
+	 * @throws RatingException
+	 */
+	public TableRating(
+			RatingValue[] values,
+			RatingValue[] extensionValues,
+			RatingMethod inRangeMethod,
+			RatingMethod outRangeLowMethod,
+			RatingMethod outRangeHighMethod,
+			String officeId,
+			String ratingSpecId,
+			String unitsId,
+			long effectiveDate,
+			long transitionStartDate,
+			long createDate,
+			boolean active,
+			String description) throws RatingException {
+		init(	values,
+				extensionValues,
+				inRangeMethod,
+				outRangeLowMethod,
+				outRangeHighMethod,
+				officeId,
+				ratingSpecId,
+				unitsId,
+				effectiveDate,
+				transitionStartDate,
 				createDate,
 				active,
 				description);
@@ -674,6 +723,7 @@ public class TableRating extends AbstractRating {
 					trc.ratingSpecId,
 					trc.unitsId,
 					trc.effectiveDateMillis,
+					trc.transitionStartDateMillis,
 					trc.createDateMillis,
 					trc.active,
 					trc.description);
@@ -888,6 +938,7 @@ public class TableRating extends AbstractRating {
 			String ratingSpecId,
 			String ratingUnitsId,
 			long effectiveDate,
+			long transitionStartDate,
 			long createDate,
 			boolean active,
 			String description) throws RatingException {
@@ -1011,6 +1062,7 @@ public class TableRating extends AbstractRating {
 		setRatingSpecId(ratingSpecId);
 		setRatingUnitsId(ratingUnitsId);
 		setEffectiveDate(effectiveDate);
+		setTransitionStartDate(transitionStartDate);
 		setCreateDate(createDate);
 		setActive(active);
 		setDescription(description);

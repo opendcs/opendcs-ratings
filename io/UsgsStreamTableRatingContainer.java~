@@ -284,14 +284,6 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
-		boolean hasShifts = shifts != null && shifts.abstractRatingContainers != null;
-		boolean hasOffsets = offsets != null && offsets.values != null; 
-		if (!hasShifts && !hasOffsets) {
-			//-----------------------------//
-			// serialize as a table rating //
-			//-----------------------------//
-			return super.toXml(indent, level);
-		}
 		try {
 			if (vdc != null && vdc.getCurrentOffset() != 0.) {
 				UsgsStreamTableRatingContainer _clone = new UsgsStreamTableRatingContainer();
@@ -314,7 +306,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		}
 		sb.append(super.toXml(prefix, indent, "usgs-stream-rating"));
 		String pointPrefix = prefix + indent + indent;
-		if (hasShifts) {
+		if (shifts != null && shifts.abstractRatingContainers != null) {
 			HecTime hectime = new HecTime();
 			for (AbstractRatingContainer arc : shifts.abstractRatingContainers) {
 				sb.append(prefix).append(indent).append("<height-shifts>\n");
@@ -324,13 +316,6 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				else {
 						hectime.setTimeInMillis(arc.effectiveDateMillis);
 						sb.append(prefix).append(indent).append(indent).append("<effective-date>").append(hectime.getXMLDateTime(0)).append("</effective-date>\n");
-				}
-				if (arc.transitionStartDateMillis == UNDEFINED_TIME) {
-					sb.append(prefix).append(indent).append(indent).append("<transition-start-date/>\n");
-				}
-				else {
-						hectime.setTimeInMillis(arc.transitionStartDateMillis);
-						sb.append(prefix).append(indent).append(indent).append("<transition-start-date>").append(hectime.getXMLDateTime(0)).append("</transition-start-date>\n");
 				}
 				if (arc.createDateMillis == UNDEFINED_TIME) {
 					sb.append(prefix).append(indent).append(indent).append("<create-date/>\n");
@@ -352,7 +337,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				sb.append(prefix).append(indent).append("</height-shifts>\n");
 			}
 		}
-		if (hasOffsets) {
+		if (offsets != null && offsets.values != null) {
 			sb.append(prefix).append(indent).append("<height-offsets>\n");
 			for (RatingValueContainer rvc : offsets.values) {
 				rvc.toXml(pointPrefix, indent, sb);
