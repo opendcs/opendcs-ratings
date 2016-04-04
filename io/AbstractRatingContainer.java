@@ -74,6 +74,7 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 		other.unitsId = unitsId;
 		other.active = active;
 		other.effectiveDateMillis = effectiveDateMillis;
+		other.transitionStartDateMillis = transitionStartDateMillis;
 		other.createDateMillis = createDateMillis;
 		other.description = description;
 		if (vdc != null) {

@@ -915,15 +915,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			else {
 				double y1 = Y1;
 				double y2 = Y2;
-				if (lowerRating instanceof UsgsStreamTableRating) {
-					t1 = ((UsgsStreamTableRating)lowerRating).getLatestEffectiveDate(valueTimes[i]);
+				if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
+					t1 = ((UsgsStreamTableRating)lowerRating.getValue()).getLatestEffectiveDate(t2);
 				}
-				boolean useTransitionStart = t1 < transitionStartMillis && transitionStartMillis < t2;
-				if (useTransitionStart) {
+				if (transitionStartMillis > t1 && transitionStartMillis < t2) {
 					t1 = transitionStartMillis;
 				}
 				Y[i] = y1;
-				if (t > t1 || !useTransitionStart) {
+				if (t > t1) {
 					Y[i] += (((double)t - t1) / (t2 - t1)) * (y2 - y1);
 				}
 			}
@@ -2199,8 +2198,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			else {
 				for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
 					addRating(rsc.abstractRatingContainers[i].newRating());
-					}
-					}
+				}
+			}
 			if (observationTarget != null) {
 				observationTarget.setChanged();
 				observationTarget.notifyObservers();

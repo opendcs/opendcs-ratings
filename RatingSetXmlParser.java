@@ -678,17 +678,17 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				trcCount++;
 			}
 		}
-	if (vdcs != null && vdcs.size() > 0) {
-		for (int i = 1; i < vdcs.size(); ++i) {
-			if (!vdcs.get(i).equals(vdcs.get(0))) {
-				throw new RuntimeException("XML contains inconsistent vertical datum information");
+		if (vdcs != null && vdcs.size() > 0) {
+			for (int i = 1; i < vdcs.size(); ++i) {
+				if (!vdcs.get(i).equals(vdcs.get(0))) {
+					throw new RuntimeException("XML contains inconsistent vertical datum information");
+				}
 			}
+				for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
+					it.next().vdc = vdcs.get(0).clone();
+			}
+			vdcs = null;
 		}
-			for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
-				it.next().vdc = vdcs.get(0).clone();
-		}
-		vdcs = null;
-	}
 		if (vrcCount + trcCount > 0) {
 			//------------------------------------//
 			// determine the usage of each rating //
@@ -789,7 +789,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			//-----------------------------------//
 			// populate the rating set container //
 			//-----------------------------------//
-		rsc.ratingSpecContainer = rspc;
+			rsc.ratingSpecContainer = rspc;
 			rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
 			
 			//----------------------------------------------//
@@ -901,7 +901,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				   append(rc.getClass().getName()).
 				   append(")\n");
 				
-	}
+			}
 		}
 		AbstractRating.logger.fine(sb.toString());
 	}
@@ -1314,178 +1314,179 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				if (arcs == null) {
 					arcs = new TreeSet<AbstractRatingContainer>();
 					arcsById = new HashMap<String, SortedSet<AbstractRatingContainer>>();
-			}
+				}
 				if (localName.equals(RATING_STR) || localName.equals(SIMPLE_RATING_STR)) {
-				if (erc != null) {
+					if (erc != null) {
 						arcs.add(erc.clone());
 						arc = erc;
 					erc = null;
-				}
-				else if (trc != null) {
+					}
+					else if (trc != null) {
 						String[] parts = TextUtil.split(trc.ratingSpecId, SEPARATOR1);
 						RatingTemplateContainer thisRtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
 						trc.inRangeMethod = thisRtc.inRangeMethods[0];
 						trc.outRangeLowMethod = thisRtc.outRangeLowMethods[0];
 						trc.outRangeHighMethod = thisRtc.outRangeHighMethods[0];
-					int width = 0;
-					int depth = 0;
-					for (int i = 0; i < ratingPointSetCount; ++i) {
-						RatingPoints pointSet = ratingPoints.get(i);
-						if (i == 0) {
-							width = pointSet.getOtherIndCount();
-						}
-						else if (pointSet.getOtherIndCount() != width) {
-							throw new RuntimeException("Inconsistent number of independent parameters");
-						}
-						depth += pointSet.getPointCount();							
-					}
-					width += 2;
-					double[][] points = new double[depth][];
-					String[] notes = new String[depth];
-					for (int i = 0; i < depth; ++i) {
-						points[i] = new double[width];
-						notes[i] = null;
-					}
-					for (int i = 0, d = 0; i < ratingPointSetCount; ++i) {
-						RatingPoints pointSet = ratingPoints.get(i);
-						for (int j = 0; j < pointSet.getPointCount(); ++j, ++d) {
-							for (int w = 0; w < width-2; ++w) {
-								points[d][w] = pointSet.getOtherInd(w);
+						int width = 0;
+						int depth = 0;
+						for (int i = 0; i < ratingPointSetCount; ++i) {
+							RatingPoints pointSet = ratingPoints.get(i);
+							if (i == 0) {
+								width = pointSet.getOtherIndCount();
 							}
-							points[d][width-2] = pointSet.getIndValue(j);
-							points[d][width-1] = pointSet.getDepValue(j);
-							notes[d] = pointSet.getNote(j);
+							else if (pointSet.getOtherIndCount() != width) {
+								throw new RuntimeException("Inconsistent number of independent parameters");
+							}
+							depth += pointSet.getPointCount();							
 						}
+						width += 2;
+						double[][] points = new double[depth][];
+						String[] notes = new String[depth];
+						for (int i = 0; i < depth; ++i) {
+							points[i] = new double[width];
+							notes[i] = null;
+						}
+						for (int i = 0, d = 0; i < ratingPointSetCount; ++i) {
+							RatingPoints pointSet = ratingPoints.get(i);
+							for (int j = 0; j < pointSet.getPointCount(); ++j, ++d) {
+								for (int w = 0; w < width-2; ++w) {
+									points[d][w] = pointSet.getOtherInd(w);
+								}
+								points[d][width-2] = pointSet.getIndValue(j);
+								points[d][width-1] = pointSet.getDepValue(j);
+								notes[d] = pointSet.getNote(j);
+							}
+						}
+						trc.values = RatingValueContainer.makeContainers(
+							points, 
+							notes, 
+									thisRtc.inRangeMethods,
+									thisRtc.outRangeLowMethods,
+									thisRtc.outRangeHighMethods);
+						if (extensionPointSetCount == 1) {
+							if (width > 2) {
+								throw new RuntimeException("Cannot have extension points with more than one independent parameter");
+							}
+							int pointCount = extensionPoints.get(0).getPointCount();
+							trc.extensionValues = new RatingValueContainer[pointCount];
+							for (int i = 0; i < pointCount; ++i) {
+								trc.extensionValues[i] = new RatingValueContainer();
+								trc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
+								trc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
+								trc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+							}
+						}
+						ratingPoints = null;
+						ratingPointSetCount = 0;
+						extensionPoints = null;
+						extensionPointSetCount = 0;
+						arcs.add(trc.clone());
+						arc = trc;
+						trc = null;
 					}
-					trc.values = RatingValueContainer.makeContainers(
-						points, 
-						notes, 
-								thisRtc.inRangeMethods,
-								thisRtc.outRangeLowMethods,
-								thisRtc.outRangeHighMethods);
+				}
+				else if (localName.equals(USGS_STREAM_RATING_STR)) {
+					RatingSpecContainer rspc = rspcsById.get(TextUtil.join("/", urc.officeId, urc.ratingSpecId));
+					String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
+					RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+					urc.inRangeMethod = rtc.inRangeMethods[0];
+					urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
+					urc.outRangeHighMethod = rtc.outRangeHighMethods[0];
+					int pointCount = ratingPoints.get(0).getPointCount();
+					urc.values = new RatingValueContainer[pointCount];
+					for (int i = 0; i < pointCount; ++i) {
+						urc.values[i] = new RatingValueContainer();
+						urc.values[i].indValue = ratingPoints.get(0).getIndValue(i);
+						urc.values[i].depValue = ratingPoints.get(0).getDepValue(i);
+						urc.values[i].note = ratingPoints.get(0).getNote(i);
+					}
 					if (extensionPointSetCount == 1) {
-						if (width > 2) {
-							throw new RuntimeException("Cannot have extension points with more than one independent parameter");
-						}
-						int pointCount = extensionPoints.get(0).getPointCount();
-						trc.extensionValues = new RatingValueContainer[pointCount];
+						pointCount = extensionPoints.get(0).getPointCount();
+						urc.extensionValues = new RatingValueContainer[pointCount];
 						for (int i = 0; i < pointCount; ++i) {
-							trc.extensionValues[i] = new RatingValueContainer();
-							trc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
-							trc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
-							trc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+							urc.extensionValues[i] = new RatingValueContainer();
+							urc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
+							urc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
+							urc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
 						}
 					}
+					if (offsetPointSetCount > 0) {
+						urc.offsets = new TableRatingContainer();
+						RatingPoints pointSet = offsetPoints.get(0);
+						int offsetCount = pointSet.getPointCount();
+						urc.offsets.values = new RatingValueContainer[offsetCount];
+						for (int i = 0; i < offsetCount; ++i) {
+							urc.offsets.values[i] = new RatingValueContainer();
+							urc.offsets.values[i].indValue = pointSet.getIndValue(i);
+							urc.offsets.values[i].depValue = pointSet.getDepValue(i);
+							urc.offsets.values[i].note = pointSet.getNote(i);
+						}
+						urc.offsets.inRangeMethod = "PREVIOUS";
+						urc.offsets.outRangeLowMethod = "NEXT";
+						urc.offsets.outRangeHighMethod = "PREVIOUS";
+					}
+					if (shiftPointSetCount > 0) {
+						urc.shifts = new RatingSetContainer();
+						urc.shifts.ratingSpecContainer = new RatingSpecContainer();
+						urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
+						urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
+						urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
+						urc.shifts.ratingSpecContainer.indParams = new String[1];
+						urc.shifts.ratingSpecContainer.indParams[0] = "Stage";
+						urc.shifts.ratingSpecContainer.depParam = "Stage-Shift";
+						urc.shifts.ratingSpecContainer.parametersId = String.format("%s;%s", urc.shifts.ratingSpecContainer.indParams[0], urc.shifts.ratingSpecContainer.depParam);
+						urc.shifts.ratingSpecContainer.templateVersion = "Standard";
+						urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
+						urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
+						urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
+						urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
+						urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
+						urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
+						urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
+						urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
+						urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
+						urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
+						int emptyCount = 0;
+						for (int i = 0; i < shiftPointSetCount; ++i) {
+							if (shiftPoints.get(i).getPointCount() == 0) ++emptyCount;
+						}
+						urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount-emptyCount];
+						for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
+							RatingPoints pointSet = shiftPoints.get(i);
+							int shiftCount = pointSet.getPointCount();
+							if (shiftCount > 0) {
+								String shiftUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+								urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = String.format("%s.%s.%s", rspc.locationId, urc.shifts.ratingSpecContainer.templateId, "Production");
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate == Const.UNDEFINED_TIME ? System.currentTimeMillis() : shiftInfo.get(i).createDate;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).active = shiftInfo.get(i).active;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
+								for (int k = 0; k < shiftCount; ++k) {
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
+								}
+							}
+						}
+					}
+					offsetPoints = null;
+					offsetPointSetCount = 0;
+					shiftPoints = null;
+					shiftPointSetCount = 0;
 					ratingPoints = null;
 					ratingPointSetCount = 0;
-					extensionPoints = null;
-					extensionPointSetCount = 0;
-							arcs.add(trc.clone());
-							arc = trc;
-					trc = null;
+					shiftInfo = null;
+					arcs.add(urc.clone());
+					arc = urc;
+					urc = null;
 				}
-			}
-			else if (localName.equals(USGS_STREAM_RATING_STR)) {
-						RatingSpecContainer rspc = rspcsById.get(TextUtil.join("/", urc.officeId, urc.ratingSpecId));
-						String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
-						RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-				urc.inRangeMethod = rtc.inRangeMethods[0];
-				urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
-				urc.outRangeHighMethod = rtc.outRangeHighMethods[0];
-				int pointCount = ratingPoints.get(0).getPointCount();
-				urc.values = new RatingValueContainer[pointCount];
-				for (int i = 0; i < pointCount; ++i) {
-					urc.values[i] = new RatingValueContainer();
-					urc.values[i].indValue = ratingPoints.get(0).getIndValue(i);
-					urc.values[i].depValue = ratingPoints.get(0).getDepValue(i);
-					urc.values[i].note = ratingPoints.get(0).getNote(i);
-				}
-				if (extensionPointSetCount == 1) {
-					pointCount = extensionPoints.get(0).getPointCount();
-					urc.extensionValues = new RatingValueContainer[pointCount];
-					for (int i = 0; i < pointCount; ++i) {
-						urc.extensionValues[i] = new RatingValueContainer();
-						urc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
-						urc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
-						urc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
-					}
-				}
-				if (offsetPointSetCount > 0) {
-					urc.offsets = new TableRatingContainer();
-					RatingPoints pointSet = offsetPoints.get(0);
-					int offsetCount = pointSet.getPointCount();
-					urc.offsets.values = new RatingValueContainer[offsetCount];
-					for (int i = 0; i < offsetCount; ++i) {
-						urc.offsets.values[i] = new RatingValueContainer();
-						urc.offsets.values[i].indValue = pointSet.getIndValue(i);
-						urc.offsets.values[i].depValue = pointSet.getDepValue(i);
-						urc.offsets.values[i].note = pointSet.getNote(i);
-					}
-					urc.offsets.inRangeMethod = "PREVIOUS";
-					urc.offsets.outRangeLowMethod = "NEXT";
-					urc.offsets.outRangeHighMethod = "PREVIOUS";
-				}
-				if (shiftPointSetCount > 0) {
-					urc.shifts = new RatingSetContainer();
-					urc.shifts.ratingSpecContainer = new RatingSpecContainer();
-					urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
-					urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
-					urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
-					urc.shifts.ratingSpecContainer.indParams = new String[1];
-					urc.shifts.ratingSpecContainer.indParams[0] = "Stage";
-					urc.shifts.ratingSpecContainer.depParam = "Stage-Shift";
-					urc.shifts.ratingSpecContainer.parametersId = String.format("%s;%s", urc.shifts.ratingSpecContainer.indParams[0], urc.shifts.ratingSpecContainer.depParam);
-					urc.shifts.ratingSpecContainer.templateVersion = "Standard";
-					urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
-					urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
-					urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
-					urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
-					urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
-					urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
-					urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
-					urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
-					urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
-					urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
-					int emptyCount = 0;
-					for (int i = 0; i < shiftPointSetCount; ++i) {
-						if (shiftPoints.get(i).getPointCount() == 0) ++emptyCount;
-					}
-					urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount-emptyCount];
-					for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
-						RatingPoints pointSet = shiftPoints.get(i);
-						int shiftCount = pointSet.getPointCount();
-						if (shiftCount > 0) {
-							String shiftUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
-							urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = String.format("%s.%s.%s", rspc.locationId, urc.shifts.ratingSpecContainer.templateId, "Production");
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate == Const.UNDEFINED_TIME ? System.currentTimeMillis() : shiftInfo.get(i).createDate;
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).active = shiftInfo.get(i).active;
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
-							((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
-							for (int k = 0; k < shiftCount; ++k) {
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
-							}
-						}
-					}
-				}
-				offsetPoints = null;
-				offsetPointSetCount = 0;
-				shiftPoints = null;
-				shiftPointSetCount = 0;
-				ratingPoints = null;
-				ratingPointSetCount = 0;
-				shiftInfo = null;
-						arcs.add(urc.clone());
-						arc = urc;
-				urc = null;
-			}
 				else if (localName.equals(VIRTUAL_RATING_STR)) {
 					SortedSet<Integer> keys = new TreeSet<Integer>(sourceRatingIdsByPos.keySet());
 					vrc.sourceRatingIds = new String[keys.size()];

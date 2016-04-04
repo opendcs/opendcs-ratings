@@ -856,6 +856,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 		arc.ratingSpecId = ratingSpecId;
 		arc.unitsId = ratingUnitsId;
 		arc.effectiveDateMillis = effectiveDate;
+		arc.transitionStartDateMillis = transitionStartDate;
 		arc.createDateMillis = createDate;
 		arc.active = active;
 		arc.description = description;
@@ -872,6 +873,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 		ratingSpecId = arc.ratingSpecId;
 		ratingUnitsId = arc.unitsId;
 		effectiveDate = arc.effectiveDateMillis;
+		transitionStartDate = arc.transitionStartDateMillis;
 		createDate = arc.createDateMillis;
 		active = arc.active;
 		description = arc.description;
