@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observer;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -1460,6 +1461,25 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 		return retval;
 	}
+	
+	public AbstractRating getFloorRating(Long effectiveDate)
+	{
+		AbstractRating retval = null;
+		if(ratings != null && effectiveDate != null)
+		{
+			Entry<Long, AbstractRating> floorEntry = ratings.floorEntry(effectiveDate);
+			if (floorEntry != null)
+			{
+				retval = floorEntry.getValue();
+			}
+		}
+		return retval;
+	}
+	
+//	public AbstractRating getTemporalInterpolatedRating(Long effectiveDate)
+//	{
+//		
+//	}
 	
 	/**
 	 * Sets the times series of ratings, replacing any existing ratings.
