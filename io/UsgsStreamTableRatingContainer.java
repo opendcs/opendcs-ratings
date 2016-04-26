@@ -30,6 +30,29 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	public TableRatingContainer offsets = null;
 	
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		do {
+			if (!(obj instanceof UsgsStreamTableRatingContainer)) break;
+			UsgsStreamTableRatingContainer other = (UsgsStreamTableRatingContainer)obj;
+			if (!super.equals(obj)) break;
+			if ((other.shifts == null) != (shifts == null)) break;
+			if (shifts != null) {
+				if (!other.shifts.equals(shifts)) break;
+			}
+			if ((other.offsets == null) != (offsets == null)) break;
+			if (offsets != null) {
+				if (!other.offsets.equals(offsets)) break;
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.RatingTableContainer#clone(hec.data.cwmsRating.RatingContainer)
 	 */
 	@Override

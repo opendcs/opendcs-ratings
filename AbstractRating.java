@@ -976,25 +976,8 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof AbstractRating) {
-			AbstractRating other = (AbstractRating)obj;
-			result = other.getClass() == this.getClass();
-			if (result) {
-				result = toString().equals(other.toString()) && effectiveDate == other.effectiveDate;
-				if (result) {
-					try {
-						result = toXmlString("", 0).trim().equals(other.toXmlString("", 0).trim());
-					}
-					catch (RatingException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-		}
-		return result;
-	}
+	public abstract boolean equals(Object obj);
+	
 	@Override
 	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 }

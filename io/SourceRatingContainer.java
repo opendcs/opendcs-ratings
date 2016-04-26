@@ -22,6 +22,40 @@ public class SourceRatingContainer {
 	 */
 	public String[] units = null;
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!(obj instanceof SourceRatingContainer)) break;
+			SourceRatingContainer other = (SourceRatingContainer)obj;
+			if ((other.mathExpression == null) != (mathExpression == null)) break;
+			if (mathExpression != null) {
+				if (!other.mathExpression.equals(mathExpression)) break;
+			}
+			if ((other.rsc == null) != (rsc == null)) break;
+			if (rsc != null) {
+				if (!other.rsc.equals(rsc)) break;
+			}
+			if ((other.units == null) != (units == null)) {
+				if (units != null) {
+					if (other.units.length != units.length) break;
+					for (int i = 0; i < units.length; ++i) {
+						if ((other.units[i] == null) != (units[i] == null)) break test;
+						if (units[i] != null) {
+							if (!other.units[i].equals(units[i])) break test;
+						}
+					}
+				}
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
+
 	/**
 	 * Clone this object into another
 	 * @param other The other SourceRatingContainer object to clone into

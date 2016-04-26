@@ -1094,5 +1094,16 @@ public class UsgsStreamTableRating extends TableRating {
 		retval = (TableRating) shiftsRef.getRating(shiftDateTime);
 		return retval;
 	}
-
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof UsgsStreamTableRating) {
+			UsgsStreamTableRating other = (UsgsStreamTableRating)obj;
+			result = getData().equals(other.getData());
+		}
+		return result;
+	}
 }

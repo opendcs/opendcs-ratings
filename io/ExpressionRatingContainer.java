@@ -3,13 +3,13 @@
  */
 package hec.data.cwmsRating.io;
 
+import org.jdom.Element;
+
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.ExpressionRating;
 import hec.util.TextUtil;
-
-import org.jdom.Element;
 
 /**
  * Container for ExpressionRating data
@@ -22,6 +22,25 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 * The mathematical expression for the rating
 	 */
 	public String expression = null;
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		do {
+			if (!(obj instanceof ExpressionRatingContainer)) break;
+			ExpressionRatingContainer other = (ExpressionRatingContainer)obj;
+			if (!super.equals(obj)) break;
+			if ((other.expression == null) != (expression == null)) break;
+			if (expression != null) {
+				if (!other.expression.equals(expression)) break;
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
 
 	/*
 	 * (non-Javadoc)

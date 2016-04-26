@@ -2465,12 +2465,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		boolean result = false;
 		if (obj instanceof RatingSet) {
 			RatingSet other = (RatingSet)obj;
-			try {
-				result = other.toXmlString("").equals(this.toXmlString(""));
-			}
-			catch (RatingException e) {
-				throw new RuntimeException(e);
-			}
+			result = getData().equals(other.getData());
 		}
 		return result;
 	}

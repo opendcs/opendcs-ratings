@@ -67,6 +67,80 @@ public class RatingTemplateContainer {
 	 * The description of the rating template
 	 */
 	public String templateDescription = null;
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!(obj instanceof RatingTemplateContainer)) break;
+			RatingTemplateContainer other = (RatingTemplateContainer)obj;
+			if ((other.officeId == null) != (officeId == null)) break;
+			if (officeId != null) {
+				if (!other.officeId.equals(officeId)) break;
+			}
+			if ((other.templateId == null) != (templateId == null)) break;
+			if (templateId != null) {
+				if (!other.templateId.equals(templateId)) break;
+			}
+			if ((other.parametersId == null) != (parametersId == null)) break;
+			if (parametersId != null) {
+				if (!other.parametersId.equals(parametersId)) break;
+			}
+			if ((other.indParams == null) != (indParams == null)) break;
+			if (indParams != null) {
+				if (other.indParams.length != indParams.length) break;
+				for (int i = 0; i < indParams.length; ++i) {
+					if ((other.indParams[i] == null) != (indParams[i] == null)) break test;
+					if (indParams[i] != null) {
+						if (!other.indParams[i].equals(indParams[i])) break test;;
+					}
+				}
+			}
+			if ((other.depParam == null) != (depParam == null)) break;
+			if (depParam != null) {
+				if (!other.depParam.equals(depParam)) break;
+			}
+			if ((other.templateVersion == null) != (templateVersion == null)) break;
+			if (templateVersion != null) {
+				if (!other.templateVersion.equals(templateVersion)) break;
+			}
+			if ((other.inRangeMethods == null) != (inRangeMethods == null)) break;
+			if (inRangeMethods != null) {
+				if (other.inRangeMethods.length != inRangeMethods.length) break;
+				for (int i = 0; i < inRangeMethods.length; ++i) {
+					if ((other.inRangeMethods[i] == null) != (inRangeMethods[i] == null)) break test;
+					if (inRangeMethods[i] != null) {
+						if (!other.inRangeMethods[i].equals(inRangeMethods[i])) break test;
+					}
+				}
+			}
+			if ((other.outRangeLowMethods == null) != (outRangeLowMethods == null)) break;
+			if (outRangeLowMethods != null) {
+				if (other.outRangeLowMethods.length != outRangeLowMethods.length) break;
+				for (int i = 0; i < outRangeLowMethods.length; ++i) {
+					if ((other.outRangeLowMethods[i] == null) != (outRangeLowMethods[i] == null)) break test;
+					if (outRangeLowMethods[i] != null) {
+						if (!other.outRangeLowMethods[i].equals(outRangeLowMethods[i])) break test;
+					}
+				}
+			}
+			if ((other.outRangeHighMethods == null) != (outRangeHighMethods == null)) break;
+			if (outRangeHighMethods != null) {
+				if (other.outRangeHighMethods.length != outRangeHighMethods.length) break;
+				for (int i = 0; i < outRangeHighMethods.length; ++i) {
+					if ((other.outRangeHighMethods[i] == null) != (outRangeHighMethods[i] == null)) break test;
+					if (outRangeHighMethods[i] != null) {
+						if (!other.outRangeHighMethods[i].equals(outRangeHighMethods[i])) break test;
+					}
+				}
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
 	/**
 	 * Copies the data from this object into the specified RatingTemplateContainer
 	 * @param other The RatingTemplateContainer object to receive the copy

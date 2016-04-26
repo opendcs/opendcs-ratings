@@ -39,6 +39,48 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
 	 */
 	public String outRangeHighMethod = null;
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!(obj instanceof TableRatingContainer)) break;
+			TableRatingContainer other = (TableRatingContainer)obj;
+			if (!super.equals(obj)) break;
+			if ((other.values == null) != (values == null)) break;
+			if (values != null) {
+				if (other.values.length != values.length) break;
+				for (int i = 0; i < values.length; ++i) {
+					if (!other.values[i].equals(values[i])) break test;
+				}
+			}
+			if ((other.extensionValues == null) != (extensionValues == null)) break;
+			if (extensionValues != null) {
+				if (other.extensionValues.length != extensionValues.length) break;
+				for (int i = 0; i < extensionValues.length; ++i) {
+					if (!other.extensionValues[i].equals(extensionValues[i])) break test;
+				}
+			}
+			if ((other.inRangeMethod == null) != (inRangeMethod == null)) break;
+			if (inRangeMethod != null) {
+				if (!other.inRangeMethod.equals(inRangeMethod)) break;
+			}
+			if ((other.outRangeLowMethod == null) != (outRangeLowMethod == null)) break;
+			if (outRangeLowMethod != null) {
+				if (!other.outRangeLowMethod.equals(outRangeLowMethod)) break;
+			}
+			if ((other.outRangeHighMethod == null) != (outRangeHighMethod == null)) break;
+			if (outRangeHighMethod != null) {
+				if (!other.outRangeHighMethod.equals(outRangeHighMethod)) break;
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
+
 	/**
 	 * Fills another TableRatingContainer object with information from this one
 	 * @param other The TableRatingContainer object to fill

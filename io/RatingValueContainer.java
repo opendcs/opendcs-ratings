@@ -30,6 +30,29 @@ public class RatingValueContainer {
 	 * The dependent rating table - should be null if depValue != UNDEFINED_DOUBLE
 	 */
 	public TableRatingContainer depTable = null;
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		do {
+			if (!(obj instanceof RatingValueContainer)) break;
+			RatingValueContainer other = (RatingValueContainer)obj;
+			if (other.indValue != indValue) break;
+			if (other.depValue != depValue) break;
+			if ((other.note == null) != (note == null)) break;
+			if (note != null) {
+				if (!other.note.equals(note)) break;
+			}
+			if ((other.depTable == null) != (depTable == null)) break;
+			if (depTable != null) {
+				if (!other.depTable.equals(depTable)) break;
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
 	/**
 	 * Fills a specified RatingValueContainer object with information from this one
 	 * @param other The RatingValueContainer object to fill

@@ -392,5 +392,16 @@ public class TransitionalRating extends AbstractRating {
 		}
 		return new TransitionalRating((TransitionalRatingContainer)ratingContainer);
 	}
-
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof TransitionalRating) {
+			TransitionalRating other = (TransitionalRating)obj;
+			result = getData().equals(other.getData());
+		}
+		return result;
+	}
 }

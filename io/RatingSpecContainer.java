@@ -90,6 +90,64 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	 */
 	public String specDescription = null;
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!super.equals(obj)) break;
+			if (!(obj instanceof RatingSpecContainer)) break;
+			RatingSpecContainer other = (RatingSpecContainer)obj;
+			if ((other.specId == null) != (specId == null)) break;
+			if (specId != null) {
+				if (!other.specId.equals(specId)) break;
+			}
+			if ((other.officeId == null) != (officeId == null)) break;
+			if (officeId != null) {
+				if (!other.officeId.equals(officeId)) break;
+			}
+			if ((other.specVersion == null) != (specVersion == null)) break;
+			if (specVersion != null) {
+				if (!other.specVersion.equals(specVersion)) break;
+			}
+			if ((other.sourceAgencyId == null) != (sourceAgencyId == null)) break;
+			if (sourceAgencyId != null) {
+				if (!other.sourceAgencyId.equals(sourceAgencyId)) break;
+			}
+			if ((other.inRangeMethod == null) != (inRangeMethod == null)) break;
+			if (inRangeMethod != null) {
+				if (!other.inRangeMethod.equals(inRangeMethod)) break;
+			}
+			if ((other.outRangeLowMethod == null) != (outRangeLowMethod == null)) break;
+			if (outRangeLowMethod != null) {
+				if (!other.outRangeLowMethod.equals(outRangeLowMethod)) break;
+			}
+			if ((other.outRangeHighMethod == null) != (outRangeHighMethod == null)) break;
+			if (outRangeHighMethod != null) {
+				if (!other.outRangeHighMethod.equals(outRangeHighMethod)) break;
+			}
+			if (other.active != active) break;
+			if (other.autoUpdate != autoUpdate) break;
+			if (other.autoActivate != autoActivate) break;
+			if (other.autoMigrateExtensions != autoMigrateExtensions) break;
+			if ((other.indRoundingSpecs == null) != (indRoundingSpecs == null)) break;
+			if (indRoundingSpecs != null) {
+				if (other.indRoundingSpecs.length != indRoundingSpecs.length) break;
+				for (int i = 0; i < indRoundingSpecs.length; ++i) {
+					if ((other.indRoundingSpecs[i] == null) != (indRoundingSpecs[i] == null)) break test;
+					if (indRoundingSpecs[i] != null) {
+						if (!other.indRoundingSpecs[i].equals(indRoundingSpecs[i])) break test;
+					}
+				}
+			}
+			if (!other.depRoundingSpec.equals(depRoundingSpec)) break;
+			result = true;
+		} while (false);
+		return result;
+	}
 	/**
 	 * Copies the data from this object into the specified RatingSpecContainer
 	 * @param other The RatingSpecContainer object to receive the copy

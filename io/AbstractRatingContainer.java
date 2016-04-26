@@ -64,6 +64,37 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	 * Vertical datum info if this rating has any.
 	 */
 	public VerticalDatumContainer vdc = null;
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		do {
+			if (!(obj instanceof AbstractRatingContainer)) break;
+			AbstractRatingContainer other = (AbstractRatingContainer)obj;
+			if ((other.officeId == null) != (officeId == null)) break;
+			if (officeId != null) {
+				if (!other.officeId.equals(officeId)) break;
+			}
+			if ((other.ratingSpecId == null) != (ratingSpecId == null)) break;
+			if (ratingSpecId != null) {
+				if (!other.ratingSpecId.equals(ratingSpecId)) break;
+			}
+			if ((other.unitsId == null) != (unitsId == null)) break;
+			if (unitsId != null) {
+				if (!other.unitsId.equals(unitsId)) break;
+			}
+			if (other.active != active) break;
+			if (other.effectiveDateMillis != effectiveDateMillis) break;
+			if (other.createDateMillis != createDateMillis) break;
+			if ((other.vdc == null) != (vdc == null)) break;
+			if (other.vdc != null) {
+				if (!other.vdc.equals(vdc)) break;
+			}
+		} while (false);
+		return result;
+	}
 	/**
 	 * Fills another AbstractRatingContainer object with information from this one
 	 * @param other The AbstractRatingContainer object to fill
@@ -517,22 +548,4 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 		}
 		return result;
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof AbstractRatingContainer) {
-			AbstractRatingContainer other = (AbstractRatingContainer)obj;
-			result = toString().equals(other.toString()) && effectiveDateMillis == other.effectiveDateMillis;
-			if (result) {
-				result = toXml("").trim().equals(other.toXml("").trim());
-			}
-		}
-		return result;
-	}
-	
-	
 }

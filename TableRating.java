@@ -1148,4 +1148,16 @@ public class TableRating extends AbstractRating {
 		}
 		return new TableRating((TableRatingContainer)ratingContainer);
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof TableRating) {
+			TableRating other = (TableRating)obj;
+			result = getData().equals(other.getData());
+		}
+		return result;
+	}
 }

@@ -115,6 +115,51 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!(obj instanceof TransitionalRatingContainer)) break;
+			TransitionalRatingContainer other = (TransitionalRatingContainer)obj;
+			if (!super.equals(obj)) break;
+			if ((other.conditions == null) != (conditions == null)) break;
+			if (conditions != null) {
+				if (other.conditions.length != conditions.length) break;
+				for (int i = 0; i < conditions.length; ++i) {
+					if ((other.conditions[i] == null) != (conditions[i] == null)) break test;
+					if (conditions[i] != null) {
+						if (!other.conditions[i].equals(conditions[i])) break test;
+					}
+				}
+			}
+			if ((other.evaluations == null) != (evaluations == null)) break;
+			if (evaluations != null) {
+				if (other.evaluations.length != evaluations.length) break;
+				for (int i = 0; i < evaluations.length; ++i) {
+					if ((other.evaluations[i] == null) != (evaluations[i] == null)) break test;
+					if (evaluations[i] != null) {
+						if (!other.evaluations[i].equals(evaluations[i])) break test;
+					}
+				}
+			}
+			if ((other.sourceRatings == null) != (sourceRatings == null)) break;
+			if (sourceRatings != null) {
+				for (int i = 0; i < sourceRatings.length; ++i) {
+					if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
+					if (sourceRatings[i] != null) {
+						if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
+					}
+				}
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#clone()
 	 */
 	@Override

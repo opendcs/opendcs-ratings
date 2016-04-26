@@ -390,4 +390,16 @@ public class ExpressionRating extends AbstractRating {
 		}
 		return new ExpressionRating((ExpressionRatingContainer)ratingContainer);
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof ExpressionRating) {
+			ExpressionRating other = (ExpressionRating)obj;
+			result = getData().equals(other.getData());
+		}
+		return result;
+	}
 }

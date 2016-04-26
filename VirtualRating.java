@@ -685,4 +685,16 @@ public class VirtualRating extends AbstractRating {
 		super.setDataUnits(units);
 		dataUnits = Arrays.copyOf(units, units.length);
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof VirtualRating) {
+			VirtualRating other = (VirtualRating)obj;
+			result = getData().equals(other.getData());
+		}
+		return result;
+	}
 }

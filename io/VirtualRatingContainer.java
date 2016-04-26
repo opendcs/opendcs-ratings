@@ -121,6 +121,33 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		test:
+		do {
+			if (!(obj instanceof VirtualRatingContainer)) break;
+			VirtualRatingContainer other = (VirtualRatingContainer)obj;
+			if (!super.equals(obj)) break;
+			if ((other.connections == null) != (connections == null)) break;
+			if (!other.connections.equals(connections)) break;
+			if ((other.sourceRatings == null) != (sourceRatings == null)) break;
+			if (sourceRatings != null) {
+				for (int i = 0; i < sourceRatings.length; ++i) {
+					if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
+					if (sourceRatings[i] != null) {
+						if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
+					}
+				}
+			}
+			result = true;
+		} while(false);
+		return result;
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#clone()
 	 */
 	@Override
