@@ -1065,5 +1065,19 @@ public class SourceRating implements IRating, IVerticalDatum {
 			}
 			return count;
 		}
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof SourceRating && getData().equals(((SourceRating)obj).getData());
+		}
+		/* (non-Javadoc)
+		 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			return getClass().getName().hashCode() + getData().hashCode();
+		}
 		
 }

@@ -402,4 +402,11 @@ public class ExpressionRating extends AbstractRating {
 		}
 		return result;
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() + getData().hashCode();
+	}
 }

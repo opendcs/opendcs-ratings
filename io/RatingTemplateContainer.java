@@ -141,6 +141,51 @@ public class RatingTemplateContainer {
 		} while(false);
 		return result;
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode()
+				+ (officeId == null ? 3 : officeId.hashCode())
+				+ (templateId == null ? 7 : templateId.hashCode())
+				+ (parametersId == null ? 11 : parametersId.hashCode())
+				+ (depParam == null ? 13 : depParam.hashCode())
+				+ (templateVersion == null ? 17 : templateVersion.hashCode());
+		if (indParams == null) {
+			hashCode += 19;
+		}
+		else {
+			for (int i = 0; i < indParams.length; ++i) {
+				hashCode += indParams[i] == null ? i+1 : indParams[i].hashCode();
+			}
+		}
+		if (inRangeMethods == null) {
+			hashCode += 23;
+		}
+		else {
+			for (int i = 0; i < inRangeMethods.length; ++i) {
+				hashCode += inRangeMethods[i] == null ? 3*(i+1) : inRangeMethods[i].hashCode();
+			}
+		}
+		if (outRangeLowMethods == null) {
+			hashCode += 29;
+		}
+		else {
+			for (int i = 0; i < outRangeLowMethods.length; ++i) {
+				hashCode += outRangeLowMethods[i] == null ? 7*(i+1) : outRangeLowMethods[i].hashCode();
+			}
+		}
+		if (outRangeHighMethods == null) {
+			hashCode += 31;
+		}
+		else {
+			for (int i = 0; i < outRangeHighMethods.length; ++i) {
+				hashCode += outRangeHighMethods[i] == null ? 11*(i+1) : outRangeHighMethods[i].hashCode();
+			}
+		}
+		return hashCode;
+	}
 	/**
 	 * Copies the data from this object into the specified RatingTemplateContainer
 	 * @param other The RatingTemplateContainer object to receive the copy

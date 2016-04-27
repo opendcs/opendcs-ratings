@@ -160,6 +160,39 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode() + super.hashCode();
+		if (conditions == null) {
+			hashCode += 3;
+		}
+		else {
+			for (int i = 0; i < conditions.length; ++i) {
+				hashCode += (conditions[i] == null ? i+1 : conditions[i].hashCode());
+			}
+		}
+		if (evaluations == null) {
+			hashCode += 7;
+		}
+		else {
+			for (int i = 0; i < evaluations.length; ++i) {
+				hashCode += (evaluations[i] == null ? 3*(i+1) : evaluations[i].hashCode());
+			}
+		}
+		if (sourceRatings == null) {
+			hashCode += 11;
+		}
+		else {
+			for (int i = 0; i < sourceRatings.length; ++i) {
+				hashCode += (sourceRatings[i] == null ? 7*(i+1) : sourceRatings[i].hashCode());
+			}
+		}
+		return hashCode;
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#clone()
 	 */
 	@Override

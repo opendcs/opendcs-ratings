@@ -148,6 +148,23 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode() + super.hashCode() + connections == null ? 3 : connections.hashCode();
+		if (sourceRatings == null) {
+			hashCode += 7;
+		}
+		else {
+			for (int i = 0; i < sourceRatings.length; ++i) {
+				hashCode += (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
+			}
+		}
+		return hashCode;
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#clone()
 	 */
 	@Override

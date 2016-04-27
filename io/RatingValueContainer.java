@@ -53,6 +53,17 @@ public class RatingValueContainer {
 		} while(false);
 		return result;
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() 
+				+ new Double(indValue).hashCode()
+				+ new Double(depValue).hashCode()
+				+ (note == null ? 0 : note.hashCode())
+				+ (depTable == null ? 0 : depTable.hashCode());
+	}
 	/**
 	 * Fills a specified RatingValueContainer object with information from this one
 	 * @param other The RatingValueContainer object to fill

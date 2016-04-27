@@ -255,5 +255,18 @@ public class RatingValue implements Observer {
 	public void deleteObserver(Observer o) {
 		observationTarget.deleteObserver(o);
 	}
-
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof RatingValue && getData().equals(((RatingValue)obj).getData());
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() + getData().hashCode();
+	}
 }

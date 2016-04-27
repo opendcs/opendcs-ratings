@@ -920,6 +920,20 @@ public class RatingSpec extends RatingTemplate {
     		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toSpecXml(""), overwriteExisting);
     	}
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof RatingSpec && getData().equals(((RatingSpec)obj).getData());
+	}
 
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() + getData().hashCode();
+	}
 }
 

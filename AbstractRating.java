@@ -978,6 +978,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	@Override
 	public abstract boolean equals(Object obj);
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public abstract int hashCode();
+	 
 	@Override
 	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 }

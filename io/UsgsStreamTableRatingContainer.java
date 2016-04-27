@@ -53,6 +53,17 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.TableRatingContainer#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode()
+				+ super.hashCode()
+				+ (offsets == null ? 3 : offsets.hashCode())
+				+ (shifts == null ? 7 : shifts.hashCode());
+	}
+
+	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.RatingTableContainer#clone(hec.data.cwmsRating.RatingContainer)
 	 */
 	@Override

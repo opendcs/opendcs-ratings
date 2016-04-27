@@ -465,4 +465,20 @@ public class RatingSetContainer implements IVerticalDatum {
 		} while (false);
 		return result;
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode() + (ratingSpecContainer == null ? 3 : ratingSpecContainer.hashCode());
+		if (abstractRatingContainers == null) {
+			hashCode += 7;
+		}
+		else {
+			for (int i = 0; i < abstractRatingContainers.length; ++i) {
+				hashCode += (abstractRatingContainers[i] == null ? i+1 : abstractRatingContainers[i].hashCode());
+			}
+		}
+		return hashCode;
+	}
 }

@@ -42,6 +42,14 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() + super.hashCode() + (expression == null ? 0 : expression.hashCode());
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 

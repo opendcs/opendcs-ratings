@@ -81,6 +81,35 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode() 
+				+ super.hashCode()
+				+ (inRangeMethod == null ? 3 : inRangeMethod.hashCode())
+				+ (outRangeLowMethod == null ? 7 : outRangeLowMethod.hashCode())
+				+ (outRangeHighMethod == null ? 11 : outRangeHighMethod.hashCode());
+		if (values == null) {
+			hashCode += 13;
+		}
+		else {
+			for (int i = 0; i < values.length; ++i) {
+				hashCode += (values[i] == null ? i+1 : values[i].hashCode());
+			}
+		}
+		if (extensionValues == null) {
+			hashCode += 17;
+		}
+		else {
+			for (int i = 0; i < extensionValues.length; ++i) {
+				hashCode += (extensionValues[i] == null ? 3*(i+1) : extensionValues[i].hashCode());
+			}
+		}
+		return hashCode;
+	}
+
 	/**
 	 * Fills another TableRatingContainer object with information from this one
 	 * @param other The TableRatingContainer object to fill

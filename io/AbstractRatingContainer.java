@@ -87,13 +87,32 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 			}
 			if (other.active != active) break;
 			if (other.effectiveDateMillis != effectiveDateMillis) break;
+			if (other.transitionStartDateMillis != transitionStartDateMillis) break;
 			if (other.createDateMillis != createDateMillis) break;
 			if ((other.vdc == null) != (vdc == null)) break;
 			if (other.vdc != null) {
 				if (!other.vdc.equals(vdc)) break;
 			}
+			result = true;
 		} while (false);
 		return result;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = 0
+				+ getClass().getName().hashCode()
+				+ (officeId == null ? 3 : officeId.hashCode())
+				+ (ratingSpecId == null ? 7 : ratingSpecId.hashCode())
+				+ (unitsId == null ? 11 : unitsId.hashCode())
+				+ new Boolean(active).hashCode()
+				+ new Long(effectiveDateMillis).hashCode()
+				+ new Long(transitionStartDateMillis).hashCode()
+				+ new Long(createDateMillis).hashCode()
+				+ (vdc == null ? 13 : vdc.hashCode());
+		return hashCode;
 	}
 	/**
 	 * Fills another AbstractRatingContainer object with information from this one

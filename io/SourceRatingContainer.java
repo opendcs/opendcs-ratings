@@ -56,6 +56,25 @@ public class SourceRatingContainer {
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode()
+				+ mathExpression == null ? 3 : mathExpression.hashCode()
+				+ (rsc == null ? 7 : rsc.hashCode());
+		if (units == null) {
+			hashCode += 11;
+		}
+		else {
+			for (int i = 0; i < units.length; ++i) {
+				hashCode += (units[i] == null ? i+1 : units[i].hashCode());
+			}
+		}
+		return hashCode;
+	}
+
 	/**
 	 * Clone this object into another
 	 * @param other The other SourceRatingContainer object to clone into

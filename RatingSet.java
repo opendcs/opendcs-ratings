@@ -2469,6 +2469,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 		return result;
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() + getData().hashCode();
+	}
 	
 	private void refreshRatings() {
 		AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);

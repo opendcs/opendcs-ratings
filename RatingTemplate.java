@@ -526,4 +526,19 @@ public class RatingTemplate implements Modifiable
 		JDomRatingTemplate template = new JDomRatingTemplate(officeId, templateId);
 		return template;
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof RatingTemplate && getData().equals(((RatingTemplate)obj).getData());
+	}
+
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getClass().getName().hashCode() + getData().hashCode();
+	}
 }

@@ -148,6 +148,35 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		} while (false);
 		return result;
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.io.RatingTemplateContainer#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hashCode = getClass().getName().hashCode()
+				+ super.hashCode()
+				+ (specId == null ? 3 : specId.hashCode())
+				+ (officeId == null ? 7 : officeId.hashCode())
+				+ (specVersion == null ? 11 : specVersion.hashCode())
+				+ (sourceAgencyId == null ? 13 : sourceAgencyId.hashCode())
+				+ (inRangeMethod == null ? 17 : inRangeMethod.hashCode())
+				+ (outRangeLowMethod == null ? 19 : outRangeLowMethod.hashCode())
+				+ (outRangeHighMethod == null ? 23 : outRangeHighMethod.hashCode())
+				+ new Boolean(active).hashCode()
+				+ new Boolean(autoUpdate).hashCode()
+				+ new Boolean(autoActivate).hashCode()
+				+ new Boolean(autoMigrateExtensions).hashCode()
+				+ (depRoundingSpec == null ? 27 : depRoundingSpec.hashCode());
+		if (indRoundingSpecs == null) {
+			hashCode += 29;
+		}
+		else {
+			for (int i = 0; i < indRoundingSpecs.length; ++i) {
+				hashCode += indRoundingSpecs[i] == null ? i+1 : indRoundingSpecs[i].hashCode();
+			}
+		}
+		return hashCode;
+	}
 	/**
 	 * Copies the data from this object into the specified RatingSpecContainer
 	 * @param other The RatingSpecContainer object to receive the copy
