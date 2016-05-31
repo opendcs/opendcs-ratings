@@ -319,7 +319,7 @@ public class UsgsStreamTableRating extends TableRating {
 				case NEAREST:
 				case CLOSEST:
 				case LOWER:
-					Y[i] =  effectiveValues[effectiveValues.length].getDepValue();
+					Y[i] =  effectiveValues[effectiveValues.length - 1].getDepValue();
 //					System.out.println("usgs-rate : dep_val 4 = " + Y[i]);
 					continue;
 				case HIGHER:
