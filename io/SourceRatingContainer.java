@@ -27,32 +27,34 @@ public class SourceRatingContainer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		test:
-		do {
-			if (!(obj instanceof SourceRatingContainer)) break;
-			SourceRatingContainer other = (SourceRatingContainer)obj;
-			if ((other.mathExpression == null) != (mathExpression == null)) break;
-			if (mathExpression != null) {
-				if (!other.mathExpression.equals(mathExpression)) break;
-			}
-			if ((other.rsc == null) != (rsc == null)) break;
-			if (rsc != null) {
-				if (!other.rsc.equals(rsc)) break;
-			}
-			if ((other.units == null) != (units == null)) {
-				if (units != null) {
-					if (other.units.length != units.length) break;
-					for (int i = 0; i < units.length; ++i) {
-						if ((other.units[i] == null) != (units[i] == null)) break test;
-						if (units[i] != null) {
-							if (!other.units[i].equals(units[i])) break test;
+		boolean result = obj == this;
+		if (!result) {
+			test:
+				do {
+					if (obj == null || obj.getClass() != getClass()) break;
+					SourceRatingContainer other = (SourceRatingContainer)obj;
+					if ((other.mathExpression == null) != (mathExpression == null)) break;
+					if (mathExpression != null) {
+						if (!other.mathExpression.equals(mathExpression)) break;
+					}
+					if ((other.rsc == null) != (rsc == null)) break;
+					if (rsc != null) {
+						if (!other.rsc.equals(rsc)) break;
+					}
+					if ((other.units == null) != (units == null)) {
+						if (units != null) {
+							if (other.units.length != units.length) break;
+							for (int i = 0; i < units.length; ++i) {
+								if ((other.units[i] == null) != (units[i] == null)) break test;
+								if (units[i] != null) {
+									if (!other.units[i].equals(units[i])) break test;
+								}
+							}
 						}
 					}
-				}
-			}
-			result = true;
-		} while(false);
+					result = true;
+				} while(false);
+		}
 		return result;
 	}
 
@@ -62,14 +64,14 @@ public class SourceRatingContainer {
 	@Override
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode()
-				+ mathExpression == null ? 3 : mathExpression.hashCode()
-				+ (rsc == null ? 7 : rsc.hashCode());
+				+ 3 * (mathExpression == null ? 1 : mathExpression.hashCode())
+				+ 5 * (rsc == null ? 1 : rsc.hashCode());
 		if (units == null) {
-			hashCode += 11;
+			hashCode += 7;
 		}
 		else {
 			for (int i = 0; i < units.length; ++i) {
-				hashCode += (units[i] == null ? i+1 : units[i].hashCode());
+				hashCode += 9 * (units[i] == null ? i+1 : units[i].hashCode());
 			}
 		}
 		return hashCode;

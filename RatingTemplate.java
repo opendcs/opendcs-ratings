@@ -531,7 +531,7 @@ public class RatingTemplate implements Modifiable
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof RatingTemplate && getData().equals(((RatingTemplate)obj).getData());
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingTemplate)obj).getData()));
 	}
 
 	/* (non-Javadoc)

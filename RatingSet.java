@@ -2462,12 +2462,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof RatingSet) {
-			RatingSet other = (RatingSet)obj;
-			result = getData().equals(other.getData());
-		}
-		return result;
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingSet)obj).getData()));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()

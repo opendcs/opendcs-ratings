@@ -442,27 +442,29 @@ public class RatingSetContainer implements IVerticalDatum {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		test:
-		do {
-			if (!(obj instanceof RatingSetContainer)) break;
-			RatingSetContainer other = (RatingSetContainer)obj;
-			if ((other.ratingSpecContainer == null) != (ratingSpecContainer == null)) break;
-			if (ratingSpecContainer != null) {
-				if (!other.ratingSpecContainer.equals(ratingSpecContainer)) break;
-			}
-			if ((other.abstractRatingContainers == null) != (abstractRatingContainers == null)) break;
-			if (abstractRatingContainers != null) {
-				if (other.abstractRatingContainers.length != abstractRatingContainers.length) break;
-				for (int i = 0; i < abstractRatingContainers.length; ++i) {
-					if ((abstractRatingContainers[i] == null) != (other.abstractRatingContainers[i] == null)) break test;
-					if (abstractRatingContainers[i] != null) {
-						if (!abstractRatingContainers[i].equals(other.abstractRatingContainers[i])) break test;
+		boolean result = obj == this;
+		if (!result) {
+			test:
+				do {
+					if (obj == null || obj.getClass() != getClass()) break;
+					RatingSetContainer other = (RatingSetContainer)obj;
+					if ((other.ratingSpecContainer == null) != (ratingSpecContainer == null)) break;
+					if (ratingSpecContainer != null) {
+						if (!other.ratingSpecContainer.equals(ratingSpecContainer)) break;
 					}
-				}
-			}
-			result = true;
-		} while (false);
+					if ((other.abstractRatingContainers == null) != (abstractRatingContainers == null)) break;
+					if (abstractRatingContainers != null) {
+						if (other.abstractRatingContainers.length != abstractRatingContainers.length) break;
+						for (int i = 0; i < abstractRatingContainers.length; ++i) {
+							if ((abstractRatingContainers[i] == null) != (other.abstractRatingContainers[i] == null)) break test;
+							if (abstractRatingContainers[i] != null) {
+								if (!abstractRatingContainers[i].equals(other.abstractRatingContainers[i])) break test;
+							}
+						}
+					}
+					result = true;
+				} while (false);
+		}
 		return result;
 	}
 	/* (non-Javadoc)

@@ -395,12 +395,7 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof ExpressionRating) {
-			ExpressionRating other = (ExpressionRating)obj;
-			result = getData().equals(other.getData());
-		}
-		return result;
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((ExpressionRating)obj).getData()));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()

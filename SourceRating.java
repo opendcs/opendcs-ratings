@@ -1070,7 +1070,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		@Override
 		public boolean equals(Object obj) {
-			return obj instanceof SourceRating && getData().equals(((SourceRating)obj).getData());
+			return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((SourceRating)obj).getData()));
 		}
 		/* (non-Javadoc)
 		 * @see hec.data.cwmsRating.AbstractRating#hashCode()

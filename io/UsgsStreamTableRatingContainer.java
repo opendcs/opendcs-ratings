@@ -34,21 +34,23 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		do {
-			if (!(obj instanceof UsgsStreamTableRatingContainer)) break;
-			UsgsStreamTableRatingContainer other = (UsgsStreamTableRatingContainer)obj;
-			if (!super.equals(obj)) break;
-			if ((other.shifts == null) != (shifts == null)) break;
-			if (shifts != null) {
-				if (!other.shifts.equals(shifts)) break;
-			}
-			if ((other.offsets == null) != (offsets == null)) break;
-			if (offsets != null) {
-				if (!other.offsets.equals(offsets)) break;
-			}
-			result = true;
-		} while(false);
+		boolean result = obj == this;
+		if(!result) {
+			do {
+				if (obj == null || obj.getClass() != getClass()) break;
+				if (!super.equals(obj)) break;
+				UsgsStreamTableRatingContainer other = (UsgsStreamTableRatingContainer)obj;
+				if ((other.shifts == null) != (shifts == null)) break;
+				if (shifts != null) {
+					if (!other.shifts.equals(shifts)) break;
+				}
+				if ((other.offsets == null) != (offsets == null)) break;
+				if (offsets != null) {
+					if (!other.offsets.equals(offsets)) break;
+				}
+				result = true;
+			} while(false);
+		}
 		return result;
 	}
 
@@ -59,8 +61,8 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	public int hashCode() {
 		return getClass().getName().hashCode()
 				+ super.hashCode()
-				+ (offsets == null ? 3 : offsets.hashCode())
-				+ (shifts == null ? 7 : shifts.hashCode());
+				+ 3 * (offsets == null ? 1 : offsets.hashCode())
+				+ 5 * (shifts == null ? 1 : shifts.hashCode());
 	}
 
 	/* (non-Javadoc)

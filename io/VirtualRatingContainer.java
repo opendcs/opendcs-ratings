@@ -125,25 +125,27 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		test:
-		do {
-			if (!(obj instanceof VirtualRatingContainer)) break;
-			VirtualRatingContainer other = (VirtualRatingContainer)obj;
-			if (!super.equals(obj)) break;
-			if ((other.connections == null) != (connections == null)) break;
-			if (!other.connections.equals(connections)) break;
-			if ((other.sourceRatings == null) != (sourceRatings == null)) break;
-			if (sourceRatings != null) {
-				for (int i = 0; i < sourceRatings.length; ++i) {
-					if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
-					if (sourceRatings[i] != null) {
-						if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
+		boolean result = obj == this;
+		if (!result) {
+			test:
+				do {
+					if (obj == null || obj.getClass() != getClass()) break;
+					if (!super.equals(obj)) break;
+					VirtualRatingContainer other = (VirtualRatingContainer)obj;
+					if ((other.connections == null) != (connections == null)) break;
+					if (!other.connections.equals(connections)) break;
+					if ((other.sourceRatings == null) != (sourceRatings == null)) break;
+					if (sourceRatings != null) {
+						for (int i = 0; i < sourceRatings.length; ++i) {
+							if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
+							if (sourceRatings[i] != null) {
+								if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
+							}
+						}
 					}
-				}
-			}
-			result = true;
-		} while(false);
+					result = true;
+				} while(false);
+		}
 		return result;
 	}
 
@@ -152,13 +154,13 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public int hashCode() {
-		int hashCode = getClass().getName().hashCode() + super.hashCode() + connections == null ? 3 : connections.hashCode();
+		int hashCode = getClass().getName().hashCode() + super.hashCode() + 3 * (connections == null ? 1 : connections.hashCode());
 		if (sourceRatings == null) {
-			hashCode += 7;
+			hashCode += 5;
 		}
 		else {
 			for (int i = 0; i < sourceRatings.length; ++i) {
-				hashCode += (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
+				hashCode += 7 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
 			}
 		}
 		return hashCode;

@@ -690,12 +690,7 @@ public class VirtualRating extends AbstractRating {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof VirtualRating) {
-			VirtualRating other = (VirtualRating)obj;
-			result = getData().equals(other.getData());
-		}
-		return result;
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((VirtualRating)obj).getData()));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()

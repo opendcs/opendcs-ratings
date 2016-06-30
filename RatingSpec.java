@@ -925,7 +925,7 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof RatingSpec && getData().equals(((RatingSpec)obj).getData());
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingSpec)obj).getData()));
 	}
 
 	/* (non-Javadoc)

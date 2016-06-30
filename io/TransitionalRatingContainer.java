@@ -119,43 +119,45 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		test:
-		do {
-			if (!(obj instanceof TransitionalRatingContainer)) break;
-			TransitionalRatingContainer other = (TransitionalRatingContainer)obj;
-			if (!super.equals(obj)) break;
-			if ((other.conditions == null) != (conditions == null)) break;
-			if (conditions != null) {
-				if (other.conditions.length != conditions.length) break;
-				for (int i = 0; i < conditions.length; ++i) {
-					if ((other.conditions[i] == null) != (conditions[i] == null)) break test;
-					if (conditions[i] != null) {
-						if (!other.conditions[i].equals(conditions[i])) break test;
+		boolean result = obj == this;
+		if (!result) {
+			test:
+				do {
+					if (obj == null || obj.getClass() != getClass()) break;
+					TransitionalRatingContainer other = (TransitionalRatingContainer)obj;
+					if (!super.equals(obj)) break;
+					if ((other.conditions == null) != (conditions == null)) break;
+					if (conditions != null) {
+						if (other.conditions.length != conditions.length) break;
+						for (int i = 0; i < conditions.length; ++i) {
+							if ((other.conditions[i] == null) != (conditions[i] == null)) break test;
+							if (conditions[i] != null) {
+								if (!other.conditions[i].equals(conditions[i])) break test;
+							}
+						}
 					}
-				}
-			}
-			if ((other.evaluations == null) != (evaluations == null)) break;
-			if (evaluations != null) {
-				if (other.evaluations.length != evaluations.length) break;
-				for (int i = 0; i < evaluations.length; ++i) {
-					if ((other.evaluations[i] == null) != (evaluations[i] == null)) break test;
-					if (evaluations[i] != null) {
-						if (!other.evaluations[i].equals(evaluations[i])) break test;
+					if ((other.evaluations == null) != (evaluations == null)) break;
+					if (evaluations != null) {
+						if (other.evaluations.length != evaluations.length) break;
+						for (int i = 0; i < evaluations.length; ++i) {
+							if ((other.evaluations[i] == null) != (evaluations[i] == null)) break test;
+							if (evaluations[i] != null) {
+								if (!other.evaluations[i].equals(evaluations[i])) break test;
+							}
+						}
 					}
-				}
-			}
-			if ((other.sourceRatings == null) != (sourceRatings == null)) break;
-			if (sourceRatings != null) {
-				for (int i = 0; i < sourceRatings.length; ++i) {
-					if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
-					if (sourceRatings[i] != null) {
-						if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
+					if ((other.sourceRatings == null) != (sourceRatings == null)) break;
+					if (sourceRatings != null) {
+						for (int i = 0; i < sourceRatings.length; ++i) {
+							if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
+							if (sourceRatings[i] != null) {
+								if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
+							}
+						}
 					}
-				}
-			}
-			result = true;
-		} while(false);
+					result = true;
+				} while(false);
+		}
 		return result;
 	}
 
@@ -170,7 +172,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		}
 		else {
 			for (int i = 0; i < conditions.length; ++i) {
-				hashCode += (conditions[i] == null ? i+1 : conditions[i].hashCode());
+				hashCode += 5 * (conditions[i] == null ? i+1 : conditions[i].hashCode());
 			}
 		}
 		if (evaluations == null) {
@@ -178,15 +180,15 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		}
 		else {
 			for (int i = 0; i < evaluations.length; ++i) {
-				hashCode += (evaluations[i] == null ? 3*(i+1) : evaluations[i].hashCode());
+				hashCode += 11 * (evaluations[i] == null ? i+1 : evaluations[i].hashCode());
 			}
 		}
 		if (sourceRatings == null) {
-			hashCode += 11;
+			hashCode += 13;
 		}
 		else {
 			for (int i = 0; i < sourceRatings.length; ++i) {
-				hashCode += (sourceRatings[i] == null ? 7*(i+1) : sourceRatings[i].hashCode());
+				hashCode += 15 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
 			}
 		}
 		return hashCode;

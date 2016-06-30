@@ -69,32 +69,34 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		do {
-			if (!(obj instanceof AbstractRatingContainer)) break;
-			AbstractRatingContainer other = (AbstractRatingContainer)obj;
-			if ((other.officeId == null) != (officeId == null)) break;
-			if (officeId != null) {
-				if (!other.officeId.equals(officeId)) break;
-			}
-			if ((other.ratingSpecId == null) != (ratingSpecId == null)) break;
-			if (ratingSpecId != null) {
-				if (!other.ratingSpecId.equals(ratingSpecId)) break;
-			}
-			if ((other.unitsId == null) != (unitsId == null)) break;
-			if (unitsId != null) {
-				if (!other.unitsId.equals(unitsId)) break;
-			}
-			if (other.active != active) break;
-			if (other.effectiveDateMillis != effectiveDateMillis) break;
-			if (other.transitionStartDateMillis != transitionStartDateMillis) break;
-			if (other.createDateMillis != createDateMillis) break;
-			if ((other.vdc == null) != (vdc == null)) break;
-			if (other.vdc != null) {
-				if (!other.vdc.equals(vdc)) break;
-			}
-			result = true;
-		} while (false);
+		boolean result = obj == this;
+		if (!result) {
+			do {
+				if (obj == null || obj.getClass() != getClass()) break;
+				AbstractRatingContainer other = (AbstractRatingContainer)obj;
+				if ((other.officeId == null) != (officeId == null)) break;
+				if (officeId != null) {
+					if (!other.officeId.equals(officeId)) break;
+				}
+				if ((other.ratingSpecId == null) != (ratingSpecId == null)) break;
+				if (ratingSpecId != null) {
+					if (!other.ratingSpecId.equals(ratingSpecId)) break;
+				}
+				if ((other.unitsId == null) != (unitsId == null)) break;
+				if (unitsId != null) {
+					if (!other.unitsId.equals(unitsId)) break;
+				}
+				if (other.active != active) break;
+				if (other.effectiveDateMillis != effectiveDateMillis) break;
+				if (other.transitionStartDateMillis != transitionStartDateMillis) break;
+				if (other.createDateMillis != createDateMillis) break;
+				if ((other.vdc == null) != (vdc == null)) break;
+				if (other.vdc != null) {
+					if (!other.vdc.equals(vdc)) break;
+				}
+				result = true;
+			} while (false);
+		}
 		return result;
 	}
 	/* (non-Javadoc)
@@ -104,14 +106,14 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	public int hashCode() {
 		int hashCode = 0
 				+ getClass().getName().hashCode()
-				+ (officeId == null ? 3 : officeId.hashCode())
-				+ (ratingSpecId == null ? 7 : ratingSpecId.hashCode())
-				+ (unitsId == null ? 11 : unitsId.hashCode())
-				+ new Boolean(active).hashCode()
-				+ new Long(effectiveDateMillis).hashCode()
-				+ new Long(transitionStartDateMillis).hashCode()
-				+ new Long(createDateMillis).hashCode()
-				+ (vdc == null ? 13 : vdc.hashCode());
+				+  3 * (officeId == null ? 1 : officeId.hashCode())
+				+  5 * (ratingSpecId == null ? 1 : ratingSpecId.hashCode())
+				+  7 * (unitsId == null ? 1 : unitsId.hashCode())
+				+ 11 * new Boolean(active).hashCode()
+				+ 13 * new Long(effectiveDateMillis).hashCode()
+				+ 17 * new Long(transitionStartDateMillis).hashCode()
+				+ 19 * new Long(createDateMillis).hashCode()
+				+ 23 * (vdc == null ? 1 : vdc.hashCode());
 		return hashCode;
 	}
 	/**

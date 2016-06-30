@@ -1153,12 +1153,7 @@ public class TableRating extends AbstractRating {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof TableRating) {
-			TableRating other = (TableRating)obj;
-			result = getData().equals(other.getData());
-		}
-		return result;
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((TableRating)obj).getData()));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()

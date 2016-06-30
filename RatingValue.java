@@ -260,7 +260,7 @@ public class RatingValue implements Observer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof RatingValue && getData().equals(((RatingValue)obj).getData());
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingValue)obj).getData()));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()

@@ -44,40 +44,42 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		test:
-		do {
-			if (!(obj instanceof TableRatingContainer)) break;
-			TableRatingContainer other = (TableRatingContainer)obj;
-			if (!super.equals(obj)) break;
-			if ((other.values == null) != (values == null)) break;
-			if (values != null) {
-				if (other.values.length != values.length) break;
-				for (int i = 0; i < values.length; ++i) {
-					if (!other.values[i].equals(values[i])) break test;
-				}
-			}
-			if ((other.extensionValues == null) != (extensionValues == null)) break;
-			if (extensionValues != null) {
-				if (other.extensionValues.length != extensionValues.length) break;
-				for (int i = 0; i < extensionValues.length; ++i) {
-					if (!other.extensionValues[i].equals(extensionValues[i])) break test;
-				}
-			}
-			if ((other.inRangeMethod == null) != (inRangeMethod == null)) break;
-			if (inRangeMethod != null) {
-				if (!other.inRangeMethod.equals(inRangeMethod)) break;
-			}
-			if ((other.outRangeLowMethod == null) != (outRangeLowMethod == null)) break;
-			if (outRangeLowMethod != null) {
-				if (!other.outRangeLowMethod.equals(outRangeLowMethod)) break;
-			}
-			if ((other.outRangeHighMethod == null) != (outRangeHighMethod == null)) break;
-			if (outRangeHighMethod != null) {
-				if (!other.outRangeHighMethod.equals(outRangeHighMethod)) break;
-			}
-			result = true;
-		} while(false);
+		boolean result = obj == this;
+		if (!result) {
+			test:
+				do {
+					if (obj == null || obj.getClass() != getClass()) break;
+					if (!super.equals(obj)) break;
+					TableRatingContainer other = (TableRatingContainer)obj;
+					if ((other.values == null) != (values == null)) break;
+					if (values != null) {
+						if (other.values.length != values.length) break;
+						for (int i = 0; i < values.length; ++i) {
+							if (!other.values[i].equals(values[i])) break test;
+						}
+					}
+					if ((other.extensionValues == null) != (extensionValues == null)) break;
+					if (extensionValues != null) {
+						if (other.extensionValues.length != extensionValues.length) break;
+						for (int i = 0; i < extensionValues.length; ++i) {
+							if (!other.extensionValues[i].equals(extensionValues[i])) break test;
+						}
+					}
+					if ((other.inRangeMethod == null) != (inRangeMethod == null)) break;
+					if (inRangeMethod != null) {
+						if (!other.inRangeMethod.equals(inRangeMethod)) break;
+					}
+					if ((other.outRangeLowMethod == null) != (outRangeLowMethod == null)) break;
+					if (outRangeLowMethod != null) {
+						if (!other.outRangeLowMethod.equals(outRangeLowMethod)) break;
+					}
+					if ((other.outRangeHighMethod == null) != (outRangeHighMethod == null)) break;
+					if (outRangeHighMethod != null) {
+						if (!other.outRangeHighMethod.equals(outRangeHighMethod)) break;
+					}
+					result = true;
+				} while(false);
+		}
 		return result;
 	}
 
@@ -88,15 +90,15 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode() 
 				+ super.hashCode()
-				+ (inRangeMethod == null ? 3 : inRangeMethod.hashCode())
-				+ (outRangeLowMethod == null ? 7 : outRangeLowMethod.hashCode())
-				+ (outRangeHighMethod == null ? 11 : outRangeHighMethod.hashCode());
+				+ 3 * (inRangeMethod == null ? 1 : inRangeMethod.hashCode())
+				+ 5 * (outRangeLowMethod == null ? 1 : outRangeLowMethod.hashCode())
+				+ 7 * (outRangeHighMethod == null ? 1 : outRangeHighMethod.hashCode());
 		if (values == null) {
-			hashCode += 13;
+			hashCode += 11;
 		}
 		else {
 			for (int i = 0; i < values.length; ++i) {
-				hashCode += (values[i] == null ? i+1 : values[i].hashCode());
+				hashCode += 13 * (values[i] == null ? (i+1) : values[i].hashCode());
 			}
 		}
 		if (extensionValues == null) {
@@ -104,7 +106,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		}
 		else {
 			for (int i = 0; i < extensionValues.length; ++i) {
-				hashCode += (extensionValues[i] == null ? 3*(i+1) : extensionValues[i].hashCode());
+				hashCode += 19 * (extensionValues[i] == null ? (i+1) : extensionValues[i].hashCode());
 			}
 		}
 		return hashCode;

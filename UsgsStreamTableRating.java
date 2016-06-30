@@ -1099,12 +1099,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		if (obj instanceof UsgsStreamTableRating) {
-			UsgsStreamTableRating other = (UsgsStreamTableRating)obj;
-			result = getData().equals(other.getData());
-		}
-		return result;
+		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((UsgsStreamTableRating)obj).getData()));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()

@@ -28,17 +28,19 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		do {
-			if (!(obj instanceof ExpressionRatingContainer)) break;
-			ExpressionRatingContainer other = (ExpressionRatingContainer)obj;
-			if (!super.equals(obj)) break;
-			if ((other.expression == null) != (expression == null)) break;
-			if (expression != null) {
-				if (!other.expression.equals(expression)) break;
-			}
-			result = true;
-		} while(false);
+		boolean result = obj == this;
+		if (!result) {
+			do {
+				if (obj == null || obj.getClass() != getClass()) break;
+				ExpressionRatingContainer other = (ExpressionRatingContainer)obj;
+				if (!super.equals(obj)) break;
+				if ((other.expression == null) != (expression == null)) break;
+				if (expression != null) {
+					if (!other.expression.equals(expression)) break;
+				}
+				result = true;
+			} while(false);
+		}
 		return result;
 	}
 

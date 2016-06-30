@@ -35,22 +35,24 @@ public class RatingValueContainer {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = false;
-		do {
-			if (!(obj instanceof RatingValueContainer)) break;
-			RatingValueContainer other = (RatingValueContainer)obj;
-			if (other.indValue != indValue) break;
-			if (other.depValue != depValue) break;
-			if ((other.note == null) != (note == null)) break;
-			if (note != null) {
-				if (!other.note.equals(note)) break;
-			}
-			if ((other.depTable == null) != (depTable == null)) break;
-			if (depTable != null) {
-				if (!other.depTable.equals(depTable)) break;
-			}
-			result = true;
-		} while(false);
+		boolean result = obj == this;
+		if (!result) {
+			do {
+				if (obj == null || obj.getClass() != getClass()) break;
+				RatingValueContainer other = (RatingValueContainer)obj;
+				if (other.indValue != indValue) break;
+				if (other.depValue != depValue) break;
+				if ((other.note == null) != (note == null)) break;
+				if (note != null) {
+					if (!other.note.equals(note)) break;
+				}
+				if ((other.depTable == null) != (depTable == null)) break;
+				if (depTable != null) {
+					if (!other.depTable.equals(depTable)) break;
+				}
+				result = true;
+			} while(false);
+		}
 		return result;
 	}
 	/* (non-Javadoc)
@@ -59,10 +61,10 @@ public class RatingValueContainer {
 	@Override
 	public int hashCode() {
 		return getClass().getName().hashCode() 
-				+ new Double(indValue).hashCode()
-				+ new Double(depValue).hashCode()
-				+ (note == null ? 0 : note.hashCode())
-				+ (depTable == null ? 0 : depTable.hashCode());
+				+  3 * new Double(indValue).hashCode()
+				+  5 * new Double(depValue).hashCode()
+				+  7 * (note == null ? 1 : note.hashCode())
+				+ 11 * (depTable == null ? 1 : depTable.hashCode());
 	}
 	/**
 	 * Fills a specified RatingValueContainer object with information from this one
