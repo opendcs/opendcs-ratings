@@ -260,8 +260,84 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			Long startTime, 
 			Long endTime)
 			throws RatingException {
+		return fromDatabase(conn, officeId, ratingSpecId, startTime, endTime, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabaseEffective(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		return fromDatabase(conn, officeId, ratingSpecId, startTime, endTime, true);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
+	 * @param dataTimes Determines how startTime and endTime are interpreted.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>false</td>
+	 *            <td>The time window specifies the extent of when the ratings became effective</td>
+	 *            <td>true</td>
+	 *            <td>Time time window specifies the time extent of data rate</td>
+	 *          </tr>
+	 *        </table>
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime,
+			boolean dataTimes)
+			throws RatingException {
 		try {
-			String sql = 
+			String sql = null;
+			if (dataTimes) 
+				sql =
+					"declare " +
+					   "l_millis_start integer := :1;" +
+					   "l_millis_end   integer := :2;" +
+					   "l_date_start   date;" +
+					   "l_date_end     date;" +
+					"begin " +
+					   "if l_millis_start is not null then " +
+					      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+					   "end if;" +
+					   "if l_millis_end is not null then "   +
+					      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+					   "end if;" +
+					   "cwms_rating.retrieve_eff_ratings_xml3("  +
+					      "p_ratings        => :3,"    +
+					      "p_spec_id_mask   => :4,"    +
+					      "p_start_date     => l_date_start," +
+					      "p_end_date       => l_date_end,"   +
+					      "p_time_zone      => 'UTC'," +
+					      "p_office_id_mask => :5);"   +
+					"end;";
+			else
+				sql = 
 					"declare " +
 					   "l_millis_start         integer := :1;" +
 					   "l_millis_end           integer := :2;" +
@@ -322,6 +398,21 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param ratingSpecId The rating specification identifier
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String ratingSpecId) 
+			throws RatingException {
+				
+		return fromDatabase(conn, null, ratingSpecId, null, null);
+				
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
 	 * @return The new RatingSet object
@@ -356,16 +447,19 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public static RatingSet fromDatabaseEffective(
 			Connection conn, 
-			String ratingSpecId) 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
 			throws RatingException {
-				
-		return fromDatabase(conn, null, ratingSpecId, null, null);
-				
+		
+		return fromDatabaseEffective(conn, null, ratingSpecId, startTime, endTime);
 	}
 	/**
 	 * Public Constructor - sets rating specification only
