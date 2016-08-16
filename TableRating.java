@@ -321,7 +321,6 @@ public class TableRating extends AbstractRating {
 		double mid_ind_val;
 		RatingMethod extrap_method = null; 
 		double dep_val;
-//		System.out.println("rate : ind_val = " + ind_val);
 		//--------------------------------------------------- //
 		// find the interpolation/extrapolation value indices //
 		//--------------------------------------------------- //
@@ -353,8 +352,8 @@ public class TableRating extends AbstractRating {
 					mid_ind_val = effectiveValues[mid].getIndValue();
 					if (gt(ind_val, mid_ind_val)) hi = mid; else lo = mid;
 				}
-				}
 			}
+		}
 		else {
 			throw new RatingException("Table does not monotonically increase or decrease");
 		}
@@ -497,22 +496,48 @@ public class TableRating extends AbstractRating {
 		//-----------------------------------//
 		double lo_ind_val = effectiveValues[lo].getIndValue();
 		double hi_ind_val = effectiveValues[hi].getIndValue();
+		if (p_offset == 0) {
+			//----------------------------------------------------------//
+			// use specific rating (prevent interpolation) if ind value //
+			// matches the ind value of one of the bounding ratings     //
+			//----------------------------------------------------------//
+			if (eq(ind_val, lo_ind_val)) {
+				if (effectiveValues[lo].hasDepValue()) {
+					dep_val = effectiveValues[lo].getDepValue();
+					dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]);
+				}
+				else {
+					int count = pIndVals.length;
+					dep_val = effectiveValues[lo].getDepValues().rate(
+					Arrays.copyOfRange(pIndVals,    1, count),
+					Arrays.copyOfRange(dataUnits,   1, count),
+					Arrays.copyOfRange(ratingUnits, 1, count),
+					0);
+				}
+//				System.out.println("rate : dep_val 15 = " + dep_val);
+				return dep_val;
+			}
+			else if (eq(ind_val, hi_ind_val)) {
+				if (effectiveValues[hi].hasDepValue()) {
+					dep_val = effectiveValues[hi].getDepValue();
+					dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]);
+				}
+				else {
+					int count = pIndVals.length;
+					dep_val = effectiveValues[hi].getDepValues().rate(
+					Arrays.copyOfRange(pIndVals,    1, count),
+					Arrays.copyOfRange(dataUnits,   1, count),
+					Arrays.copyOfRange(ratingUnits, 1, count),
+					0);
+				}
+//				System.out.println("rate : dep_val 16 = " + dep_val);
+				return dep_val;
+			}
+		}
 		double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 		double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 		if (lo_dep_val == UNDEFINED_DOUBLE || hi_dep_val == UNDEFINED_DOUBLE) {
 			return UNDEFINED_DOUBLE;
-		}
-		if (eq(ind_val, lo_ind_val)) {
-			dep_val = lo_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 15 = " + dep_val);
-			return dep_val;
-		}
-		if (eq(ind_val, hi_ind_val)) {
-			dep_val = hi_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 16 = " + dep_val);
-			return dep_val;
 		}
 		RatingMethod method = (out_range_low || out_range_high) ? extrap_method : inRangeMethod;
 		switch (method) {
