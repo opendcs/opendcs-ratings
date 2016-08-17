@@ -320,183 +320,177 @@ public class TableRating extends AbstractRating {
 		int mid;
 		double mid_ind_val;
 		RatingMethod extrap_method = null; 
-		double dep_val;
-		//--------------------------------------------------- //
-		// find the interpolation/extrapolation value indices //
-		//--------------------------------------------------- //
-		if (props.hasIncreasing() || values.length == 1) {
-			if (lt(ind_val, effectiveValues[lo].getIndValue())) {
-				out_range_low = true;
+		double dep_val = UNDEFINED_DOUBLE;
+		try {
+			//--------------------------------------------------- //
+			// find the interpolation/extrapolation value indices //
+			//--------------------------------------------------- //
+			if (props.hasIncreasing() || values.length == 1) {
+				if (lt(ind_val, effectiveValues[lo].getIndValue())) {
+					out_range_low = true;
+				}
+				else if (gt(ind_val, effectiveValues[hi].getIndValue())) {
+					out_range_high = true;
+				}
+				else {
+					while (hi - lo > 1) {
+						mid = (lo + hi) / 2;
+						mid_ind_val = effectiveValues[mid].getIndValue();
+						if (lt(ind_val, mid_ind_val)) hi = mid; else lo = mid;
+					}
+				}
 			}
-			else if (gt(ind_val, effectiveValues[hi].getIndValue())) {
-				out_range_high = true;
+			else if (props.hasDecreasing()) {
+				if (gt(ind_val, effectiveValues[lo].getIndValue())) {
+					out_range_low = true;
+				}
+				else if (lt(ind_val, effectiveValues[hi].getIndValue())) {
+					out_range_high = true;
+				}
+				else {
+					while (hi - lo > 1) {
+						mid = (lo + hi) / 2;
+						mid_ind_val = effectiveValues[mid].getIndValue();
+						if (gt(ind_val, mid_ind_val)) hi = mid; else lo = mid;
+					}
+				}
 			}
 			else {
-				while (hi - lo > 1) {
-					mid = (lo + hi) / 2;
-					mid_ind_val = effectiveValues[mid].getIndValue();
-					if (lt(ind_val, mid_ind_val)) hi = mid; else lo = mid;
+				throw new RatingException("Table does not monotonically increase or decrease");
+			}
+			//-------------------------//
+			// handle out of range low //
+			//-------------------------//
+			if (out_range_low) {
+				switch (outRangeLowMethod) {
+				case NULL:
+					dep_val = UNDEFINED_DOUBLE;
+//					System.out.println("rate : dep_val 1 = " + dep_val);
+					return dep_val;
+				case ERROR:
+					throw new RatingOutOfRangeException(OUT_OF_RANGE_LOW);
+				case LINEAR:
+				case LOGARITHMIC:
+				case LIN_LOG:
+				case LOG_LIN:
+					extrap_method = outRangeLowMethod;
+					break;
+				case PREVIOUS:
+					throw new RatingException("No previous value in table.");
+				case NEXT:
+				case NEAREST:
+				case CLOSEST:
+					if (effectiveValues[0].hasDepValue()) {
+						dep_val = effectiveValues[0].getDepValue();
+//						System.out.println("rate : dep_val 2 = " + dep_val);
+						return dep_val;
+					}
+					else {
+						dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+//						System.out.println("rate : dep_val 3 = " + dep_val);
+						return dep_val;
+					}
+				case LOWER:
+					if (props.hasIncreasing()) throw new RatingException("No lower value in table.");
+					if (effectiveValues[0].hasDepValue()) {
+						dep_val = effectiveValues[0].getDepValue();
+//						System.out.println("rate : dep_val 4 = " + dep_val);
+						return dep_val;
+					}
+					else {
+						dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+//						System.out.println("rate : dep_val 5 = " + dep_val);
+						return dep_val;
+					}
+				case HIGHER:
+					if (props.hasDecreasing()) throw new RatingException("No higher value in table.");
+					if (effectiveValues[0].hasDepValue()) {
+						dep_val = effectiveValues[0].getDepValue();
+//						System.out.println("rate : dep_val 6 = " + dep_val);
+						return dep_val;
+					}
+					else {
+						dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+//						System.out.println("rate : dep_val 7 = " + dep_val);
+						return dep_val;
+					}
+				default:
+					throw new RatingException(
+							"Unexpected behavior specified : "
+									+ outRangeLowMethod
+									+ " : "
+									+ outRangeLowMethod.description());
 				}
 			}
-		}
-		else if (props.hasDecreasing()) {
-			if (gt(ind_val, effectiveValues[lo].getIndValue())) {
-				out_range_low = true;
+			//--------------------------//
+			// handle out of range high //
+			//--------------------------//
+			else if (out_range_high) {
+				switch (outRangeHighMethod) {
+				case NULL:
+					dep_val = UNDEFINED_DOUBLE;
+//					System.out.println("rate : dep_val 8 = " + dep_val);
+					return dep_val;
+				case ERROR:
+					throw new RatingOutOfRangeException(OUT_OF_RANGE_HIGH);
+				case LINEAR:
+				case LOGARITHMIC:
+				case LIN_LOG:
+				case LOG_LIN:
+					extrap_method = outRangeHighMethod;
+					break;
+				case NEXT:
+					throw new RatingException("No next value in table.");
+				case PREVIOUS:
+				case NEAREST:
+				case CLOSEST:
+					if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
+						dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
+//						System.out.println("rate : dep_val 9 = " + dep_val);
+						return dep_val;
+					}
+					else {
+						dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+//						System.out.println("rate : dep_val 10 = " + dep_val);
+						return dep_val;
+					}
+				case LOWER:
+					if (props.hasDecreasing()) throw new RatingException("No lower value in table.");
+					if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
+						dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
+//						System.out.println("rate : dep_val 11 = " + dep_val);
+						return dep_val;
+					}
+					else {
+						dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+//						System.out.println("rate : dep_val 12 = " + dep_val);
+						return dep_val;
+					}
+				case HIGHER:
+					if (props.hasIncreasing()) throw new RatingException("No higher value in table.");
+					if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
+						dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
+//						System.out.println("rate : dep_val 13 = " + dep_val);
+						return dep_val;
+					}
+					else {
+						dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+//						System.out.println("rate : dep_val 14 = " + dep_val);
+						return dep_val;
+					}
+				default:
+					throw new RatingException(
+							"Unexpected behavior specified : "
+									+ outRangeHighMethod
+									+ " : "
+									+ outRangeHighMethod.description());
+				}
 			}
-			else if (lt(ind_val, effectiveValues[hi].getIndValue())) {
-				out_range_high = true;
-			}
-			else {
-				while (hi - lo > 1) {
-					mid = (lo + hi) / 2;
-					mid_ind_val = effectiveValues[mid].getIndValue();
-					if (gt(ind_val, mid_ind_val)) hi = mid; else lo = mid;
-				}
-			}
-		}
-		else {
-			throw new RatingException("Table does not monotonically increase or decrease");
-		}
-		//-------------------------//
-		// handle out of range low //
-		//-------------------------//
-		if (out_range_low) {
-			switch (outRangeLowMethod) {
-			case NULL:
-				dep_val = UNDEFINED_DOUBLE;
-//				System.out.println("rate : dep_val 1 = " + dep_val);
-				return dep_val;
-			case ERROR:
-				throw new RatingOutOfRangeException(OUT_OF_RANGE_LOW);
-			case LINEAR:
-			case LOGARITHMIC:
-			case LIN_LOG:
-			case LOG_LIN:
-				extrap_method = outRangeLowMethod;
-				break;
-			case PREVIOUS:
-				throw new RatingException("No previous value in table.");
-			case NEXT:
-			case NEAREST:
-			case CLOSEST:
-				if (effectiveValues[0].hasDepValue()) {
-					dep_val = effectiveValues[0].getDepValue();
-					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//					System.out.println("rate : dep_val 2 = " + dep_val);
-					return dep_val;
-				}
-				else {
-					dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//					System.out.println("rate : dep_val 3 = " + dep_val);
-					return dep_val;
-				}
-			case LOWER:
-				if (props.hasIncreasing()) throw new RatingException("No lower value in table.");
-				if (effectiveValues[0].hasDepValue()) {
-					dep_val = effectiveValues[0].getDepValue();
-					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//					System.out.println("rate : dep_val 4 = " + dep_val);
-					return dep_val;
-				}
-				else {
-					dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//					System.out.println("rate : dep_val 5 = " + dep_val);
-					return dep_val;
-				}
-			case HIGHER:
-				if (props.hasDecreasing()) throw new RatingException("No higher value in table.");
-				if (effectiveValues[0].hasDepValue()) {
-					dep_val = effectiveValues[0].getDepValue();
-					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//					System.out.println("rate : dep_val 6 = " + dep_val);
-					return dep_val;
-				}
-				else {
-					dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//					System.out.println("rate : dep_val 7 = " + dep_val);
-					return dep_val;
-				}
-			default:
-				throw new RatingException(
-						"Unexpected behavior specified : "
-								+ outRangeLowMethod
-								+ " : "
-								+ outRangeLowMethod.description());
-			}
-		}
-		//--------------------------//
-		// handle out of range high //
-		//--------------------------//
-		else if (out_range_high) {
-			switch (outRangeHighMethod) {
-			case NULL:
-				dep_val = UNDEFINED_DOUBLE;
-//				System.out.println("rate : dep_val 8 = " + dep_val);
-				return dep_val;
-			case ERROR:
-				throw new RatingOutOfRangeException(OUT_OF_RANGE_HIGH);
-			case LINEAR:
-			case LOGARITHMIC:
-			case LIN_LOG:
-			case LOG_LIN:
-				extrap_method = outRangeHighMethod;
-				break;
-			case NEXT:
-				throw new RatingException("No next value in table.");
-			case PREVIOUS:
-			case NEAREST:
-			case CLOSEST:
-				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
-					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//					System.out.println("rate : dep_val 9 = " + dep_val);
-					return dep_val;
-				}
-				else {
-					dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//					System.out.println("rate : dep_val 10 = " + dep_val);
-					return dep_val;
-				}
-			case LOWER:
-				if (props.hasDecreasing()) throw new RatingException("No lower value in table.");
-				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
-					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//					System.out.println("rate : dep_val 11 = " + dep_val);
-					return dep_val;
-				}
-				else {
-					dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//					System.out.println("rate : dep_val 12 = " + dep_val);
-					return dep_val;
-				}
-			case HIGHER:
-				if (props.hasIncreasing()) throw new RatingException("No higher value in table.");
-				if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
-					dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
-					if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//					System.out.println("rate : dep_val 13 = " + dep_val);
-					return dep_val;
-				}
-				else {
-					dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//					System.out.println("rate : dep_val 14 = " + dep_val);
-					return dep_val;
-				}
-			default:
-				throw new RatingException(
-						"Unexpected behavior specified : "
-								+ outRangeHighMethod
-								+ " : "
-								+ outRangeHighMethod.description());
-			}
-		}
-		//-----------------------------------//
-		// handle in range and extrapolation //
-		//-----------------------------------//
-		double lo_ind_val = effectiveValues[lo].getIndValue();
-		double hi_ind_val = effectiveValues[hi].getIndValue();
-		if (p_offset == 0) {
+			//-----------------------------------//
+			// handle in-range and extrapolation //
+			//-----------------------------------//
+			double lo_ind_val = effectiveValues[lo].getIndValue();
+			double hi_ind_val = effectiveValues[hi].getIndValue();
 			//----------------------------------------------------------//
 			// use specific rating (prevent interpolation) if ind value //
 			// matches the ind value of one of the bounding ratings     //
@@ -504,15 +498,9 @@ public class TableRating extends AbstractRating {
 			if (eq(ind_val, lo_ind_val)) {
 				if (effectiveValues[lo].hasDepValue()) {
 					dep_val = effectiveValues[lo].getDepValue();
-					dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]);
 				}
 				else {
-					int count = pIndVals.length;
-					dep_val = effectiveValues[lo].getDepValues().rate(
-					Arrays.copyOfRange(pIndVals,    1, count),
-					Arrays.copyOfRange(dataUnits,   1, count),
-					Arrays.copyOfRange(ratingUnits, 1, count),
-					0);
+					dep_val = effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 //				System.out.println("rate : dep_val 15 = " + dep_val);
 				return dep_val;
@@ -520,106 +508,102 @@ public class TableRating extends AbstractRating {
 			else if (eq(ind_val, hi_ind_val)) {
 				if (effectiveValues[hi].hasDepValue()) {
 					dep_val = effectiveValues[hi].getDepValue();
-					dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]);
 				}
 				else {
-					int count = pIndVals.length;
-					dep_val = effectiveValues[hi].getDepValues().rate(
-					Arrays.copyOfRange(pIndVals,    1, count),
-					Arrays.copyOfRange(dataUnits,   1, count),
-					Arrays.copyOfRange(ratingUnits, 1, count),
-					0);
+					dep_val = effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 				}
 //				System.out.println("rate : dep_val 16 = " + dep_val);
 				return dep_val;
 			}
+			//-----------------------------------------------------------------//
+			// can't use specific rating, use in-range behavior or extrapolate //
+			//-----------------------------------------------------------------//
+			double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+			double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
+			if (lo_dep_val == UNDEFINED_DOUBLE || hi_dep_val == UNDEFINED_DOUBLE) {
+				return UNDEFINED_DOUBLE;
+			}
+			RatingMethod method = (out_range_low || out_range_high) ? extrap_method : inRangeMethod;
+			switch (method) {
+			case NULL:
+				return UNDEFINED_DOUBLE;
+			case ERROR:
+				throw new RatingException("No such value in table.");
+			case PREVIOUS:
+				dep_val = lo_dep_val;
+//				System.out.println("rate : dep_val 17 = " + dep_val);
+				return dep_val;
+			case NEXT:
+				dep_val = hi_dep_val;
+//				System.out.println("rate : dep_val 18 = " + dep_val);
+				return dep_val;
+			case LOWER:
+				dep_val = props.hasIncreasing() ? lo_dep_val : hi_dep_val;
+//				System.out.println("rate : dep_val 19 = " + dep_val);
+				return dep_val;
+			case HIGHER:
+				dep_val = props.hasDecreasing() ? lo_dep_val : hi_dep_val;
+//				System.out.println("rate : dep_val 20 = " + dep_val);
+				return dep_val;
+			case CLOSEST:
+				dep_val = lt(Math.abs(ind_val - lo_ind_val), Math.abs(hi_ind_val - ind_val)) ? lo_dep_val : hi_dep_val;
+//				System.out.println("rate : dep_val 21 = " + dep_val);
+				return dep_val;
+			default:
+				break;
+			}
+			//---------------------------//
+			// interpolate / extrapolate //
+			//---------------------------//
+			boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
+			boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
+			double x  = ind_val;
+			double x1 = lo_ind_val;
+			double x2 = hi_ind_val;
+			double y1 = lo_dep_val;
+			double y2 = hi_dep_val;
+			if (ind_log) {
+				x  = Math.log10(x);
+				x1 = Math.log10(x1);
+				x2 = Math.log10(x2);
+				if (Double.isNaN(x) || Double.isInfinite(x)   
+						|| Double.isNaN(x1) || Double.isInfinite(x1) 
+						|| Double.isNaN(x2) || Double.isInfinite(x2))  {
+					//-------------------------------------------------//
+					// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
+					//-------------------------------------------------//
+					x = ind_val;
+					x1 = lo_ind_val;
+					x2 = hi_ind_val;
+					dep_log = false;
+				}
+			}
+			if (dep_log) {
+				y1 = Math.log10(y1);
+				y2 = Math.log10(y2);
+				if (Double.isNaN(y1) || Double.isInfinite(y1) || Double.isNaN(y2) || Double.isInfinite(y2))  {
+					//-------------------------------------------------//
+					// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
+					//-------------------------------------------------//
+					x = ind_val;
+					x1 = lo_ind_val;
+					x2 = hi_ind_val;
+					y1 = lo_dep_val;
+					y2 = hi_dep_val;
+					dep_log = false;
+				}
+			}
+			double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
+			if (dep_log) y = Math.pow(10, y);
+			dep_val = y;
+//			System.out.println("rate : dep_val 22 = " + dep_val);
+			return dep_val;
 		}
-		double lo_dep_val = effectiveValues[lo].hasDepValue() ? effectiveValues[lo].getDepValue() : effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-		double hi_dep_val = effectiveValues[hi].hasDepValue() ? effectiveValues[hi].getDepValue() : effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-		if (lo_dep_val == UNDEFINED_DOUBLE || hi_dep_val == UNDEFINED_DOUBLE) {
-			return UNDEFINED_DOUBLE;
-		}
-		RatingMethod method = (out_range_low || out_range_high) ? extrap_method : inRangeMethod;
-		switch (method) {
-		case NULL:
-			return UNDEFINED_DOUBLE;
-		case ERROR:
-			throw new RatingException("No such value in table.");
-		case PREVIOUS:
-			dep_val = lo_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 17 = " + dep_val);
-			return dep_val;
-		case NEXT:
-			dep_val = hi_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 18 = " + dep_val);
-			return dep_val;
-		case LOWER:
-			dep_val = props.hasIncreasing() ? lo_dep_val : hi_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 19 = " + dep_val);
-			return dep_val;
-		case HIGHER:
-			dep_val = props.hasDecreasing() ? lo_dep_val : hi_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 20 = " + dep_val);
-			return dep_val;
-		case CLOSEST:
-			dep_val = lt(Math.abs(ind_val - lo_ind_val), Math.abs(hi_ind_val - ind_val)) ? lo_dep_val : hi_dep_val;
-			if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//			System.out.println("rate : dep_val 21 = " + dep_val);
-			return dep_val;
-		default:
-			break;
-		}
-		//---------------------------//
-		// interpolate / extrapolate //
-		//---------------------------//
-		boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
-		boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
-		double x  = ind_val;
-		double x1 = lo_ind_val;
-		double x2 = hi_ind_val;
-		double y1 = lo_dep_val;
-		double y2 = hi_dep_val;
-		if (ind_log) {
-			x  = Math.log10(x);
-			x1 = Math.log10(x1);
-			x2 = Math.log10(x2);
-			if (Double.isNaN(x) || Double.isInfinite(x)   
-					|| Double.isNaN(x1) || Double.isInfinite(x1) 
-					|| Double.isNaN(x2) || Double.isInfinite(x2))  {
-				//-------------------------------------------------//
-				// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
-				//-------------------------------------------------//
-				x = ind_val;
-				x1 = lo_ind_val;
-				x2 = hi_ind_val;
-				dep_log = false;
+		finally {
+			if (p_offset == 0 && dep_val != UNDEFINED_DOUBLE) {
+				dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
 			}
 		}
-		if (dep_log) {
-			y1 = Math.log10(y1);
-			y2 = Math.log10(y2);
-			if (Double.isNaN(y1) || Double.isInfinite(y1) || Double.isNaN(y2) || Double.isInfinite(y2))  {
-				//-------------------------------------------------//
-				// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
-				//-------------------------------------------------//
-				x = ind_val;
-				x1 = lo_ind_val;
-				x2 = hi_ind_val;
-				y1 = lo_dep_val;
-				y2 = hi_dep_val;
-				dep_log = false;
-			}
-		}
-		double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
-		if (dep_log) y = Math.pow(10, y);
-		dep_val = y;
-		if (p_offset == 0) dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
-//		System.out.println("rate : dep_val 22 = " + dep_val);
-		return dep_val;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double)
