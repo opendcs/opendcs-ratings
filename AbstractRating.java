@@ -3,44 +3,35 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
+
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
+import java.util.Arrays;
+import java.util.Observer;
+import java.util.logging.Logger;
+
 import hec.data.DataSetException;
 import hec.data.IVerticalDatum;
-import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingSpecification;
-import hec.heclib.util.HecTime;
 import hec.hecmath.TimeSeriesMath;
-import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.io.VerticalDatumContainer;
 import hec.lang.Observable;
-import hec.util.TextUtil;
-
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.Types;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Observer;
-import java.util.TimeZone;
-import java.util.logging.Logger;
-
 import rma.lang.Modifiable;
 
 /**
@@ -198,6 +189,23 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
 		}
+	}
+	public static boolean compatibleUnits(String[] units1, String[] units2) {
+		boolean compatible = false;
+		comparison:
+		do {
+			if (units2.length != units1.length) break;
+			for (int i = 0; i < units1.length; ++i) {
+				if (!Units.canConvertBetweenUnits(units1[i], units2[i])) break comparison;
+			}
+			compatible = true;
+		} while(false);
+		return compatible;
+	}
+	public static boolean compatibleUnits(String units1, String units2) {
+		return compatibleUnits(
+				split(replaceAll(units1, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L"),
+				split(replaceAll(units2, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L"));
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#addObserver(java.util.Observer)

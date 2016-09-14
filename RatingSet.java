@@ -578,8 +578,11 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			if (!TextUtil.equals(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
 				throw new RatingException("Cannot add rating with different rating specification.");
 			}
-			if (!TextUtil.equals(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
-				throw new RatingException("Cannot add rating with different units.");
+			if (!AbstractRating.compatibleUnits(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
+				throw new RatingException(String.format(
+						"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
+						rating.getRatingUnitsId(),
+						ratings.firstEntry().getValue().getRatingUnitsId()));
 			}
 		}
 		if (rating instanceof UsgsStreamTableRating) {
@@ -638,16 +641,22 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			if (unitsId == null) {
 				unitsId = rating.getRatingUnitsId();
 			}
-			else if (!rating.getRatingUnitsId().equals(unitsId)) {
-				throw new RatingException("Ratings have inconsistent units.");
+			else if (!AbstractRating.compatibleUnits(unitsId, rating.getRatingUnitsId())) {
+				throw new RatingException(String.format(
+						"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
+						rating.getRatingUnitsId(),
+						unitsId));
 			}
 		}
 		if (this.ratings.size() > 0) {
 			if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
 				throw new RatingException("Cannot add ratings with different rating specification.");
 			}
-			if (!this.ratings.firstEntry().getValue().getRatingUnitsId().equals(unitsId)) {
-				throw new RatingException("Cannot add ratings with different units.");
+			if (!AbstractRating.compatibleUnits(unitsId, this.ratings.firstEntry().getValue().getRatingUnitsId())) {
+				throw new RatingException(String.format(
+						"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
+						unitsId,
+						this.ratings.firstEntry().getValue().getRatingUnitsId()));
 			}
 		}
 		for (AbstractRating rating : ratings) {
@@ -858,8 +867,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {
-		if (activeRatings.size() == 0) {
+		int activeRatingCount = activeRatings.size();
+		if (activeRatingCount == 0) {
 			throw new RatingException("No active ratings.");
+		}
+		else if (activeRatingCount > 1) {
+			AbstractRating firstRating = activeRatings.firstEntry().getValue();
+			if (firstRating.getDataUnitsId() == null) {
+				String firstRatingUnits = firstRating.getRatingUnitsId();
+				for (AbstractRating rating : activeRatings.values()) {
+					if (!rating.getRatingUnitsId().equals(firstRatingUnits)) {
+						throw new RatingException("Data units must be specified when rating set has multiple rating units.");
+					}
+				}
+			}
 		}
 		if (valueSets.length != valueTimes.length) {
 			throw new RatingException("Values and times have different lengths");
