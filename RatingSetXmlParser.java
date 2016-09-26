@@ -505,8 +505,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 								shiftInfo.get(shiftPointSetCount-1).createDate = hectime.getTimeInMillis();
 							}
 							else if (parts[3].equals(TRANSITION_START_DATE_STR)) {
-								hectime.set(data);
-								shiftInfo.get(shiftPointSetCount-1).transitionStartDate = hectime.getTimeInMillis();
+								if (data.length() > 0) {
+									hectime.set(data);
+									shiftInfo.get(shiftPointSetCount-1).transitionStartDate = hectime.getTimeInMillis();
+								}
 							}
 							else if (parts[3].equals(ACTIVE_STR)) {
 								hectime.set(data);
