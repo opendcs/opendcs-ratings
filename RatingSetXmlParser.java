@@ -271,7 +271,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			parser.parse(is);
 		}
 		catch (Throwable t) {
-			if (parser.getRatingSetContainer() == null) {
+			if (parser != null && parser.getRatingSetContainer() == null) {
 				throw new RatingObjectDoesNotExistException(t);
 			}
 			else {
