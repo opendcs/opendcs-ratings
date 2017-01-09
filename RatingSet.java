@@ -1794,7 +1794,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		if (activeRatings.size() == 0) {
 			throw new RatingException("No active ratings.");
 		}
-		return activeRatings.floorEntry(ratingTime).getValue().getRatingExtents();
+                
+		Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
+        
+        if (rating == null)
+        {
+            rating = activeRatings.ceilingEntry(ratingTime);
+        }
+        
+        return rating.getValue().getRatingExtents();
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getEffectiveDates()
