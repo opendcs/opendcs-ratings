@@ -196,6 +196,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 		do {
 			if (units2.length != units1.length) break;
 			for (int i = 0; i < units1.length; ++i) {
+				if(units1[i].equals(units2[i])) continue;
 				if (!Units.canConvertBetweenUnits(units1[i], units2[i])) break comparison;
 			}
 			compatible = true;

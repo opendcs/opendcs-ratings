@@ -569,13 +569,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 		Long effectiveDate = rating.getEffectiveDate();
 		if(ratings.containsKey(effectiveDate)) {
-			throw new RatingException("Rating with same effective date already exists; cannot add rating");
+			SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
+			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+			logger.warning("Replacing existing rating with effective date of " + sdf.format(effectiveDate) + " UTC");
 		}
 		if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
 			throw new RatingException("Number of independent parameters does not match rating specification");
 		}
 		if (ratings.size() > 0) {
-			if (!TextUtil.equals(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
+			if (!TextUtil.equalsIgnoreCase(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
 				throw new RatingException("Cannot add rating with different rating specification.");
 			}
 			if (!AbstractRating.compatibleUnits(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
