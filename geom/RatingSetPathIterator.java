@@ -17,6 +17,10 @@ import hec.data.RatingException;
 public class RatingSetPathIterator implements PathIterator
 {
 
+    public enum IndependantVariable {
+        X,Y
+    }
+    private final IndependantVariable mIndependantVariable;
     private final double mResolution;
     private boolean isDone = false;
     private final List<RangeValue> mRangeValues;
@@ -33,8 +37,11 @@ public class RatingSetPathIterator implements PathIterator
      * @param ratingSet
      * @param date
      * @param resolution
+     * @param independantVariable defines if the rating provider will put the rated in the x or y position.
+     *          if IndependentVariable equals Y, then the point returned will be   (RatingProvider.rateOne(Y), Y) and the Y value will be determined from the currently iterated RangeValue.
+     *          if IndependentVariable equals X, then the point returned will be   (X, RatingProvider.rateOne(X)) and the X value will be determined from the currently iterated RangeValue.
      */
-    public RatingSetPathIterator(List<RangeValue> rangeValues, RatingProvider ratingProvider, double resolution)
+    public RatingSetPathIterator(List<RangeValue> rangeValues, RatingProvider ratingProvider, double resolution,IndependantVariable independantVariable)
     {
         mResolution = resolution;
         mRangeValues = rangeValues;
@@ -42,6 +49,7 @@ public class RatingSetPathIterator implements PathIterator
         mRangeIndex = 0;
         RangeValue rangeValue = rangeValues.get(mRangeIndex);
         currentRangeValue = rangeValue.minValue;
+        mIndependantVariable = independantVariable;
     }
 
     @Override
@@ -81,8 +89,15 @@ public class RatingSetPathIterator implements PathIterator
         try
         {
             double rateOne = mRatingProvider.rateOne(currentRangeValue);
-            coords[0] = (float) rateOne;
-            coords[1] = (float) currentRangeValue;
+            if(IndependantVariable.X.equals(mIndependantVariable)) {
+                coords[0] = (float) currentRangeValue;
+                coords[1] = (float) rateOne;
+            }
+            else {
+                coords[0] = (float) rateOne;
+                coords[1] = (float) currentRangeValue;
+            }
+            
             return mRangeValues.get(mRangeIndex).getMinValue() == currentRangeValue ? SEG_MOVETO : SEG_LINETO;
         }
         catch (RatingException ex)
