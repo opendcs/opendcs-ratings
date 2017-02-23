@@ -30,8 +30,11 @@ import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
+import hec.lang.Reflection;
 import hec.util.TextUtil;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -381,13 +384,49 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 			stmt.execute();
 			Clob clob = stmt.getClob(3);
-			stmt.close();
-			if (clob.length() > Integer.MAX_VALUE) {
-				throw new RatingException("CLOB too long.");
+			try {
+				stmt.close();
+				if (clob.length() > Integer.MAX_VALUE) {
+					throw new RatingException("CLOB too long.");
+				}
+				String xmlText = clob.getSubString(1, (int)clob.length());
+				logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+				return fromXml(xmlText);
 			}
-			String xmlText = clob.getSubString(1, (int)clob.length());
-			logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-			return fromXml(xmlText);
+			catch (Exception e) {
+				throw e;
+			}
+			finally {
+				String clobClassName = clob.getClass().getName();  
+				try {
+					if (clobClassName.equals("oracle.sql.CLOB")) {
+						//---------------//
+						// pre Oracle 12 //
+						//---------------//
+						Reflection.getMethod("oracle.sql.CLOB", "freeTemporary", Reflection.emptyParamTypes).invoke(clob, Reflection.emptyParams);
+					}
+					else if (clobClassName.equals("java.sql.Clob")) {
+						//----------------------------------------------------------------//
+						// Oracle 12 deprecates oracle.sql.CLOB in favor of java.sql.Clob //
+						//----------------------------------------------------------------//
+						clob.free();
+					}
+					else {
+						throw new Exception("Don't know how to free resources for class " + clobClassName);
+					}
+				}
+				catch(Throwable t) {
+					//-----------------------------//
+					// log any errors freeing clob //
+					//-----------------------------//
+					if (logger.isLoggable(Level.INFO)) {
+						StringWriter sw = new StringWriter();
+						PrintWriter pw = new PrintWriter(sw);
+						t.printStackTrace(pw);
+						logger.log(Level.INFO, sw.toString());
+					}
+				}
+			}
 		}
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
