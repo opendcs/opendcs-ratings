@@ -18,7 +18,6 @@ import hec.geometry.Axis;
 import hec.geometry.Scale;
 import hec.gfx2d.G2dGlyph;
 import hec.gfx2d.G2dObject;
-import hec.gfx2d.SimpleLogArrayGlyph;
 import hec.gfx2d.Viewport;
 
 /**
@@ -99,7 +98,7 @@ public class RatingSetGlyph extends G2dGlyph
         }
         catch (RatingException ex)
         {
-            Logger.getLogger(SimpleLogArrayGlyph.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }
 
     }
