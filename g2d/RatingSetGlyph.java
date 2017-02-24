@@ -69,7 +69,7 @@ public class RatingSetGlyph extends G2dGlyph
                 }
             };
 
-            RatingSetPathIterator pspi = new RatingSetPathIterator(Collections.singletonList(rangeView), rp, resolution);
+            RatingSetPathIterator pspi = new RatingSetPathIterator(Collections.singletonList(rangeView), rp, resolution,RatingSetPathIterator.IndependantVariable.Y);
             double[] values = new double[6];
             int numPoints = 0;
             double[] xarray = new double[1000];
