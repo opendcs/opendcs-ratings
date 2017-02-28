@@ -953,12 +953,15 @@ public class TableRating extends AbstractRating {
 		//-------------------------------------//
 		// validate the incoming rating values //
 		//-------------------------------------//
-		getIndParamCount(values);
-		double[] ind_vals = new double[values.length];
-		for (int i = 0; i < values.length; ++i) ind_vals[i] = values[i].getIndValue();
-		props = new SequenceProperties(ind_vals);
-		if (props.hasUndefined() || props.hasConstant() || (props.hasIncreasing() && props.hasDecreasing())) {
-			throw new NotMonotonicRatingException("Specifed values do not monotonically increase or decrease, cannot use for rating.");
+		double[] ind_vals = null;
+		if (values != null) {
+			getIndParamCount(values);
+			ind_vals = new double[values.length];
+			for (int i = 0; i < values.length; ++i) ind_vals[i] = values[i].getIndValue();
+			props = new SequenceProperties(ind_vals);
+			if (props.hasUndefined() || props.hasConstant() || (props.hasIncreasing() && props.hasDecreasing())) {
+				throw new NotMonotonicRatingException("Specifed values do not monotonically increase or decrease, cannot use for rating.");
+			}
 		}
 		//-----------------------------------------------//
 		// validate the incoming rating extension values //
@@ -1074,12 +1077,14 @@ public class TableRating extends AbstractRating {
 		setCreateDate(createDate);
 		setActive(active);
 		setDescription(description);
-		for (RatingValue value : this.values) {
-			value.addObserver(this);
-		}
-		if (this.extensionValues != null) {
-			for (RatingValue extensionValue : this.extensionValues) {
-				extensionValue.addObserver(this);
+		if (this.values != null) {
+			for (RatingValue value : this.values) {
+				value.addObserver(this);
+			}
+			if (this.extensionValues != null) {
+				for (RatingValue extensionValue : this.extensionValues) {
+					extensionValue.addObserver(this);
+				}
 			}
 		}
 	}

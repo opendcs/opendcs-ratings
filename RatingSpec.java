@@ -125,35 +125,37 @@ public class RatingSpec extends RatingTemplate {
 			String officeId, 
 			String ratingSepcId)
 			throws RatingException {
-		try {
-			String sql = 
-					"begin "                              +
-					   "cwms_rating.retrieve_specs_xml("  +
-					      "p_specs          => :1,"       +
-					      "p_spec_id_mask   => :2,"       +
-					      "p_office_id_mask => :3);"      +
-					"end;";
-			CallableStatement stmt = conn.prepareCall(sql);
-			stmt.registerOutParameter(1, Types.CLOB);
-			stmt.setString(2, ratingSepcId);
-			if (officeId == null) {
-				stmt.setNull(3, Types.VARCHAR);
+		synchronized(conn) {
+			try {
+				String sql = 
+						"begin "                              +
+						   "cwms_rating.retrieve_specs_xml("  +
+						      "p_specs          => :1,"       +
+						      "p_spec_id_mask   => :2,"       +
+						      "p_office_id_mask => :3);"      +
+						"end;";
+				CallableStatement stmt = conn.prepareCall(sql);
+				stmt.registerOutParameter(1, Types.CLOB);
+				stmt.setString(2, ratingSepcId);
+				if (officeId == null) {
+					stmt.setNull(3, Types.VARCHAR);
+				}
+				else {
+					stmt.setString(3, officeId);
+				}
+				stmt.execute();
+				Clob clob = stmt.getClob(1);
+				stmt.close();
+				if (clob.length() > Integer.MAX_VALUE) {
+					throw new RatingException("CLOB too long.");
+				}
+				String xmlText = clob.getSubString(1, (int)clob.length());
+				return new RatingSpec(RatingSpecContainer.fromXml(xmlText));
 			}
-			else {
-				stmt.setString(3, officeId);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
 			}
-			stmt.execute();
-			Clob clob = stmt.getClob(1);
-			stmt.close();
-			if (clob.length() > Integer.MAX_VALUE) {
-				throw new RatingException("CLOB too long.");
-			}
-			String xmlText = clob.getSubString(1, (int)clob.length());
-			return new RatingSpec(RatingSpecContainer.fromXml(xmlText));
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
 		}
 	}
 	/**

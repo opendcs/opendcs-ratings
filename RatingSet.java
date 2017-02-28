@@ -6,6 +6,30 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Observer;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import hec.data.DataSetException;
 import hec.data.IRating;
 import hec.data.IRatingSet;
@@ -20,6 +44,7 @@ import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
@@ -32,27 +57,6 @@ import hec.lang.Const;
 import hec.lang.Observable;
 import hec.lang.Reflection;
 import hec.util.TextUtil;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Observer;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -61,7 +65,19 @@ import java.util.logging.Logger;
 public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
-
+	
+	/**
+	 * Database connection for rating by reference rating
+	 */
+	private Connection conn = null;
+	/**
+	 * Rating object for rating by reference
+	 */
+	private ReferenceRating dbrating = null;
+	/**
+	 * Flag specifying whether to load actual ratings only when needed.
+	 */
+	private boolean isLazy = false;
 	/**
 	 * Flag specifying whether new RatingSet objects will by default allow "risky" behavior such as using mismatched units, unknown parameters, etc.
 	 */
@@ -172,7 +188,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting) throws RatingException {
-		storeToDatabase(conn, xml, overwriteExisting, true);
+		synchronized (conn) {
+			storeToDatabase(conn, xml, overwriteExisting, true);
+		}
 	}
 	/**
 	 * Stores the rating set to a CWMS database
@@ -184,66 +202,68 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) 
 			throws RatingException {
 		CallableStatement[] stmts = new CallableStatement[3];
-		try {
-			stmts[0] = conn.prepareCall("begin :1 := cwms_msg.get_msg_id; end;");
-			stmts[0].registerOutParameter(1, Types.VARCHAR);
-			stmts[0].execute();
-			String lowerMessageBound = stmts[0].getString(1);
-			
-			// first try newer schema with 3 parameters on CWMS_RATING.STORE_RATINGS_XML()
-			stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2, :3); end;");
-			stmts[1].setString(1, xml);
-			stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
-			stmts[1].setString(3, replaceBase ? "T" : "F");
+		synchronized (conn) {
 			try {
-				stmts[1].execute();
-			}
-			catch (SQLException e) {
-				if (e.getMessage().indexOf("PLS-00306") < 0) {
-					throw e;
-				}
-				// allow for older schema with only 2 parameters on CWMS_RATING.STORE_RATINGS_XML()
-				stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+				stmts[0] = conn.prepareCall("begin :1 := cwms_msg.get_msg_id; end;");
+				stmts[0].registerOutParameter(1, Types.VARCHAR);
+				stmts[0].execute();
+				String lowerMessageBound = stmts[0].getString(1);
+				
+				// first try newer schema with 3 parameters on CWMS_RATING.STORE_RATINGS_XML()
+				stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2, :3); end;");
 				stmts[1].setString(1, xml);
 				stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
-				stmts[1].execute();
-			}
-			
-			stmts[0].execute();
-			String upperMessageBound = stmts[0].getString(1);
+				stmts[1].setString(3, replaceBase ? "T" : "F");
+				try {
+					stmts[1].execute();
+				}
+				catch (SQLException e) {
+					if (e.getMessage().indexOf("PLS-00306") < 0) {
+						throw e;
+					}
+					// allow for older schema with only 2 parameters on CWMS_RATING.STORE_RATINGS_XML()
+					stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+					stmts[1].setString(1, xml);
+					stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
+					stmts[1].execute();
+				}
+				
+				stmts[0].execute();
+				String upperMessageBound = stmts[0].getString(1);
 
-			stmts[2] = conn.prepareCall(
-				"select msg_text " +
-				"  from cwms_v_log_message " +
-				" where msg_id between :1 and :2 " +
-				"   and msg_level = 'Basic' " +
-				"   and properties like 'procedure = cwms\\_rating.store\\_%' escape '\\' " +
-				"   and msg_text like 'ORA-%' " +
-				" order by msg_id"); 
-			stmts[2].setString(1, lowerMessageBound);
-			stmts[2].setString(2, upperMessageBound);
-			ResultSet rs = stmts[2].executeQuery();
-			Vector<String> errors = new Vector<String>();
-			while (rs.next()) {
-				errors.add(rs.getString(1));
+				stmts[2] = conn.prepareCall(
+					"select msg_text " +
+					"  from cwms_v_log_message " +
+					" where msg_id between :1 and :2 " +
+					"   and msg_level = 'Basic' " +
+					"   and properties like 'procedure = cwms\\_rating.store\\_%' escape '\\' " +
+					"   and msg_text like 'ORA-%' " +
+					" order by msg_id"); 
+				stmts[2].setString(1, lowerMessageBound);
+				stmts[2].setString(2, upperMessageBound);
+				ResultSet rs = stmts[2].executeQuery();
+				Vector<String> errors = new Vector<String>();
+				while (rs.next()) {
+					errors.add(rs.getString(1));
+				}
+				rs.close();
+				
+				for (int i = 0; i < stmts.length; ++i) {
+					stmts[i].close();
+					stmts[i] = null;
+				}
+				
+				if (errors.size() > 0) {
+					throw new RatingException(join("\n", errors.toArray(new String[errors.size()])));
+				}
 			}
-			rs.close();
-			
-			for (int i = 0; i < stmts.length; ++i) {
-				stmts[i].close();
-				stmts[i] = null;
+			catch (Throwable t) {
+				for (int i = 0; i < stmts.length; ++i) {
+					try {if (stmts[i] != null) stmts[i].close();} catch(Throwable t1){}
+				}
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
 			}
-			
-			if (errors.size() > 0) {
-				throw new RatingException(join("\n", errors.toArray(new String[errors.size()])));
-			}
-		}
-		catch (Throwable t) {
-			for (int i = 0; i < stmts.length; ++i) {
-				try {if (stmts[i] != null) stmts[i].close();} catch(Throwable t1){}
-			}
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
 		}
 	}
 	/**
@@ -315,122 +335,246 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
-		try {
-			String sql = null;
-			if (dataTimes) 
-				sql =
-					"declare " +
-					   "l_millis_start integer := :1;" +
-					   "l_millis_end   integer := :2;" +
-					   "l_date_start   date;" +
-					   "l_date_end     date;" +
-					"begin " +
-					   "if l_millis_start is not null then " +
-					      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
-					   "end if;" +
-					   "if l_millis_end is not null then "   +
-					      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-					   "end if;" +
-					   "cwms_rating.retrieve_eff_ratings_xml3("  +
-					      "p_ratings        => :3,"    +
-					      "p_spec_id_mask   => :4,"    +
-					      "p_start_date     => l_date_start," +
-					      "p_end_date       => l_date_end,"   +
-					      "p_time_zone      => 'UTC'," +
-					      "p_office_id_mask => :5);"   +
-					"end;";
-			else
-				sql = 
-					"declare " +
-					   "l_millis_start         integer := :1;" +
-					   "l_millis_end           integer := :2;" +
-					   "l_effective_date_start date;" +
-					   "l_effective_date_end   date;" +
-					"begin " +
-					   "if l_millis_start is not null then " +
-					      "l_effective_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
-					   "end if;" +
-					   "if l_millis_end is not null then "   +
-					      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-					   "end if;" +
-					   "cwms_rating.retrieve_ratings_xml3("  +
-					      "p_ratings              => :3,"    +
-					      "p_spec_id_mask         => :4,"    +
-					      "p_effective_date_start => l_effective_date_start," +
-					      "p_effective_date_end   => l_effective_date_end,"   +
-					      "p_time_zone            => 'UTC'," +
-					      "p_office_id_mask       => :5);"   +
-					"end;";
-			CallableStatement stmt = conn.prepareCall(sql);
-			stmt.registerOutParameter(3, Types.CLOB);
-			stmt.setString(4, ratingSpecId);
-			if (startTime == null) {
-				stmt.setNull(1, Types.INTEGER);
-			}
-			else {
-				stmt.setLong(1, startTime);
-			}
-			if (endTime == null) {
-				stmt.setNull(2, Types.INTEGER);
-			}
-			else {
-				stmt.setLong(2, endTime);
-			}
-			if (officeId == null) {
-				stmt.setNull(5, Types.VARCHAR);
-			}
-			else {
-				stmt.setString(5, officeId);
-			}
-			stmt.execute();
-			Clob clob = stmt.getClob(3);
+		
+		CallableStatement cstmt = null;
+		RatingSet rs = null;
+		synchronized (conn) {
 			try {
-				stmt.close();
-				if (clob.length() > Integer.MAX_VALUE) {
-					throw new RatingException("CLOB too long.");
+				String databaseLoadMethod = System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy");
+				RatingSpec spec = null;
+				String sql = null;
+				switch (databaseLoadMethod.toLowerCase()) {
+				case "eager" :
+				case "lazy" : 
+				case "reference" :
+					break;
+				default :
+					logger.log(
+							Level.WARNING,
+							"Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: "
+							+ databaseLoadMethod
+							+ "\nMust be one of \"eager\", \"lazy\", or \"reference\".\nUsing \"lazy\"");
+					databaseLoadMethod = "lazy";
 				}
-				String xmlText = clob.getSubString(1, (int)clob.length());
-				logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-				return fromXml(xmlText);
-			}
-			catch (Exception e) {
-				throw e;
-			}
-			finally {
-				String clobClassName = clob.getClass().getName();  
-				try {
-					if (clobClassName.equals("oracle.sql.CLOB")) {
-						//---------------//
-						// pre Oracle 12 //
-						//---------------//
-						Reflection.getMethod("oracle.sql.CLOB", "freeTemporary", Reflection.emptyParamTypes).invoke(clob, Reflection.emptyParams);
-					}
-					else if (clobClassName.equals("java.sql.Clob")) {
-						//----------------------------------------------------------------//
-						// Oracle 12 deprecates oracle.sql.CLOB in favor of java.sql.Clob //
-						//----------------------------------------------------------------//
-						clob.free();
+				switch (databaseLoadMethod.toLowerCase()) {
+				case "eager" :
+					//------------------------------------//
+					// Load all rating data from database //
+					//------------------------------------//
+					if (dataTimes) 
+						sql =
+							"declare " +
+							   "l_millis_start integer := :1;" +
+							   "l_millis_end   integer := :2;" +
+							   "l_date_start   date;" +
+							   "l_date_end     date;" +
+							"begin " +
+							   "if l_millis_start is not null then " +
+							      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+							   "end if;" +
+							   "if l_millis_end is not null then "   +
+							      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+							   "end if;" +
+							   "cwms_rating.retrieve_eff_ratings_xml3("  +
+							      "p_ratings        => :3,"    +
+							      "p_spec_id_mask   => :4,"    +
+							      "p_start_date     => l_date_start," +
+							      "p_end_date       => l_date_end,"   +
+							      "p_time_zone      => 'UTC'," +
+							      "p_office_id_mask => :5);"   +
+							"end;";
+					else
+						sql = 
+							"declare " +
+							   "l_millis_start         integer := :1;" +
+							   "l_millis_end           integer := :2;" +
+							   "l_effective_date_start date;" +
+							   "l_effective_date_end   date;" +
+							"begin " +
+							   "if l_millis_start is not null then " +
+							      "l_effective_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+							   "end if;" +
+							   "if l_millis_end is not null then "   +
+							      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+							   "end if;" +
+							   "cwms_rating.retrieve_ratings_xml3("  +
+							      "p_ratings              => :3,"    +
+							      "p_spec_id_mask         => :4,"    +
+							      "p_effective_date_start => l_effective_date_start," +
+							      "p_effective_date_end   => l_effective_date_end,"   +
+							      "p_time_zone            => 'UTC'," +
+							      "p_office_id_mask       => :5);"   +
+							"end;";
+					cstmt = conn.prepareCall(sql);
+					cstmt.registerOutParameter(3, Types.CLOB);
+					cstmt.setString(4, ratingSpecId);
+					if (startTime == null) {
+						cstmt.setNull(1, Types.INTEGER);
 					}
 					else {
-						throw new Exception("Don't know how to free resources for class " + clobClassName);
+						cstmt.setLong(1, startTime);
 					}
-				}
-				catch(Throwable t) {
-					//-----------------------------//
-					// log any errors freeing clob //
-					//-----------------------------//
-					if (logger.isLoggable(Level.INFO)) {
-						StringWriter sw = new StringWriter();
-						PrintWriter pw = new PrintWriter(sw);
-						t.printStackTrace(pw);
-						logger.log(Level.INFO, sw.toString());
+					if (endTime == null) {
+						cstmt.setNull(2, Types.INTEGER);
 					}
+					else {
+						cstmt.setLong(2, endTime);
+					}
+					if (officeId == null) {
+						cstmt.setNull(5, Types.VARCHAR);
+					}
+					else {
+						cstmt.setString(5, officeId);
+					}
+					cstmt.execute();
+					Clob clob = cstmt.getClob(3);
+					try {
+						cstmt.close();
+						if (clob.length() > Integer.MAX_VALUE) {
+							throw new RatingException("CLOB too long.");
+						}
+						String xmlText = clob.getSubString(1, (int)clob.length());
+						logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+						rs = fromXml(xmlText);
+					}
+					catch (Exception e) {
+						throw e;
+					}
+					finally {
+						String clobClassName = clob.getClass().getName();  
+						try {
+							if (clobClassName.equals("oracle.sql.CLOB")) {
+								//---------------//
+								// pre Oracle 12 //
+								//---------------//
+								Reflection.getMethod("oracle.sql.CLOB", "freeTemporary", Reflection.emptyParamTypes).invoke(clob, Reflection.emptyParams);
+							}
+							else if (clobClassName.equals("java.sql.Clob")) {
+								//----------------------------------------------------------------//
+								// Oracle 12 deprecates oracle.sql.CLOB in favor of java.sql.Clob //
+								//----------------------------------------------------------------//
+								clob.free();
+							}
+							else {
+								throw new Exception("Don't know how to free resources for class " + clobClassName);
+							}
+						}
+						catch(Throwable t) {
+							//-----------------------------//
+							// log any errors freeing clob //
+							//-----------------------------//
+							if (logger.isLoggable(Level.INFO)) {
+								StringWriter sw = new StringWriter();
+								PrintWriter pw = new PrintWriter(sw);
+								t.printStackTrace(pw);
+								logger.log(Level.INFO, sw.toString());
+							}
+						}
+					}
+				break;
+				case "lazy" :
+					//-----------------------------------------------//
+					// load only spec and rating times from database //
+					//-----------------------------------------------//
+					spec = RatingSpec.fromDatabase(conn, officeId, ratingSpecId);
+					rs = new RatingSet(spec);
+					rs.conn = conn;
+					rs.isLazy = true;
+					rs.ratings = new TreeMap<Long, AbstractRating>();
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+					Calendar cal = Calendar.getInstance();
+					int startTime_pos = 3, endTime_pos = 4, office_pos = 5;
+					StringBuilder sb = new StringBuilder();
+					if (dataTimes) {
+						sb.append("begin cwms_rating.cat_eff_ratings(:1, :2, ");
+					}
+					else {
+						sb.append("begin cwms_rating.cat_ratings(:1, :2, ");
+					}
+					if (startTime == null) {
+						sb.append("null, ");
+						--endTime_pos;
+						--office_pos;
+					}
+					else {
+						sb.append("to_timstamp(:3), ");
+					}
+					if (endTime == null) {
+						sb.append("null, 'UTC', :");
+						--office_pos;
+					}
+					else {
+						sb.append("to_timstamp(:").append(endTime_pos).append("), 'UTC' :");
+					}
+					sb.append(office_pos).append("); end;");
+					sql = sb.toString();
+					cstmt = conn.prepareCall(sql);
+					cstmt.registerOutParameter(1, 0xfffffff6 /*OracleTypes.CURSOR*/);
+					cstmt.setString(2, ratingSpecId);
+					if (startTime != null) {
+						cstmt.setLong(startTime_pos, startTime);
+					}
+					if (endTime != null) {
+						cstmt.setLong(endTime_pos, endTime);
+					}
+					cstmt.setString(office_pos, spec.officeId);
+					cstmt.execute();
+					ResultSet crsr = (ResultSet)cstmt.getObject(1);
+					HashMap<Long, TableRatingContainer> trcs = new HashMap<Long, TableRatingContainer>();
+					while (crsr.next()) {
+						TableRatingContainer trc = new TableRatingContainer();
+						trc.active = true;
+						trc.officeId = crsr.getString(1);
+						trc.ratingSpecId = crsr.getString(2);
+						cal.setTime(sdf.parse(crsr.getTimestamp(3).toString()));
+						trc.effectiveDateMillis = cal.getTimeInMillis();
+						cal.setTime(sdf.parse(crsr.getTimestamp(4).toString()));
+						trc.createDateMillis = cal.getTimeInMillis();
+						trcs.put(trc.effectiveDateMillis, trc);
+					}
+					crsr.close();
+					cstmt.close();
+					if (trcs.size() == 0) {
+						throw new RatingException("No ratings.");
+					}
+					sql = "select distinct effective_date, active_flag, native_units from cwms_v_rating where office_id = :1 and rating_id = :2 order by 1";
+					PreparedStatement pstmt = conn.prepareStatement(sql);
+					pstmt.setString(1, spec.officeId);
+					pstmt.setString(2, ratingSpecId);
+					crsr = pstmt.executeQuery();
+					int i = 0;
+					while (crsr.next()) {
+						if (i++ >= trcs.size()) {
+							throw new RatingException("Rating catalog and view do not agree");
+						}
+						cal.setTime(sdf.parse(crsr.getTimestamp(1).toString()));
+						TableRatingContainer trc = trcs.get(cal.getTimeInMillis());
+						trc.active = crsr.getString(2).equals("T");
+						trc.unitsId = crsr.getString(3);
+						rs.addRating(new TableRating(trc));
+					}
+					if (i < trcs.size()) {
+						throw new RatingException("Rating catalog and view do not agree");
+					}
+					crsr.close();
+					pstmt.close();
+					break;
+				case "reference" :
+					//--------------------------------------------------------------------------------------------------//
+					// Load only spec from database and keep the database connection to perform ratings in the database //
+					//--------------------------------------------------------------------------------------------------//
+					spec = RatingSpec.fromDatabase(conn, officeId, ratingSpecId);
+					rs = new RatingSet(spec);
+					rs.conn = conn;
+					rs.dbrating = ReferenceRating.fromDatabase(conn, spec.officeId, ratingSpecId);
 				}
 			}
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
+			return rs;
 		}
 	}
 	/**
@@ -843,6 +987,63 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			observationTarget.notifyObservers();
 		}
 	}
+	protected void getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
+		if (ratingEntry != null) {
+			Long key = ratingEntry.getKey();
+			AbstractRating rating = ratingEntry.getValue();
+			if (rating.getClass() == TableRating.class && ((TableRating)rating).values == null) {
+				//----------------------------------------//
+				// rating not yet retrieved from database //
+				//----------------------------------------//
+				synchronized(conn) {
+					try {
+						AbstractRating newRating = null;
+						String sql = "begin cwms_rating.retrieve_ratings_xml(:1, :2, cwms_util.to_timestamp(:3), cwms_util.to_timestamp(:4),'UTC', :5); end;";
+						CallableStatement stmt = conn.prepareCall(sql);
+						stmt.registerOutParameter(1, Types.CLOB);
+						stmt.setString(2, rating.ratingSpecId);
+						stmt.setLong(3, rating.effectiveDate);
+						stmt.setLong(4, rating.effectiveDate);
+						stmt.setString(5, rating.officeId);
+						stmt.execute();
+						Clob clob = stmt.getClob(1);
+						stmt.close();
+						if (clob.length() > Integer.MAX_VALUE) {
+							throw new RatingException("CLOB too long.");
+						}
+						String xmlText = clob.getSubString(1, (int)clob.length());
+						logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+						if (xmlText.indexOf("<simple-rating ") > 0) {
+							if (xmlText.indexOf("<formula>") > 0) {
+								newRating = ExpressionRating.fromXml(xmlText);
+							}
+							else {
+								newRating = TableRating.fromXml(xmlText);
+							}
+						}
+						else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
+							newRating = UsgsStreamTableRating.fromXml(xmlText);
+						}
+						else if (xmlText.indexOf("<virtual-rating ") > 0) {
+							newRating = VirtualRating.fromXml(xmlText);
+						}
+						else if (xmlText.indexOf("<transitional-rating ") > 0) {
+							newRating = TransitionalRating.fromXml(xmlText);
+						}
+						else throw new RatingException("Unexpected rating type: \n" + xmlText);
+						ratings.put(key, newRating);
+						if (activeRatings.containsKey(key)) {
+							activeRatings.put(key, newRating);
+						}
+					}
+					catch (Exception e) {
+						if (e instanceof RatingException) throw (RatingException)e;
+						throw new RatingException(e);
+					}
+				}
+			}
+		}
+	}
 	/**
 	 * Retrieves a rated value for a specified single input value and time. The rating set must
 	 * be for a single independent parameter
@@ -908,181 +1109,211 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {
-		int activeRatingCount = activeRatings.size();
-		if (activeRatingCount == 0) {
-			throw new RatingException("No active ratings.");
-		}
-		else if (activeRatingCount > 1) {
-			AbstractRating firstRating = activeRatings.firstEntry().getValue();
-			if (firstRating.getDataUnitsId() == null) {
-				String firstRatingUnits = firstRating.getRatingUnitsId();
-				for (AbstractRating rating : activeRatings.values()) {
-					if (!rating.getRatingUnitsId().equals(firstRatingUnits)) {
+		double[] Y = new double[valueSets.length];
+		if (dbrating == null) {
+			//-----------------//
+			// concrete rating //
+			//-----------------//
+			int activeRatingCount = activeRatings.size();
+			if (activeRatingCount == 0) {
+				throw new RatingException("No active ratings.");
+			}
+			if (valueSets.length != valueTimes.length) {
+				throw new RatingException("Values and times have different lengths");
+			}
+			for (int i = 1; i < valueSets.length; ++i) {
+				if (valueSets[i].length != valueSets[0].length) {
+					throw new RatingException("Value sets are not all of same length.");
+				}
+				if (valueSets[i].length != ratings.firstEntry().getValue().getIndParamCount()) {
+					throw new RatingException("Value sets have different parameter counts than ratings.");
+				}
+			}
+			if (getDataUnits() == null) {
+				Map.Entry<Long, AbstractRating> entry1 = ratings.firstEntry();
+				Map.Entry<Long, AbstractRating> entry2 = ratings.higherEntry(entry1.getKey());
+				while (entry2 != null) {
+					if (!(entry1.getValue().getRatingUnitsId().equalsIgnoreCase(entry2.getValue().getRatingUnitsId()))) {
 						throw new RatingException("Data units must be specified when rating set has multiple rating units.");
 					}
+					entry1 = entry2;
+					entry2 = ratings.higherEntry(entry1.getKey());
 				}
 			}
-		}
-		if (valueSets.length != valueTimes.length) {
-			throw new RatingException("Values and times have different lengths");
-		}
-		for (int i = 1; i < valueSets.length; ++i) {
-			if (valueSets[i].length != valueSets[0].length) {
-				throw new RatingException("Value sets are not all of same length.");
-			}
-			if (valueSets[i].length != ratings.firstEntry().getValue().getIndParamCount()) {
-				throw new RatingException("Value sets have different parameter counts than ratings.");
-			}
-		}
-		double[] Y = new double[valueSets.length];
-		Map.Entry<Long, AbstractRating> lowerRating = null;
-		Map.Entry<Long, AbstractRating> upperRating = null;
-		IRating lastUsedRating = null;
-		RatingMethod method = null;
-		for (int i = 0; i < valueSets.length; ++i) {
-			if (i > 0 && valueTimes[i] == valueTimes[i-1] && lastUsedRating != null) {
-				Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-				continue;
-			}
-			else {
-				lowerRating = activeRatings.floorEntry(valueTimes[i]);
-				upperRating = activeRatings.ceilingEntry(valueTimes[i]);
-				//-------------------------//
-				// handle out of range low //
-				//-------------------------//
-				if (lowerRating == null) {
-					method = ratingSpec.getOutRangeLowMethod();
-					switch(method) {
-					case ERROR:
-						throw new RatingException("Effective date is before earliest rating");
-					case NULL:
-						Y[i] = Const.UNDEFINED_DOUBLE;
-						lastUsedRating = null;
+			
+			Map.Entry<Long, AbstractRating> lowerRating = null;
+			Map.Entry<Long, AbstractRating> upperRating = null;
+			IRating lastUsedRating = null;
+			RatingMethod method = null;
+			for (int i = 0; i < valueSets.length; ++i) {
+				if (i > 0 && valueTimes[i] == valueTimes[i-1] && lastUsedRating != null) {
+					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+					continue;
+				}
+				else {
+					lowerRating = activeRatings.floorEntry(valueTimes[i]);
+					upperRating = activeRatings.ceilingEntry(valueTimes[i]);
+					if (isLazy) {
+						getConcreteRating(lowerRating);
+						getConcreteRating(upperRating);
+					}
+					//-------------------------//
+					// handle out of range low //
+					//-------------------------//
+					if (lowerRating == null) {
+						method = ratingSpec.getOutRangeLowMethod();
+						switch(method) {
+						case ERROR:
+							throw new RatingException("Effective date is before earliest rating");
+						case NULL:
+							Y[i] = Const.UNDEFINED_DOUBLE;
+							lastUsedRating = null;
+							continue;
+						case NEXT:
+						case NEAREST:
+						case HIGHER:
+						case CLOSEST:
+							if (isLazy) {
+								getConcreteRating(activeRatings.firstEntry());
+							}
+							lastUsedRating = activeRatings.firstEntry().getValue(); 
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
+						default:
+							break;
+						}
+						if (activeRatings.size() == 1) {
+							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+						}
+						lowerRating = activeRatings.firstEntry();
+						upperRating = activeRatings.higherEntry(lowerRating.getKey());
+						if (isLazy) {
+							getConcreteRating(lowerRating);
+							getConcreteRating(upperRating);
+						}
+					}
+					//--------------------------//
+					// handle out of range high //
+					//--------------------------//
+					if (upperRating == null) {
+						method = ratingSpec.getOutRangeHighMethod();
+						switch(method) {
+						case ERROR:
+							throw new RatingException("Effective date is after latest rating");
+						case NULL:
+							Y[i] = Const.UNDEFINED_DOUBLE;
+							lastUsedRating = null;
+							continue;
+						case PREVIOUS:
+						case NEAREST:
+						case LOWER:
+						case CLOSEST:
+							lastUsedRating = activeRatings.lastEntry().getValue();
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
+						default:
+							break;
+						}
+						if (activeRatings.size() == 1) {
+							switch (method) {
+							case LINEAR :
+								//-----------------------------------------------------------------//
+								// allow LINEAR out of range high method with single active rating //
+								//-----------------------------------------------------------------//
+								if (isLazy) {
+									getConcreteRating(activeRatings.lastEntry());
+								}
+								lastUsedRating = activeRatings.lastEntry().getValue();
+								Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+								continue;
+							default :
+								throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+							}
+						}
+						upperRating = activeRatings.lastEntry();
+						lowerRating = activeRatings.lowerEntry(upperRating.getKey());
+						if (isLazy) {
+							getConcreteRating(lowerRating);
+							getConcreteRating(upperRating);
+						}
+					}
+					//-----------------------------------//
+					// handle in-range and extrapolation //
+					//-----------------------------------//
+					if (lowerRating.getKey() == valueTimes[i]) {
+						Y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 						continue;
-					case NEXT:
-					case NEAREST:
-					case HIGHER:
-					case CLOSEST:
-						lastUsedRating = activeRatings.firstEntry().getValue(); 
+					}
+					if (upperRating.getKey() == valueTimes[i]) {
+						lastUsedRating = upperRating.getValue();
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
-					default:
-						break;
 					}
-					if (activeRatings.size() == 1) {
-						throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
-					}
-					lowerRating = activeRatings.firstEntry();
-					upperRating = activeRatings.higherEntry(lowerRating.getKey());
-				}
-				//--------------------------//
-				// handle out of range high //
-				//--------------------------//
-				if (upperRating == null) {
-					method = ratingSpec.getOutRangeHighMethod();
-					switch(method) {
+					switch (ratingSpec.getInRangeMethod()) {
 					case ERROR:
-						throw new RatingException("Effective date is after latest rating");
+						throw new RatingException("Effective date is between existing rating");
 					case NULL:
 						Y[i] = Const.UNDEFINED_DOUBLE;
 						lastUsedRating = null;
 						continue;
 					case PREVIOUS:
-					case NEAREST:
 					case LOWER:
+						lastUsedRating = lowerRating.getValue();
+						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+						continue;
+					case NEXT:
+					case HIGHER:
+						lastUsedRating = upperRating.getValue();
+						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+						continue;
 					case CLOSEST:
-						lastUsedRating = activeRatings.lastEntry().getValue();
+						if (valueTimes[i] - lowerRating.getKey() < upperRating.getKey() - valueTimes[i]) {
+							lastUsedRating = lowerRating.getValue();
+						}
+						else {
+							lastUsedRating = upperRating.getValue();
+						}
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
 					default:
 						break;
 					}
-					if (activeRatings.size() == 1) {
-						switch (method) {
-						case LINEAR :
-							//-----------------------------------------------------------------//
-							// allow LINEAR out of range high method with single active rating //
-							//-----------------------------------------------------------------//
-							lastUsedRating = activeRatings.lastEntry().getValue();
-							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-							continue;
-						default :
-							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
-						}
-					}
-					upperRating = activeRatings.lastEntry();
-					lowerRating = activeRatings.lowerEntry(upperRating.getKey());
+					//------------------------------------//
+					// handle interpolation/extrapolation //
+					//------------------------------------//
+					method = ratingSpec.getInRangeMethod();
 				}
-				//-----------------------------------//
-				// handle in-range and extrapolation //
-				//-----------------------------------//
-				if (lowerRating.getKey() == valueTimes[i]) {
-					Y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-					continue;
-				}
-				if (upperRating.getKey() == valueTimes[i]) {
-					lastUsedRating = upperRating.getValue();
-					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-					continue;
-				}
-				switch (ratingSpec.getInRangeMethod()) {
-				case ERROR:
-					throw new RatingException("Effective date is between existing rating");
-				case NULL:
+				lastUsedRating = null;
+				long transitionStartMillis = upperRating.getValue().getTransitionStartDate();
+				long t  = valueTimes[i];
+				long t1 = lowerRating.getKey();
+				long t2 = upperRating.getKey();
+				double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+				double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+				if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
 					Y[i] = Const.UNDEFINED_DOUBLE;
-					lastUsedRating = null;
-					continue;
-				case PREVIOUS:
-				case LOWER:
-					lastUsedRating = lowerRating.getValue();
-					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-					continue;
-				case NEXT:
-				case HIGHER:
-					lastUsedRating = upperRating.getValue();
-					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-					continue;
-				case CLOSEST:
-					if (valueTimes[i] - lowerRating.getKey() < upperRating.getKey() - valueTimes[i]) {
-						lastUsedRating = lowerRating.getValue();
+				}
+				else {
+					double y1 = Y1;
+					double y2 = Y2;
+					if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
+						t1 = ((UsgsStreamTableRating)lowerRating.getValue()).getLatestEffectiveDate(t2);
 					}
-					else {
-						lastUsedRating = upperRating.getValue();
+					if (transitionStartMillis > t1 && transitionStartMillis < t2) {
+						t1 = transitionStartMillis;
 					}
-					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-					continue;
-				default:
-					break;
-				}
-				//------------------------------------//
-				// handle interpolation/extrapolation //
-				//------------------------------------//
-				method = ratingSpec.getInRangeMethod();
-			}
-			lastUsedRating = null;
-			long transitionStartMillis = upperRating.getValue().getTransitionStartDate();
-			long t  = valueTimes[i];
-			long t1 = lowerRating.getKey();
-			long t2 = upperRating.getKey();
-			double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-			double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-			if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
-				Y[i] = Const.UNDEFINED_DOUBLE;
-			}
-			else {
-				double y1 = Y1;
-				double y2 = Y2;
-				if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
-					t1 = ((UsgsStreamTableRating)lowerRating.getValue()).getLatestEffectiveDate(t2);
-				}
-				if (transitionStartMillis > t1 && transitionStartMillis < t2) {
-					t1 = transitionStartMillis;
-				}
-				Y[i] = y1;
-				if (t > t1) {
-					Y[i] += (((double)t - t1) / (t2 - t1)) * (y2 - y1);
+					Y[i] = y1;
+					if (t > t1) {
+						Y[i] += (((double)t - t1) / (t2 - t1)) * (y2 - y1);
+					}
 				}
 			}
+		}
+		else {
+			//------------------//
+			// reference rating //
+			//------------------//
+			Y = dbrating.rate(valueTimes, valueSets);
 		}
 		return Y;
 	}
@@ -1883,7 +2114,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void setDefaultValueTime(long defaultValueTime) {
 		this.defaultValueTime = defaultValueTime;
 		for (ICwmsRating rating : ratings.values()) {
-			rating.setDefaultValueTime(defaultValueTime);
+			if (rating != null) {
+				rating.setDefaultValueTime(defaultValueTime);
+			}
 		}
 	}
 	/* (non-Javadoc)
@@ -2040,183 +2273,220 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
-		if (activeRatings.size() == 0) {
-			throw new RatingException("No active ratings.");
-		}
 		double[] Y = new double[depVals.length];
-		Map.Entry<Long, AbstractRating> lowerRating = null;
-		Map.Entry<Long, AbstractRating> upperRating = null;
-		IRating lastUsedRating = null;
-		RatingMethod method = null;
-		for (int i = 0; i < depVals.length; ++i) {
-			if (i > 0 && valTimes[i] == valTimes[i-1]) {
-				if (lastUsedRating == null) {
-					Y[i] = Y[i-1];
+		if (dbrating == null) {
+			if (activeRatings.size() == 0) {
+				throw new RatingException("No active ratings.");
+			}
+			if (getDataUnits() == null) {
+				Map.Entry<Long, AbstractRating> entry1 = ratings.firstEntry();
+				Map.Entry<Long, AbstractRating> entry2 = ratings.higherEntry(entry1.getKey());
+				while (entry2 != null) {
+					if (!(entry1.getValue().getRatingUnitsId().equalsIgnoreCase(entry2.getValue().getRatingUnitsId()))) {
+						throw new RatingException("Data units must be specified when rating set has multiple rating units.");
+					}
+					entry1 = entry2;
+					entry2 = ratings.higherEntry(entry1.getKey());
+				}
+			}
+			Map.Entry<Long, AbstractRating> lowerRating = null;
+			Map.Entry<Long, AbstractRating> upperRating = null;
+			IRating lastUsedRating = null;
+			RatingMethod method = null;
+			for (int i = 0; i < depVals.length; ++i) {
+				if (i > 0 && valTimes[i] == valTimes[i-1]) {
+					if (lastUsedRating == null) {
+						Y[i] = Y[i-1];
+					}
+					else {
+						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+					}
+					continue;
 				}
 				else {
-					Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-				}
-				continue;
-			}
-			else {
-				lowerRating = activeRatings.floorEntry(valTimes[i]);
-				upperRating = activeRatings.ceilingEntry(valTimes[i]);
-				//-------------------------//
-				// handle out of range low //
-				//-------------------------//
-				if (lowerRating == null) {
-					method = ratingSpec.getOutRangeLowMethod();
-					switch(method) {
-					case ERROR:
-						throw new RatingException("Effective date is before earliest rating");
-					case NULL:
-						Y[i] = Const.UNDEFINED_DOUBLE;
-						lastUsedRating = null;
+					lowerRating = activeRatings.floorEntry(valTimes[i]);
+					upperRating = activeRatings.ceilingEntry(valTimes[i]);
+					if (isLazy) {
+						getConcreteRating(lowerRating);
+						getConcreteRating(upperRating);
+					}
+					//-------------------------//
+					// handle out of range low //
+					//-------------------------//
+					if (lowerRating == null) {
+						method = ratingSpec.getOutRangeLowMethod();
+						switch(method) {
+						case ERROR:
+							throw new RatingException("Effective date is before earliest rating");
+						case NULL:
+							Y[i] = Const.UNDEFINED_DOUBLE;
+							lastUsedRating = null;
+							continue;
+						case NEXT:
+						case NEAREST:
+						case HIGHER:
+						case CLOSEST:
+							if (isLazy) {
+								getConcreteRating(activeRatings.firstEntry());
+							}
+							lastUsedRating = activeRatings.firstEntry().getValue(); 
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
+						default:
+							break;
+						}
+						if (activeRatings.size() == 1) {
+							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+						}
+						lowerRating = activeRatings.firstEntry();
+						upperRating = activeRatings.higherEntry(lowerRating.getKey());
+						if (isLazy) {
+							getConcreteRating(lowerRating);
+							getConcreteRating(upperRating);
+						}
+					}
+					//--------------------------//
+					// handle out of range high //
+					//--------------------------//
+					if (upperRating == null) {
+						method = ratingSpec.getOutRangeHighMethod();
+						switch(method) {
+						case ERROR:
+							throw new RatingException("Effective date is after latest rating");
+						case NULL:
+							Y[i] = Const.UNDEFINED_DOUBLE;
+							lastUsedRating = null;
+							continue;
+						case PREVIOUS:
+						case NEAREST:
+						case LOWER:
+						case CLOSEST:
+							if (isLazy) {
+								getConcreteRating(activeRatings.lastEntry());
+							}
+							lastUsedRating = activeRatings.lastEntry().getValue();
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
+						default:
+							break;
+						}
+						if (activeRatings.size() == 1) {
+							switch (method) {
+							case LINEAR :
+								//-----------------------------------------------------------------//
+								// allow LINEAR out of range high method with single active rating //
+								//-----------------------------------------------------------------//
+								if (isLazy) {
+									getConcreteRating(activeRatings.lastEntry());
+								}
+								lastUsedRating = activeRatings.lastEntry().getValue();
+								Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+								continue;
+							default :
+								throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+							}
+						}
+						upperRating = activeRatings.lastEntry();
+						lowerRating = activeRatings.lowerEntry(upperRating.getKey());
+						if (isLazy) {
+							getConcreteRating(lowerRating);
+							getConcreteRating(upperRating);
+						}
+					}
+					//-----------------------------------//
+					// handle in-range and extrapolation //
+					//-----------------------------------//
+					if (lowerRating.getKey() == valTimes[i]) {
+						Y[i] = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
 						continue;
-					case NEXT:
-					case NEAREST:
-					case HIGHER:
-					case CLOSEST:
-						lastUsedRating = activeRatings.firstEntry().getValue(); 
+					}
+					if (upperRating.getKey() == valTimes[i]) {
+						lastUsedRating = upperRating.getValue();
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
-					default:
-						break;
 					}
-					if (activeRatings.size() == 1) {
-						throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
-					}
-					lowerRating = activeRatings.firstEntry();
-					upperRating = activeRatings.higherEntry(lowerRating.getKey());
-				}
-				//--------------------------//
-				// handle out of range high //
-				//--------------------------//
-				if (upperRating == null) {
-					method = ratingSpec.getOutRangeHighMethod();
-					switch(method) {
+					switch (ratingSpec.getInRangeMethod()) {
 					case ERROR:
-						throw new RatingException("Effective date is after latest rating");
+						throw new RatingException("Effective date is between existing rating");
 					case NULL:
 						Y[i] = Const.UNDEFINED_DOUBLE;
 						lastUsedRating = null;
 						continue;
 					case PREVIOUS:
-					case NEAREST:
 					case LOWER:
+						lastUsedRating = lowerRating.getValue();
+						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+						continue;
+					case NEXT:
+					case HIGHER:
+						lastUsedRating = upperRating.getValue();
+						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+						continue;
 					case CLOSEST:
-						lastUsedRating = activeRatings.lastEntry().getValue();
+						if (valTimes[i] - lowerRating.getKey() < upperRating.getKey() - valTimes[i]) {
+							lastUsedRating = lowerRating.getValue();
+						}
+						else {
+							lastUsedRating = upperRating.getValue();
+						}
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
 					default:
 						break;
 					}
-					if (activeRatings.size() == 1) {
-						switch (method) {
-						case LINEAR :
-							//-----------------------------------------------------------------//
-							// allow LINEAR out of range high method with single active rating //
-							//-----------------------------------------------------------------//
-							lastUsedRating = activeRatings.lastEntry().getValue();
-							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-							continue;
-						default :
-							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
-						}
+					//------------------------------------//
+					// handle interpolation/extrapolation //
+					//------------------------------------//
+					method = ratingSpec.getInRangeMethod();
+				}
+				lastUsedRating = null;
+				boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
+				boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
+				double x  = valTimes[i];
+				double x1 = lowerRating.getKey();
+				double x2 = upperRating.getKey();
+				double Y1 = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
+				double Y2 = upperRating.getValue().reverseRate(valTimes[i], depVals[i]);
+				double y1 = Y1;
+				double y2 = Y2;
+				if (ind_log) {
+					x  = Math.log10(x);
+					x1 = Math.log10(x1);
+					x2 = Math.log10(x2);
+					if (Double.isNaN(x) || Double.isInfinite(x)   
+							|| Double.isNaN(x1) || Double.isInfinite(x1) 
+							|| Double.isNaN(x2) || Double.isInfinite(x2))  {
+						//-------------------------------------------------//
+						// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
+						//-------------------------------------------------//
+						x  = valTimes[i];
+						x1 = lowerRating.getKey();
+						x2 = upperRating.getKey();
+						dep_log = false;
 					}
-					upperRating = activeRatings.lastEntry();
-					lowerRating = activeRatings.lowerEntry(upperRating.getKey());
 				}
-				//-----------------------------------//
-				// handle in-range and extrapolation //
-				//-----------------------------------//
-				if (lowerRating.getKey() == valTimes[i]) {
-					Y[i] = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
-					continue;
-				}
-				if (upperRating.getKey() == valTimes[i]) {
-					lastUsedRating = upperRating.getValue();
-					Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-					continue;
-				}
-				switch (ratingSpec.getInRangeMethod()) {
-				case ERROR:
-					throw new RatingException("Effective date is between existing rating");
-				case NULL:
-					Y[i] = Const.UNDEFINED_DOUBLE;
-					lastUsedRating = null;
-					continue;
-				case PREVIOUS:
-				case LOWER:
-					lastUsedRating = lowerRating.getValue();
-					Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-					continue;
-				case NEXT:
-				case HIGHER:
-					lastUsedRating = upperRating.getValue();
-					Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-					continue;
-				case CLOSEST:
-					if (valTimes[i] - lowerRating.getKey() < upperRating.getKey() - valTimes[i]) {
-						lastUsedRating = lowerRating.getValue();
+				if (dep_log) {
+					y1 = Math.log10(y1);
+					y2 = Math.log10(y2);
+					if (Double.isNaN(y1) || Double.isInfinite(y1) || Double.isNaN(y2) || Double.isInfinite(y2))  {
+						//-------------------------------------------------//
+						// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
+						//-------------------------------------------------//
+						x  = valTimes[i];
+						x1 = lowerRating.getKey();
+						x2 = upperRating.getKey();
+						y1 = Y1;
+						y2 = Y2;
+						dep_log = false;
 					}
-					else {
-						lastUsedRating = upperRating.getValue();
-					}
-					Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-					continue;
-				default:
-					break;
 				}
-				//------------------------------------//
-				// handle interpolation/extrapolation //
-				//------------------------------------//
-				method = ratingSpec.getInRangeMethod();
+				double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
+				if (dep_log) y = Math.pow(10, y);
+				Y[i] = y;
 			}
-			lastUsedRating = null;
-			boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
-			boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
-			double x  = valTimes[i];
-			double x1 = lowerRating.getKey();
-			double x2 = upperRating.getKey();
-			double Y1 = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
-			double Y2 = upperRating.getValue().reverseRate(valTimes[i], depVals[i]);
-			double y1 = Y1;
-			double y2 = Y2;
-			if (ind_log) {
-				x  = Math.log10(x);
-				x1 = Math.log10(x1);
-				x2 = Math.log10(x2);
-				if (Double.isNaN(x) || Double.isInfinite(x)   
-						|| Double.isNaN(x1) || Double.isInfinite(x1) 
-						|| Double.isNaN(x2) || Double.isInfinite(x2))  {
-					//-------------------------------------------------//
-					// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
-					//-------------------------------------------------//
-					x  = valTimes[i];
-					x1 = lowerRating.getKey();
-					x2 = upperRating.getKey();
-					dep_log = false;
-				}
-			}
-			if (dep_log) {
-				y1 = Math.log10(y1);
-				y2 = Math.log10(y2);
-				if (Double.isNaN(y1) || Double.isInfinite(y1) || Double.isNaN(y2) || Double.isInfinite(y2))  {
-					//-------------------------------------------------//
-					// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
-					//-------------------------------------------------//
-					x  = valTimes[i];
-					x1 = lowerRating.getKey();
-					x2 = upperRating.getKey();
-					y1 = Y1;
-					y2 = Y2;
-					dep_log = false;
-				}
-			}
-			double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
-			if (dep_log) y = Math.pow(10, y);
-			Y[i] = y;
+		}
+		else {
+			Y = dbrating.reverseRate(valTimes, depVals);
 		}
 		return Y;
 	}

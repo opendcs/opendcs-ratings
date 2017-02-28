@@ -143,51 +143,53 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 			String ratingSpecId, 
 			Long effectiveDate)
 			throws RatingException {
-		try {
-			String sql = 
-					"declare " +
-					   "l_millis_end           integer := :1;" +
-					   "l_effective_date_start date;" +
-					   "l_effective_date_end   date;" +
-					"begin " +
-					   "if l_millis_end is not null then "    +
-					      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-					   "end if;" +
-					   "cwms_rating.retrieve_ratings_xml2("   +
-					      "p_ratings              => :2,"     +
-					      "p_spec_id_mask         => :3,"     +
-					      "p_effective_date_start => null,"   +
-					      "p_effective_date_end   => l_effective_date_end,"   +
-					      "p_time_zone            => 'UTC',"  +
-					      "p_office_id_mask       => :4);"    +
-					"end;";
-			CallableStatement stmt = conn.prepareCall(sql);
-			stmt.registerOutParameter(2, Types.CLOB);
-			stmt.setString(3, ratingSpecId);
-			if (effectiveDate == null) {
-				stmt.setNull(1, Types.INTEGER);
+		synchronized(conn) {
+			try {
+				String sql = 
+						"declare " +
+						   "l_millis_end           integer := :1;" +
+						   "l_effective_date_start date;" +
+						   "l_effective_date_end   date;" +
+						"begin " +
+						   "if l_millis_end is not null then "    +
+						      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+						   "end if;" +
+						   "cwms_rating.retrieve_ratings_xml2("   +
+						      "p_ratings              => :2,"     +
+						      "p_spec_id_mask         => :3,"     +
+						      "p_effective_date_start => null,"   +
+						      "p_effective_date_end   => l_effective_date_end,"   +
+						      "p_time_zone            => 'UTC',"  +
+						      "p_office_id_mask       => :4);"    +
+						"end;";
+				CallableStatement stmt = conn.prepareCall(sql);
+				stmt.registerOutParameter(2, Types.CLOB);
+				stmt.setString(3, ratingSpecId);
+				if (effectiveDate == null) {
+					stmt.setNull(1, Types.INTEGER);
+				}
+				else {
+					stmt.setLong(1, effectiveDate);
+				}
+				if (officeId == null) {
+					stmt.setNull(4, Types.VARCHAR);
+				}
+				else {
+					stmt.setString(4, officeId);
+				}
+				stmt.execute();
+				Clob clob = stmt.getClob(2);
+				stmt.close();
+				if (clob.length() > Integer.MAX_VALUE) {
+					throw new RatingException("CLOB too long.");
+				}
+				String xmlText = clob.getSubString(1, (int)clob.length());
+				return fromXml(xmlText);
 			}
-			else {
-				stmt.setLong(1, effectiveDate);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
 			}
-			if (officeId == null) {
-				stmt.setNull(4, Types.VARCHAR);
-			}
-			else {
-				stmt.setString(4, officeId);
-			}
-			stmt.execute();
-			Clob clob = stmt.getClob(2);
-			stmt.close();
-			if (clob.length() > Integer.MAX_VALUE) {
-				throw new RatingException("CLOB too long.");
-			}
-			String xmlText = clob.getSubString(1, (int)clob.length());
-			return fromXml(xmlText);
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
 		}
 	}
 	public static boolean compatibleUnits(String[] units1, String[] units2) {
