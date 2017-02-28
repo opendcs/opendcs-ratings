@@ -383,7 +383,7 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 			// first try the root element //
 			//----------------------------//
 			Element elem = doc.getRootElement();
-			if (elem.getName().equals("rating")) {
+			if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
 				if(elem.getChild("formula") != null) {
 					arc = ExpressionRatingContainer.fromXml(elem);
 				}
@@ -394,13 +394,19 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 			else if (elem.getName().equals("usgs-stream-rating")) {
 				arc = UsgsStreamTableRatingContainer.fromXml(elem);
 			}
+			else if (elem.getName().equals("virtual-rating")) {
+				arc = VirtualRatingContainer.fromXml(xmlStr);
+			}
+			else if (elem.getName().equals("transitional-rating")) {
+				arc = TransitionalRatingContainer.fromXml(xmlStr);
+			}
 			else {
 				//------------------------------------------//
 				// next try immediate descendants from root //
 				//------------------------------------------//
 				for (Object obj : elem.getChildren()) {
 					elem = (Element)obj;
-					if (elem.getName().equals("rating")) {
+					if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
 						if(elem.getChild("formula") != null) {
 							arc = ExpressionRatingContainer.fromXml(elem);
 							break;
@@ -414,9 +420,15 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 						arc = UsgsStreamTableRatingContainer.fromXml(elem);
 						break;
 					}
+					else if (elem.getName().equals("virtual-rating")) {
+						arc = VirtualRatingContainer.fromXml(xmlStr);
+					}
+					else if (elem.getName().equals("transitional-rating")) {
+						arc = TransitionalRatingContainer.fromXml(xmlStr);
+					}
 				}
 				if (arc == null) {
-					throw new RatingObjectDoesNotExistException("No <rating>  or <usgs-stream-rating> element in XML.");
+					throw new RatingObjectDoesNotExistException("No <rating>, <simple-rating>, <usgs-stream-rating>, <virtual-rating>, or <transitional-rating> element in XML.");
 				}
 			}
 		}
