@@ -441,35 +441,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						throw e;
 					}
 					finally {
-						String clobClassName = clob.getClass().getName();  
-						try {
-							if (clobClassName.equals("oracle.sql.CLOB")) {
-								//---------------//
-								// pre Oracle 12 //
-								//---------------//
-								Reflection.getMethod("oracle.sql.CLOB", "freeTemporary", Reflection.emptyParamTypes).invoke(clob, Reflection.emptyParams);
-							}
-							else if (clobClassName.equals("java.sql.Clob")) {
-								//----------------------------------------------------------------//
-								// Oracle 12 deprecates oracle.sql.CLOB in favor of java.sql.Clob //
-								//----------------------------------------------------------------//
-								clob.free();
-							}
-							else {
-								throw new Exception("Don't know how to free resources for class " + clobClassName);
-							}
-						}
-						catch(Throwable t) {
-							//-----------------------------//
-							// log any errors freeing clob //
-							//-----------------------------//
-							if (logger.isLoggable(Level.INFO)) {
-								StringWriter sw = new StringWriter();
-								PrintWriter pw = new PrintWriter(sw);
-								t.printStackTrace(pw);
-								logger.log(Level.INFO, sw.toString());
-							}
-						}
+						freeClob(clob);
 					}
 				break;
 				case "lazy" :
@@ -643,6 +615,41 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			throws RatingException {
 		
 		return fromDatabaseEffective(conn, null, ratingSpecId, startTime, endTime);
+	}
+	/**
+	 * Attempts to free the database resources held by a Clob object
+	 * @param clob the objec to free
+	 */
+	static void freeClob(Clob clob) {
+		String clobClassName = clob.getClass().getName();  
+		try {
+			if (clobClassName.equals("oracle.sql.CLOB")) {
+				//---------------//
+				// pre Oracle 12 //
+				//---------------//
+				Reflection.getMethod("oracle.sql.CLOB", "freeTemporary", Reflection.emptyParamTypes).invoke(clob, Reflection.emptyParams);
+			}
+			else if (clobClassName.equals("java.sql.Clob")) {
+				//----------------------------------------------------------------//
+				// Oracle 12 deprecates oracle.sql.CLOB in favor of java.sql.Clob //
+				//----------------------------------------------------------------//
+				clob.free();
+			}
+			else {
+				throw new Exception("Don't know how to free resources for class " + clobClassName);
+			}
+		}
+		catch(Throwable t) {
+			//-----------------------------//
+			// log any errors freeing clob //
+			//-----------------------------//
+			if (logger.isLoggable(Level.INFO)) {
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				t.printStackTrace(pw);
+				logger.log(Level.INFO, sw.toString());
+			}
+		}
 	}
 	/**
 	 * Public Constructor - sets rating specification only
@@ -1014,10 +1021,19 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						stmt.execute();
 						Clob clob = stmt.getClob(1);
 						stmt.close();
-						if (clob.length() > Integer.MAX_VALUE) {
-							throw new RatingException("CLOB too long.");
+						String xmlText = null;
+						try {
+							if (clob.length() > Integer.MAX_VALUE) {
+								throw new RatingException("CLOB too long.");
+							}
+							xmlText = clob.getSubString(1, (int)clob.length());
 						}
-						String xmlText = clob.getSubString(1, (int)clob.length());
+						catch (Exception e) {
+							throw e;
+						}
+						finally {
+							freeClob(clob);
+						}
 						logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
 						if (xmlText.indexOf("<simple-rating ") > 0) {
 							if (xmlText.indexOf("<formula>") > 0) {
@@ -1042,6 +1058,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							activeRatings.put(key, newRating);
 						}
 						newEntry = ratings.floorEntry(key);
+						if (!newEntry.getKey().equals(key)) {
+							throw new RatingException("Could not retrieve new rating for same time.");
+						}
 					}
 					catch (Exception e) {
 						if (e instanceof RatingException) throw (RatingException)e;
