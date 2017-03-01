@@ -987,7 +987,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			observationTarget.notifyObservers();
 		}
 	}
-	protected void getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
+	protected Map.Entry<Long, AbstractRating> getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
+		Map.Entry<Long, AbstractRating> newEntry = ratingEntry;
 		if (ratingEntry != null) {
 			Long key = ratingEntry.getKey();
 			AbstractRating rating = ratingEntry.getValue();
@@ -995,6 +996,11 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				//----------------------------------------//
 				// rating not yet retrieved from database //
 				//----------------------------------------//
+				if (logger.isLoggable(Level.FINE)) {
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+					logger.fine(String.format("RatingSet %s retrieving rating for %s UTC", getRatingSpec().getRatingSpecId(), sdf.format(key)));
+				}
 				synchronized(conn) {
 					try {
 						AbstractRating newRating = null;
@@ -1035,6 +1041,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						if (activeRatings.containsKey(key)) {
 							activeRatings.put(key, newRating);
 						}
+						newEntry = ratings.floorEntry(key);
 					}
 					catch (Exception e) {
 						if (e instanceof RatingException) throw (RatingException)e;
@@ -1043,6 +1050,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				}
 			}
 		}
+		return newEntry;
 	}
 	/**
 	 * Retrieves a rated value for a specified single input value and time. The rating set must
@@ -1153,10 +1161,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				else {
 					lowerRating = activeRatings.floorEntry(valueTimes[i]);
 					upperRating = activeRatings.ceilingEntry(valueTimes[i]);
-					if (isLazy) {
-						getConcreteRating(lowerRating);
-						getConcreteRating(upperRating);
-					}
 					//-------------------------//
 					// handle out of range low //
 					//-------------------------//
@@ -1187,10 +1191,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 						lowerRating = activeRatings.firstEntry();
 						upperRating = activeRatings.higherEntry(lowerRating.getKey());
-						if (isLazy) {
-							getConcreteRating(lowerRating);
-							getConcreteRating(upperRating);
-						}
 					}
 					//--------------------------//
 					// handle out of range high //
@@ -1208,6 +1208,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						case NEAREST:
 						case LOWER:
 						case CLOSEST:
+							if (isLazy) {
+								getConcreteRating(activeRatings.lastEntry());
+							}
 							lastUsedRating = activeRatings.lastEntry().getValue();
 							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 							continue;
@@ -1232,19 +1235,21 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 						upperRating = activeRatings.lastEntry();
 						lowerRating = activeRatings.lowerEntry(upperRating.getKey());
-						if (isLazy) {
-							getConcreteRating(lowerRating);
-							getConcreteRating(upperRating);
-						}
 					}
 					//-----------------------------------//
 					// handle in-range and extrapolation //
 					//-----------------------------------//
 					if (lowerRating.getKey() == valueTimes[i]) {
+						if (isLazy) {
+							lowerRating = getConcreteRating(lowerRating);
+						}
 						Y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
 						continue;
 					}
 					if (upperRating.getKey() == valueTimes[i]) {
+						if (isLazy) {
+							upperRating = getConcreteRating(upperRating);
+						}
 						lastUsedRating = upperRating.getValue();
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
@@ -1258,19 +1263,31 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						continue;
 					case PREVIOUS:
 					case LOWER:
+						if (isLazy) {
+							lowerRating = getConcreteRating(lowerRating);
+						}
 						lastUsedRating = lowerRating.getValue();
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
 					case NEXT:
 					case HIGHER:
+						if (isLazy) {
+							upperRating = getConcreteRating(upperRating);
+						}
 						lastUsedRating = upperRating.getValue();
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 						continue;
 					case CLOSEST:
 						if (valueTimes[i] - lowerRating.getKey() < upperRating.getKey() - valueTimes[i]) {
+							if (isLazy) {
+								lowerRating = getConcreteRating(lowerRating);
+							}
 							lastUsedRating = lowerRating.getValue();
 						}
 						else {
+							if (isLazy) {
+								upperRating = getConcreteRating(upperRating);
+							}
 							lastUsedRating = upperRating.getValue();
 						}
 						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
@@ -1284,6 +1301,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					method = ratingSpec.getInRangeMethod();
 				}
 				lastUsedRating = null;
+				if (isLazy) {
+					lowerRating = getConcreteRating(lowerRating);
+					upperRating = getConcreteRating(upperRating);
+				}
 				long transitionStartMillis = upperRating.getValue().getTransitionStartDate();
 				long t  = valueTimes[i];
 				long t1 = lowerRating.getKey();
@@ -2306,10 +2327,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				else {
 					lowerRating = activeRatings.floorEntry(valTimes[i]);
 					upperRating = activeRatings.ceilingEntry(valTimes[i]);
-					if (isLazy) {
-						getConcreteRating(lowerRating);
-						getConcreteRating(upperRating);
-					}
 					//-------------------------//
 					// handle out of range low //
 					//-------------------------//
@@ -2340,10 +2357,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 						lowerRating = activeRatings.firstEntry();
 						upperRating = activeRatings.higherEntry(lowerRating.getKey());
-						if (isLazy) {
-							getConcreteRating(lowerRating);
-							getConcreteRating(upperRating);
-						}
 					}
 					//--------------------------//
 					// handle out of range high //
@@ -2388,19 +2401,21 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 						upperRating = activeRatings.lastEntry();
 						lowerRating = activeRatings.lowerEntry(upperRating.getKey());
-						if (isLazy) {
-							getConcreteRating(lowerRating);
-							getConcreteRating(upperRating);
-						}
 					}
 					//-----------------------------------//
 					// handle in-range and extrapolation //
 					//-----------------------------------//
 					if (lowerRating.getKey() == valTimes[i]) {
+						if (isLazy) {
+							lowerRating = getConcreteRating(lowerRating);
+						}
 						Y[i] = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
 						continue;
 					}
 					if (upperRating.getKey() == valTimes[i]) {
+						if (isLazy) {
+							upperRating = getConcreteRating(upperRating);
+						}
 						lastUsedRating = upperRating.getValue();
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
@@ -2414,19 +2429,31 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						continue;
 					case PREVIOUS:
 					case LOWER:
+						if (isLazy) {
+							lowerRating = getConcreteRating(lowerRating);
+						}
 						lastUsedRating = lowerRating.getValue();
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
 					case NEXT:
 					case HIGHER:
+						if (isLazy) {
+							upperRating = getConcreteRating(upperRating);
+						}
 						lastUsedRating = upperRating.getValue();
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 						continue;
 					case CLOSEST:
 						if (valTimes[i] - lowerRating.getKey() < upperRating.getKey() - valTimes[i]) {
+							if (isLazy) {
+								lowerRating = getConcreteRating(lowerRating);
+							}
 							lastUsedRating = lowerRating.getValue();
 						}
 						else {
+							if (isLazy) {
+								upperRating = getConcreteRating(upperRating);
+							}
 							lastUsedRating = upperRating.getValue();
 						}
 						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
@@ -2440,6 +2467,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					method = ratingSpec.getInRangeMethod();
 				}
 				lastUsedRating = null;
+				if (isLazy) {
+					lowerRating = getConcreteRating(lowerRating);
+					upperRating = getConcreteRating(upperRating);
+				}
 				boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
 				boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
 				double x  = valTimes[i];
@@ -2556,6 +2587,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
+		if (dbrating != null) {
+			throw new RatingException("Cannot serialize a RatingSet that was loaded with \"reference\" method.");
+		}
+		if (isLazy) {
+			for (AbstractRating rating : ratings.values()) {
+				if (rating.getClass() == TableRating.class && ((TableRating)rating).values == null) {
+					throw new RatingException("Cannot serialize a RatingSet that was loaded with \"lazy\" method and is incomplete.");
+				}
+			}
+		}
 		return getData().toXml(indent, 0, true);
 	}
 	/**
@@ -2589,6 +2630,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
+		if (dbrating != null) {
+			throw new RatingException("Cannot store a RatingSet that was loaded with \"reference\" method.");
+		}
+		if (isLazy) {
+			for (AbstractRating rating : ratings.values()) {
+				if (rating.getClass() == TableRating.class && ((TableRating)rating).values == null) {
+					throw new RatingException("Cannot store a RatingSet that was loaded with \"lazy\" method and is incomplete.");
+				}
+			}
+		}
 		RatingSet.storeToDatabase(conn, getData().toXml("", 0, includeTemplate), overwriteExisting);
 	}
 	/* (non-Javadoc)
@@ -3140,7 +3191,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 //			"begin " +
 //			   ":1 := cwms_rating.rate_one_f("   +
 //			      "p_rating_spec => :2,"     +
-//			      "p_values      => double_tab_t(:3,:4,:5),"     +
+//			      "_values      => double_tab_t(:3,:4,:5),"     +
 //			      "p_units       => cwms_util.split_text(replace(:6, ';', ','), ',')," +
 //			      "p_value_time  => cast(cwms_util.to_timestamp(:7) as date),"   +
 //			      "p_time_zone   => 'UTC',"  +
