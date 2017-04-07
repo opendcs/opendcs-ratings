@@ -797,39 +797,42 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			//----------------------------------------------//
 			// output info about unused specs and templates //
 			//----------------------------------------------//
-			Set<String> usedIds = new TreeSet<String>();
-			usedIds.add(topLevelSpecId);
-			parts = TextUtil.split(topLevelSpecId, SEPARATOR1);
-			usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-			arc = arcsById.get(topLevelSpecId).first();
-			if (arc instanceof VirtualRatingContainer) {
-				vrc = (VirtualRatingContainer)arc;
-				for (String srcSpecId : vrc.sourceRatingIds) {
-					srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
-					if (usageById.containsKey(srcSpecId)) {
-						if (RatingSpec.isValidRatingSpecId(srcSpecId)) {
-							usedIds.add(srcSpecId);
-							parts = TextUtil.split(srcSpecId, SEPARATOR1);
-							usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+			List<AbstractRatingContainer> containersUsed = new ArrayList<AbstractRatingContainer>();
+			containersUsed.addAll(arcs);
+			for (int i = 0; i < containersUsed.size(); ++i) {
+				AbstractRatingContainer _arc = containersUsed.get(i);
+				if (_arc instanceof VirtualRatingContainer) {
+					VirtualRatingContainer _vrc = (VirtualRatingContainer)_arc;
+					for (int j = 0; j < _vrc.sourceRatings.length; ++j) {
+						if (_vrc.sourceRatings[j].rsc != null) {
+							for (int k = 0; k < _vrc.sourceRatings[j].rsc.abstractRatingContainers.length; ++k) {
+								if (!containersUsed.contains(_vrc.sourceRatings[j].rsc.abstractRatingContainers[k])) {
+									containersUsed.add(_vrc.sourceRatings[j].rsc.abstractRatingContainers[k]);
+								}
+							}
 						}
-						else {
-							// math expression, not a rating spec
+					}
+				}
+				else if (_arc instanceof TransitionalRatingContainer) {
+					TransitionalRatingContainer _trc = (TransitionalRatingContainer)_arc;
+					for (int j = 0; j < _trc.sourceRatings.length; ++j) {
+						if (_trc.sourceRatings[j].rsc != null) {
+							for (int k = 0; k < _trc.sourceRatings[j].rsc.abstractRatingContainers.length; ++k) {
+								if (!containersUsed.contains(_trc.sourceRatings[j].rsc.abstractRatingContainers[k])) {
+									containersUsed.add(_trc.sourceRatings[j].rsc.abstractRatingContainers[k]);
+								}
+							}
 						}
 					}
 				}
 			}
-			else if (arc instanceof TransitionalRatingContainer) {
-				trrc = (TransitionalRatingContainer)arc;
-				if (trrc.sourceRatingIds != null) {
-					for (String srcSpecId : trrc.sourceRatingIds) {
-						srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
-						if (usageById.containsKey(srcSpecId)) {
-							usedIds.add(srcSpecId);
-							parts = TextUtil.split(srcSpecId, SEPARATOR1);
-							usedIds.add(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-						}
-					}
-				}
+			Set<String> usedIds = new TreeSet<String>();
+			for (AbstractRatingContainer _arc : containersUsed) {
+				String specId = String.format("%s/%s", _arc.officeId, _arc.ratingSpecId);
+				parts = TextUtil.split(_arc.ratingSpecId, SEPARATOR1);
+				templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+				usedIds.add(specId);
+				usedIds.add(templateId);
 			}
 			StringBuilder sb1 = new StringBuilder();
 			StringBuilder sb2 = new StringBuilder();

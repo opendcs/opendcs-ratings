@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
@@ -92,6 +93,33 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 			src.units = parts;
 		}
 		sourceRatings = srList.toArray(new SourceRatingContainer[0]);
+		int indParamCount = TextUtil.split(ratingSpecId, SEPARATOR3).length;
+		HashSet<String> connectionPoints = new HashSet<String>();
+		for (String connectionPoint : TextUtil.split(connections.replaceAll("=", ","), ",")) {
+			connectionPoints.add(connectionPoint);
+		}
+		Vector<String> units = new Vector<String>();
+		for (int i = 0; i < sourceRatings.length; ++i) {
+			for (int j = 0; j < sourceRatings[i].units.length; ++j) {
+				if (!connectionPoints.contains(String.format("R%dI%d", i+1, j+1))) {
+					units.add(sourceRatings[i].units[j]);
+					if (connectionPoints.size() == indParamCount) {
+						break;
+					}
+				}
+			}
+		}
+		for (int i = 0; i < sourceRatings.length; ++i) {
+			if (!connectionPoints.contains(String.format("R%dD", i+1))) {
+				units.add(sourceRatings[i].units[sourceRatings[i].units.length-1]);
+				break;
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < units.size(); ++i) {
+			sb.append(i == 0 ? "" : i == units.size()-1 ? ";" : ",").append(units.get(i));
+		}
+		unitsId = sb.toString();
 	}
 
 	/* (non-Javadoc)
