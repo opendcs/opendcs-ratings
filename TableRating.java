@@ -328,9 +328,11 @@ public class TableRating extends AbstractRating {
 			if (props.hasIncreasing() || values.length == 1) {
 				if (lt(ind_val, effectiveValues[lo].getIndValue())) {
 					out_range_low = true;
+					hi = lo + 1;
 				}
 				else if (gt(ind_val, effectiveValues[hi].getIndValue())) {
 					out_range_high = true;
+					lo = hi - 1;
 				}
 				else {
 					while (hi - lo > 1) {
@@ -343,9 +345,13 @@ public class TableRating extends AbstractRating {
 			else if (props.hasDecreasing()) {
 				if (gt(ind_val, effectiveValues[lo].getIndValue())) {
 					out_range_low = true;
+					hi = lo;
+					lo = hi + 1;
 				}
 				else if (lt(ind_val, effectiveValues[hi].getIndValue())) {
 					out_range_high = true;
+					lo = hi;
+					hi = lo - 1;
 				}
 				else {
 					while (hi - lo > 1) {
