@@ -105,7 +105,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		this.ratingSpecId = ratingSpecId;
 		this.officeId = officeId.toUpperCase();
 		synchronized(conn) {
-			String sql = "select rating_spec_code from cwms_v_rating_spec where office_id = :1 and rating_id = :2"; 
+			String sql = "select rating_spec_code from cwms_v_rating_spec where office_id = :1 and upper(rating_id) = upper(:2)"; 
 			try {
 				PreparedStatement stmt = conn.prepareStatement(sql);
 				stmt.setString(1, this.officeId);

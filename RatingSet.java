@@ -479,7 +479,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					if (trcs.size() == 0) {
 						throw new RatingException("No ratings.");
 					}
-					sql = "select distinct effective_date, active_flag, native_units from cwms_v_rating where office_id = :1 and rating_id = :2 order by 1";
+					sql = "select distinct effective_date, active_flag, native_units from cwms_v_rating where office_id = :1 and upper(rating_id) = upper(:2) order by 1";
 					PreparedStatement pstmt = conn.prepareStatement(sql);
 					pstmt.setString(1, spec.officeId);
 					pstmt.setString(2, ratingSpecId);
