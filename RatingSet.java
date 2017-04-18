@@ -1,50 +1,8 @@
 package hec.data.cwmsRating;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.join;
-import static hec.util.TextUtil.replaceAll;
-import static hec.util.TextUtil.split;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Observer;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import hec.data.DataSetException;
-import hec.data.IRating;
-import hec.data.IRatingSet;
-import hec.data.IVerticalDatum;
-import hec.data.Parameter;
-import hec.data.RatingException;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.Units;
-import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.*;
+import hec.data.cwmsRating.RatingConst.*;
+import hec.data.cwmsRating.io.*;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
@@ -55,8 +13,19 @@ import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
-import hec.lang.Reflection;
 import hec.util.TextUtil;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static hec.data.cwmsRating.RatingConst.*;
+import static hec.util.TextUtil.*;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -627,7 +596,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				//---------------//
 				// pre Oracle 12 //
 				//---------------//
-				Reflection.getMethod("oracle.sql.CLOB", "freeTemporary", Reflection.emptyParamTypes).invoke(clob, Reflection.emptyParams);
+				clob.getClass().getMethod("freeTemporary").invoke(clob);
 			}
 			else if (clobClassName.equals("java.sql.Clob")) {
 				//----------------------------------------------------------------//
