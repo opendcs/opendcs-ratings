@@ -5,6 +5,7 @@ import java.util.List;
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.RatingMethodId;
 import hec.data.cwmsRating.UsgsStreamTableRating;
 import hec.heclib.util.HecTime;
 import hec.io.VerticalDatumContainer;
@@ -13,7 +14,9 @@ import hec.util.TextUtil;
 import org.jdom.Element;
 
 import static hec.lang.Const.UNDEFINED_TIME;
-
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 /**
  * Data container class for UsgsStreamTableRating data
  * @author Mike Perryman
@@ -114,31 +117,62 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			throw new RatingException(e1);
 		}
 		Element elem = null;
-		
+		String[] parts;
 		@SuppressWarnings("rawtypes")
 		List elems = ratingElement.getChildren("height-shifts");
 		if (elems.size() > 0) {
 			HecTime hectime = new HecTime();
 			ustrc.shifts = new RatingSetContainer();
+			ustrc.shifts.ratingSpecContainer = new RatingSpecContainer();
+			RatingSpecContainer rsc = ustrc.shifts.ratingSpecContainer;
+			rsc.inRangeMethod = RatingMethodId.Linear.name();
+			rsc.outRangeLowMethod = RatingMethodId.Null.name();
+			rsc.outRangeHighMethod = RatingMethodId.Nearest.name();
+			rsc.inRangeMethods = new String[] {RatingMethodId.Linear.name()};
+			rsc.outRangeLowMethods = new String[] {RatingMethodId.Nearest.name()};
+			rsc.outRangeHighMethods = new String[] {RatingMethodId.Nearest.name()};
+			parts = TextUtil.split(ustrc.ratingSpecId, SEPARATOR1);
+			rsc.locationId = parts[0];
+			rsc.templateVersion = "Linear";
+			rsc.specVersion = parts[3];
+			parts = TextUtil.split(parts[1], SEPARATOR2);
+			rsc.indParams = new String[] {parts[0]};
+			rsc.depParam = String.format("%s-shift", parts[0]);
+			rsc.parametersId = TextUtil.join(
+					SEPARATOR2, 
+					rsc.indParams[0], 
+					rsc.depParam);
+			rsc.templateId = TextUtil.join(
+					SEPARATOR1, 
+					rsc.parametersId, 
+					rsc.templateVersion);
+			rsc.indRoundingSpecs = new String[] {"4444444449"};
+			rsc.depRoundingSpec = "4444444449";
+			
 			ustrc.shifts.abstractRatingContainers = new TableRatingContainer[elems.size()];
 			for (int i = 0; i < elems.size(); ++i) {
 				ustrc.shifts.abstractRatingContainers[i] = new TableRatingContainer();
+				TableRatingContainer trc = (TableRatingContainer)ustrc.shifts.abstractRatingContainers[i];
 				elem =  (Element)elems.get(i);
 				String data = elem.getChildTextTrim("effective-date");
 				if (data != null) {
 					hectime.set(data);
-					ustrc.shifts.abstractRatingContainers[i].effectiveDateMillis = hectime.getTimeInMillis();
+					trc.effectiveDateMillis = hectime.getTimeInMillis();
 				}
 				data = elem.getChildTextTrim("create-date");
 				if (data != null) {
 					hectime.set(data);
-					ustrc.shifts.abstractRatingContainers[i].createDateMillis = hectime.getTimeInMillis();
+					trc.createDateMillis = hectime.getTimeInMillis();
 				}
-				ustrc.shifts.abstractRatingContainers[i].active = Boolean.parseBoolean(elem.getChildTextTrim("active"));
-				ustrc.shifts.abstractRatingContainers[i].description = elem.getChildTextTrim("description");
+				trc.active = Boolean.parseBoolean(elem.getChildTextTrim("active"));
+				trc.description = elem.getChildTextTrim("description");
+				String heightUnit = ustrc.unitsId.split(";", 'L')[0];
+				trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
+				trc.inRangeMethod = RatingMethodId.Linear.name();
+				trc.outRangeLowMethod = RatingMethodId.Nearest.name();
+				trc.outRangeHighMethod = RatingMethodId.Nearest.name();
 				@SuppressWarnings("rawtypes")
 				List pointElems = elem.getChildren("point");
-				TableRatingContainer trc = (TableRatingContainer)ustrc.shifts.abstractRatingContainers[i];
 				if (pointElems.size() > 0) {
 					trc.values = new RatingValueContainer[pointElems.size()];
 					for (int j = 0; j < pointElems.size(); ++j) {
@@ -155,6 +189,17 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		if (elem != null) {
 			ustrc.offsets = new TableRatingContainer();
 			TableRatingContainer trc = ustrc.offsets;
+			parts = TextUtil.split(ustrc.ratingSpecId, SEPARATOR1);
+			String indParamId = TextUtil.split(parts[1], SEPARATOR2)[0];
+			trc.ratingSpecId = TextUtil.join(
+					SEPARATOR1, 
+					parts[0], 
+					TextUtil.join(SEPARATOR2, indParamId, indParamId+"-offset"), 
+					"Standard", 
+					"Production");
+			trc.inRangeMethod      = RatingMethodId.Previous.name();
+			trc.outRangeLowMethod  = RatingMethodId.Next.name();
+			trc.outRangeHighMethod = RatingMethodId.Previous.name();
 			@SuppressWarnings("rawtypes")
 			List pointElems = elem.getChildren("point");
 			if (pointElems.size() > 0) {
