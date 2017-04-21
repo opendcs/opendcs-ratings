@@ -31,17 +31,19 @@ import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.VerticalDatumException;
+import hec.data.rating.IParameterExtents;
+import hec.data.rating.IRatingExtents;
 import hec.data.rating.JDomRatingSpecification;
 import hec.data.rating.ParameterValues;
 import hec.data.rating.RatingInput;
 import hec.data.rating.RatingOutput;
 import hec.data.rating.ReverseRatingInput;
-import hec.db.DbConnectionException;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.io.VerticalDatumContainer;
 import hec.lang.Reflection;
 import hec.util.TextUtil;
+import wcds.dbi.client.JdbcConnection;
 
 
 /**
@@ -427,7 +429,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				conn.close();
+				JdbcConnection.closeConnection(conn);
 			}
 			dataUnits = Arrays.copyOf(units, units.length);
 		}
@@ -498,7 +500,48 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
-		double[][][] extents = null;
+		Connection conn = null;
+		try {
+			conn = ratingSet.getConnection();
+		}
+		catch (RatingException e1) {}
+		if (conn == null) {
+			throw new RatingException("No database connections available");
+		}
+		try {
+			synchronized(conn) {
+				Class<?> cwmsRatingClass = Class.forName("wcds.dbi.oracle.OracleCwmsRatingDaoImpl");
+				Object cwmsRatingObj = cwmsRatingClass.getConstructor(java.sql.Connection.class).newInstance(conn);
+				JDomRatingSpecification ratingSpec = new JDomRatingSpecification(officeId, ratingSpecId);
+				Calendar cal = Calendar.getInstance();
+				cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+				cal.setTimeInMillis(ratingTime);
+				IRatingExtents ratingExtents = (IRatingExtents)cwmsRatingClass.getMethod(
+						"getRatingExtents", 
+						Class.forName("hec.data.rating.IRatingSpecification"),
+						Class.forName("java.util.Date")).invoke(cwmsRatingObj, ratingSpec, cal.getTime());
+				String[] paramIds = TextUtil.split(parametersId.replaceAll(SEPARATOR2, SEPARATOR3), SEPARATOR3);
+				double[][] extents = new double[2][paramIds.length];
+				for (int i = 0; i < paramIds.length; ++i) {
+					Parameter param = new Parameter(paramIds[i]);
+					IParameterExtents paramExtents = ratingExtents.getParameterExtents(param);
+					extents[0][i] = paramExtents.getMinimumValue();
+					extents[1][1] = paramExtents.getMaximumValue();
+					if (!paramExtents.getUnits().equals(ratingUnits[i])) {
+						extents[0][i] = Units.convertUnits(extents[0][i], paramExtents.getUnits(), ratingUnits[i]);
+						extents[1][i] = Units.convertUnits(extents[1][i], paramExtents.getUnits(), ratingUnits[i]);
+					}
+				}
+				return extents;
+			}
+		}
+		catch (Exception e) {
+			if (e instanceof RatingException) throw (RatingException)e;
+			throw new RatingException(e);
+		}
+		finally {
+			JdbcConnection.closeConnection(conn);
+		}
 //		if (ratingExtentsMethod == null) {
 //			getRatingExtentsMethod();
 //		}
@@ -520,7 +563,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 //				| InvocationTargetException e) {
 //			throw new RatingException(e);
 //		}
-		return extents[0];
+//		return extents[0];
 	}
 
 	/* (non-Javadoc)
@@ -558,7 +601,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				conn.close();
+				JdbcConnection.closeConnection(conn);
 			}
 		}
 		catch (Exception e) {
@@ -602,7 +645,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				conn.close();
+				JdbcConnection.closeConnection(conn);
 			}
 		}
 		catch (Exception e) {
@@ -791,8 +834,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			throw new RatingException(e);
 		}
 		finally {
-			try {conn.close();}
-			catch (SQLException e) {}
+			JdbcConnection.closeConnection(conn);
 		}
 //		try {
 //			rated = (double[])rateMethod.invoke(
@@ -947,8 +989,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			throw new RatingException(e);
 		}
 		finally {
-			try {conn.close();}
-			catch (SQLException e) {}
+			JdbcConnection.closeConnection(conn);
 		}
 //		double[] rated = null;
 //		if (reverseRateMethod == null) {

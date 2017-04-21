@@ -61,6 +61,7 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import wcds.dbi.client.JdbcConnection;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -934,9 +935,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		Connection conn = null;
 		try {
 			for (DataAccessFactory factory : ConnectionFactory.getInstances()) {
-				//------------------------------------------------------------------------------------//
-				// compare DbConnection object against info for connection used to create this object //
-				//------------------------------------------------------------------------------------//
 				DbConnection dbConnection = factory.getDbConnection();
 				if (dbConnection.getDatabaseUrl().equalsIgnoreCase(dbUrl)
 						&& dbConnection.getUserName().equalsIgnoreCase(dbUserName)
@@ -1405,7 +1403,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 					}
 					finally {
-						conn.close();
+						JdbcConnection.closeConnection(conn);
 					}
 				}
 			}
@@ -2448,18 +2446,24 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
-		if (activeRatings.size() == 0) {
-			throw new RatingException("No active ratings.");
+		if (dbrating == null) {
+			if (activeRatings.size() == 0) {
+				throw new RatingException("No active ratings.");
+			}
+			Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
+	        
+	        if (rating == null)
+	        {
+	            rating = activeRatings.ceilingEntry(ratingTime);
+	        }
+	        if (isLazy) {
+	        	rating = getConcreteRating(rating);
+	        }
+	        return rating.getValue().getRatingExtents();
 		}
-                
-		Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
-        
-        if (rating == null)
-        {
-            rating = activeRatings.ceilingEntry(ratingTime);
-        }
-        
-        return rating.getValue().getRatingExtents();
+		else {
+			return dbrating.getRatingExtents(ratingTime);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getEffectiveDates()
