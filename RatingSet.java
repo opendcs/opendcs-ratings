@@ -20,7 +20,6 @@ import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,9 +48,6 @@ import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
-import hec.db.ConnectionFactory;
-import hec.db.DataAccessFactory;
-import hec.db.DbConnection;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TextMath;
 import hec.hecmath.TimeSeriesMath;
@@ -61,7 +57,6 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
-import wcds.dbi.client.JdbcConnection;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -931,24 +926,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *         used to retrieve this object initially, or null if not found
 	 * @throws RatingException
 	 */
-	Connection getConnection() throws RatingException {
-		Connection conn = null;
-		try {
-			for (DataAccessFactory factory : ConnectionFactory.getInstances()) {
-				DbConnection dbConnection = factory.getDbConnection();
-				if (dbConnection.getDatabaseUrl().equalsIgnoreCase(dbUrl)
-						&& dbConnection.getUserName().equalsIgnoreCase(dbUserName)
-						&& dbConnection.getSessionOfficeId().equalsIgnoreCase(dbOfficeId)) {
-					conn = factory.getPooledConnection();
-					break;
-				}
-			}
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException ) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		return conn;
+	Connection getConnection() throws Exception {
+		Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
+		Class<?> stringClass = Class.forName("java.lang.String");
+		return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
 	}
 	/**
 	 * Attempts to free the database resources held by a Clob object
@@ -1403,8 +1384,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 					}
 					finally {
-						JdbcConnection.closeConnection(conn);
-					}
+						Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);					}
 				}
 			}
 		}

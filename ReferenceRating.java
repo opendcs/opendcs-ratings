@@ -43,7 +43,6 @@ import hec.io.TimeSeriesContainer;
 import hec.io.VerticalDatumContainer;
 import hec.lang.Reflection;
 import hec.util.TextUtil;
-import wcds.dbi.client.JdbcConnection;
 
 
 /**
@@ -429,7 +428,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				JdbcConnection.closeConnection(conn);
+				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
 			}
 			dataUnits = Arrays.copyOf(units, units.length);
 		}
@@ -504,7 +503,10 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		try {
 			conn = ratingSet.getConnection();
 		}
-		catch (RatingException e1) {}
+		catch (Exception e) {
+			if (e instanceof RatingException) throw (RatingException)e;
+			throw new RatingException(e);
+		}
 		if (conn == null) {
 			throw new RatingException("No database connections available");
 		}
@@ -540,7 +542,12 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			throw new RatingException(e);
 		}
 		finally {
-			JdbcConnection.closeConnection(conn);
+			try {
+				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+			}
+			catch (Exception e) {
+				throw new RatingException(e);
+			}
 		}
 //		if (ratingExtentsMethod == null) {
 //			getRatingExtentsMethod();
@@ -601,7 +608,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				JdbcConnection.closeConnection(conn);
+				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
 			}
 		}
 		catch (Exception e) {
@@ -645,7 +652,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				JdbcConnection.closeConnection(conn);
+				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
 			}
 		}
 		catch (Exception e) {
@@ -778,7 +785,10 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		try {
 			conn = ratingSet.getConnection();
 		}
-		catch (RatingException e1) {}
+		catch (Exception e) {
+			if (e instanceof RatingException) throw (RatingException)e;
+			throw new RatingException(e);
+		}
 		if (conn == null) {
 			throw new RatingException("No database connections available");
 		}
@@ -807,7 +817,11 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 					Vector<ParameterValues> indValues = new Vector<ParameterValues>();
 					String[] indParamIds = TextUtil.split(TextUtil.split(TextUtil.split(templateId, SEPARATOR1)[0], SEPARATOR2)[0], SEPARATOR3);
 					for (int i = 0; i < indParamIds.length; ++i) {
-						indValues.add(new ParameterValues(new Parameter(indParamIds[i]), indVals[i]));
+						double[] values = new double[indVals.length];
+						for (int j = 0; j < indVals.length; ++j) {
+							values[j] = indVals[j][i];
+						}
+						indValues.add(new ParameterValues(new Parameter(indParamIds[i]), values));
 					}
 					Vector<String> indUnits = new Vector<String>();
 					String[] units = dataUnits == null ? ratingUnits : dataUnits;
@@ -834,7 +848,12 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			throw new RatingException(e);
 		}
 		finally {
-			JdbcConnection.closeConnection(conn);
+			try {
+				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+			}
+			catch (Exception e) {
+				throw new RatingException(e);
+			}
 		}
 //		try {
 //			rated = (double[])rateMethod.invoke(
@@ -946,7 +965,10 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		try {
 			conn = ratingSet.getConnection();
 		}
-		catch (RatingException e1) {}
+		catch (Exception e) {
+			if (e instanceof RatingException) throw (RatingException)e;
+			throw new RatingException(e);
+		}
 		if (conn == null) {
 			throw new RatingException("No database connections available");
 		}
@@ -989,7 +1011,12 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			throw new RatingException(e);
 		}
 		finally {
-			JdbcConnection.closeConnection(conn);
+			try {
+				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+			}
+			catch (Exception e) {
+				throw new RatingException(e);
+			}
 		}
 //		double[] rated = null;
 //		if (reverseRateMethod == null) {
