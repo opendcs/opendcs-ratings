@@ -57,6 +57,7 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import wcds.dbi.client.JdbcConnection;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -102,6 +103,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * The CWMS-style rating specification (including rating template)
 	 */
 	protected RatingSpec ratingSpec = null;
+	/**
+	 * The specified units of the data to rate
+	 */
+	protected String[] dataUnits = null;
 	/**
 	 * The time series of all ratings in this set, whether active or not
 	 */
@@ -1069,6 +1074,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public void addRating(AbstractRating rating) throws RatingException {
+		if (dbrating != null) {
+			throw new RatingException("Cannot add to a reference rating");
+		}
 		if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
 			throw new RatingException("Cannot add rating with undefined effective date.");
 		}
@@ -1099,6 +1107,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 		ratings.put(effectiveDate, rating);
+		if (dataUnits == null) {
+			setDataUnits(rating.getDataUnits());
+		}
+		else {
+			rating.setDataUnits(dataUnits);
+		}
 		ratings.get(effectiveDate).ratingSpec = ratingSpec;
 		if (rating.isActive() && rating.createDate <= ratingTime) {
 			activeRatings.put(effectiveDate, rating);
@@ -1129,6 +1143,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void addRatings(Iterable<AbstractRating> ratings) throws RatingException {
 		String ratingSpecId = null;
 		String unitsId = null;
+		if (dbrating != null) {
+			throw new RatingException("Cannot add to a reference rating");
+		}
 		for (AbstractRating rating : ratings) {
 			if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
 				throw new RatingException("Cannot add rating with undefined effective date.");
@@ -2389,8 +2406,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public String[] getRatingUnits() {
 		String[] units = null;
-		if (ratings.size() > 0) {
-			units = ratings.firstEntry().getValue().getRatingUnits();
+		if (dbrating == null) {
+			if (ratings.size() > 0) {
+				units = ratings.firstEntry().getValue().getRatingUnits();
+			}
+		}
+		else {
+			units = dbrating.getRatingUnits();
 		}
 		return units;
 	}
@@ -2400,8 +2422,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public String[] getDataUnits() {
 		String[] units = null;
-		if (ratings.size() > 0) {
-			units = ratings.firstEntry().getValue().getDataUnits();
+		if (dataUnits != null) {
+			units = Arrays.copyOf(dataUnits, dataUnits.length);
+		}
+		else {
+			if (dbrating == null) {
+				if (ratings.size() > 0) {
+					units = ratings.firstEntry().getValue().getDataUnits();
+				}
+			}
+			else {
+				units = dbrating.getDataUnits();
+			}
 		}
 		return units;
 	}
@@ -2410,9 +2442,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
-		for (ICwmsRating rating : ratings.values()) {
-			rating.setDataUnits(units);
+		if (dbrating == null) {
+			for (ICwmsRating rating : ratings.values()) {
+				rating.setDataUnits(units);
+			}
 		}
+		else {
+			dbrating.setDataUnits(units);
+		}
+		dataUnits = Arrays.copyOf(units, units.length);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getRatingExtents()
@@ -2450,10 +2488,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public long[] getEffectiveDates() {
-		long[] effectiveDates = new long[activeRatings.size()];
-		Iterator<AbstractRating> it = activeRatings.values().iterator(); 
-		for (int i = 0; i < effectiveDates.length; ++i) {
-			effectiveDates[i] = it.next().effectiveDate;
+		long[] effectiveDates = null;
+		if (dbrating == null) {
+			effectiveDates = new long[activeRatings.size()];
+			Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+			for (int i = 0; i < effectiveDates.length; ++i) {
+				effectiveDates[i] = it.next().effectiveDate;
+			}
+		}
+		else {
+			return dbrating.getEffectiveDates();
 		}
 		return effectiveDates;
 	}
@@ -2462,10 +2506,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public long[] getCreateDates() {
-		long[] createDates = new long[activeRatings.size()];
-		Iterator<AbstractRating> it = activeRatings.values().iterator(); 
-		for (int i = 0; i < createDates.length; ++i) {
-			createDates[i] = it.next().createDate;
+		long[] createDates = null;
+		if (dbrating == null) {
+			createDates = new long[activeRatings.size()];
+			Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+			for (int i = 0; i < createDates.length; ++i) {
+				createDates[i] = it.next().createDate;
+			}
+		}
+		else {
+			createDates = dbrating.getCreateDates();
 		}
 		return createDates;
 	}
@@ -3018,15 +3068,21 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The RatingSetContainer
 	 */
 	public RatingSetContainer getData() {
-		RatingSetContainer rsc = new RatingSetContainer();
-		if (ratingSpec != null) {
-			rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
+		RatingSetContainer rsc = null;
+		if (dbrating != null) {
+			logger.info("Reference ratings cannot return RatingSetContainer objects.");
 		}
-		if (ratings.size() > 0) {
-			rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];
-			Iterator<AbstractRating> it = ratings.values().iterator();
-			for (int i = 0; it.hasNext(); ++i) {
-				rsc.abstractRatingContainers[i] = it.next().getData(); 
+		else {
+			rsc = new RatingSetContainer();
+			if (ratingSpec != null) {
+				rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
+			}
+			if (ratings.size() > 0) {
+				rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];
+				Iterator<AbstractRating> it = ratings.values().iterator();
+				for (int i = 0; it.hasNext(); ++i) {
+					rsc.abstractRatingContainers[i] = it.next().getData(); 
+				}
 			}
 		}
 		return rsc;
@@ -3038,6 +3094,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public void setData(RatingSetContainer rsc) throws RatingException {
 		try {
+			if (dbrating != null) {
+				throw new RatingException("Cannot set data for reference ratings.");
+			}
 			removeAllRatings();
 			if (rsc.ratingSpecContainer == null) {
 				ratingSpec = null;
@@ -3070,6 +3129,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public TextContainer getDssData() throws RatingException {
 		try {
+			if (dbrating != null) {
+				throw new RatingException("Reference ratings cannot return DSS Data.");
+			}
 			TextContainer tc = new TextContainer();
 			tc.fullName = getDssPathname();
 			tc.text = String.format("%s\n%s", this.getClass().getName(), toCompressedXmlString());
@@ -3086,6 +3148,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void setData(TextContainer tc) throws RatingException {
+		if (dbrating != null) {
+			throw new RatingException("Cannot set data for reference ratings.");
+		}
 		String[] lines = tc.text.split("\\n");
 		String className = getClass().getName();
 		for (int i = 0; i < lines.length-1; ++i) {
@@ -3105,6 +3170,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return whether this object has any vertical datum info
 	 */
 	public boolean hasVerticalDatum() {
+		if (dbrating != null) {
+			try {
+				return getNativeVerticalDatum() != null;
+			}
+			catch (VerticalDatumException e) {
+				logger.warning(e.getMessage());
+				return false;
+			}
+		}
 		return getData().hasVerticalDatum();
 	}
 	/* (non-Javadoc)
@@ -3112,6 +3186,29 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public String getNativeVerticalDatum() throws VerticalDatumException {
+		if (dbrating != null) {
+			Connection conn = null;
+			try {
+				conn = getConnection();
+				PreparedStatement stmt = conn.prepareStatement("select vertical_datum from cwms_v_loc where location_id = :1 and unit_system = 'EN'");
+				stmt.setString(1, ratingSpec.locationId);
+				ResultSet rs = stmt.executeQuery();
+				rs.next();
+				String vertical_datum = rs.getString(1);
+				rs.close();
+				stmt.close();
+				return vertical_datum;
+			}
+			catch (Exception e) {
+				throw new VerticalDatumException(e);
+			}
+			finally {
+				try {
+					JdbcConnection.closeConnection(conn);
+				}
+				catch (SQLException e) {}
+			}
+		}
 		return getData().getNativeVerticalDatum();
 	}
 	/* (non-Javadoc)
@@ -3201,15 +3298,21 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
-		RatingSetContainer rsc = getData();
-		boolean change = rsc.forceVerticalDatum(datum);
-		if (change) {
-			try {
-				setData(rsc);
+		boolean change;
+		if (dbrating == null) {
+			RatingSetContainer rsc = getData();
+			change = rsc.forceVerticalDatum(datum);
+			if (change) {
+				try {
+					setData(rsc);
+				}
+				catch (RatingException e) {
+					throw new VerticalDatumException(e);
+				}
 			}
-			catch (RatingException e) {
-				throw new VerticalDatumException(e);
-			}
+		}
+		else {
+			change = dbrating.forceVerticalDatum(datum);
 		}
 		return change;
 	}
@@ -3218,76 +3321,126 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double getCurrentOffset() throws VerticalDatumException {
-		return getData().getCurrentOffset();
+		if (dbrating == null) {
+			return getData().getCurrentOffset();
+		}
+		else {
+			return dbrating.getCurrentOffset();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
 	 */
 	@Override
 	public double getCurrentOffset(String unit) throws VerticalDatumException {
-		return getData().getCurrentOffset(unit);
+		if (dbrating == null) {
+			return getData().getCurrentOffset(unit);
+		}
+		else {
+			return dbrating.getCurrentOffset(unit);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNGVD29Offset()
 	 */
 	@Override
 	public double getNGVD29Offset() throws VerticalDatumException {
-		return getData().getNGVD29Offset();
+		if (dbrating == null) {
+			return getData().getNGVD29Offset();
+		}
+		else {
+			return dbrating.getNGVD29Offset();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
 	 */
 	@Override
 	public double getNGVD29Offset(String unit) throws VerticalDatumException {
-		return getData().getNGVD29Offset(unit);
+		if (dbrating == null) {
+			return getData().getNGVD29Offset(unit);
+		}
+		else {
+			return dbrating.getNGVD29Offset(unit);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNAVD88Offset()
 	 */
 	@Override
 	public double getNAVD88Offset() throws VerticalDatumException {
-		return getData().getNAVD88Offset();
+		if (dbrating == null) {
+			return getData().getNAVD88Offset();
+		}
+		else {
+			return dbrating.getNAVD88Offset();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
 	 */
 	@Override
 	public double getNAVD88Offset(String unit) throws VerticalDatumException {
-		return getData().getNAVD88Offset(unit);
+		if (dbrating == null) {
+			return getData().getNAVD88Offset(unit);
+		}
+		else {
+			return dbrating.getNAVD88Offset(unit);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
 	 */
 	@Override
 	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
-		return getData().isNGVD29OffsetEstimated();
+		if (dbrating == null) {
+			return getData().isNGVD29OffsetEstimated();
+		}
+		else {
+			return dbrating.isNGVD29OffsetEstimated();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
 	 */
 	@Override
 	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
-		return getData().isNAVD88OffsetEstimated();
+		if (dbrating == null) {
+			return getData().isNAVD88OffsetEstimated();
+		}
+		else {
+			return dbrating.isNAVD88OffsetEstimated();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
 	 */
 	@Override
 	public String getVerticalDatumInfo() throws VerticalDatumException {
-		return getData().getVerticalDatumInfo();
+		if (dbrating == null) {
+			return getData().getVerticalDatumInfo();
+		}
+		else {
+			return dbrating.getVerticalDatumInfo();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
-		RatingSetContainer rsc = getData();
-		rsc.setVerticalDatumInfo(xmlStr);
-		try {
-			setData(rsc);
+		if (dbrating == null) {
+			RatingSetContainer rsc = getData();
+			rsc.setVerticalDatumInfo(xmlStr);
+			try {
+				setData(rsc);
+			}
+			catch (RatingException e) {
+				throw new VerticalDatumException(e);
+			}
 		}
-		catch (RatingException e) {
-			throw new VerticalDatumException(e);
+		else {
+			dbrating.setVerticalDatumInfo(xmlStr);
 		}
 	}
 	/* (non-Javadoc)
@@ -3295,7 +3448,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingSet)obj).getData()));
+		if (dbrating == null) {
+			return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingSet)obj).getData()));
+		}
+		else {
+			return dbrating.equals(obj);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
@@ -3306,21 +3464,23 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	
 	private void refreshRatings() {
-		AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
-		ratings.clear();
-		activeRatings.clear();
-		for (AbstractRating rating : ratingArray) {
-			long effectiveDate = rating.getEffectiveDate();
-			ratings.put(effectiveDate, rating);
-			if (rating.isActive() && rating.getCreateDate() < ratingTime) {
-				activeRatings.put(effectiveDate, rating);
+		if (dbrating == null) {
+			AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
+			ratings.clear();
+			activeRatings.clear();
+			for (AbstractRating rating : ratingArray) {
+				long effectiveDate = rating.getEffectiveDate();
+				ratings.put(effectiveDate, rating);
+				if (rating.isActive() && rating.getCreateDate() < ratingTime) {
+					activeRatings.put(effectiveDate, rating);
+				}
+				rating.deleteObserver(this);
+				rating.addObserver(this);
 			}
-			rating.deleteObserver(this);
-			rating.addObserver(this);
-		}
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 	}
 	/**
@@ -3328,6 +3488,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException if the rating set is not valid
 	 */
 	private void validate() throws RatingException {
+		if (dbrating != null) return;
 		if (ratings.size() == 0) return;
 		String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
 		String[] units = unitsId == null ? null : split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");

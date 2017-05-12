@@ -6,6 +6,7 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_INT;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
 
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.Vector;
 
@@ -88,6 +90,8 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	protected TimeSeriesRater tsRater = null;
 	
 	protected RatingSet ratingSet = null;
+	
+	protected int hashCode = UNDEFINED_INT;
 	
 	protected ReferenceRating() {} // no public default constructor
 	/**
@@ -190,9 +194,29 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			resetRatingTime();
+			try {
+				hashCode = conn.getMetaData().getURL().hashCode() + officeId.hashCode() + ratingSpecId.hashCode();
+			}
+			catch (SQLException e) {
+				hashCode = new Random().nextInt();
+			}
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return hashCode;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return obj == this || (obj.getClass() == getClass() && obj.hashCode() == hashCode);
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
 	 */
