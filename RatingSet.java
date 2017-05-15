@@ -9,6 +9,7 @@ import static hec.util.TextUtil.split;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -57,7 +58,6 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
-import wcds.dbi.client.JdbcConnection;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -3204,9 +3204,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 			finally {
 				try {
-					JdbcConnection.closeConnection(conn);
+					Class<?> jdbcClass = Class.forName("wcds.dbi.client.JdbcConnection");
+					Class<?> connClass = Class.forName("java.sql.Connection");
+					jdbcClass.getMethod("closeConnection", connClass).invoke(null, conn);
 				}
-				catch (SQLException e) {}
+				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+					logger.warning(e.toString());
+				}
 			}
 		}
 		return getData().getNativeVerticalDatum();
