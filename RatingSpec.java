@@ -150,7 +150,12 @@ public class RatingSpec extends RatingTemplate {
 					throw new RatingException("CLOB too long.");
 				}
 				String xmlText = clob.getSubString(1, (int)clob.length());
-				return new RatingSpec(RatingSpecContainer.fromXml(xmlText));
+				RatingSpec rs = new RatingSpec(RatingSpecContainer.fromXml(xmlText));
+				String[] parts = TextUtil.split(ratingSepcId, SEPARATOR1);
+				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+				RatingTemplate rt = RatingTemplate.fromDatabase(conn, officeId, templateId);
+				rs.setData(rt.getData()); 
+				return rs;
 			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;

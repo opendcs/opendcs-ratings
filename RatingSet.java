@@ -1378,10 +1378,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 								}
 								else {
 									newRating = TableRating.fromXml(xmlText);
+									((TableRating)newRating).setBehaviors(ratingSpec);
 								}
 							}
 							else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
 								newRating = UsgsStreamTableRating.fromXml(xmlText);
+								((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
 							}
 							else if (xmlText.indexOf("<virtual-rating ") > 0) {
 								newRating = VirtualRating.fromXml(xmlText);
@@ -1390,6 +1392,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 								newRating = TransitionalRating.fromXml(xmlText);
 							}
 							else throw new RatingException("Unexpected rating type: \n" + xmlText);
+							newRating.ratingSpec = ratingSpec;
 							ratings.put(key, newRating);
 							if (activeRatings.containsKey(key)) {
 								activeRatings.put(key, newRating);

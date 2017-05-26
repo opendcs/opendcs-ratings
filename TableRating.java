@@ -61,6 +61,29 @@ public class TableRating extends AbstractRating {
 
 	protected TableRating() {}
 	
+	static void setBehaviors(
+			TableRatingContainer trc, 
+			RatingMethod[] inRangeMethods,
+			RatingMethod[] outRangeLowMethods,
+			RatingMethod[] outRangeHighMethods,
+			int offset) {
+	
+		trc.inRangeMethod = inRangeMethods[offset].name();
+		trc.outRangeLowMethod = outRangeLowMethods[offset].name();
+		trc.outRangeHighMethod = outRangeHighMethods[offset].name();
+		if (offset < inRangeMethods.length - 1) {
+			for (int i = 0; i < trc.values.length; ++i) {
+				setBehaviors(trc.values[i].depTable, inRangeMethods, outRangeLowMethods, outRangeHighMethods, offset+1);
+			}
+		}
+	}
+	
+	void setBehaviors(RatingTemplate template) throws RatingException {
+		TableRatingContainer trc = (TableRatingContainer) getData();
+		TableRating.setBehaviors(trc, template.getInRangeMethods(), template.getOutRangeLowMethods(), template.getOutRangeHighMethods(), 0);
+		setData(trc);
+	}
+	
 	/**
 	 * Protected Constructor for nested rating tables 
 	 * @param values The table of values that comprise the rating.
