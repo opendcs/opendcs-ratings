@@ -135,6 +135,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	protected boolean warnUnsafe = true;
 	/**
+	 * Connection for lazy and reference ratings if not loaded using CWMS-compatible connection.
+	 */
+	protected Connection conn = null;
+	/**
 	 * Enumeration for specifying the method used to load a RatingSet object from a CWMS database 
 	 * <table border>
 	 *   <tr>
@@ -702,9 +706,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		
 		CallableStatement cstmt = null;
 		RatingSet rs = null;
+		String databaseLoadMethod = null;
 		synchronized (conn) {
 			try {
-				String databaseLoadMethod = loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name();
+				databaseLoadMethod = loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name();
 				RatingSpec spec = null;
 				String sql = null;
 				switch (databaseLoadMethod.toLowerCase()) {
@@ -923,6 +928,34 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				if (t instanceof RatingException) throw (RatingException)t;
 				throw new RatingException(t);
 			}
+			finally {
+				if (rs != null && !databaseLoadMethod.equalsIgnoreCase("eager")) {
+					//-----------------------------------------------------------------------------------------//
+					// if the connection isn't from a DataAccessFactory, then keep a reference to it for later //
+					//-----------------------------------------------------------------------------------------//
+					Connection conn2 = null;
+					try {
+						conn2 = rs.getConnection();
+					}
+					catch (Exception e) {}
+					if (conn2 == null) {
+						rs.conn = conn;
+					}
+					else {
+						try {
+							Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn2);
+						}
+						catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+							if (logger.isLoggable(Level.INFO)) {
+								StringWriter sw = new StringWriter();
+								PrintWriter pw = new PrintWriter(sw);
+								e.printStackTrace(pw);
+								logger.log(Level.INFO, sw.toString());
+							}
+						}
+					}
+				}
+			}
 			return rs;
 		}
 	}
@@ -932,13 +965,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	Connection getConnection() throws Exception {
+		if (conn != null) return conn;
 		Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
 		Class<?> stringClass = Class.forName("java.lang.String");
 		return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
 	}
 	/**
 	 * Attempts to free the database resources held by a Clob object
-	 * @param clob the objec to free
+	 * @param clob the object to free
 	 */
 	static void freeClob(Clob clob) {
 		String clobClassName = clob.getClass().getName();  
@@ -1404,7 +1438,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 					}
 					finally {
-						Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);					}
+						if (this.conn == null) {
+							Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+						}
+					}
 				}
 			}
 		}
@@ -3206,13 +3243,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				throw new VerticalDatumException(e);
 			}
 			finally {
-				try {
-					Class<?> jdbcClass = Class.forName("wcds.dbi.client.JdbcConnection");
-					Class<?> connClass = Class.forName("java.sql.Connection");
-					jdbcClass.getMethod("closeConnection", connClass).invoke(null, conn);
-				}
-				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-					logger.warning(e.toString());
+				if (this.conn == null) {
+					try {
+						Class<?> jdbcClass = Class.forName("wcds.dbi.client.JdbcConnection");
+						Class<?> connClass = Class.forName("java.sql.Connection");
+						jdbcClass.getMethod("closeConnection", connClass).invoke(null, conn);
+					}
+					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+						logger.warning(e.toString());
+					}
 				}
 			}
 		}
