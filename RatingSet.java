@@ -838,14 +838,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						--office_pos;
 					}
 					else {
-						sb.append("to_timstamp(:3), ");
+						sb.append("cwms_util.to_timestamp(:3), ");
 					}
 					if (endTime == null) {
 						sb.append("null, 'UTC', :");
 						--office_pos;
 					}
 					else {
-						sb.append("to_timstamp(:").append(endTime_pos).append("), 'UTC' :");
+						sb.append("cwms_util.to_timestamp(:").append(endTime_pos).append("), 'UTC', :");
 					}
 					sb.append(office_pos).append("); end;");
 					sql = sb.toString();
@@ -1933,9 +1933,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		if (ratingSpec.getIndParamCount() != tscs.length) {
 			throw new RatingException(String.format("Cannot rate a set of %d TimeSeriesContainers with a rating that has %d independent parameters", tscs.length, ratingSpec.getIndParamCount()));
 		}
-		if (ratings.size() == 0) throw new RatingException("No ratings.");
-		String[] units = ratings.firstEntry().getValue().getRatingUnits();
+		String[] units = null;
 		String[] params = ratingSpec.getIndParameters();
+		if (dbrating == null) {
+			if (ratings.size() == 0) throw new RatingException("No ratings.");
+			units = ratings.firstEntry().getValue().getRatingUnits();
+		}
+		else {
+			units = dbrating.getRatingUnits();
+		}
 		if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
 		int ratedInterval = tscs[0].interval;
 		int indParamCount = tscs.length;
@@ -3016,7 +3022,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
-		return ratingSpec == null ? ratingSpec.getIndParamCount() : ratings.firstEntry().getValue().getIndParamCount();
+		return ratingSpec != null ? ratingSpec.getIndParamCount() : ratings.firstEntry().getValue().getIndParamCount();
 	}
 	/**
 	 * Outputs the rating set as an XML instance
