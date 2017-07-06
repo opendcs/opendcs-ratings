@@ -841,10 +841,12 @@ public class UsgsStreamTableRating extends TableRating {
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
 		UsgsStreamTableRating clone = new UsgsStreamTableRating((UsgsStreamTableRatingContainer) getData());
-		try {
-			clone.shifts.removeRating(this.effectiveDate);
-		}
-		catch (RatingException e) {
+		if (clone.shifts != null) {
+			try {
+				clone.shifts.removeRating(this.effectiveDate);
+			}
+			catch (RatingException e) {
+			}
 		}
 		return clone.getData().toXml(indent, indentLevel);
 	}
