@@ -3,6 +3,7 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -969,6 +971,145 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
 		Class<?> stringClass = Class.forName("java.lang.String");
 		return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
+	}
+	/**
+	 * @param rating
+	 * @return the latest creation or effective date for this rating or its component parts
+	 */
+	protected long getReferenceTime(AbstractRating rating) {
+		long referenceTime = Math.max(rating.createDate, rating.effectiveDate);
+		if (rating instanceof UsgsStreamTableRating) {
+			UsgsStreamTableRating sr = (UsgsStreamTableRating)rating;
+			referenceTime = Math.max(referenceTime, getReferenceTime(sr.offsets));
+			if (sr.shifts != null) {
+				referenceTime = Math.max(referenceTime, sr.shifts.getReferenceTime());
+			}
+		}
+		else if (rating instanceof VirtualRating) {
+			VirtualRating vr = (VirtualRating)rating;
+			if (vr.sourceRatings != null) {
+				for (SourceRating sr : vr.sourceRatings) {
+					if (sr.ratings != null) {
+						referenceTime = Math.max(referenceTime, sr.ratings.getReferenceTime());
+					}
+				}
+			}
+		}
+		else if (rating instanceof TransitionalRating) {
+			TransitionalRating tr = (TransitionalRating)rating;
+			if (tr.sourceRatings != null) {
+				for (SourceRating sr : tr.sourceRatings) {
+					if (sr.ratings != null) {
+						referenceTime = Math.max(referenceTime, sr.ratings.getReferenceTime());
+					}
+				}
+			}
+		}
+		return referenceTime;
+	}
+	/**
+	 * @return the latest creation or effective date for all the included ratings
+	 */
+	protected long getReferenceTime() {
+		long referenceTime = UNDEFINED_TIME;
+		for (AbstractRating rating : ratings.values()) {
+			long t = getReferenceTime(rating);
+			if (t > referenceTime) {
+				referenceTime = t;
+			}
+		}
+		return referenceTime;
+	}
+	/**
+	 * Collects rating specs used by rating and components
+	 * @param rating the rating to inspect
+	 * @param componentRatingSpecs the set of rating specs to collect into
+	 */
+	protected void getComponentRatingSpecs(AbstractRating rating, HashSet<String> componentRatingSpecs) {
+		componentRatingSpecs.add(rating.getRatingSpecId());
+		if (rating instanceof UsgsStreamTableRating) {
+			UsgsStreamTableRating sr = (UsgsStreamTableRating)rating;
+			if (sr.offsets != null) {
+				getComponentRatingSpecs(sr.offsets, componentRatingSpecs);
+			}
+			if (sr.shifts != null) {
+				componentRatingSpecs.addAll(sr.shifts.getComponentRatingSpecs());
+			}
+		}
+		else if (rating instanceof VirtualRating) {
+			VirtualRating vr = (VirtualRating)rating;
+			if (vr.sourceRatings != null) {
+				for (SourceRating sr : vr.sourceRatings) {
+					if (sr.ratings != null) {
+						componentRatingSpecs.addAll(sr.ratings.getComponentRatingSpecs());
+					}
+				}
+			}
+		}
+		else if (rating instanceof TransitionalRating) {
+			TransitionalRating tr = (TransitionalRating)rating;
+			if (tr.sourceRatings != null) {
+				for (SourceRating sr : tr.sourceRatings) {
+					if (sr.ratings != null) {
+						componentRatingSpecs.addAll(sr.ratings.getComponentRatingSpecs());
+					}
+				}
+			}
+		}
+	}
+	/**
+	 * @return all rating specs used in this rating set
+	 */
+	protected HashSet<String> getComponentRatingSpecs() {
+		HashSet<String> componentRatingSpecs = new HashSet<String>();
+		for (AbstractRating rating : ratings.values()) {
+			getComponentRatingSpecs(rating, componentRatingSpecs);
+		}
+		return componentRatingSpecs;
+	}
+	/**
+	 * @return whether this rating set has been updated in the database
+	 * @throws Exception
+	 */
+	public boolean isUpdated() throws Exception {
+		Connection _conn = conn;
+		if (_conn == null) {
+			_conn = getConnection();
+		}
+		synchronized(_conn) {
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			try {
+				stmt = _conn.prepareStatement("select cwms_util.to_millis(greatest(max(effective_date), max(create_date))) from cwms_v_rating where rating_id=:1");
+				long referenceTime = getReferenceTime();
+				for (String ratingSpec : getComponentRatingSpecs()) {
+					stmt.setString(1, ratingSpec);
+					rs = stmt.executeQuery();
+					rs.next();
+					if (rs.getLong(1) > referenceTime) {
+						return true;
+					}
+				}
+				return false;
+			}
+			finally {
+				try {
+					if (rs != null) {
+						try {rs.close();}
+						catch (Exception e) {}
+					}
+					if (stmt != null) {
+						try {stmt.close();}
+						catch (Exception e) {}
+					}
+				}
+				finally {
+					if (conn == null) {
+						Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, _conn);
+					}
+				}
+			}
+		}
 	}
 	/**
 	 * Attempts to free the database resources held by a Clob object
