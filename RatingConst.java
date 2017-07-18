@@ -40,6 +40,30 @@ public class RatingConst {
 	 * Used to separate individual independent parameters in rating templates
 	 */
 	public static final String SEPARATOR3 = ",";
+	/**
+	 * Used in generating rating spec for shifts
+	 */
+	public static final String USGS_SHIFTS_SUBPARAM = "shift";
+	/**
+	 * Used in generating rating spec for shifts
+	 */
+	public static final String USGS_SHIFTS_TEMPLATE_VERSION = "Linear";
+	/**
+	 * Used in generating rating spec for shifts
+	 */
+	public static final String USGS_SHIFTS_SPEC_VERSION = "Production";
+	/**
+	 * Used in generating rating spec for offsets
+	 */
+	public static final String USGS_OFFSETS_SUBPARAM = "offset";
+	/**
+	 * Used in generating rating spec for offsets
+	 */
+	public static final String USGS_OFFSETS_TEMPLATE_VERSION = "Step";
+	/**
+	 * Used in generating rating spec for offsets
+	 */
+	public static final String USGS_OFFSETS_SPEC_VERSION = "Production";
 	
 	static final String specNodeXpathStr = "/ratings/rating-spec[@office-id='%s' and normalize-space(rating-spec-id)='%s']";
 	static final String templateNodeXpathStr = "/ratings/rating-template[@office-id='%s' and normalize-space(parameters-id)='%s' and normalize-space(version)='%s']";

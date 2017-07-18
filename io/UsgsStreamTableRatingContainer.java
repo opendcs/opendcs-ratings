@@ -17,6 +17,12 @@ import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
 /**
  * Data container class for UsgsStreamTableRating data
  * @author Mike Perryman
@@ -126,18 +132,18 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			ustrc.shifts.ratingSpecContainer = new RatingSpecContainer();
 			RatingSpecContainer rsc = ustrc.shifts.ratingSpecContainer;
 			rsc.inRangeMethod = RatingMethodId.Linear.name();
-			rsc.outRangeLowMethod = RatingMethodId.Null.name();
+			rsc.outRangeLowMethod = RatingMethodId.Nearest.name();
 			rsc.outRangeHighMethod = RatingMethodId.Nearest.name();
 			rsc.inRangeMethods = new String[] {RatingMethodId.Linear.name()};
 			rsc.outRangeLowMethods = new String[] {RatingMethodId.Nearest.name()};
 			rsc.outRangeHighMethods = new String[] {RatingMethodId.Nearest.name()};
 			parts = TextUtil.split(ustrc.ratingSpecId, SEPARATOR1);
 			rsc.locationId = parts[0];
-			rsc.templateVersion = "Linear";
-			rsc.specVersion = parts[3];
+			rsc.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
+			rsc.specVersion = USGS_SHIFTS_SPEC_VERSION;
 			parts = TextUtil.split(parts[1], SEPARATOR2);
 			rsc.indParams = new String[] {parts[0]};
-			rsc.depParam = String.format("%s-shift", parts[0]);
+			rsc.depParam = String.format("%s-%s", parts[0], USGS_SHIFTS_SUBPARAM);
 			rsc.parametersId = TextUtil.join(
 					SEPARATOR2, 
 					rsc.indParams[0], 
@@ -146,6 +152,11 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 					SEPARATOR1, 
 					rsc.parametersId, 
 					rsc.templateVersion);
+			rsc.specId = TextUtil.join(
+					SEPARATOR1,
+					rsc.locationId,
+					rsc.templateId,
+					rsc.specVersion);
 			rsc.indRoundingSpecs = new String[] {"4444444449"};
 			rsc.depRoundingSpec = "4444444449";
 			
@@ -153,6 +164,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			for (int i = 0; i < elems.size(); ++i) {
 				ustrc.shifts.abstractRatingContainers[i] = new TableRatingContainer();
 				TableRatingContainer trc = (TableRatingContainer)ustrc.shifts.abstractRatingContainers[i];
+				trc.ratingSpecId = rsc.specId;
 				elem =  (Element)elems.get(i);
 				String data = elem.getChildTextTrim("effective-date");
 				if (data != null) {
@@ -194,9 +206,9 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			trc.ratingSpecId = TextUtil.join(
 					SEPARATOR1, 
 					parts[0], 
-					TextUtil.join(SEPARATOR2, indParamId, indParamId+"-offset"), 
-					"Standard", 
-					"Production");
+					TextUtil.join(SEPARATOR2, indParamId, indParamId+"-"+USGS_OFFSETS_SUBPARAM), 
+					USGS_OFFSETS_TEMPLATE_VERSION, 
+					USGS_OFFSETS_SPEC_VERSION);
 			trc.inRangeMethod      = RatingMethodId.Previous.name();
 			trc.outRangeLowMethod  = RatingMethodId.Next.name();
 			trc.outRangeHighMethod = RatingMethodId.Previous.name();

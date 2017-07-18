@@ -1,6 +1,13 @@
 package hec.data.cwmsRating;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.VerticalDatumException;
@@ -1393,6 +1400,8 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				else if (localName.equals(USGS_STREAM_RATING_STR)) {
 					RatingSpecContainer rspc = rspcsById.get(TextUtil.join("/", urc.officeId, urc.ratingSpecId));
 					String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
+					String location = parts[0];
+					String indParam = TextUtil.split(parts[1], SEPARATOR2)[0];
 					RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
 					urc.inRangeMethod = rtc.inRangeMethods[0];
 					urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
@@ -1426,6 +1435,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							urc.offsets.values[i].depValue = pointSet.getDepValue(i);
 							urc.offsets.values[i].note = pointSet.getNote(i);
 						}
+						urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1, 
+								location,
+								String.format("%s%s%s-%s", indParam, SEPARATOR2, indParam, USGS_OFFSETS_SUBPARAM),
+								USGS_OFFSETS_TEMPLATE_VERSION,
+								USGS_OFFSETS_SPEC_VERSION);
 						urc.offsets.inRangeMethod = "PREVIOUS";
 						urc.offsets.outRangeLowMethod = "NEXT";
 						urc.offsets.outRangeHighMethod = "PREVIOUS";
@@ -1437,11 +1451,13 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
 						urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
 						urc.shifts.ratingSpecContainer.indParams = new String[1];
-						urc.shifts.ratingSpecContainer.indParams[0] = "Stage";
-						urc.shifts.ratingSpecContainer.depParam = "Stage-Shift";
-						urc.shifts.ratingSpecContainer.parametersId = String.format("%s;%s", urc.shifts.ratingSpecContainer.indParams[0], urc.shifts.ratingSpecContainer.depParam);
-						urc.shifts.ratingSpecContainer.templateVersion = "Standard";
+						urc.shifts.ratingSpecContainer.indParams[0] = indParam;
+						urc.shifts.ratingSpecContainer.depParam = String.format("%s-%s", indParam, USGS_SHIFTS_SUBPARAM);
+						urc.shifts.ratingSpecContainer.locationId = location;
+						urc.shifts.ratingSpecContainer.parametersId = String.format("%s%s%s", urc.shifts.ratingSpecContainer.indParams[0], SEPARATOR2, urc.shifts.ratingSpecContainer.depParam);
+						urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
 						urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
+						urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
 						urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
 						urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
 						urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
@@ -1462,7 +1478,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							if (shiftCount > 0) {
 								String shiftUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
 								urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = String.format("%s.%s.%s", rspc.locationId, urc.shifts.ratingSpecContainer.templateId, "Production");
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
+										urc.shifts.ratingSpecContainer.locationId, 
+										urc.shifts.ratingSpecContainer.templateId, 
+										urc.shifts.ratingSpecContainer.specVersion);
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
