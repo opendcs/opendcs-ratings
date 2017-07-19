@@ -1402,6 +1402,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
 					String location = parts[0];
 					String indParam = TextUtil.split(parts[1], SEPARATOR2)[0];
+					String heightUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
 					RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
 					urc.inRangeMethod = rtc.inRangeMethods[0];
 					urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
@@ -1435,6 +1436,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							urc.offsets.values[i].depValue = pointSet.getDepValue(i);
 							urc.offsets.values[i].note = pointSet.getNote(i);
 						}
+						urc.offsets.unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
 						urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1, 
 								location,
 								String.format("%s%s%s-%s", indParam, SEPARATOR2, indParam, USGS_OFFSETS_SUBPARAM),
@@ -1458,6 +1460,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
 						urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
 						urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
+						urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1, 
+								urc.shifts.ratingSpecContainer.locationId, 
+								urc.shifts.ratingSpecContainer.templateId, 
+								urc.shifts.ratingSpecContainer.specVersion);
 						urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
 						urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
 						urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
@@ -1476,13 +1482,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							RatingPoints pointSet = shiftPoints.get(i);
 							int shiftCount = pointSet.getPointCount();
 							if (shiftCount > 0) {
-								String shiftUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
 								urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
 										urc.shifts.ratingSpecContainer.locationId, 
 										urc.shifts.ratingSpecContainer.templateId, 
 										urc.shifts.ratingSpecContainer.specVersion);
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate == Const.UNDEFINED_TIME ? System.currentTimeMillis() : shiftInfo.get(i).createDate;

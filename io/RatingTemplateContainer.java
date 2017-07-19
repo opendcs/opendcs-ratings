@@ -114,7 +114,7 @@ public class RatingTemplateContainer {
 						for (int i = 0; i < inRangeMethods.length; ++i) {
 							if ((other.inRangeMethods[i] == null) != (inRangeMethods[i] == null)) break test;
 							if (inRangeMethods[i] != null) {
-								if (!other.inRangeMethods[i].equals(inRangeMethods[i])) break test;
+								if (!other.inRangeMethods[i].equalsIgnoreCase(inRangeMethods[i])) break test;
 							}
 						}
 					}
@@ -124,7 +124,7 @@ public class RatingTemplateContainer {
 						for (int i = 0; i < outRangeLowMethods.length; ++i) {
 							if ((other.outRangeLowMethods[i] == null) != (outRangeLowMethods[i] == null)) break test;
 							if (outRangeLowMethods[i] != null) {
-								if (!other.outRangeLowMethods[i].equals(outRangeLowMethods[i])) break test;
+								if (!other.outRangeLowMethods[i].equalsIgnoreCase(outRangeLowMethods[i])) break test;
 							}
 						}
 					}
@@ -134,7 +134,7 @@ public class RatingTemplateContainer {
 						for (int i = 0; i < outRangeHighMethods.length; ++i) {
 							if ((other.outRangeHighMethods[i] == null) != (outRangeHighMethods[i] == null)) break test;
 							if (outRangeHighMethods[i] != null) {
-								if (!other.outRangeHighMethods[i].equals(outRangeHighMethods[i])) break test;
+								if (!other.outRangeHighMethods[i].equalsIgnoreCase(outRangeHighMethods[i])) break test;
 							}
 						}
 					}

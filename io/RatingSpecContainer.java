@@ -120,15 +120,15 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 					}
 					if ((other.inRangeMethod == null) != (inRangeMethod == null)) break;
 					if (inRangeMethod != null) {
-						if (!other.inRangeMethod.equals(inRangeMethod)) break;
+						if (!other.inRangeMethod.equalsIgnoreCase(inRangeMethod)) break;
 					}
 					if ((other.outRangeLowMethod == null) != (outRangeLowMethod == null)) break;
 					if (outRangeLowMethod != null) {
-						if (!other.outRangeLowMethod.equals(outRangeLowMethod)) break;
+						if (!other.outRangeLowMethod.equalsIgnoreCase(outRangeLowMethod)) break;
 					}
 					if ((other.outRangeHighMethod == null) != (outRangeHighMethod == null)) break;
 					if (outRangeHighMethod != null) {
-						if (!other.outRangeHighMethod.equals(outRangeHighMethod)) break;
+						if (!other.outRangeHighMethod.equalsIgnoreCase(outRangeHighMethod)) break;
 					}
 					if (other.active != active) break;
 					if (other.autoUpdate != autoUpdate) break;

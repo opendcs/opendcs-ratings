@@ -126,6 +126,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		String[] parts;
 		@SuppressWarnings("rawtypes")
 		List elems = ratingElement.getChildren("height-shifts");
+		String heightUnit = ustrc.unitsId.split(";", 'L')[0];
 		if (elems.size() > 0) {
 			HecTime hectime = new HecTime();
 			ustrc.shifts = new RatingSetContainer();
@@ -178,7 +179,6 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 				}
 				trc.active = Boolean.parseBoolean(elem.getChildTextTrim("active"));
 				trc.description = elem.getChildTextTrim("description");
-				String heightUnit = ustrc.unitsId.split(";", 'L')[0];
 				trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
 				trc.inRangeMethod = RatingMethodId.Linear.name();
 				trc.outRangeLowMethod = RatingMethodId.Nearest.name();
@@ -209,6 +209,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 					TextUtil.join(SEPARATOR2, indParamId, indParamId+"-"+USGS_OFFSETS_SUBPARAM), 
 					USGS_OFFSETS_TEMPLATE_VERSION, 
 					USGS_OFFSETS_SPEC_VERSION);
+			trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
 			trc.inRangeMethod      = RatingMethodId.Previous.name();
 			trc.outRangeLowMethod  = RatingMethodId.Next.name();
 			trc.outRangeHighMethod = RatingMethodId.Previous.name();

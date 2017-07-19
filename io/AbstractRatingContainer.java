@@ -1,6 +1,8 @@
 package hec.data.cwmsRating.io;
 
 import static hec.lang.Const.UNDEFINED_TIME;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 
 import java.io.IOException;
 import java.io.StringReader;
