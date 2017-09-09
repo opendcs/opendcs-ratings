@@ -200,7 +200,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromXml(String xmlText) throws RatingException {
-		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText);
+		return fromXml(xmlText, true);
+	}
+	/**
+	 * Generates a new RatingSet object from an XML instance.
+	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 * @param withRatingPoints Specifies whether to retrieve actual rating points for the ratings.
+	 * @return A new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromXml(String xmlText, boolean withRatingPoints) throws RatingException {
+		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText, withRatingPoints);
 		return new RatingSet(rsc);
 	}
 	/**
@@ -727,6 +740,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 								+ "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"");
 					databaseLoadMethod = "lazy";
 				}
+				Clob clob = null;
 				switch (databaseLoadMethod.toLowerCase()) {
 				case "eager" :
 					//------------------------------------//
@@ -798,7 +812,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						cstmt.setString(5, officeId);
 					}
 					cstmt.execute();
-					Clob clob = cstmt.getClob(3);
+					clob = cstmt.getClob(3);
 					try {
 						cstmt.close();
 						if (clob.length() > Integer.MAX_VALUE) {
@@ -819,89 +833,152 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					//-----------------------------------------------//
 					// load only spec and rating times from database //
 					//-----------------------------------------------//
-					spec = RatingSpec.fromDatabase(conn, officeId, ratingSpecId);
-					rs = new RatingSet(spec);
-					rs.isLazy = true;
-					rs.ratings = new TreeMap<Long, AbstractRating>();
-					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-					Calendar cal = Calendar.getInstance();
-					int startTime_pos = 3, endTime_pos = 4, office_pos = 5;
-					StringBuilder sb = new StringBuilder();
-					if (dataTimes) {
-						sb.append("begin cwms_rating.cat_eff_ratings(:1, :2, ");
-					}
-					else {
-						sb.append("begin cwms_rating.cat_ratings(:1, :2, ");
-					}
+					sql =
+					"declare " +
+					   "l_millis_start integer := :1;" +
+					   "l_millis_end   integer := :2;" +
+					   "l_date_start   date;" +
+					   "l_date_end     date;" +
+					"begin " +
+					   "if l_millis_start is not null then " +
+					      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+					   "end if;" +
+					   "if l_millis_end is not null then "   +
+					      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+					   "end if;" +
+					   ":3 := cwms_rating.retrieve_ratings_xml_data(" +
+					      "p_effective_tw         => :4," + 
+					      "p_spec_id_mask         => :5," +
+					      "p_start_date           => l_date_start," +
+					      "p_end_date             => l_date_end," + 
+					      "p_time_zone            => 'UTC'," +
+					      "p_include_points       => 'F'," + 
+					      "p_office_id_mask       => :6);" +
+					"end;";
+					cstmt = conn.prepareCall(sql);
+					cstmt.registerOutParameter(3, Types.CLOB);
+					cstmt.setString(4, dataTimes ? "T" : "F");
+					cstmt.setString(5, ratingSpecId);
 					if (startTime == null) {
-						sb.append("null, ");
-						--endTime_pos;
-						--office_pos;
+						cstmt.setNull(1, Types.INTEGER);
 					}
 					else {
-						sb.append("cwms_util.to_timestamp(:3), ");
+						cstmt.setLong(1, startTime);
 					}
 					if (endTime == null) {
-						sb.append("null, 'UTC', :");
-						--office_pos;
+						cstmt.setNull(2, Types.INTEGER);
 					}
 					else {
-						sb.append("cwms_util.to_timestamp(:").append(endTime_pos).append("), 'UTC', :");
+						cstmt.setLong(2, endTime);
 					}
-					sb.append(office_pos).append("); end;");
-					sql = sb.toString();
-					cstmt = conn.prepareCall(sql);
-					cstmt.registerOutParameter(1, 0xfffffff6 /*OracleTypes.CURSOR*/);
-					cstmt.setString(2, ratingSpecId);
-					if (startTime != null) {
-						cstmt.setLong(startTime_pos, startTime);
+					if (officeId == null) {
+						cstmt.setNull(6, Types.VARCHAR);
 					}
-					if (endTime != null) {
-						cstmt.setLong(endTime_pos, endTime);
+					else {
+						cstmt.setString(6, officeId);
 					}
-					cstmt.setString(office_pos, spec.officeId);
 					cstmt.execute();
-					ResultSet crsr = (ResultSet)cstmt.getObject(1);
-					HashMap<Long, TableRatingContainer> trcs = new HashMap<Long, TableRatingContainer>();
-					while (crsr.next()) {
-						TableRatingContainer trc = new TableRatingContainer();
-						trc.active = true;
-						trc.officeId = crsr.getString(1);
-						trc.ratingSpecId = crsr.getString(2);
-						cal.setTime(sdf.parse(crsr.getTimestamp(3).toString()));
-						trc.effectiveDateMillis = cal.getTimeInMillis();
-						cal.setTime(sdf.parse(crsr.getTimestamp(4).toString()));
-						trc.createDateMillis = cal.getTimeInMillis();
-						trcs.put(trc.effectiveDateMillis, trc);
-					}
-					crsr.close();
-					cstmt.close();
-					if (trcs.size() == 0) {
-						throw new RatingException("No ratings.");
-					}
-					sql = "select distinct effective_date, active_flag, native_units from cwms_v_rating where office_id = :1 and upper(rating_id) = upper(:2) order by 1";
-					PreparedStatement pstmt = conn.prepareStatement(sql);
-					pstmt.setString(1, spec.officeId);
-					pstmt.setString(2, ratingSpecId);
-					crsr = pstmt.executeQuery();
-					int i = 0;
-					while (crsr.next()) {
-						if (i++ >= trcs.size()) {
-							throw new RatingException("Rating catalog and view do not agree");
+					clob = cstmt.getClob(3);
+					try {
+						cstmt.close();
+						if (clob.length() > Integer.MAX_VALUE) {
+							throw new RatingException("CLOB too long.");
 						}
-						cal.setTime(sdf.parse(crsr.getTimestamp(1).toString()));
-						TableRatingContainer trc = trcs.get(cal.getTimeInMillis());
-						trc.active = crsr.getString(2).equals("T");
-						trc.unitsId = crsr.getString(3);
-						rs.addRating(new TableRating(trc));
+						String xmlText = clob.getSubString(1, (int)clob.length());
+						logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+						rs = fromXml(xmlText, false);
+						rs.isLazy = true;
 					}
-					if (i < trcs.size()) {
-						throw new RatingException("Rating catalog and view do not agree");
+					catch (Exception e) {
+						throw e;
 					}
-					crsr.close();
-					pstmt.close();
-					break;
+					finally {
+						freeClob(clob);
+					}
+				break;
+//					spec = RatingSpec.fromDatabase(conn, officeId, ratingSpecId);
+//					rs = new RatingSet(spec);
+//					rs.isLazy = true;
+//					rs.ratings = new TreeMap<Long, AbstractRating>();
+//					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+//					Calendar cal = Calendar.getInstance();
+//					int startTime_pos = 3, endTime_pos = 4, office_pos = 5;
+//					StringBuilder sb = new StringBuilder();
+//					if (dataTimes) {
+//						sb.append("begin cwms_rating.cat_eff_ratings(:1, :2, ");
+//					}
+//					else {
+//						sb.append("begin cwms_rating.cat_ratings(:1, :2, ");
+//					}
+//					if (startTime == null) {
+//						sb.append("null, ");
+//						--endTime_pos;
+//						--office_pos;
+//					}
+//					else {
+//						sb.append("cwms_util.to_timestamp(:3), ");
+//					}
+//					if (endTime == null) {
+//						sb.append("null, 'UTC', :");
+//						--office_pos;
+//					}
+//					else {
+//						sb.append("cwms_util.to_timestamp(:").append(endTime_pos).append("), 'UTC', :");
+//					}
+//					sb.append(office_pos).append("); end;");
+//					sql = sb.toString();
+//					cstmt = conn.prepareCall(sql);
+//					cstmt.registerOutParameter(1, 0xfffffff6 /*OracleTypes.CURSOR*/);
+//					cstmt.setString(2, ratingSpecId);
+//					if (startTime != null) {
+//						cstmt.setLong(startTime_pos, startTime);
+//					}
+//					if (endTime != null) {
+//						cstmt.setLong(endTime_pos, endTime);
+//					}
+//					cstmt.setString(office_pos, spec.officeId);
+//					cstmt.execute();
+//					ResultSet crsr = (ResultSet)cstmt.getObject(1);
+//					HashMap<Long, TableRatingContainer> trcs = new HashMap<Long, TableRatingContainer>();
+//					while (crsr.next()) {
+//						TableRatingContainer trc = new TableRatingContainer();
+//						trc.active = true;
+//						trc.officeId = crsr.getString(1);
+//						trc.ratingSpecId = crsr.getString(2);
+//						cal.setTime(sdf.parse(crsr.getTimestamp(3).toString()));
+//						trc.effectiveDateMillis = cal.getTimeInMillis();
+//						cal.setTime(sdf.parse(crsr.getTimestamp(4).toString()));
+//						trc.createDateMillis = cal.getTimeInMillis();
+//						trcs.put(trc.effectiveDateMillis, trc);
+//					}
+//					crsr.close();
+//					cstmt.close();
+//					if (trcs.size() == 0) {
+//						throw new RatingException("No ratings.");
+//					}
+//					sql = "select distinct effective_date, active_flag, native_units from cwms_v_rating where office_id = :1 and upper(rating_id) = upper(:2) order by 1";
+//					PreparedStatement pstmt = conn.prepareStatement(sql);
+//					pstmt.setString(1, spec.officeId);
+//					pstmt.setString(2, ratingSpecId);
+//					crsr = pstmt.executeQuery();
+//					int i = 0;
+//					while (crsr.next()) {
+//						if (i++ >= trcs.size()) {
+//							throw new RatingException("Rating catalog and view do not agree");
+//						}
+//						cal.setTime(sdf.parse(crsr.getTimestamp(1).toString()));
+//						TableRatingContainer trc = trcs.get(cal.getTimeInMillis());
+//						trc.active = crsr.getString(2).equals("T");
+//						trc.unitsId = crsr.getString(3);
+//						rs.addRating(new TableRating(trc));
+//					}
+//					if (i < trcs.size()) {
+//						throw new RatingException("Rating catalog and view do not agree");
+//					}
+//					crsr.close();
+//					pstmt.close();
+//					break;
 				case "reference" :
 					//--------------------------------------------------------------------------------------------------//
 					// Load only spec from database and keep the database connection to perform ratings in the database //
@@ -1507,7 +1584,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			if (ratingEntry != null) {
 				Long key = ratingEntry.getKey();
 				AbstractRating rating = ratingEntry.getValue();
-				if (rating.getClass() == TableRating.class && ((TableRating)rating).values == null) {
+				if (rating instanceof TableRating && ((TableRating)rating).values == null) {
 					//----------------------------------------//
 					// rating not yet retrieved from database //
 					//----------------------------------------//

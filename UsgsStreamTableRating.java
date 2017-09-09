@@ -92,9 +92,11 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	public UsgsStreamTableRating(UsgsStreamTableRatingContainer urc) throws RatingException {
-		RatingValue[] values = new RatingValue[urc.values.length];
+		RatingValue[] values = urc.values == null ? null : new RatingValue[urc.values.length];
 		RatingValue[] extensionValues = null;
-		for (int i = 0; i < values.length; ++i) values[i] = new RatingValue(urc.values[i]);
+		if (values != null) {
+			for (int i = 0; i < values.length; ++i) values[i] = new RatingValue(urc.values[i]);
+		}
 		if (urc.extensionValues != null) {
 			extensionValues = new RatingValue[urc.extensionValues.length];
 			for (int i = 0; i < extensionValues.length; ++i) extensionValues[i] = new RatingValue(urc.extensionValues[i]);

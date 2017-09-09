@@ -1008,7 +1008,7 @@ public class TableRating extends AbstractRating {
 		// validate the incoming rating values //
 		//-------------------------------------//
 		double[] ind_vals = null;
-		if (values != null) {
+		if (values != null && values.length > 0) {
 			getIndParamCount(values);
 			ind_vals = new double[values.length];
 			for (int i = 0; i < values.length; ++i) ind_vals[i] = values[i].getIndValue();
