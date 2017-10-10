@@ -737,17 +737,18 @@ public class TableRating extends AbstractRating {
 			super._setData(rc);
 			TableRatingContainer trc = (TableRatingContainer)rc;
 			for (RatingValue value : values) value.deleteObserver(this);
+			if(extensionValues != null)
+			{
+				for (RatingValue value : extensionValues) value.deleteObserver(this);
+			}
 			RatingValue[] values = new RatingValue[trc.values.length];
 			for (int i = 0; i < trc.values.length; ++i) {
 				values[i] = new RatingValue(trc.values[i]);
 			}
-			if(extensionValues != null)
-			{
-				for (RatingValue extensionValue : extensionValues) extensionValue.deleteObserver(this);
-			}
+			RatingValue[] extensionValues = null;
 			if(trc.extensionValues != null)
 			{
-				RatingValue[] extensionValues = new RatingValue[trc.extensionValues.length];
+				extensionValues = new RatingValue[trc.extensionValues.length];
 				for (int i = 0; i < trc.extensionValues.length; ++i) {
 					extensionValues[i] = new RatingValue(trc.extensionValues[i]);
 				}
@@ -1041,7 +1042,7 @@ public class TableRating extends AbstractRating {
 			// construct the effective values from the rating and extension values //
 			//---------------------------------------------------------------------//
 			double first = values[0].getIndValue();
-			double last  = values[values.length].getIndValue();
+			double last  = values[values.length-1].getIndValue();
 			List<RatingValue> effective = new Vector<RatingValue>();
 			if (props.hasIncreasing()) {
 				int i;

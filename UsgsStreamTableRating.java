@@ -802,17 +802,18 @@ public class UsgsStreamTableRating extends TableRating {
 		if (!(rc instanceof UsgsStreamTableRatingContainer)) throw new RatingException("setData() requires a UsgsStreamTableRatingContainer object.");
 		UsgsStreamTableRatingContainer ustrc = (UsgsStreamTableRatingContainer)rc;
 		for (RatingValue value : values) value.deleteObserver(this);
+		if(extensionValues != null)
+		{
+			for (RatingValue value : extensionValues) value.deleteObserver(this);
+		}
 		RatingValue[] values = new RatingValue[ustrc.values.length];
+		RatingValue[] extensionValues = null;
 		for (int i = 0; i < ustrc.values.length; ++i) {
 			values[i] = new RatingValue(ustrc.values[i]);
 		}
-		if(extensionValues != null)
-		{
-			for (RatingValue extensionValue : extensionValues) extensionValue.deleteObserver(this);
-		}
 		if(ustrc.extensionValues != null)
 		{
-			RatingValue[] extensionValues = new RatingValue[ustrc.extensionValues.length];
+			extensionValues = new RatingValue[ustrc.extensionValues.length];
 			for (int i = 0; i < ustrc.extensionValues.length; ++i) {
 				extensionValues[i] = new RatingValue(ustrc.extensionValues[i]);
 			}
