@@ -147,6 +147,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		else {
 			trc.extensionValues = new RatingValueContainer[extensionValues.length];
 			for (int i = 0; i < extensionValues.length; ++i) {
+				trc.extensionValues[i] = new RatingValueContainer();
 				extensionValues[i].clone(trc.extensionValues[i]);
 			}
 		}

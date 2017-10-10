@@ -344,7 +344,7 @@ public class TableRating extends AbstractRating {
 		boolean out_range_low = false;
 		boolean out_range_high = false;
 		int lo = 0;
-		int hi = values.length-1;
+		int hi = effectiveValues.length-1;
 		int mid;
 		double mid_ind_val;
 		RatingMethod extrap_method = null; 
