@@ -1053,6 +1053,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						}
 					}
 				}
+				else if (localName.equals(FORMULA_STR)) {
+					erc = new ExpressionRatingContainer();
+					arc.clone(erc);
+				}
 				else if (localName.equals(EXTENSION_POINTS_STR)) {
 					switch (ratingPointSetCount) {
 					case 0 :

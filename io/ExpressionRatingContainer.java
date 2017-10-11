@@ -132,6 +132,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 			prefix += indent;
 		}
 		sb.append(super.toXml(prefix, indent, "simple-rating"));
+		String expression = this.expression.replaceAll("([Aa][Rr][Gg]|\\$)(\\d)", "I$2");
 		sb.append(prefix).append(indent).append("<formula>").append(TextUtil.xmlEntityEncode(expression)).append("</formula>\n");
 		sb.append(prefix).append("</simple-rating>\n");
 		if (level == 0) {
