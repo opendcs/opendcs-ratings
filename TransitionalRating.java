@@ -344,13 +344,17 @@ public class TransitionalRating extends AbstractRating {
 	public TransitionalRatingContainer getData() {
 		TransitionalRatingContainer trrc = new TransitionalRatingContainer();
 		super.getData(trrc);
-		trrc.conditions = new String[conditions.length];
-		for (int i = 0; i < conditions.length; ++i) {
-			trrc.conditions[i] = conditions[i].toString().replaceAll("\\$((I|R)\\d+)", "$1");
+		if (conditions != null) {
+			trrc.conditions = new String[conditions.length];
+			for (int i = 0; i < conditions.length; ++i) {
+				trrc.conditions[i] = conditions[i].toString().replaceAll("\\$((I|R)\\d+)", "$1");
+			}
 		}
-		trrc.evaluations = new String[evaluations.length];
-		for (int i = 0; i < evaluations.length; ++i) {
-			trrc.evaluations[i] = evaluations[i].toString().replaceAll("\\$((I|R)\\d+)", "$1");
+		if (evaluations != null) {
+			trrc.evaluations = new String[evaluations.length];
+			for (int i = 0; i < evaluations.length; ++i) {
+				trrc.evaluations[i] = evaluations[i].toString().replaceAll("\\$((I|R)\\d+)", "$1");
+			}
 		}
 		if (sourceRatings != null) {
 			trrc.sourceRatings = new SourceRatingContainer[sourceRatings.length];
@@ -370,33 +374,38 @@ public class TransitionalRating extends AbstractRating {
 			throw new RatingException("Expected TransitionalRatingContainer, got " + rc.getClass().getName());
 		}
 		TransitionalRatingContainer trrc = (TransitionalRatingContainer)rc;
-		if (trrc.conditions == null) {
-			throw new RatingException("Transitional rating container has no condition strings");
-		}
-		if (trrc.evaluations == null) {
-			throw new RatingException("Transitional rating container has no evaluation strings");
-		}
-		if (trrc.evaluations.length - trrc.conditions.length != 1) {
-			throw new RatingException("Transitional rating container has inconsistent number of conditions and evaluations");
+		if (trrc.conditions != null && trrc.conditions.length > 0 && trrc.evaluations != null && trrc.evaluations.length > 0) {
+			if (trrc.evaluations.length - trrc.conditions.length != 1) {
+				throw new RatingException("Transitional rating container has inconsistent number of conditions and evaluations");
+			}
 		}
 		super._setData(trrc);
 		conditions = null;
 		evaluations = null;
 		sourceRatings = null;
-		conditions = new Condition[trrc.conditions.length];
-		evaluations = new MathExpression[trrc.evaluations.length];
-		try {
-			for (int i = 0; i < trrc.conditions.length; ++i) {
-				conditions[i] = new Condition(trrc.conditions[i].toUpperCase().replaceAll("((I|R)\\d+)", "\\$$1"));
+		if (trrc.conditions != null && trrc.conditions.length > 0) {
+			conditions = new Condition[trrc.conditions.length];
+			try {
+				for (int i = 0; i < trrc.conditions.length; ++i) {
+					conditions[i] = new Condition(trrc.conditions[i].toUpperCase().replaceAll("((I|R)\\d+)", "\\$$1"));
+				}
 			}
-			for (int i = 0; i < trrc.evaluations.length; ++i) {
-				evaluations[i] = new MathExpression(trrc.evaluations[i].toUpperCase().replaceAll("((I|R)\\d+)", "\\$$1"));
+			catch (ComputationException e) {
+				throw new RatingException(e);
 			}
 		}
-		catch (ComputationException e) {
-			throw new RatingException(e);
+		if (trrc.evaluations != null && trrc.evaluations.length > 0) {
+			evaluations = new MathExpression[trrc.evaluations.length];
+			try {
+				for (int i = 0; i < trrc.evaluations.length; ++i) {
+					evaluations[i] = new MathExpression(trrc.evaluations[i].toUpperCase().replaceAll("((I|R)\\d+)", "\\$$1"));
+				}
+			}
+			catch (ComputationException e) {
+				throw new RatingException(e);
+			}
 		}
-		if (trrc.sourceRatings != null) {
+		if (trrc.sourceRatings != null && trrc.sourceRatingIds.length > 0) {
 			sourceRatings = new SourceRating[trrc.sourceRatings.length];
 			for (int i = 0; i < trrc.sourceRatings.length; ++i) {
 				sourceRatings[i] = new SourceRating(trrc.sourceRatings[i]);

@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.jdom.Element;
+
 /**
  *
  * @author Mike Perryman
@@ -40,7 +42,22 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * Contains rating to connect together to form virtual rating
 	 */
 	public SourceRatingContainer[] sourceRatings = null;
-	
+	/**
+	 * Creates a new TransitionalRatingContainer from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param ratingElement
+	 * @return
+	 * @throws RatingException
+	 */
+	public static TransitionalRatingContainer fromXml(Element ratingElement) throws RatingException {
+		TransitionalRatingContainer trc = new TransitionalRatingContainer();
+		try {
+			AbstractRatingContainer.fromXml(ratingElement, trc);
+		}
+		catch (VerticalDatumException e) {
+			throw new RatingException(e);
+		}
+		return trc;
+	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
 	 * 
@@ -368,15 +385,20 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 			prefix += indent;
 		}
 		sb.append(super.toXml(prefix, indent, "transitional-rating"));
-		sb.append(prefix).append(indent).append("<select>\n");
-		for (int i = 0; i < conditions.length; ++i) {
-			sb.append(prefix).append(indent).append(indent).append("<case position=\""+(i+1)+"\">\n");
-			sb.append(prefix).append(indent).append(indent).append(indent).append(String.format("<when>%s</when>\n", TextUtil.xmlEntityEncode(conditions[i])));
-			sb.append(prefix).append(indent).append(indent).append(indent).append(String.format("<then>%s</then>\n", TextUtil.xmlEntityEncode(evaluations[i])));
-			sb.append(prefix).append(indent).append(indent).append("</case>\n");
+		if (conditions == null || conditions.length == 0) {
+			sb.append(prefix).append(indent).append("<select/>\n");
 		}
-		sb.append(prefix).append(indent).append(indent).append(String.format("<default>%s</default>\n", TextUtil.xmlEntityEncode(evaluations[evaluations.length-1])));
-		sb.append(prefix).append(indent).append("</select>\n");
+		else {
+			sb.append(prefix).append(indent).append("<select>\n");
+			for (int i = 0; i < conditions.length; ++i) {
+				sb.append(prefix).append(indent).append(indent).append("<case position=\""+(i+1)+"\">\n");
+				sb.append(prefix).append(indent).append(indent).append(indent).append(String.format("<when>%s</when>\n", TextUtil.xmlEntityEncode(conditions[i])));
+				sb.append(prefix).append(indent).append(indent).append(indent).append(String.format("<then>%s</then>\n", TextUtil.xmlEntityEncode(evaluations[i])));
+				sb.append(prefix).append(indent).append(indent).append("</case>\n");
+			}
+			sb.append(prefix).append(indent).append(indent).append(String.format("<default>%s</default>\n", TextUtil.xmlEntityEncode(evaluations[evaluations.length-1])));
+			sb.append(prefix).append(indent).append("</select>\n");
+		}
 		if (sourceRatings == null) {
 			sb.append(prefix).append(indent).append("<source-ratings/>\n");
 		}

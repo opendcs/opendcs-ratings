@@ -13,6 +13,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.jdom.Element;
+
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
@@ -39,6 +41,22 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * String specifying how ratings are connected.
 	 */
 	public String connections = null;
+	/**
+	 * Creates a new VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement
+	 * @return
+	 * @throws RatingException
+	 */
+	public static VirtualRatingContainer fromXml(Element ratingElement) throws RatingException {
+		VirtualRatingContainer vrc = new VirtualRatingContainer();
+		try {
+			AbstractRatingContainer.fromXml(ratingElement, vrc);
+		}
+		catch (VerticalDatumException e) {
+			throw new RatingException(e);
+		}
+		return vrc;
+	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
 	 * 
@@ -361,31 +379,41 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 			prefix += indent;
 		}
 		sb.append(super.toXml(prefix, indent, "virtual-rating"));
-		sb.append(prefix).append(indent).append("<connections>").append(connections).append("</connections>\n");
-		sb.append(prefix).append(indent).append("<source-ratings>\n");
-		StringBuilder sourceRatingUnits = new StringBuilder();
-		for (int i = 0; i < sourceRatings.length; ++i) {
-			sourceRatingUnits.setLength(0);
-			sourceRatingUnits.append(" {");
-			for (int j = 0; j < sourceRatings[i].units.length; ++j) {
-				sourceRatingUnits.append(j == 0 ? "" : j == sourceRatings[i].units.length-1 ? ";" : ",")
-				                 .append(TextUtil.xmlEntityEncode(sourceRatings[i].units[j]));
+		if (connections == null || connections.length() == 0) {
+			sb.append(prefix).append(indent).append("<connections/>\n");
+		}
+		else {
+			sb.append(prefix).append(indent).append("<connections>").append(connections).append("</connections>\n");
+		}
+		if (sourceRatings == null || sourceRatings.length == 0) {
+			sb.append(prefix).append(indent).append("<source-ratings/>\n");
+		}
+		else {
+			sb.append(prefix).append(indent).append("<source-ratings>\n");
+			StringBuilder sourceRatingUnits = new StringBuilder();
+			for (int i = 0; i < sourceRatings.length; ++i) {
+				sourceRatingUnits.setLength(0);
+				sourceRatingUnits.append(" {");
+				for (int j = 0; j < sourceRatings[i].units.length; ++j) {
+					sourceRatingUnits.append(j == 0 ? "" : j == sourceRatings[i].units.length-1 ? ";" : ",")
+					                 .append(TextUtil.xmlEntityEncode(sourceRatings[i].units[j]));
+				}
+				sourceRatingUnits.append("}");
+				sb.append(prefix).append(indent).append(indent).append("<source-rating position=\""+(i+1)+"\">\n");
+				if (sourceRatings[i].rsc == null) {
+					sb.append(prefix).append(indent).append(indent).append(indent)
+					  .append("<rating-expression>").append(TextUtil.xmlEntityEncode(sourceRatings[i].mathExpression))
+					  .append(sourceRatingUnits.toString())
+					  .append("</rating-expression>\n");
+				}
+				else {
+					sb.append(prefix).append(indent).append(indent).append(indent)
+					  .append("<rating-spec-id>").append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId))
+					  .append(sourceRatingUnits.toString())
+					  .append("</rating-spec-id>\n");
+				}
+				sb.append(prefix).append(indent).append(indent).append("</source-rating>\n");
 			}
-			sourceRatingUnits.append("}");
-			sb.append(prefix).append(indent).append(indent).append("<source-rating position=\""+(i+1)+"\">\n");
-			if (sourceRatings[i].rsc == null) {
-				sb.append(prefix).append(indent).append(indent).append(indent)
-				  .append("<rating-expression>").append(TextUtil.xmlEntityEncode(sourceRatings[i].mathExpression))
-				  .append(sourceRatingUnits.toString())
-				  .append("</rating-expression>\n");
-			}
-			else {
-				sb.append(prefix).append(indent).append(indent).append(indent)
-				  .append("<rating-spec-id>").append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId))
-				  .append(sourceRatingUnits.toString())
-				  .append("</rating-spec-id>\n");
-			}
-			sb.append(prefix).append(indent).append(indent).append("</source-rating>\n");
 		}
 		sb.append(prefix).append(indent).append("</source-ratings>\n");
 		sb.append(prefix).append("</virtual-rating>\n");
@@ -396,20 +424,22 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 	
 	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
-		for (SourceRatingContainer src : sourceRatings) {
-			if (src.rsc != null) {
-				templateStrings.add(src.rsc.ratingSpecContainer.toTemplateXml(indent, level));
-				specStrings.add(src.rsc.ratingSpecContainer.toSpecXml(indent, level));
-				for (AbstractRatingContainer arc : src.rsc.abstractRatingContainers) {
-					ratingStrings.add(arc.toXml(indent, level));
-				}
-				if (src.rsc.abstractRatingContainers[0] instanceof VirtualRatingContainer) {
-					VirtualRatingContainer vrc = (VirtualRatingContainer)src.rsc.abstractRatingContainers[0];
-					vrc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
-				}
-				else if (src.rsc.abstractRatingContainers[0] instanceof TransitionalRatingContainer) {
-					TransitionalRatingContainer trc = (TransitionalRatingContainer)src.rsc.abstractRatingContainers[0];
-					trc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
+		if (sourceRatings != null) {
+			for (SourceRatingContainer src : sourceRatings) {
+				if (src.rsc != null) {
+					templateStrings.add(src.rsc.ratingSpecContainer.toTemplateXml(indent, level));
+					specStrings.add(src.rsc.ratingSpecContainer.toSpecXml(indent, level));
+					for (AbstractRatingContainer arc : src.rsc.abstractRatingContainers) {
+						ratingStrings.add(arc.toXml(indent, level));
+					}
+					if (src.rsc.abstractRatingContainers[0] instanceof VirtualRatingContainer) {
+						VirtualRatingContainer vrc = (VirtualRatingContainer)src.rsc.abstractRatingContainers[0];
+						vrc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
+					}
+					else if (src.rsc.abstractRatingContainers[0] instanceof TransitionalRatingContainer) {
+						TransitionalRatingContainer trc = (TransitionalRatingContainer)src.rsc.abstractRatingContainers[0];
+						trc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
+					}
 				}
 			}
 		}
