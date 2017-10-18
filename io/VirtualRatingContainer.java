@@ -414,8 +414,8 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 				}
 				sb.append(prefix).append(indent).append(indent).append("</source-rating>\n");
 			}
+			sb.append(prefix).append(indent).append("</source-ratings>\n");
 		}
-		sb.append(prefix).append(indent).append("</source-ratings>\n");
 		sb.append(prefix).append("</virtual-rating>\n");
 		if (level == 0) {
 			sb.append("</ratings>\n");
