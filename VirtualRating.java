@@ -88,6 +88,12 @@ public class VirtualRating extends AbstractRating {
 		if (observationTarget == null) observationTarget = new Observable();
 	}
 	/**
+	 * @return the connections string
+	 */
+	public String getConnections() {
+		return connectionsString;
+	}
+	/**
 	 * Sets the connections map from a connections string. Also sets the rating units
 	 * @param connections The connections string to set the connections map from
 	 * @throws RatingException
@@ -189,6 +195,19 @@ public class VirtualRating extends AbstractRating {
 		setRatingUnitsId(sb.toString());
 		connectionsMap = connMap;
 		connectionsString = connections;
+	}
+	/**
+	 * @return a copy of the source ratings array 
+	 */
+	public SourceRating[] getSourceRatings() {
+		return sourceRatings == null ? null : Arrays.copyOf(sourceRatings, sourceRatings.length);
+	}
+	/**
+	 * Set the source ratings array
+	 * @param sources
+	 */
+	public void setSourceRatings(SourceRating[] sources) {
+		sourceRatings = sources == null ? null : Arrays.copyOf(sources, sources.length);
 	}
 	/**
 	 * Traverses a connections path from a specified starting location to the end, and returns the end point of the path
@@ -483,7 +502,7 @@ public class VirtualRating extends AbstractRating {
 	 * @see hec.data.cwmsRating.AbstractRating#getData()
 	 */
 	@Override
-	public AbstractRatingContainer getData() {
+	public VirtualRatingContainer getData() {
 		VirtualRatingContainer vrc = new VirtualRatingContainer();
 		getData(vrc);
 		return vrc;

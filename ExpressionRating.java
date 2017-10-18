@@ -308,7 +308,7 @@ public class ExpressionRating extends AbstractRating {
 	 * @see hec.data.cwmsRating.AbstractRating#getData()
 	 */
 	@Override
-	public AbstractRatingContainer getData() {
+	public ExpressionRatingContainer getData() {
 		ExpressionRatingContainer erc = new ExpressionRatingContainer();
 		super.getData(erc);
 		erc.expression = expressionString;

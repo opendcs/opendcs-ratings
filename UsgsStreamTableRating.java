@@ -763,7 +763,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 * @see hec.data.cwmsRating.ICwmsRating#getData()
 	 */
 	@Override
-	public AbstractRatingContainer getData() {
+	public UsgsStreamTableRatingContainer getData() {
 		UsgsStreamTableRatingContainer ustrc = new UsgsStreamTableRatingContainer();
 		getData(ustrc);
 		if (shifts != null)

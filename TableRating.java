@@ -722,7 +722,7 @@ public class TableRating extends AbstractRating {
 	 * @see hec.data.cwmsRating.AbstractRating#getData()
 	 */
 	@Override
-	public AbstractRatingContainer getData() {
+	public TableRatingContainer getData() {
 		TableRatingContainer trc = new TableRatingContainer();
 		getData(trc);
 		return trc;

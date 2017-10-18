@@ -54,7 +54,45 @@ public class TransitionalRating extends AbstractRating {
 	protected void init() {
 		if (observationTarget == null) observationTarget = new Observable();
 	}
-
+	/**
+	 * @return the conditions array
+	 */
+	public Condition[] getConditions() {
+		return conditions == null ? null : Arrays.copyOf(conditions, conditions.length);
+	}
+	/**
+	 * Sets the conditions array
+	 * @param conditions
+	 */
+	public void setConditions(Condition[] conditions) {
+		this.conditions = conditions == null ? null : Arrays.copyOf(conditions, conditions.length);
+	}
+	/**
+	 * @return the evaluations array
+	 */
+	public MathExpression[] getEvaluations() {
+		return evaluations == null ? null : Arrays.copyOf(evaluations, evaluations.length);
+	}
+	/**
+	 * Sets the evaluations array
+	 * @param evaluations
+	 */
+	public void setEvaluations(MathExpression[] evaluations) {
+		this.evaluations = evaluations == null ? null : Arrays.copyOf(evaluations, evaluations.length);
+	}
+	/**
+	 * @return a copy of the source ratings array 
+	 */
+	public SourceRating[] getSourceRatings() {
+		return sourceRatings == null ? null : Arrays.copyOf(sourceRatings, sourceRatings.length);
+	}
+	/**
+	 * Set the source ratings array
+	 * @param sources
+	 */
+	public void setSourceRatings(SourceRating[] sources) {
+		sourceRatings = Arrays.copyOf(sources, sources.length);
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#toXmlString(java.lang.CharSequence, int)
 	 */
@@ -303,7 +341,7 @@ public class TransitionalRating extends AbstractRating {
 	 * @see hec.data.cwmsRating.AbstractRating#getData()
 	 */
 	@Override
-	public AbstractRatingContainer getData() {
+	public TransitionalRatingContainer getData() {
 		TransitionalRatingContainer trrc = new TransitionalRatingContainer();
 		super.getData(trrc);
 		trrc.conditions = new String[conditions.length];
