@@ -452,7 +452,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				ratingSet.releaseConnection(conn);
 			}
 			dataUnits = Arrays.copyOf(units, units.length);
 		}
@@ -567,7 +567,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		}
 		finally {
 			try {
-				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				ratingSet.releaseConnection(conn);
 			}
 			catch (Exception e) {
 				throw new RatingException(e);
@@ -632,7 +632,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				ratingSet.releaseConnection(conn);
 			}
 		}
 		catch (Exception e) {
@@ -676,7 +676,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			finally {
-				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				ratingSet.releaseConnection(conn);
 			}
 		}
 		catch (Exception e) {
@@ -873,7 +873,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		}
 		finally {
 			try {
-				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				ratingSet.releaseConnection(conn);
 			}
 			catch (Exception e) {
 				throw new RatingException(e);
@@ -1036,7 +1036,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		}
 		finally {
 			try {
-				Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				ratingSet.releaseConnection(conn);
 			}
 			catch (Exception e) {
 				throw new RatingException(e);

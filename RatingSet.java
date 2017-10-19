@@ -896,89 +896,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						freeClob(clob);
 					}
 				break;
-//					spec = RatingSpec.fromDatabase(conn, officeId, ratingSpecId);
-//					rs = new RatingSet(spec);
-//					rs.isLazy = true;
-//					rs.ratings = new TreeMap<Long, AbstractRating>();
-//					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-//					Calendar cal = Calendar.getInstance();
-//					int startTime_pos = 3, endTime_pos = 4, office_pos = 5;
-//					StringBuilder sb = new StringBuilder();
-//					if (dataTimes) {
-//						sb.append("begin cwms_rating.cat_eff_ratings(:1, :2, ");
-//					}
-//					else {
-//						sb.append("begin cwms_rating.cat_ratings(:1, :2, ");
-//					}
-//					if (startTime == null) {
-//						sb.append("null, ");
-//						--endTime_pos;
-//						--office_pos;
-//					}
-//					else {
-//						sb.append("cwms_util.to_timestamp(:3), ");
-//					}
-//					if (endTime == null) {
-//						sb.append("null, 'UTC', :");
-//						--office_pos;
-//					}
-//					else {
-//						sb.append("cwms_util.to_timestamp(:").append(endTime_pos).append("), 'UTC', :");
-//					}
-//					sb.append(office_pos).append("); end;");
-//					sql = sb.toString();
-//					cstmt = conn.prepareCall(sql);
-//					cstmt.registerOutParameter(1, 0xfffffff6 /*OracleTypes.CURSOR*/);
-//					cstmt.setString(2, ratingSpecId);
-//					if (startTime != null) {
-//						cstmt.setLong(startTime_pos, startTime);
-//					}
-//					if (endTime != null) {
-//						cstmt.setLong(endTime_pos, endTime);
-//					}
-//					cstmt.setString(office_pos, spec.officeId);
-//					cstmt.execute();
-//					ResultSet crsr = (ResultSet)cstmt.getObject(1);
-//					HashMap<Long, TableRatingContainer> trcs = new HashMap<Long, TableRatingContainer>();
-//					while (crsr.next()) {
-//						TableRatingContainer trc = new TableRatingContainer();
-//						trc.active = true;
-//						trc.officeId = crsr.getString(1);
-//						trc.ratingSpecId = crsr.getString(2);
-//						cal.setTime(sdf.parse(crsr.getTimestamp(3).toString()));
-//						trc.effectiveDateMillis = cal.getTimeInMillis();
-//						cal.setTime(sdf.parse(crsr.getTimestamp(4).toString()));
-//						trc.createDateMillis = cal.getTimeInMillis();
-//						trcs.put(trc.effectiveDateMillis, trc);
-//					}
-//					crsr.close();
-//					cstmt.close();
-//					if (trcs.size() == 0) {
-//						throw new RatingException("No ratings.");
-//					}
-//					sql = "select distinct effective_date, active_flag, native_units from cwms_v_rating where office_id = :1 and upper(rating_id) = upper(:2) order by 1";
-//					PreparedStatement pstmt = conn.prepareStatement(sql);
-//					pstmt.setString(1, spec.officeId);
-//					pstmt.setString(2, ratingSpecId);
-//					crsr = pstmt.executeQuery();
-//					int i = 0;
-//					while (crsr.next()) {
-//						if (i++ >= trcs.size()) {
-//							throw new RatingException("Rating catalog and view do not agree");
-//						}
-//						cal.setTime(sdf.parse(crsr.getTimestamp(1).toString()));
-//						TableRatingContainer trc = trcs.get(cal.getTimeInMillis());
-//						trc.active = crsr.getString(2).equals("T");
-//						trc.unitsId = crsr.getString(3);
-//						rs.addRating(new TableRating(trc));
-//					}
-//					if (i < trcs.size()) {
-//						throw new RatingException("Rating catalog and view do not agree");
-//					}
-//					crsr.close();
-//					pstmt.close();
-//					break;
 				case "reference" :
 					//--------------------------------------------------------------------------------------------------//
 					// Load only spec from database and keep the database connection to perform ratings in the database //
@@ -1048,6 +965,27 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
 		Class<?> stringClass = Class.forName("java.lang.String");
 		return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
+	}
+	/**
+	 * Closes a connection if it is transient/statelesss, otherwise leaves it open
+	 * @param conn The connection
+	 * @throws Exception
+	 */
+	void releaseConnection(Connection conn) throws Exception {
+		if (conn != null) {
+			if (conn == this.conn) {
+				// nothing
+			}
+			else {
+				// have the DataAccessFactory close the connection
+				try {
+					Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+				}
+				catch (Exception e) {
+					throw new RatingException(e);
+				}
+			}
+		}
 	}
 	/**
 	 * @param rating
@@ -1149,10 +1087,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws Exception
 	 */
 	public boolean isUpdated() throws Exception {
-		Connection _conn = conn;
-		if (_conn == null) {
-			_conn = getConnection();
-		}
+		Connection _conn = getConnection();
 		synchronized(_conn) {
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
@@ -1181,9 +1116,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					}
 				}
 				finally {
-					if (conn == null) {
-						Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, _conn);
-					}
+					releaseConnection(_conn);
 				}
 			}
 		}
@@ -1656,9 +1589,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 					}
 					finally {
-						if (this.conn == null) {
-							Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
-						}
+						releaseConnection(conn);
 					}
 				}
 			}
@@ -3467,15 +3398,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				throw new VerticalDatumException(e);
 			}
 			finally {
-				if (this.conn == null) {
-					try {
-						Class<?> jdbcClass = Class.forName("wcds.dbi.client.JdbcConnection");
-						Class<?> connClass = Class.forName("java.sql.Connection");
-						jdbcClass.getMethod("closeConnection", connClass).invoke(null, conn);
-					}
-					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-						logger.warning(e.toString());
-					}
+				try {
+					releaseConnection(conn);
+				}
+				catch(Exception e){
 				}
 			}
 		}
