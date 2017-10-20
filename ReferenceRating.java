@@ -9,6 +9,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.lang.Const.UNDEFINED_INT;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
 
 import java.lang.reflect.Method;
 import java.sql.CallableStatement;
@@ -864,7 +865,13 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 							cwmsRatingObj,
 							input,
 							null); 
-					return output.getValues().getDoubleArray();
+					double[] results = output.getValues().getDoubleArray();
+					for (int i = 0; i < results.length; ++i) {
+						if (!Double.isFinite(results[i])) {
+							results[i] = UNDEFINED_DOUBLE;
+						}
+					}
+					return results;
 			}
 		}
 		catch (Exception e) {
