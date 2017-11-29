@@ -791,42 +791,43 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							      "p_office_id_mask       => :5);"   +
 							"end;";
 					cstmt = conn.prepareCall(sql);
-					cstmt.registerOutParameter(3, Types.CLOB);
-					cstmt.setString(4, ratingSpecId);
-					if (startTime == null) {
-						cstmt.setNull(1, Types.INTEGER);
-					}
-					else {
-						cstmt.setLong(1, startTime);
-					}
-					if (endTime == null) {
-						cstmt.setNull(2, Types.INTEGER);
-					}
-					else {
-						cstmt.setLong(2, endTime);
-					}
-					if (officeId == null) {
-						cstmt.setNull(5, Types.VARCHAR);
-					}
-					else {
-						cstmt.setString(5, officeId);
-					}
-					cstmt.execute();
-					clob = cstmt.getClob(3);
 					try {
-						cstmt.close();
-						if (clob.length() > Integer.MAX_VALUE) {
-							throw new RatingException("CLOB too long.");
+						cstmt.registerOutParameter(3, Types.CLOB);
+						cstmt.setString(4, ratingSpecId);
+						if (startTime == null) {
+							cstmt.setNull(1, Types.INTEGER);
 						}
-						String xmlText = clob.getSubString(1, (int)clob.length());
-						logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-						rs = fromXml(xmlText);
-					}
-					catch (Exception e) {
-						throw e;
+						else {
+							cstmt.setLong(1, startTime);
+						}
+						if (endTime == null) {
+							cstmt.setNull(2, Types.INTEGER);
+						}
+						else {
+							cstmt.setLong(2, endTime);
+						}
+						if (officeId == null) {
+							cstmt.setNull(5, Types.VARCHAR);
+						}
+						else {
+							cstmt.setString(5, officeId);
+						}
+						cstmt.execute();
+						clob = cstmt.getClob(3);
+						try {
+							if (clob.length() > Integer.MAX_VALUE) {
+								throw new RatingException("CLOB too long.");
+							}
+							String xmlText = clob.getSubString(1, (int)clob.length());
+							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+							rs = fromXml(xmlText);
+						}
+						finally {
+							freeClob(clob);
+						}
 					}
 					finally {
-						freeClob(clob);
+						cstmt.close();
 					}
 				break;
 				case "lazy" :
@@ -856,44 +857,45 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					      "p_office_id_mask       => :6);" +
 					"end;";
 					cstmt = conn.prepareCall(sql);
-					cstmt.registerOutParameter(3, Types.CLOB);
-					cstmt.setString(4, dataTimes ? "T" : "F");
-					cstmt.setString(5, ratingSpecId);
-					if (startTime == null) {
-						cstmt.setNull(1, Types.INTEGER);
-					}
-					else {
-						cstmt.setLong(1, startTime);
-					}
-					if (endTime == null) {
-						cstmt.setNull(2, Types.INTEGER);
-					}
-					else {
-						cstmt.setLong(2, endTime);
-					}
-					if (officeId == null) {
-						cstmt.setNull(6, Types.VARCHAR);
-					}
-					else {
-						cstmt.setString(6, officeId);
-					}
-					cstmt.execute();
-					clob = cstmt.getClob(3);
 					try {
-						cstmt.close();
-						if (clob.length() > Integer.MAX_VALUE) {
-							throw new RatingException("CLOB too long.");
+						cstmt.registerOutParameter(3, Types.CLOB);
+						cstmt.setString(4, dataTimes ? "T" : "F");
+						cstmt.setString(5, ratingSpecId);
+						if (startTime == null) {
+							cstmt.setNull(1, Types.INTEGER);
 						}
-						String xmlText = clob.getSubString(1, (int)clob.length());
-						logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-						rs = fromXml(xmlText, false);
-						rs.isLazy = true;
-					}
-					catch (Exception e) {
-						throw e;
+						else {
+							cstmt.setLong(1, startTime);
+						}
+						if (endTime == null) {
+							cstmt.setNull(2, Types.INTEGER);
+						}
+						else {
+							cstmt.setLong(2, endTime);
+						}
+						if (officeId == null) {
+							cstmt.setNull(6, Types.VARCHAR);
+						}
+						else {
+							cstmt.setString(6, officeId);
+						}
+						cstmt.execute();
+						clob = cstmt.getClob(3);
+						try {
+							if (clob.length() > Integer.MAX_VALUE) {
+								throw new RatingException("CLOB too long.");
+							}
+							String xmlText = clob.getSubString(1, (int)clob.length());
+							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+							rs = fromXml(xmlText, false);
+							rs.isLazy = true;
+						}
+						finally {
+							freeClob(clob);
+						}
 					}
 					finally {
-						freeClob(clob);
+						cstmt.close();
 					}
 				break;
 				case "reference" :
