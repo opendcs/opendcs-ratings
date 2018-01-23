@@ -1583,6 +1583,8 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					shiftPointSetCount = 0;
 					ratingPoints = null;
 					ratingPointSetCount = 0;
+					extensionPoints = null;
+					extensionPointSetCount = 0;
 					shiftInfo = null;
 					arcs.add(urc.clone());
 					arc = urc;
