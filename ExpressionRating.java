@@ -66,6 +66,8 @@ public class ExpressionRating extends AbstractRating {
 	public ExpressionRating(ExpressionRatingContainer erc) throws RatingException {
 		super._setData(erc);
 		setExpression(erc.expression);
+		observationTarget = new Observable();
+
 	}
 	/**
 	 * Retrieves the mathematical expression for this rating
