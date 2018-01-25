@@ -761,35 +761,36 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			//------------------------------------//
 			// determine the usage of each rating //
 			//------------------------------------//
-			final int NO_INFO = 0;
-			final int HAS_SOURCE_RATINGS = 1;
-			final int IS_SOURCE_RATING = 2;
+			final int NO_INFO = 1;
+			final int HAS_SOURCE_RATINGS = 2;
+			final int IS_SOURCE_RATING = 4;
 			Map<String, Integer> usageById = new HashMap<String, Integer>();
 			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
 				String specId = rcs.first().toString();
 				usageById.put(specId, NO_INFO);
 			}
 			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
-				AbstractRatingContainer rc = rcs.first();
-				if (rc instanceof VirtualRatingContainer) {
-					String specId = rc.toString();
-					usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
-					for (String srcSpecId : ((VirtualRatingContainer)rc).sourceRatingIds) {
-						srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
-						if (usageById.containsKey(srcSpecId)) {
-							usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
-						}
-					}
-				}
-				else if (rc instanceof TransitionalRatingContainer) {
-					String specId = rc.toString();
-					usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
-					TransitionalRatingContainer trrc = (TransitionalRatingContainer)rc;
-					if (trrc.sourceRatingIds != null) {
-						for (String srcSpecId : trrc.sourceRatingIds) {
+				for (AbstractRatingContainer rc : rcs) {
+					if (rc instanceof VirtualRatingContainer) {
+						String specId = rc.toString();
+						usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
+						for (String srcSpecId : ((VirtualRatingContainer)rc).sourceRatingIds) {
 							srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
 							if (usageById.containsKey(srcSpecId)) {
 								usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
+							}
+						}
+					}
+					else if (rc instanceof TransitionalRatingContainer) {
+						String specId = rc.toString();
+						usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
+						TransitionalRatingContainer trrc = (TransitionalRatingContainer)rc;
+						if (trrc.sourceRatingIds != null) {
+							for (String srcSpecId : trrc.sourceRatingIds) {
+								srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
+								if (usageById.containsKey(srcSpecId)) {
+									usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
+								}
 							}
 						}
 					}
@@ -799,18 +800,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			List<String> topLevelIds = new ArrayList<String>();
 			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
 				String specId = rcs.first().toString();
-				switch (usageById.get(specId)) {
-				case NO_INFO :
+				int usage = usageById.get(specId);
+				if (usage == NO_INFO) {
 					noInfoIds.add(specId);
-					break;
-				case HAS_SOURCE_RATINGS :
-					if (!topLevelIds.contains(specId)) {
-						topLevelIds.add(specId);
-					}
-					break;
-				case HAS_SOURCE_RATINGS | IS_SOURCE_RATING :
-					// source rating that has source ratings
-					break;
+				}
+				else if ((usage & HAS_SOURCE_RATINGS) == HAS_SOURCE_RATINGS) {
+					topLevelIds.add(specId);
 				}
 			}
 			//--------------------------------------------//

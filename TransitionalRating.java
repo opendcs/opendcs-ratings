@@ -358,8 +358,10 @@ public class TransitionalRating extends AbstractRating {
 		}
 		if (sourceRatings != null) {
 			trrc.sourceRatings = new SourceRatingContainer[sourceRatings.length];
+			trrc.sourceRatingIds = new String[sourceRatings.length];
 			for (int i = 0; i < sourceRatings.length; ++i) {
 				trrc.sourceRatings[i] = sourceRatings[i].getData();
+				trrc.sourceRatingIds[i] = trrc.sourceRatings[i].rsc.ratingSpecContainer.specId;  
 			}
 		}
 		return trrc;

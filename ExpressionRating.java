@@ -36,7 +36,7 @@ public class ExpressionRating extends AbstractRating {
 	 * Public Constructor
 	 * @param expr The Mathematical expression for the rating. Independent parameters are specified by ARG1 - ARG9
 	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or 
-	 *        S-Expression (lisp) notation.
+	 *        S-Expression (lisp) notation. Note that this constructor does't set the transition start date. 
 	 * @param officeId The identifier of the office that owns this rating
 	 * @param ratingSpecId The rating specification identifier
 	 * @param ratingUnitsId The units identifier
@@ -64,14 +64,8 @@ public class ExpressionRating extends AbstractRating {
 	 * @throws RatingException
 	 */
 	public ExpressionRating(ExpressionRatingContainer erc) throws RatingException {
-		init(	erc.expression, 
-				erc.officeId, 
-				erc.ratingSpecId, 
-				erc.unitsId, 
-				erc.effectiveDateMillis, 
-				erc.createDateMillis, 
-				erc.active, 
-				erc.description);
+		super._setData(erc);
+		setExpression(erc.expression);
 	}
 	/**
 	 * Retrieves the mathematical expression for this rating
