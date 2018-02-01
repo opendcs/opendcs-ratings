@@ -1271,7 +1271,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		if(ratings.containsKey(effectiveDate)) {
 			SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
 			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-			logger.warning("Replacing existing rating with effective date of " + sdf.format(effectiveDate) + " UTC");
+			logger.fine("Replacing existing rating with effective date of " + sdf.format(effectiveDate) + " UTC");
 		}
 		if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
 			throw new RatingException("Number of independent parameters does not match rating specification");
