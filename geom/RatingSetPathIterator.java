@@ -102,7 +102,7 @@ public class RatingSetPathIterator implements PathIterator
         }
         catch (RatingException ex)
         {
-//            Logger.getLogger(RatingSetPathIterator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RatingSetPathIterator.class.getName()).log(Level.FINE, null, ex);
         }
         return SEG_CLOSE;
     }
