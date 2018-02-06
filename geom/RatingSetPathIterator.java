@@ -7,6 +7,7 @@ package hec.data.cwmsRating.geom;
 
 import java.awt.geom.PathIterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 import hec.data.RatingException;
 
