@@ -8,9 +8,9 @@ package hec.data.cwmsRating.geom;
 import java.awt.geom.PathIterator;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 import hec.data.RatingException;
+import java.util.logging.Level;
 
 /**
  *
@@ -125,7 +125,7 @@ public class RatingSetPathIterator implements PathIterator
         }
         catch (RatingException ex)
         {
-//            Logger.getLogger(RatingSetPathIterator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RatingSetPathIterator.class.getName()).log(Level.FINE, null, ex);
         }
         return SEG_CLOSE;
     }
