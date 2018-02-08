@@ -416,8 +416,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	/**
 	 * Sets the effective date of the rating. The effective date is the earliest date/time for which the rating should be applied
 	 * @param effectiveDate The effective date of the rating in epoch milliseconds
+	 * @throws RatingException if effectiveDate violates other values (e.g., UsgsStreamTableRating shift effective dates)
 	 */
-	public void setEffectiveDate(long effectiveDate) {
+	public void setEffectiveDate(long effectiveDate) throws RatingException {
 		this.effectiveDate = effectiveDate;
 		observationTarget.setChanged();
 		observationTarget.notifyObservers();

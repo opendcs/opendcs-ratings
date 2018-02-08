@@ -1113,4 +1113,19 @@ public class UsgsStreamTableRating extends TableRating {
 	public int hashCode() {
 		return getClass().getName().hashCode() + getData().hashCode();
 	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#setEffectiveDate(long)
+	 */
+	@Override
+	public void setEffectiveDate(long effectiveDate) throws RatingException {
+		if (shifts != null) {
+			for (long shiftEffectiveDate : shifts.getEffectiveDates()) {
+				if (effectiveDate > shiftEffectiveDate) {
+					throw new RatingException("Effective date is later than existing shift effective date");
+				}
+			}
+		}
+		super.setEffectiveDate(effectiveDate);
+	}
+	
 }
