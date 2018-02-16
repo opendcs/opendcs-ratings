@@ -804,7 +804,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				if (usage == NO_INFO) {
 					noInfoIds.add(specId);
 				}
-				else if ((usage & HAS_SOURCE_RATINGS) == HAS_SOURCE_RATINGS) {
+				else if ((usage & IS_SOURCE_RATING) != IS_SOURCE_RATING) {
 					topLevelIds.add(specId);
 				}
 			}

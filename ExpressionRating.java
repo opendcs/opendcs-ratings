@@ -83,7 +83,8 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	public void setExpression(String expr) throws RatingException {
 		try {
-			expression = new MathExpression(replaceAll(expr, "(^|\\W)(arg|i)([1-9])(\\W|$)", "$1\\$$3$4", "i"));
+			String expr2 = replaceAll(expr, "(^|\\W)(arg|i)([1-9])", "$1\\$$2$3", "i");
+			expression = new MathExpression(expr2);
 			VariableSet varset = expression.getVariables();
 			String[] varnames = new String[varset.getVariableCount()];
 			varset.getVariableNames().toArray(varnames);

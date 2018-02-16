@@ -13,6 +13,8 @@ import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
 
+import static hec.util.TextUtil.replaceAll;
+
 import java.util.Arrays;
 
 /**
@@ -61,11 +63,39 @@ public class TransitionalRating extends AbstractRating {
 		return conditions == null ? null : Arrays.copyOf(conditions, conditions.length);
 	}
 	/**
+	 * @return the text representation of the conditions suitable for use in ratings XML
+	 */
+	public String[] getConditionStrings() {
+		String[] conditionStrings = null;
+		if (conditions != null) {
+			conditionStrings = new String[conditions.length];
+			for (int i = 0; i < conditions.length; ++i) {
+				conditionStrings[i] = conditions[i].toString().replaceAll("\\$", "");
+			}
+		}
+		return conditionStrings;
+	}
+	/**
 	 * Sets the conditions array
 	 * @param conditions
 	 */
 	public void setConditions(Condition[] conditions) {
 		this.conditions = conditions == null ? null : Arrays.copyOf(conditions, conditions.length);
+	}
+	/**
+	 * Sets the conditions array from text representations (as in ratings XML)
+	 * @param conditionStrings
+	 * @throws ComputationException 
+	 */
+	public void setConditions(String[] conditionStrings) throws ComputationException {
+		Condition[] conditions = null;
+		if (conditionStrings != null) {
+			conditions = new Condition[conditionStrings.length];
+			for (int i = 0; i < conditionStrings.length; ++i) {
+				conditions[i] = new Condition(replaceAll(conditionStrings[i], "(^|\\W)(i|r)([1-9])", "$1\\$$2$3", "i"));
+			}
+		}
+		this.conditions = conditions;
 	}
 	/**
 	 * @return the evaluations array
@@ -74,11 +104,39 @@ public class TransitionalRating extends AbstractRating {
 		return evaluations == null ? null : Arrays.copyOf(evaluations, evaluations.length);
 	}
 	/**
+	 * @return the text representations of the evaluations suitable for use in ratings XML
+	 */
+	public String[] getEvaluationStrings() {
+		String[] evaluationStrings = null;
+		if (evaluations != null) {
+			evaluationStrings = new String[evaluations.length];
+			for (int i = 0; i < evaluations.length; ++i) {
+				evaluationStrings[i] = evaluations[i].toString().replaceAll("\\$", "");
+			}
+		}
+		return evaluationStrings;
+	}
+	/**
 	 * Sets the evaluations array
 	 * @param evaluations
 	 */
 	public void setEvaluations(MathExpression[] evaluations) {
 		this.evaluations = evaluations == null ? null : Arrays.copyOf(evaluations, evaluations.length);
+	}
+	/**
+	 * Sets the evaluations array  from text representations (as in ratings XML)
+	 * @param evaluationStrings
+	 * @throws ComputationException 
+	 */
+	public void setEvaluations(String[] evaluationStrings) throws ComputationException {
+		MathExpression[] evaluations = null;
+		if (evaluationStrings != null) {
+			evaluations = new MathExpression[evaluationStrings.length];
+			for (int i = 0; i < evaluationStrings.length; ++i) {
+				evaluations[i] = new MathExpression(replaceAll(evaluationStrings[i], "(^|\\W)(i|r)([1-9])", "$1\\$$2$3", "i"));
+			}
+		}
+		this.evaluations = evaluations;
 	}
 	/**
 	 * @return a copy of the source ratings array 
