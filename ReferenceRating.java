@@ -425,41 +425,43 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
-		try {
-			if (units.length != parameters.length) {
-				throw new RatingException(String.format("Expected %d units, got %d instead.", parameters.length, units.length));
-			}
-			Connection conn = ratingSet.getConnection();
-			if (conn == null) {
-				throw new RatingException("No database connections available");
-			}
+		synchronized(this) {
 			try {
-				synchronized(conn) {
-					CallableStatement call = conn.prepareCall("begin :1 := cwms_util.convert_units(1.0, :2, :3); end;");
-					call.registerOutParameter(1, 0x65 /*OracleTypes.BINARY_DOUBLE*/);
-					for (int i = 0; i < units.length; ++i) {
-						call.setString(2, ratingUnits[i]);
-						call.setString(3, units[i]);
-						try {
-							call.execute();
-						}
-						catch (SQLException e) {
-							if (e.getMessage().indexOf("Cannot convert") != -1) {
-								throw new RatingException(String.format("Invalid unit \"%s\" specified for parameter \"%s\"", units[i], parameters[i]));
+				if (units.length != parameters.length) {
+					throw new RatingException(String.format("Expected %d units, got %d instead.", parameters.length, units.length));
+				}
+				Connection conn = ratingSet.getConnection();
+				if (conn == null) {
+					throw new RatingException("No database connections available");
+				}
+				try {
+					synchronized(conn) {
+						CallableStatement call = conn.prepareCall("begin :1 := cwms_util.convert_units(1.0, :2, :3); end;");
+						call.registerOutParameter(1, 0x65 /*OracleTypes.BINARY_DOUBLE*/);
+						for (int i = 0; i < units.length; ++i) {
+							call.setString(2, ratingUnits[i]);
+							call.setString(3, units[i]);
+							try {
+								call.execute();
+							}
+							catch (SQLException e) {
+								if (e.getMessage().indexOf("Cannot convert") != -1) {
+									throw new RatingException(String.format("Invalid unit \"%s\" specified for parameter \"%s\"", units[i], parameters[i]));
+								}
 							}
 						}
+						call.close();
 					}
-					call.close();
 				}
+				finally {
+					ratingSet.releaseConnection(conn);
+				}
+				dataUnits = Arrays.copyOf(units, units.length);
 			}
-			finally {
-				ratingSet.releaseConnection(conn);
+			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
+				throw new RatingException(e);
 			}
-			dataUnits = Arrays.copyOf(units, units.length);
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
 		}
 	}
 
@@ -468,7 +470,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public long getDefaultValueTime() {
-		return defaultValueTime == UNDEFINED_TIME ? System.currentTimeMillis() : defaultValueTime;
+		synchronized(this) {
+			return defaultValueTime == UNDEFINED_TIME ? System.currentTimeMillis() : defaultValueTime;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -476,7 +480,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public void setDefaultValueTime(long defaultValueTime) {
-		this.defaultValueTime = defaultValueTime;
+		synchronized(this) {
+			this.defaultValueTime = defaultValueTime;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -484,7 +490,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public void resetDefaultValuetime() {
-		defaultValueTime = UNDEFINED_TIME;
+		synchronized(this) {
+			defaultValueTime = UNDEFINED_TIME;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -492,7 +500,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public long getRatingTime() {
-		return ratingTime;
+		synchronized(this) {
+			return ratingTime;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -500,7 +510,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public void setRatingTime(long ratingTime) {
-		this.ratingTime = ratingTime;
+		synchronized(this) {
+			this.ratingTime = ratingTime;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -508,7 +520,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public void resetRatingTime() {
-		ratingTime = System.currentTimeMillis() + 100 * 365 * 86400 * 1000; 
+		synchronized(this) {
+			ratingTime = System.currentTimeMillis() + 100 * 365 * 86400 * 1000;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -516,7 +530,9 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public double[][] getRatingExtents() throws RatingException {
-		return getRatingExtents(getRatingTime());
+		synchronized(this) {
+			return getRatingExtents(getRatingTime());
+		}
 	}
 
 	/* (non-Javadoc)
@@ -524,78 +540,58 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
-		Connection conn = null;
-		try {
-			conn = ratingSet.getConnection();
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		if (conn == null) {
-			throw new RatingException("No database connections available");
-		}
-		try {
-			synchronized(conn) {
-				Class<?> cwmsRatingClass = Class.forName("wcds.dbi.oracle.OracleCwmsRatingDaoImpl");
-				Object cwmsRatingObj = cwmsRatingClass.getConstructor(java.sql.Connection.class).newInstance(conn);
-				JDomRatingSpecification ratingSpec = new JDomRatingSpecification(officeId, ratingSpecId);
-				Calendar cal = Calendar.getInstance();
-				cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-				cal.setTimeInMillis(ratingTime);
-				IRatingExtents ratingExtents = (IRatingExtents)cwmsRatingClass.getMethod(
-						"getRatingExtents", 
-						Class.forName("hec.data.rating.IRatingSpecification"),
-						Class.forName("java.util.Date")).invoke(cwmsRatingObj, ratingSpec, cal.getTime());
-				String[] paramIds = TextUtil.split(parametersId.replaceAll(SEPARATOR2, SEPARATOR3), SEPARATOR3);
-				double[][] extents = new double[2][paramIds.length];
-				for (int i = 0; i < paramIds.length; ++i) {
-					Parameter param = new Parameter(paramIds[i]);
-					IParameterExtents paramExtents = ratingExtents.getParameterExtents(param);
-					extents[0][i] = paramExtents.getMinimumValue();
-					extents[1][1] = paramExtents.getMaximumValue();
-					if (!paramExtents.getUnits().equals(ratingUnits[i])) {
-						extents[0][i] = Units.convertUnits(extents[0][i], paramExtents.getUnits(), ratingUnits[i]);
-						extents[1][i] = Units.convertUnits(extents[1][i], paramExtents.getUnits(), ratingUnits[i]);
-					}
-				}
-				return extents;
-			}
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		finally {
+		synchronized(this) {
+			Connection conn = null;
 			try {
-				ratingSet.releaseConnection(conn);
+				conn = ratingSet.getConnection();
 			}
 			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
 			}
+			if (conn == null) {
+				throw new RatingException("No database connections available");
+			}
+			try {
+				synchronized(conn) {
+					Class<?> cwmsRatingClass = Class.forName("wcds.dbi.oracle.OracleCwmsRatingDaoImpl");
+					Object cwmsRatingObj = cwmsRatingClass.getConstructor(java.sql.Connection.class).newInstance(conn);
+					JDomRatingSpecification ratingSpec = new JDomRatingSpecification(officeId, ratingSpecId);
+					Calendar cal = Calendar.getInstance();
+					cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+					cal.setTimeInMillis(ratingTime);
+					IRatingExtents ratingExtents = (IRatingExtents)cwmsRatingClass.getMethod(
+							"getRatingExtents", 
+							Class.forName("hec.data.rating.IRatingSpecification"),
+							Class.forName("java.util.Date")).invoke(cwmsRatingObj, ratingSpec, cal.getTime());
+					String[] paramIds = TextUtil.split(parametersId.replaceAll(SEPARATOR2, SEPARATOR3), SEPARATOR3);
+					double[][] extents = new double[2][paramIds.length];
+					for (int i = 0; i < paramIds.length; ++i) {
+						Parameter param = new Parameter(paramIds[i]);
+						IParameterExtents paramExtents = ratingExtents.getParameterExtents(param);
+						extents[0][i] = paramExtents.getMinimumValue();
+						extents[1][1] = paramExtents.getMaximumValue();
+						if (!paramExtents.getUnits().equals(ratingUnits[i])) {
+							extents[0][i] = Units.convertUnits(extents[0][i], paramExtents.getUnits(), ratingUnits[i]);
+							extents[1][i] = Units.convertUnits(extents[1][i], paramExtents.getUnits(), ratingUnits[i]);
+						}
+					}
+					return extents;
+				}
+			}
+			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
+				throw new RatingException(e);
+			}
+			finally {
+				try {
+					ratingSet.releaseConnection(conn);
+				}
+				catch (Exception e) {
+					throw new RatingException(e);
+				}
+			}
 		}
-//		if (ratingExtentsMethod == null) {
-//			getRatingExtentsMethod();
-//		}
-//		extents = new double[1][][];
-//		String[][] parameters = new String[1][];
-//		String[][] units = new String[1][];
-//		try {
-//			ratingExtentsMethod.invoke(
-//					cwmsRatingObj,
-//					ratingSpecId,
-//					officeId,
-//					true,
-//					ratingTime,
-//					extents,
-//					parameters,
-//					units);
-//		}
-//		catch (IllegalAccessException | IllegalArgumentException
-//				| InvocationTargetException e) {
-//			throw new RatingException(e);
-//		}
-//		return extents[0];
 	}
 
 	/* (non-Javadoc)
@@ -603,43 +599,45 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public long[] getEffectiveDates() {
-		long[] dates = null;
-		try {
-			Connection conn = ratingSet.getConnection();
-			if (conn == null) {
-				throw new RatingException("No database connections available");
-			}
+		synchronized(this) {
+			long[] dates = null;
 			try {
-				synchronized(conn) {
-					String sql = ""
-							+ "select cwms_util.to_millis(v.effective_date)"
-							+ "  from cwms_v_rating v"
-							+ " where aliased_item is null"
-							+ "   and rating_spec_code = :1"
-							+ " order by 1";
-					PreparedStatement stmt = conn.prepareStatement(sql);
-					stmt.setLong(1, ratingSpecCode);
-					ResultSet rs = stmt.executeQuery();
-					List<Long> dateList = new ArrayList<Long>();
-					while (rs.next()) {
-						dateList.add(rs.getLong(1));
-					}
-					rs.close();
-					stmt.close();
-					dates = new long[dateList.size()];
-					for (int i = 0; i < dateList.size(); ++i) {
-						dates[i] = dateList.get(i);
+				Connection conn = ratingSet.getConnection();
+				if (conn == null) {
+					throw new RatingException("No database connections available");
+				}
+				try {
+					synchronized(conn) {
+						String sql = ""
+								+ "select cwms_util.to_millis(v.effective_date)"
+								+ "  from cwms_v_rating v"
+								+ " where aliased_item is null"
+								+ "   and rating_spec_code = :1"
+								+ " order by 1";
+						PreparedStatement stmt = conn.prepareStatement(sql);
+						stmt.setLong(1, ratingSpecCode);
+						ResultSet rs = stmt.executeQuery();
+						List<Long> dateList = new ArrayList<Long>();
+						while (rs.next()) {
+							dateList.add(rs.getLong(1));
+						}
+						rs.close();
+						stmt.close();
+						dates = new long[dateList.size()];
+						for (int i = 0; i < dateList.size(); ++i) {
+							dates[i] = dateList.get(i);
+						}
 					}
 				}
+				finally {
+					ratingSet.releaseConnection(conn);
+				}
 			}
-			finally {
-				ratingSet.releaseConnection(conn);
+			catch (Exception e) {
+				throw new RuntimeException(e);
 			}
+			return dates;
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return dates;
 	}
 
 	/* (non-Javadoc)
@@ -647,43 +645,45 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public long[] getCreateDates() {
-		long[] dates = null;
-		try {
-			Connection conn = ratingSet.getConnection();
-			if (conn == null) {
-				throw new RatingException("No database connections available");
-			}
+		synchronized(this) {
+			long[] dates = null;
 			try {
-				synchronized(conn) {
-					String sql = ""
-							+ "select cwms_util.to_millis(v.create_date)"
-							+ "  from cwms_v_rating v"
-							+ " where aliased_item is null"
-							+ "   and rating_spec_code = :1"
-							+ " order by 1";
-					PreparedStatement stmt = conn.prepareStatement(sql);
-					stmt.setLong(1, ratingSpecCode);
-					ResultSet rs = stmt.executeQuery();
-					List<Long> dateList = new ArrayList<Long>();
-					while (rs.next()) {
-						dateList.add(rs.getLong(1));
-					}
-					rs.close();
-					stmt.close();
-					dates = new long[dateList.size()];
-					for (int i = 0; i < dateList.size(); ++i) {
-						dates[i] = dateList.get(i);
+				Connection conn = ratingSet.getConnection();
+				if (conn == null) {
+					throw new RatingException("No database connections available");
+				}
+				try {
+					synchronized(conn) {
+						String sql = ""
+								+ "select cwms_util.to_millis(v.create_date)"
+								+ "  from cwms_v_rating v"
+								+ " where aliased_item is null"
+								+ "   and rating_spec_code = :1"
+								+ " order by 1";
+						PreparedStatement stmt = conn.prepareStatement(sql);
+						stmt.setLong(1, ratingSpecCode);
+						ResultSet rs = stmt.executeQuery();
+						List<Long> dateList = new ArrayList<Long>();
+						while (rs.next()) {
+							dateList.add(rs.getLong(1));
+						}
+						rs.close();
+						stmt.close();
+						dates = new long[dateList.size()];
+						for (int i = 0; i < dateList.size(); ++i) {
+							dates[i] = dateList.get(i);
+						}
 					}
 				}
+				finally {
+					ratingSet.releaseConnection(conn);
+				}
 			}
-			finally {
-				ratingSet.releaseConnection(conn);
+			catch (Exception e) {
+				throw new RuntimeException(e);
 			}
+			return dates;
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return dates;
 	}
 
 	/* (non-Javadoc)
@@ -804,102 +804,90 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
-		Object cwmsRatingObj;
-		Method rateMethod;
-		Connection conn = null;
-		try {
-			conn = ratingSet.getConnection();
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		if (conn == null) {
-			throw new RatingException("No database connections available");
-		}
-		try {
-			synchronized(conn) {
-				cwmsRatingObj = Reflection.getConstructor(
-						"wcds.dbi.oracle.OracleCwmsRatingDaoImpl", 
-						"java.sql.Connection").newInstance(conn);
-				rateMethod = cwmsRatingObj.getClass().getMethod(
-						"rate",
-						Reflection.getClass("hec.data.rating.RatingInput"),
-						Reflection.getClass("hec.data.rating.RatingOutput"));
-					
-					Calendar ratingTime = Calendar.getInstance();
-					ratingTime.setTimeZone(TimeZone.getTimeZone("UTC"));
-					ratingTime.setTimeInMillis(this.ratingTime);
-					Calendar cal = Calendar.getInstance();
-					cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-					Vector<Date> valueTimes = new Vector<Date>();
-					if (valTimes != null) {
-						for (long valTime : valTimes) {
-							cal.setTimeInMillis(valTime);
-							valueTimes.add(cal.getTime());
-						}
-					}
-					Vector<ParameterValues> indValues = new Vector<ParameterValues>();
-					String[] indParamIds = TextUtil.split(TextUtil.split(TextUtil.split(templateId, SEPARATOR1)[0], SEPARATOR2)[0], SEPARATOR3);
-					for (int i = 0; i < indParamIds.length; ++i) {
-						double[] values = new double[indVals.length];
-						for (int j = 0; j < indVals.length; ++j) {
-							values[j] = indVals[j][i];
-						}
-						indValues.add(new ParameterValues(new Parameter(indParamIds[i]), values));
-					}
-					Vector<String> indUnits = new Vector<String>();
-					String[] units = dataUnits == null ? ratingUnits : dataUnits;
-					for (int i = 0; i < units.length-1; ++i) {
-						indUnits.add(units[i]);
-					}
-					RatingInput input = new RatingInput(
-							new JDomRatingSpecification(officeId, ratingSpecId),
-							ratingTime.getTime(),
-							valueTimes,
-							indValues,
-							indUnits,
-							units[units.length-1],
-							false);
-					RatingOutput output = (RatingOutput)rateMethod.invoke(
-							cwmsRatingObj,
-							input,
-							null); 
-					double[] results = output.getValues().getDoubleArray();
-					for (int i = 0; i < results.length; ++i) {
-						if (!Double.isFinite(results[i])) {
-							results[i] = UNDEFINED_DOUBLE;
-						}
-					}
-					return results;
-			}
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		finally {
+		synchronized(this) {
+			Object cwmsRatingObj;
+			Method rateMethod;
+			Connection conn = null;
 			try {
-				ratingSet.releaseConnection(conn);
+				conn = ratingSet.getConnection();
 			}
 			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
 			}
+			if (conn == null) {
+				throw new RatingException("No database connections available");
+			}
+			try {
+				synchronized(conn) {
+					cwmsRatingObj = Reflection.getConstructor(
+							"wcds.dbi.oracle.OracleCwmsRatingDaoImpl", 
+							"java.sql.Connection").newInstance(conn);
+					rateMethod = cwmsRatingObj.getClass().getMethod(
+							"rate",
+							Reflection.getClass("hec.data.rating.RatingInput"),
+							Reflection.getClass("hec.data.rating.RatingOutput"));
+						
+						Calendar ratingTime = Calendar.getInstance();
+						ratingTime.setTimeZone(TimeZone.getTimeZone("UTC"));
+						ratingTime.setTimeInMillis(this.ratingTime);
+						Calendar cal = Calendar.getInstance();
+						cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+						Vector<Date> valueTimes = new Vector<Date>();
+						if (valTimes != null) {
+							for (long valTime : valTimes) {
+								cal.setTimeInMillis(valTime);
+								valueTimes.add(cal.getTime());
+							}
+						}
+						Vector<ParameterValues> indValues = new Vector<ParameterValues>();
+						String[] indParamIds = TextUtil.split(TextUtil.split(TextUtil.split(templateId, SEPARATOR1)[0], SEPARATOR2)[0], SEPARATOR3);
+						for (int i = 0; i < indParamIds.length; ++i) {
+							double[] values = new double[indVals.length];
+							for (int j = 0; j < indVals.length; ++j) {
+								values[j] = indVals[j][i];
+							}
+							indValues.add(new ParameterValues(new Parameter(indParamIds[i]), values));
+						}
+						Vector<String> indUnits = new Vector<String>();
+						String[] units = dataUnits == null ? ratingUnits : dataUnits;
+						for (int i = 0; i < units.length-1; ++i) {
+							indUnits.add(units[i]);
+						}
+						RatingInput input = new RatingInput(
+								new JDomRatingSpecification(officeId, ratingSpecId),
+								ratingTime.getTime(),
+								valueTimes,
+								indValues,
+								indUnits,
+								units[units.length-1],
+								false);
+						RatingOutput output = (RatingOutput)rateMethod.invoke(
+								cwmsRatingObj,
+								input,
+								null); 
+						double[] results = output.getValues().getDoubleArray();
+						for (int i = 0; i < results.length; ++i) {
+							if (!Double.isFinite(results[i])) {
+								results[i] = UNDEFINED_DOUBLE;
+							}
+						}
+						return results;
+				}
+			}
+			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
+				throw new RatingException(e);
+			}
+			finally {
+				try {
+					ratingSet.releaseConnection(conn);
+				}
+				catch (Exception e) {
+					throw new RatingException(e);
+				}
+			}
 		}
-//		try {
-//			rated = (double[])rateMethod.invoke(
-//					cwmsRatingObj, 
-//					ratingSpecId, 
-//					officeId, 
-//					getDataUnits(), 
-//					indVals, 
-//					valTimes, 
-//					ratingTime);
-//		}
-//		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-//			throw new RatingException(e);
-//		}
-//		return rated;
 	}
 
 	/* (non-Javadoc)
@@ -916,10 +904,12 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
-		if (tsRater == null) {
-			tsRater = new TimeSeriesRater(this);
+		synchronized(this) {
+			if (tsRater == null) {
+				tsRater = new TimeSeriesRater(this);
+			}
+			return tsRater.rate(tscs);
 		}
-		return tsRater.rate(tscs);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
@@ -992,91 +982,77 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals)	throws RatingException {
-		Connection conn = null;
-		try {
-			conn = ratingSet.getConnection();
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		if (conn == null) {
-			throw new RatingException("No database connections available");
-		}
-		try {
-			synchronized(conn) {
-				Class<?> cwmsRatingClass = Class.forName("wcds.dbi.oracle.OracleCwmsRatingDaoImpl");
-				Object cwmsRatingObj = cwmsRatingClass.getConstructor(java.sql.Connection.class).newInstance(conn);
-				Calendar ratingTime = Calendar.getInstance();
-				ratingTime.setTimeZone(TimeZone.getTimeZone("UTC"));
-				ratingTime.setTimeInMillis(this.ratingTime);
-				Calendar cal = Calendar.getInstance();
-				cal.setTimeZone(TimeZone.getTimeZone("UTC"));
-				Vector<Date> valueTimes = new Vector<Date>();
-				if (valTimes != null) {
-					for (long valTime : valTimes) {
-						cal.setTimeInMillis(valTime);
-						valueTimes.add(cal.getTime());
-					}
-				}
-				String depParamId = TextUtil.split(TextUtil.split(templateId, SEPARATOR1)[0], SEPARATOR2)[1];
-				ParameterValues depValues = new ParameterValues(new Parameter(depParamId), depVals);
-				String[] units = dataUnits == null ? ratingUnits : dataUnits;
-				ReverseRatingInput input = new ReverseRatingInput(
-						new JDomRatingSpecification(officeId, ratingSpecId),
-						ratingTime.getTime(),
-						valueTimes,
-						depValues,
-						units[1],
-						units[0],
-						false);
-				RatingOutput output = (RatingOutput)cwmsRatingClass.getMethod("reverseRateSimple", ReverseRatingInput.class, RatingOutput.class).invoke(
-						cwmsRatingObj,
-						input,
-						(RatingOutput)null);
-				return output.getValues().getDoubleArray();
-			}
-		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		finally {
+		synchronized(this) {
+			Connection conn = null;
 			try {
-				ratingSet.releaseConnection(conn);
+				conn = ratingSet.getConnection();
 			}
 			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
 			}
+			if (conn == null) {
+				throw new RatingException("No database connections available");
+			}
+			try {
+				synchronized(conn) {
+					Class<?> cwmsRatingClass = Class.forName("wcds.dbi.oracle.OracleCwmsRatingDaoImpl");
+					Object cwmsRatingObj = cwmsRatingClass.getConstructor(java.sql.Connection.class).newInstance(conn);
+					Calendar ratingTime = Calendar.getInstance();
+					ratingTime.setTimeZone(TimeZone.getTimeZone("UTC"));
+					ratingTime.setTimeInMillis(this.ratingTime);
+					Calendar cal = Calendar.getInstance();
+					cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+					Vector<Date> valueTimes = new Vector<Date>();
+					if (valTimes != null) {
+						for (long valTime : valTimes) {
+							cal.setTimeInMillis(valTime);
+							valueTimes.add(cal.getTime());
+						}
+					}
+					String depParamId = TextUtil.split(TextUtil.split(templateId, SEPARATOR1)[0], SEPARATOR2)[1];
+					ParameterValues depValues = new ParameterValues(new Parameter(depParamId), depVals);
+					String[] units = dataUnits == null ? ratingUnits : dataUnits;
+					ReverseRatingInput input = new ReverseRatingInput(
+							new JDomRatingSpecification(officeId, ratingSpecId),
+							ratingTime.getTime(),
+							valueTimes,
+							depValues,
+							units[1],
+							units[0],
+							false);
+					RatingOutput output = (RatingOutput)cwmsRatingClass.getMethod("reverseRateSimple", ReverseRatingInput.class, RatingOutput.class).invoke(
+							cwmsRatingObj,
+							input,
+							(RatingOutput)null);
+					return output.getValues().getDoubleArray();
+				}
+			}
+			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
+				throw new RatingException(e);
+			}
+			finally {
+				try {
+					ratingSet.releaseConnection(conn);
+				}
+				catch (Exception e) {
+					throw new RatingException(e);
+				}
+			}
 		}
-//		double[] rated = null;
-//		if (reverseRateMethod == null) {
-//			getReverseRateMethod();
-//		}
-//		try {
-//			rated = (double[])reverseRateMethod.invoke(
-//					cwmsRatingObj, 
-//					ratingSpecId, 
-//					officeId, 
-//					getDataUnits(), 
-//					depVals, 
-//					valTimes, 
-//					ratingTime);
-//		}
-//		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-//			throw new RatingException(e);
-//		}
-//		return rated;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#reverseRate(hec.io.TimeSeriesContainer)
 	 */
 	@Override
 	public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
-		if (tsRater == null) {
-			tsRater = new TimeSeriesRater(this);
+		synchronized(this) {
+			if (tsRater == null) {
+				tsRater = new TimeSeriesRater(this);
+			}
+			return tsRater.reverseRate(tsc);
 		}
-		return tsRater.reverseRate(tsc);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
@@ -1096,25 +1072,13 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
-		return parameters.length - 1;
+		synchronized(this) {
+			return parameters.length - 1;
+		}
 	}
 	
 	protected void checkVDC() throws VerticalDatumException {
 		if (vdc == null) throw new VerticalDatumException("Rating has no vertical datum information.");
 	}
 
-//	protected void getRatingExtentsMethod() throws RatingException {
-//		if (cwmsRatingObj == null) {
-//			getRatingObj();
-//		}
-//		try {
-//			ratingExtentsMethod = cwmsRatingObj.getClass().getMethod(
-//					"getRatingExtents", 
-//					Reflection.getClass("hec.data.rating.IRatingExtents"),
-//					Reflection.getClass("java.util.Date"));
-//		}
-//		catch (Exception e) {
-//			throw new RatingException(e);
-//		}
-//	}
 }

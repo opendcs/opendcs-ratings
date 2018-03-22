@@ -64,9 +64,11 @@ public class ExpressionRating extends AbstractRating {
 	 * @throws RatingException
 	 */
 	public ExpressionRating(ExpressionRatingContainer erc) throws RatingException {
-		super._setData(erc);
-		setExpression(erc.expression);
-		observationTarget = new Observable();
+		synchronized(this) {
+			super._setData(erc);
+			setExpression(erc.expression);
+			observationTarget = new Observable();
+		}
 
 	}
 	/**
@@ -74,7 +76,9 @@ public class ExpressionRating extends AbstractRating {
 	 * @return
 	 */
 	public String getExpression() {
-		return expressionString;
+		synchronized(this) {
+			return expressionString;
+		}
 	}
 	/**
 	 * Sets this rating's mathematical expression
@@ -82,22 +86,24 @@ public class ExpressionRating extends AbstractRating {
 	 * @throws RatingException
 	 */
 	public void setExpression(String expr) throws RatingException {
-		try {
-			String expr2 = replaceAll(expr, "(^|\\W)(arg|i)([1-9])", "$1\\$$2$3", "i");
-			expression = new MathExpression(expr2);
-			VariableSet varset = expression.getVariables();
-			String[] varnames = new String[varset.getVariableCount()];
-			varset.getVariableNames().toArray(varnames);
-			Arrays.sort(varnames);
-			variables = new Variable[varnames.length];
-			for (int i = 0; i < varnames.length; ++i) {
-				variables[i] = varset.getVariable(varnames[i]);
+		synchronized(this) {
+			try {
+				String expr2 = replaceAll(expr, "(^|\\W)(arg|i)([1-9])", "$1\\$$2$3", "i");
+				expression = new MathExpression(expr2);
+				VariableSet varset = expression.getVariables();
+				String[] varnames = new String[varset.getVariableCount()];
+				varset.getVariableNames().toArray(varnames);
+				Arrays.sort(varnames);
+				variables = new Variable[varnames.length];
+				for (int i = 0; i < varnames.length; ++i) {
+					variables[i] = varset.getVariable(varnames[i]);
+				}
+				expressionString = expr;
 			}
-			expressionString = expr;
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
 		}
 	}
 
@@ -106,10 +112,12 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
-		double[][] extents = new double[2][getIndParamCount()+1];
-		Arrays.fill(extents[0], Double.NEGATIVE_INFINITY);
-		Arrays.fill(extents[1], Double.POSITIVE_INFINITY);
-		return extents;
+		synchronized(this) {
+			double[][] extents = new double[2][getIndParamCount()+1];
+			Arrays.fill(extents[0], Double.NEGATIVE_INFINITY);
+			Arrays.fill(extents[1], Double.POSITIVE_INFINITY);
+			return extents;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -142,35 +150,38 @@ public class ExpressionRating extends AbstractRating {
 	 * @see hec.data.cwmsRating.AbstractRating#rateOne(double[])
 	 */
 	@Override
-	public double[] rate(double[] pIndVals) throws RatingException {
-		if (variables.length != 1) {
-			throw new RatingException(String.format("Data has 1 independent parameter; rating %s requires %d",  ratingSpecId, this.getIndParamCount()));
-		}
-		try {
-			String[] dataUnits = getDataUnits();
-			String[] ratingUnits = getRatingUnits();
-			for (int i = 0; i < ratingUnits.length; ++i) {
-				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
-					dataUnits[i] = ratingUnits[i] = null;
-				}
-				else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
-				}
-				else {
-					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
-				}
+	public double[] rate(double[] pIndVals) throws RatingException 
+	{
+		synchronized(this) {
+			if (variables.length != 1) {
+				throw new RatingException(String.format("Data has 1 independent parameter; rating %s requires %d",  ratingSpecId, this.getIndParamCount()));
 			}
-			double[] rated = new double[pIndVals.length];
-			for (int i = 0; i < pIndVals.length; ++i) {
-				variables[0].setValue(convertUnits(pIndVals[i], dataUnits[0], ratingUnits[0]));
-				rated[i] = convertUnits(expression.evaluate(), ratingUnits[1], dataUnits[1]);
+			try {
+				String[] dataUnits = getDataUnits();
+				String[] ratingUnits = getRatingUnits();
+				for (int i = 0; i < ratingUnits.length; ++i) {
+					if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+						dataUnits[i] = ratingUnits[i] = null;
+					}
+					else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+					}
+					else {
+						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+					}
+				}
+				double[] rated = new double[pIndVals.length];
+				for (int i = 0; i < pIndVals.length; ++i) {
+					variables[0].setValue(convertUnits(pIndVals[i], dataUnits[0], ratingUnits[0]));
+					rated[i] = convertUnits(expression.evaluate(), ratingUnits[1], dataUnits[1]);
+				}
+				return rated;
 			}
-			return rated;
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
 		}
 	}
 	/* (non-Javadoc)
@@ -178,48 +189,49 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public double[] rate(double[][] pIndVals) throws RatingException {
-		
-		for (int i = 1; i < pIndVals.length; ++i) {
-			if (pIndVals[i].length != pIndVals[0].length) {
-				throw new RatingException("Independent value sets have varying lengths.");
-			}
-		}
-		if (pIndVals[0].length != variables.length) {
-			throw new RatingException(String.format("Data has %d independent parameters; rating %s requires %d", pIndVals[0].length, this.ratingSpecId, variables.length));
-		}
-		try {
-			String[] dataUnits = getDataUnits();
-			String[] ratingUnits = getRatingUnits();
-			for (int i = 0; i < ratingUnits.length; ++i) {
-				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
-					dataUnits[i] = ratingUnits[i] = null;
-				}
-				else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
-				}
-				else {
-					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+		synchronized(this) {
+			for (int i = 1; i < pIndVals.length; ++i) {
+				if (pIndVals[i].length != pIndVals[0].length) {
+					throw new RatingException("Independent value sets have varying lengths.");
 				}
 			}
-			double[] rated = new double[pIndVals.length];
-			for (int i = 0; i < pIndVals.length; ++i) {
-				for (int j = 0; j < variables.length; ++j) {
-					if (pIndVals[i][j] == UNDEFINED_DOUBLE) {
-						rated[i] = UNDEFINED_DOUBLE;
-						break;
+			if (pIndVals[0].length != variables.length) {
+				throw new RatingException(String.format("Data has %d independent parameters; rating %s requires %d", pIndVals[0].length, this.ratingSpecId, variables.length));
+			}
+			try {
+				String[] dataUnits = getDataUnits();
+				String[] ratingUnits = getRatingUnits();
+				for (int i = 0; i < ratingUnits.length; ++i) {
+					if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+						dataUnits[i] = ratingUnits[i] = null;
 					}
-					variables[j].setValue(convertUnits(pIndVals[i][j], dataUnits[j], ratingUnits[j]));
+					else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+					}
+					else {
+						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+					}
 				}
-				if (rated[i] != UNDEFINED_DOUBLE) {
-					rated[i] = convertUnits(expression.evaluate(), ratingUnits[variables.length], dataUnits[variables.length]);
+				double[] rated = new double[pIndVals.length];
+				for (int i = 0; i < pIndVals.length; ++i) {
+					for (int j = 0; j < variables.length; ++j) {
+						if (pIndVals[i][j] == UNDEFINED_DOUBLE) {
+							rated[i] = UNDEFINED_DOUBLE;
+							break;
+						}
+						variables[j].setValue(convertUnits(pIndVals[i][j], dataUnits[j], ratingUnits[j]));
+					}
+					if (rated[i] != UNDEFINED_DOUBLE) {
+						rated[i] = convertUnits(expression.evaluate(), ratingUnits[variables.length], dataUnits[variables.length]);
+					}
 				}
+				return rated;
 			}
-			return rated;
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
 		}
 	}
 
@@ -298,7 +310,9 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
-		return variables.length;
+		synchronized(this) {
+			return variables.length;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -306,27 +320,31 @@ public class ExpressionRating extends AbstractRating {
 	 */
 	@Override
 	public ExpressionRatingContainer getData() {
-		ExpressionRatingContainer erc = new ExpressionRatingContainer();
-		super.getData(erc);
-		erc.expression = expressionString;
-		return erc;
+		synchronized(this) {
+			ExpressionRatingContainer erc = new ExpressionRatingContainer();
+			super.getData(erc);
+			erc.expression = expressionString;
+			return erc;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
-		if (!(rc instanceof ExpressionRatingContainer)) throw new RatingException("setData() requires a ExpressionRatingContainer object.");
-		try {
-			super._setData(rc);
-			ExpressionRatingContainer erc = (ExpressionRatingContainer)rc;
-			this.setExpression(erc.expression);
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
+		synchronized(this) {
+			if (!(rc instanceof ExpressionRatingContainer)) throw new RatingException("setData() requires a ExpressionRatingContainer object.");
+			try {
+				super._setData(rc);
+				ExpressionRatingContainer erc = (ExpressionRatingContainer)rc;
+				this.setExpression(erc.expression);
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
 		}
 	}
 
@@ -361,15 +379,17 @@ public class ExpressionRating extends AbstractRating {
 			long createDate,
 			boolean active,
 			String description) throws RatingException {
-		if (observationTarget == null) observationTarget = new Observable();
-		setOfficeId(officeId);
-		setRatingSpecId(ratingSpecId);
-		setRatingUnitsId(ratingUnitsId);
-		setEffectiveDate(effectiveDate);
-		setCreateDate(createDate);
-		setActive(active);
-		setDescription(description);
-		setExpression(expr);
+		synchronized(this) {
+			if (observationTarget == null) observationTarget = new Observable();
+			setOfficeId(officeId);
+			setRatingSpecId(ratingSpecId);
+			setRatingUnitsId(ratingUnitsId);
+			setEffectiveDate(effectiveDate);
+			setCreateDate(createDate);
+			setActive(active);
+			setDescription(description);
+			setExpression(expr);
+		}
 	}
 
 	@Override

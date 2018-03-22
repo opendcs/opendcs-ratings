@@ -963,10 +963,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	Connection getConnection() throws Exception {
-		if (conn != null) return conn;
-		Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
-		Class<?> stringClass = Class.forName("java.lang.String");
-		return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
+		synchronized(this) {
+			if (conn != null) return conn;
+			Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
+			Class<?> stringClass = Class.forName("java.lang.String");
+			return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
+		}
 	}
 	/**
 	 * Closes a connection if it is transient/statelesss, otherwise leaves it open
@@ -974,17 +976,19 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws Exception
 	 */
 	void releaseConnection(Connection conn) throws Exception {
-		if (conn != null) {
-			if (conn == this.conn) {
-				// nothing
-			}
-			else {
-				// have the DataAccessFactory close the connection
-				try {
-					Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+		synchronized(this) {
+			if (conn != null) {
+				if (conn == this.conn) {
+					// nothing
 				}
-				catch (Exception e) {
-					throw new RatingException(e);
+				else {
+					// have the DataAccessFactory close the connection
+					try {
+						Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
+					}
+					catch (Exception e) {
+						throw new RatingException(e);
+					}
 				}
 			}
 		}
@@ -994,48 +998,52 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return the latest creation or effective date for this rating or its component parts
 	 */
 	protected long getReferenceTime(AbstractRating rating) {
-		long referenceTime = Math.max(rating.createDate, rating.effectiveDate);
-		if (rating instanceof UsgsStreamTableRating) {
-			UsgsStreamTableRating sr = (UsgsStreamTableRating)rating;
-			referenceTime = Math.max(referenceTime, getReferenceTime(sr.offsets));
-			if (sr.shifts != null) {
-				referenceTime = Math.max(referenceTime, sr.shifts.getReferenceTime());
+		synchronized(this) {
+			long referenceTime = Math.max(rating.createDate, rating.effectiveDate);
+			if (rating instanceof UsgsStreamTableRating) {
+				UsgsStreamTableRating sr = (UsgsStreamTableRating)rating;
+				referenceTime = Math.max(referenceTime, getReferenceTime(sr.offsets));
+				if (sr.shifts != null) {
+					referenceTime = Math.max(referenceTime, sr.shifts.getReferenceTime());
+				}
 			}
-		}
-		else if (rating instanceof VirtualRating) {
-			VirtualRating vr = (VirtualRating)rating;
-			if (vr.sourceRatings != null) {
-				for (SourceRating sr : vr.sourceRatings) {
-					if (sr.ratings != null) {
-						referenceTime = Math.max(referenceTime, sr.ratings.getReferenceTime());
+			else if (rating instanceof VirtualRating) {
+				VirtualRating vr = (VirtualRating)rating;
+				if (vr.sourceRatings != null) {
+					for (SourceRating sr : vr.sourceRatings) {
+						if (sr.ratings != null) {
+							referenceTime = Math.max(referenceTime, sr.ratings.getReferenceTime());
+						}
 					}
 				}
 			}
-		}
-		else if (rating instanceof TransitionalRating) {
-			TransitionalRating tr = (TransitionalRating)rating;
-			if (tr.sourceRatings != null) {
-				for (SourceRating sr : tr.sourceRatings) {
-					if (sr.ratings != null) {
-						referenceTime = Math.max(referenceTime, sr.ratings.getReferenceTime());
+			else if (rating instanceof TransitionalRating) {
+				TransitionalRating tr = (TransitionalRating)rating;
+				if (tr.sourceRatings != null) {
+					for (SourceRating sr : tr.sourceRatings) {
+						if (sr.ratings != null) {
+							referenceTime = Math.max(referenceTime, sr.ratings.getReferenceTime());
+						}
 					}
 				}
 			}
+			return referenceTime;
 		}
-		return referenceTime;
 	}
 	/**
 	 * @return the latest creation or effective date for all the included ratings
 	 */
 	protected long getReferenceTime() {
-		long referenceTime = UNDEFINED_TIME;
-		for (AbstractRating rating : ratings.values()) {
-			long t = getReferenceTime(rating);
-			if (t > referenceTime) {
-				referenceTime = t;
+		synchronized(this) {
+			long referenceTime = UNDEFINED_TIME;
+			for (AbstractRating rating : ratings.values()) {
+				long t = getReferenceTime(rating);
+				if (t > referenceTime) {
+					referenceTime = t;
+				}
 			}
+			return referenceTime;
 		}
-		return referenceTime;
 	}
 	/**
 	 * Collects rating specs used by rating and components
@@ -1043,32 +1051,34 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @param componentRatingSpecs the set of rating specs to collect into
 	 */
 	protected void getComponentRatingSpecs(AbstractRating rating, HashSet<String> componentRatingSpecs) {
-		componentRatingSpecs.add(rating.getRatingSpecId());
-		if (rating instanceof UsgsStreamTableRating) {
-			UsgsStreamTableRating sr = (UsgsStreamTableRating)rating;
-			if (sr.offsets != null) {
-				getComponentRatingSpecs(sr.offsets, componentRatingSpecs);
+		synchronized(this) {
+			componentRatingSpecs.add(rating.getRatingSpecId());
+			if (rating instanceof UsgsStreamTableRating) {
+				UsgsStreamTableRating sr = (UsgsStreamTableRating)rating;
+				if (sr.offsets != null) {
+					getComponentRatingSpecs(sr.offsets, componentRatingSpecs);
+				}
+				if (sr.shifts != null) {
+					componentRatingSpecs.addAll(sr.shifts.getComponentRatingSpecs());
+				}
 			}
-			if (sr.shifts != null) {
-				componentRatingSpecs.addAll(sr.shifts.getComponentRatingSpecs());
-			}
-		}
-		else if (rating instanceof VirtualRating) {
-			VirtualRating vr = (VirtualRating)rating;
-			if (vr.sourceRatings != null) {
-				for (SourceRating sr : vr.sourceRatings) {
-					if (sr.ratings != null) {
-						componentRatingSpecs.addAll(sr.ratings.getComponentRatingSpecs());
+			else if (rating instanceof VirtualRating) {
+				VirtualRating vr = (VirtualRating)rating;
+				if (vr.sourceRatings != null) {
+					for (SourceRating sr : vr.sourceRatings) {
+						if (sr.ratings != null) {
+							componentRatingSpecs.addAll(sr.ratings.getComponentRatingSpecs());
+						}
 					}
 				}
 			}
-		}
-		else if (rating instanceof TransitionalRating) {
-			TransitionalRating tr = (TransitionalRating)rating;
-			if (tr.sourceRatings != null) {
-				for (SourceRating sr : tr.sourceRatings) {
-					if (sr.ratings != null) {
-						componentRatingSpecs.addAll(sr.ratings.getComponentRatingSpecs());
+			else if (rating instanceof TransitionalRating) {
+				TransitionalRating tr = (TransitionalRating)rating;
+				if (tr.sourceRatings != null) {
+					for (SourceRating sr : tr.sourceRatings) {
+						if (sr.ratings != null) {
+							componentRatingSpecs.addAll(sr.ratings.getComponentRatingSpecs());
+						}
 					}
 				}
 			}
@@ -1078,47 +1088,51 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return all rating specs used in this rating set
 	 */
 	protected HashSet<String> getComponentRatingSpecs() {
-		HashSet<String> componentRatingSpecs = new HashSet<String>();
-		for (AbstractRating rating : ratings.values()) {
-			getComponentRatingSpecs(rating, componentRatingSpecs);
+		synchronized(this) {
+			HashSet<String> componentRatingSpecs = new HashSet<String>();
+			for (AbstractRating rating : ratings.values()) {
+				getComponentRatingSpecs(rating, componentRatingSpecs);
+			}
+			return componentRatingSpecs;
 		}
-		return componentRatingSpecs;
 	}
 	/**
 	 * @return whether this rating set has been updated in the database
 	 * @throws Exception
 	 */
 	public boolean isUpdated() throws Exception {
-		Connection _conn = getConnection();
-		synchronized(_conn) {
-			PreparedStatement stmt = null;
-			ResultSet rs = null;
-			try {
-				stmt = _conn.prepareStatement("select cwms_util.to_millis(greatest(max(effective_date), max(create_date))) from cwms_v_rating where rating_id=:1");
-				long referenceTime = getReferenceTime();
-				for (String ratingSpec : getComponentRatingSpecs()) {
-					stmt.setString(1, ratingSpec);
-					rs = stmt.executeQuery();
-					rs.next();
-					if (rs.getLong(1) > referenceTime) {
-						return true;
-					}
-				}
-				return false;
-			}
-			finally {
+		synchronized(this) {
+			Connection _conn = getConnection();
+			synchronized(_conn) {
+				PreparedStatement stmt = null;
+				ResultSet rs = null;
 				try {
-					if (rs != null) {
-						try {rs.close();}
-						catch (Exception e) {}
+					stmt = _conn.prepareStatement("select cwms_util.to_millis(greatest(max(effective_date), max(create_date))) from cwms_v_rating where rating_id=:1");
+					long referenceTime = getReferenceTime();
+					for (String ratingSpec : getComponentRatingSpecs()) {
+						stmt.setString(1, ratingSpec);
+						rs = stmt.executeQuery();
+						rs.next();
+						if (rs.getLong(1) > referenceTime) {
+							return true;
+						}
 					}
-					if (stmt != null) {
-						try {stmt.close();}
-						catch (Exception e) {}
-					}
+					return false;
 				}
 				finally {
-					releaseConnection(_conn);
+					try {
+						if (rs != null) {
+							try {rs.close();}
+							catch (Exception e) {}
+						}
+						if (stmt != null) {
+							try {stmt.close();}
+							catch (Exception e) {}
+						}
+					}
+					finally {
+						releaseConnection(_conn);
+					}
 				}
 			}
 		}
@@ -1261,56 +1275,58 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public void addRating(AbstractRating rating) throws RatingException {
-		if (dbrating != null) {
-			throw new RatingException("Cannot add to a reference rating");
-		}
-		if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
-			throw new RatingException("Cannot add rating with undefined effective date.");
-		}
-		Long effectiveDate = rating.getEffectiveDate();
-		if(ratings.containsKey(effectiveDate)) {
-			SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
-			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-			logger.fine("Replacing existing rating with effective date of " + sdf.format(effectiveDate) + " UTC");
-		}
-		if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
-			throw new RatingException("Number of independent parameters does not match rating specification");
-		}
-		if (ratings.size() > 0) {
-			if (!TextUtil.equalsIgnoreCase(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
-				throw new RatingException("Cannot add rating with different rating specification.");
+		synchronized(this) {
+			if (dbrating != null) {
+				throw new RatingException("Cannot add to a reference rating");
 			}
-			if (!AbstractRating.compatibleUnits(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
-				throw new RatingException(String.format(
-						"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
-						rating.getRatingUnitsId(),
-						ratings.firstEntry().getValue().getRatingUnitsId()));
+			if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
+				throw new RatingException("Cannot add rating with undefined effective date.");
 			}
-		}
-		if (rating instanceof UsgsStreamTableRating) {
-			UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
-			if (streamRating.shifts != null) {
-				streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
+			Long effectiveDate = rating.getEffectiveDate();
+			if(ratings.containsKey(effectiveDate)) {
+				SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
+				sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+				logger.fine("Replacing existing rating with effective date of " + sdf.format(effectiveDate) + " UTC");
 			}
-		}
-		ratings.put(effectiveDate, rating);
-		if (dataUnits == null) {
-			setDataUnits(rating.getDataUnits());
-		}
-		else {
-			rating.setDataUnits(dataUnits);
-		}
-		ratings.get(effectiveDate).ratingSpec = ratingSpec;
-		if (rating.isActive() && rating.createDate <= ratingTime) {
-			activeRatings.put(effectiveDate, rating);
-			activeRatings.get(effectiveDate).ratingSpec = ratingSpec;
-		}
-		rating.deleteObserver(this);
-		rating.addObserver(this);
-		validate();
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+			if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
+				throw new RatingException("Number of independent parameters does not match rating specification");
+			}
+			if (ratings.size() > 0) {
+				if (!TextUtil.equalsIgnoreCase(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
+					throw new RatingException("Cannot add rating with different rating specification.");
+				}
+				if (!AbstractRating.compatibleUnits(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
+					throw new RatingException(String.format(
+							"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
+							rating.getRatingUnitsId(),
+							ratings.firstEntry().getValue().getRatingUnitsId()));
+				}
+			}
+			if (rating instanceof UsgsStreamTableRating) {
+				UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
+				if (streamRating.shifts != null) {
+					streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
+				}
+			}
+			ratings.put(effectiveDate, rating);
+			if (dataUnits == null) {
+				setDataUnits(rating.getDataUnits());
+			}
+			else {
+				rating.setDataUnits(dataUnits);
+			}
+			ratings.get(effectiveDate).ratingSpec = ratingSpec;
+			if (rating.isActive() && rating.createDate <= ratingTime) {
+				activeRatings.put(effectiveDate, rating);
+				activeRatings.get(effectiveDate).ratingSpec = ratingSpec;
+			}
+			rating.deleteObserver(this);
+			rating.addObserver(this);
+			validate();
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 	}
 	/**
@@ -1320,7 +1336,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public void addRatings(AbstractRating[] ratings) throws RatingException {
-		addRatings(Arrays.asList(ratings));
+		synchronized(this) {
+			addRatings(Arrays.asList(ratings));
+		}
 	}
 	/**
 	 * Adds multiple ratings to the existing ratings.
@@ -1328,68 +1346,70 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void addRatings(Iterable<AbstractRating> ratings) throws RatingException {
-		String ratingSpecId = null;
-		String unitsId = null;
-		if (dbrating != null) {
-			throw new RatingException("Cannot add to a reference rating");
-		}
-		for (AbstractRating rating : ratings) {
-			if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
-				throw new RatingException("Cannot add rating with undefined effective date.");
+		synchronized(this) {
+			String ratingSpecId = null;
+			String unitsId = null;
+			if (dbrating != null) {
+				throw new RatingException("Cannot add to a reference rating");
 			}
-			if(this.ratings.containsKey(rating.getEffectiveDate())) {
-				throw new RatingException("Rating with same effective date already exists; cannot add rating");
-			}
-			if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
-				throw new RatingException("Number of independent parameters does not match rating specification");
-			}
-			if (ratingSpecId == null) {
-				ratingSpecId = rating.getRatingSpecId();
-			}
-			else if (!rating.getRatingSpecId().equals(ratingSpecId)) {
-				throw new RatingException("Ratings have inconsistent rating specifications.");
-			}
-			if (unitsId == null) {
-				unitsId = rating.getRatingUnitsId();
-			}
-			else if (!AbstractRating.compatibleUnits(unitsId, rating.getRatingUnitsId())) {
-				throw new RatingException(String.format(
-						"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
-						rating.getRatingUnitsId(),
-						unitsId));
-			}
-		}
-		if (this.ratings.size() > 0) {
-			if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
-				throw new RatingException("Cannot add ratings with different rating specification.");
-			}
-			if (!AbstractRating.compatibleUnits(unitsId, this.ratings.firstEntry().getValue().getRatingUnitsId())) {
-				throw new RatingException(String.format(
-						"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
-						unitsId,
-						this.ratings.firstEntry().getValue().getRatingUnitsId()));
-			}
-		}
-		for (AbstractRating rating : ratings) {
-			if (rating instanceof UsgsStreamTableRating) {
-				UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
-				if (streamRating.shifts != null) {
-					streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
+			for (AbstractRating rating : ratings) {
+				if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
+					throw new RatingException("Cannot add rating with undefined effective date.");
+				}
+				if(this.ratings.containsKey(rating.getEffectiveDate())) {
+					throw new RatingException("Rating with same effective date already exists; cannot add rating");
+				}
+				if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
+					throw new RatingException("Number of independent parameters does not match rating specification");
+				}
+				if (ratingSpecId == null) {
+					ratingSpecId = rating.getRatingSpecId();
+				}
+				else if (!rating.getRatingSpecId().equals(ratingSpecId)) {
+					throw new RatingException("Ratings have inconsistent rating specifications.");
+				}
+				if (unitsId == null) {
+					unitsId = rating.getRatingUnitsId();
+				}
+				else if (!AbstractRating.compatibleUnits(unitsId, rating.getRatingUnitsId())) {
+					throw new RatingException(String.format(
+							"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
+							rating.getRatingUnitsId(),
+							unitsId));
 				}
 			}
-			this.ratings.put(rating.getEffectiveDate(), rating);
-			this.ratings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
-			if (rating.isActive() && rating.createDate <= ratingTime) {
-				activeRatings.put(rating.getEffectiveDate(), rating);
-				activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
+			if (this.ratings.size() > 0) {
+				if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
+					throw new RatingException("Cannot add ratings with different rating specification.");
+				}
+				if (!AbstractRating.compatibleUnits(unitsId, this.ratings.firstEntry().getValue().getRatingUnitsId())) {
+					throw new RatingException(String.format(
+							"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
+							unitsId,
+							this.ratings.firstEntry().getValue().getRatingUnitsId()));
+				}
 			}
-			rating.deleteObserver(this);
-			rating.addObserver(this);
-			validate();
-		}
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+			for (AbstractRating rating : ratings) {
+				if (rating instanceof UsgsStreamTableRating) {
+					UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
+					if (streamRating.shifts != null) {
+						streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
+					}
+				}
+				this.ratings.put(rating.getEffectiveDate(), rating);
+				this.ratings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
+				if (rating.isActive() && rating.createDate <= ratingTime) {
+					activeRatings.put(rating.getEffectiveDate(), rating);
+					activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
+				}
+				rating.deleteObserver(this);
+				rating.addObserver(this);
+				validate();
+			}
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 	}
 	/**
@@ -1398,32 +1418,36 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void removeRating(long effectiveDate) throws RatingException {
-		ICwmsRating cwmsRating = ratings.get(effectiveDate);
-		if (cwmsRating == null) {
-			throw new RatingException("Rating with specified effective date does not exist; cannot remove rating");
-		}
-		cwmsRating.deleteObserver(this);
-		ratings.remove(effectiveDate);
-		if (activeRatings.containsKey(effectiveDate)) {
-			activeRatings.remove(effectiveDate);
-		}
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+		synchronized(this) {
+			ICwmsRating cwmsRating = ratings.get(effectiveDate);
+			if (cwmsRating == null) {
+				throw new RatingException("Rating with specified effective date does not exist; cannot remove rating");
+			}
+			cwmsRating.deleteObserver(this);
+			ratings.remove(effectiveDate);
+			if (activeRatings.containsKey(effectiveDate)) {
+				activeRatings.remove(effectiveDate);
+			}
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 	}
 	/**
 	 * Removes all existing ratings.
 	 */
 	public void removeAllRatings() {
-		for (ICwmsRating cwmsRating : ratings.values()) {
-			cwmsRating.deleteObserver(this);
-		}
-		ratings.clear();
-		activeRatings.clear();
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+		synchronized(this) {
+			for (ICwmsRating cwmsRating : ratings.values()) {
+				cwmsRating.deleteObserver(this);
+			}
+			ratings.clear();
+			activeRatings.clear();
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 	}
 	/**
@@ -1432,29 +1456,31 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void replaceRating(AbstractRating rating) throws RatingException {
-		Long effectiveDate = rating.getEffectiveDate();
-		if (!ratings.containsKey(effectiveDate)) {
-			throw new RatingException("Rating with same effective date does not exist; cannot replace rating");
-		}
-		if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
-			throw new RatingException("Number of independent parameters does not match rating specification");
-		}
-		if (!rating.getRatingSpecId().equals(ratings.firstEntry().getValue().getRatingSpecId())) {
-			throw new RatingException("Cannot replace rating with different rating specification.");
-		}
-		if (!rating.getRatingUnitsId().equals(ratings.firstEntry().getValue().getRatingUnitsId())) {
-			throw new RatingException("Cannot replace rating with different units.");
-		}
-		ratings.put(effectiveDate, rating).deleteObserver(this);
-		if (rating.isActive()) {
-			activeRatings.put(effectiveDate, rating);
-		}
-		rating.deleteObserver(this);
-		rating.addObserver(this);
-		validate();
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
+		synchronized(this) {
+			Long effectiveDate = rating.getEffectiveDate();
+			if (!ratings.containsKey(effectiveDate)) {
+				throw new RatingException("Rating with same effective date does not exist; cannot replace rating");
+			}
+			if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
+				throw new RatingException("Number of independent parameters does not match rating specification");
+			}
+			if (!rating.getRatingSpecId().equals(ratings.firstEntry().getValue().getRatingSpecId())) {
+				throw new RatingException("Cannot replace rating with different rating specification.");
+			}
+			if (!rating.getRatingUnitsId().equals(ratings.firstEntry().getValue().getRatingUnitsId())) {
+				throw new RatingException("Cannot replace rating with different units.");
+			}
+			ratings.put(effectiveDate, rating).deleteObserver(this);
+			if (rating.isActive()) {
+				activeRatings.put(effectiveDate, rating);
+			}
+			rating.deleteObserver(this);
+			rating.addObserver(this);
+			validate();
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
 		}
 	}
 	/**
@@ -1463,7 +1489,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void replaceRatings(AbstractRating[] ratings) throws RatingException {
-		replaceRatings(Arrays.asList(ratings));
+		synchronized(this) {
+			replaceRatings(Arrays.asList(ratings));
+		}
 	}
 	/**
 	 * Replaces multiple ratings in the existing ratings.
@@ -1471,136 +1499,140 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void replaceRatings(Iterable<AbstractRating> ratings) throws RatingException {
-		String ratingSpecId = null;
-		String unitsId = null;
-		for (AbstractRating rating : ratings) {
-			if (!this.ratings.containsKey(rating.getEffectiveDate())) {
-				throw new RatingException("Rating with same effective date does not exist; cannot replace rating");
+		synchronized(this) {
+			String ratingSpecId = null;
+			String unitsId = null;
+			for (AbstractRating rating : ratings) {
+				if (!this.ratings.containsKey(rating.getEffectiveDate())) {
+					throw new RatingException("Rating with same effective date does not exist; cannot replace rating");
+				}
+				if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
+					throw new RatingException("Number of independent parameters does not match rating specification");
+				}
+				if (ratingSpecId == null) {
+					ratingSpecId = rating.getRatingSpecId();
+				}
+				else if (!rating.getRatingSpecId().equals(ratingSpecId)) {
+					throw new RatingException("Ratings have inconsistent rating specifications.");
+				}
+				if (unitsId == null) {
+					unitsId = rating.getRatingUnitsId();
+				}
+				else if (!rating.getRatingUnitsId().equals(unitsId)) {
+					throw new RatingException("Ratings have inconsistent units.");
+				}
 			}
-			if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
-				throw new RatingException("Number of independent parameters does not match rating specification");
+			if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
+				throw new RatingException("Cannot replace ratings with different rating specification.");
 			}
-			if (ratingSpecId == null) {
-				ratingSpecId = rating.getRatingSpecId();
+			if (!this.ratings.firstEntry().getValue().getRatingUnitsId().equals(unitsId)) {
+				throw new RatingException("Cannot replace ratings with different units.");
 			}
-			else if (!rating.getRatingSpecId().equals(ratingSpecId)) {
-				throw new RatingException("Ratings have inconsistent rating specifications.");
+			for (AbstractRating rating : ratings) {
+				this.ratings.put(rating.getEffectiveDate(), rating).deleteObserver(this);
+				if (rating.isActive() && rating.createDate <= ratingTime) {
+					activeRatings.put(rating.getEffectiveDate(), rating);
+				}
+				rating.deleteObserver(this);
+				rating.addObserver(this);
 			}
-			if (unitsId == null) {
-				unitsId = rating.getRatingUnitsId();
+			validate();
+			if (observationTarget != null) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
 			}
-			else if (!rating.getRatingUnitsId().equals(unitsId)) {
-				throw new RatingException("Ratings have inconsistent units.");
-			}
-		}
-		if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
-			throw new RatingException("Cannot replace ratings with different rating specification.");
-		}
-		if (!this.ratings.firstEntry().getValue().getRatingUnitsId().equals(unitsId)) {
-			throw new RatingException("Cannot replace ratings with different units.");
-		}
-		for (AbstractRating rating : ratings) {
-			this.ratings.put(rating.getEffectiveDate(), rating).deleteObserver(this);
-			if (rating.isActive() && rating.createDate <= ratingTime) {
-				activeRatings.put(rating.getEffectiveDate(), rating);
-			}
-			rating.deleteObserver(this);
-			rating.addObserver(this);
-		}
-		validate();
-		if (observationTarget != null) {
-			observationTarget.setChanged();
-			observationTarget.notifyObservers();
 		}
 	}
 	protected Map.Entry<Long, AbstractRating> getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
-		Map.Entry<Long, AbstractRating> newEntry = ratingEntry;
-		try {
-			if (ratingEntry != null) {
-				Long key = ratingEntry.getKey();
-				AbstractRating rating = ratingEntry.getValue();
-				if (rating instanceof TableRating && ((TableRating)rating).values == null) {
-					//----------------------------------------//
-					// rating not yet retrieved from database //
-					//----------------------------------------//
-					if (logger.isLoggable(Level.FINE)) {
-						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-						sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-						logger.fine(String.format("RatingSet %s retrieving rating for %s UTC", getRatingSpec().getRatingSpecId(), sdf.format(key)));
-					}
-					Connection conn = getConnection();
-					if (conn == null) {
-						throw new RatingException("No database connections available");
-					}
-					try {
-						synchronized(conn) {
-							AbstractRating newRating = null;
-							String sql = "begin cwms_rating.retrieve_ratings_xml(:1, :2, cwms_util.to_timestamp(:3), cwms_util.to_timestamp(:4),'UTC', :5); end;";
-							CallableStatement stmt = conn.prepareCall(sql);
-							stmt.registerOutParameter(1, Types.CLOB);
-							stmt.setString(2, rating.ratingSpecId);
-							stmt.setLong(3, rating.effectiveDate);
-							stmt.setLong(4, rating.effectiveDate);
-							stmt.setString(5, rating.officeId);
-							stmt.execute();
-							Clob clob = stmt.getClob(1);
-							stmt.close();
-							String xmlText = null;
-							try {
-								if (clob.length() > Integer.MAX_VALUE) {
-									throw new RatingException("CLOB too long.");
+		synchronized(this) {
+			Map.Entry<Long, AbstractRating> newEntry = ratingEntry;
+			try {
+				if (ratingEntry != null) {
+					Long key = ratingEntry.getKey();
+					AbstractRating rating = ratingEntry.getValue();
+					if (rating instanceof TableRating && ((TableRating)rating).values == null) {
+						//----------------------------------------//
+						// rating not yet retrieved from database //
+						//----------------------------------------//
+						if (logger.isLoggable(Level.FINE)) {
+							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+							sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+							logger.fine(String.format("RatingSet %s retrieving rating for %s UTC", getRatingSpec().getRatingSpecId(), sdf.format(key)));
+						}
+						Connection conn = getConnection();
+						if (conn == null) {
+							throw new RatingException("No database connections available");
+						}
+						try {
+							synchronized(conn) {
+								AbstractRating newRating = null;
+								String sql = "begin cwms_rating.retrieve_ratings_xml(:1, :2, cwms_util.to_timestamp(:3), cwms_util.to_timestamp(:4),'UTC', :5); end;";
+								CallableStatement stmt = conn.prepareCall(sql);
+								stmt.registerOutParameter(1, Types.CLOB);
+								stmt.setString(2, rating.ratingSpecId);
+								stmt.setLong(3, rating.effectiveDate);
+								stmt.setLong(4, rating.effectiveDate);
+								stmt.setString(5, rating.officeId);
+								stmt.execute();
+								Clob clob = stmt.getClob(1);
+								stmt.close();
+								String xmlText = null;
+								try {
+									if (clob.length() > Integer.MAX_VALUE) {
+										throw new RatingException("CLOB too long.");
+									}
+									xmlText = clob.getSubString(1, (int)clob.length());
 								}
-								xmlText = clob.getSubString(1, (int)clob.length());
-							}
-							catch (Exception e) {
-								throw e;
-							}
-							finally {
-								freeClob(clob);
-							}
-							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-							if (xmlText.indexOf("<simple-rating ") > 0) {
-								if (xmlText.indexOf("<formula>") > 0) {
-									newRating = ExpressionRating.fromXml(xmlText);
+								catch (Exception e) {
+									throw e;
 								}
-								else {
-									newRating = TableRating.fromXml(xmlText);
-									((TableRating)newRating).setBehaviors(ratingSpec);
+								finally {
+									freeClob(clob);
 								}
-							}
-							else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
-								newRating = UsgsStreamTableRating.fromXml(xmlText);
-								((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
-							}
-							else if (xmlText.indexOf("<virtual-rating ") > 0) {
-								newRating = VirtualRating.fromXml(xmlText);
-							}
-							else if (xmlText.indexOf("<transitional-rating ") > 0) {
-								newRating = TransitionalRating.fromXml(xmlText);
-							}
-							else throw new RatingException("Unexpected rating type: \n" + xmlText);
-							newRating.ratingSpec = ratingSpec;
-							ratings.put(key, newRating);
-							if (activeRatings.containsKey(key)) {
-								activeRatings.put(key, newRating);
-							}
-							newEntry = ratings.floorEntry(key);
-							if (!newEntry.getKey().equals(key)) {
-								throw new RatingException("Could not retrieve new rating for same time.");
+								logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+								if (xmlText.indexOf("<simple-rating ") > 0) {
+									if (xmlText.indexOf("<formula>") > 0) {
+										newRating = ExpressionRating.fromXml(xmlText);
+									}
+									else {
+										newRating = TableRating.fromXml(xmlText);
+										((TableRating)newRating).setBehaviors(ratingSpec);
+									}
+								}
+								else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
+									newRating = UsgsStreamTableRating.fromXml(xmlText);
+									((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
+								}
+								else if (xmlText.indexOf("<virtual-rating ") > 0) {
+									newRating = VirtualRating.fromXml(xmlText);
+								}
+								else if (xmlText.indexOf("<transitional-rating ") > 0) {
+									newRating = TransitionalRating.fromXml(xmlText);
+								}
+								else throw new RatingException("Unexpected rating type: \n" + xmlText);
+								newRating.ratingSpec = ratingSpec;
+								ratings.put(key, newRating);
+								if (activeRatings.containsKey(key)) {
+									activeRatings.put(key, newRating);
+								}
+								newEntry = ratings.floorEntry(key);
+								if (!newEntry.getKey().equals(key)) {
+									throw new RatingException("Could not retrieve new rating for same time.");
+								}
 							}
 						}
-					}
-					finally {
-						releaseConnection(conn);
+						finally {
+							releaseConnection(conn);
+						}
 					}
 				}
 			}
+			catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
+				throw new RatingException(e);
+			}
+			return newEntry;
 		}
-		catch (Exception e) {
-			if (e instanceof RatingException) throw (RatingException)e;
-			throw new RatingException(e);
-		}
-		return newEntry;
 	}
 	/**
 	 * Retrieves a rated value for a specified single input value and time. The rating set must
@@ -1668,225 +1700,227 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {
 		double[] Y = new double[valueSets.length];
-		if (dbrating == null) {
-			//-----------------//
-			// concrete rating //
-			//-----------------//
-			int activeRatingCount = activeRatings.size();
-			if (activeRatingCount == 0) {
-				throw new RatingException("No active ratings.");
-			}
-			if (valueSets.length != valueTimes.length) {
-				throw new RatingException("Values and times have different lengths");
-			}
-			for (int i = 1; i < valueSets.length; ++i) {
-				if (valueSets[i].length != valueSets[0].length) {
-					throw new RatingException("Value sets are not all of same length.");
+		synchronized(this) {
+			if (dbrating == null) {
+				//-----------------//
+				// concrete rating //
+				//-----------------//
+				int activeRatingCount = activeRatings.size();
+				if (activeRatingCount == 0) {
+					throw new RatingException("No active ratings.");
 				}
-				if (valueSets[i].length != ratings.firstEntry().getValue().getIndParamCount()) {
-					throw new RatingException("Value sets have different parameter counts than ratings.");
+				if (valueSets.length != valueTimes.length) {
+					throw new RatingException("Values and times have different lengths");
 				}
-			}
-			if (getDataUnits() == null) {
-				Map.Entry<Long, AbstractRating> entry1 = ratings.firstEntry();
-				Map.Entry<Long, AbstractRating> entry2 = ratings.higherEntry(entry1.getKey());
-				while (entry2 != null) {
-					if (!(entry1.getValue().getRatingUnitsId().equalsIgnoreCase(entry2.getValue().getRatingUnitsId()))) {
-						throw new RatingException("Data units must be specified when rating set has multiple rating units.");
+				for (int i = 1; i < valueSets.length; ++i) {
+					if (valueSets[i].length != valueSets[0].length) {
+						throw new RatingException("Value sets are not all of same length.");
 					}
-					entry1 = entry2;
-					entry2 = ratings.higherEntry(entry1.getKey());
-				}
-			}
-			
-			Map.Entry<Long, AbstractRating> lowerRating = null;
-			Map.Entry<Long, AbstractRating> upperRating = null;
-			IRating lastUsedRating = null;
-			RatingMethod method = null;
-			for (int i = 0; i < valueSets.length; ++i) {
-				if (i > 0 && valueTimes[i] == valueTimes[i-1] && lastUsedRating != null) {
-					Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-					continue;
-				}
-				else {
-					lowerRating = activeRatings.floorEntry(valueTimes[i]);
-					upperRating = activeRatings.ceilingEntry(valueTimes[i]);
-					//-------------------------//
-					// handle out of range low //
-					//-------------------------//
-					if (lowerRating == null) {
-						method = ratingSpec.getOutRangeLowMethod();
-						switch(method) {
-						case ERROR:
-							throw new RatingException("Effective date is before earliest rating");
-						case NULL:
-							Y[i] = Const.UNDEFINED_DOUBLE;
-							lastUsedRating = null;
-							continue;
-						case NEXT:
-						case NEAREST:
-						case HIGHER:
-						case CLOSEST:
-							if (isLazy) {
-								getConcreteRating(activeRatings.firstEntry());
-							}
-							lastUsedRating = activeRatings.firstEntry().getValue(); 
-							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-							continue;
-						default:
-							break;
-						}
-						if (activeRatings.size() == 1) {
-							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
-						}
-						lowerRating = activeRatings.firstEntry();
-						upperRating = activeRatings.higherEntry(lowerRating.getKey());
+					if (valueSets[i].length != ratings.firstEntry().getValue().getIndParamCount()) {
+						throw new RatingException("Value sets have different parameter counts than ratings.");
 					}
-					//--------------------------//
-					// handle out of range high //
-					//--------------------------//
-					if (upperRating == null) {
-						method = ratingSpec.getOutRangeHighMethod();
-						switch(method) {
-						case ERROR:
-							throw new RatingException("Effective date is after latest rating");
-						case NULL:
-							Y[i] = Const.UNDEFINED_DOUBLE;
-							lastUsedRating = null;
-							continue;
-						case PREVIOUS:
-						case NEAREST:
-						case LOWER:
-						case CLOSEST:
-							if (isLazy) {
-								getConcreteRating(activeRatings.lastEntry());
-							}
-							lastUsedRating = activeRatings.lastEntry().getValue();
-							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-							continue;
-						default:
-							break;
+				}
+				if (getDataUnits() == null) {
+					Map.Entry<Long, AbstractRating> entry1 = ratings.firstEntry();
+					Map.Entry<Long, AbstractRating> entry2 = ratings.higherEntry(entry1.getKey());
+					while (entry2 != null) {
+						if (!(entry1.getValue().getRatingUnitsId().equalsIgnoreCase(entry2.getValue().getRatingUnitsId()))) {
+							throw new RatingException("Data units must be specified when rating set has multiple rating units.");
 						}
-						if (activeRatings.size() == 1) {
-							switch (method) {
-							case LINEAR :
-								//-----------------------------------------------------------------//
-								// allow LINEAR out of range high method with single active rating //
-								//-----------------------------------------------------------------//
+						entry1 = entry2;
+						entry2 = ratings.higherEntry(entry1.getKey());
+					}
+				}
+				
+				Map.Entry<Long, AbstractRating> lowerRating = null;
+				Map.Entry<Long, AbstractRating> upperRating = null;
+				IRating lastUsedRating = null;
+				RatingMethod method = null;
+				for (int i = 0; i < valueSets.length; ++i) {
+					if (i > 0 && valueTimes[i] == valueTimes[i-1] && lastUsedRating != null) {
+						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+						continue;
+					}
+					else {
+						lowerRating = activeRatings.floorEntry(valueTimes[i]);
+						upperRating = activeRatings.ceilingEntry(valueTimes[i]);
+						//-------------------------//
+						// handle out of range low //
+						//-------------------------//
+						if (lowerRating == null) {
+							method = ratingSpec.getOutRangeLowMethod();
+							switch(method) {
+							case ERROR:
+								throw new RatingException("Effective date is before earliest rating");
+							case NULL:
+								Y[i] = Const.UNDEFINED_DOUBLE;
+								lastUsedRating = null;
+								continue;
+							case NEXT:
+							case NEAREST:
+							case HIGHER:
+							case CLOSEST:
+								if (isLazy) {
+									getConcreteRating(activeRatings.firstEntry());
+								}
+								lastUsedRating = activeRatings.firstEntry().getValue(); 
+								Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+								continue;
+							default:
+								break;
+							}
+							if (activeRatings.size() == 1) {
+								throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+							}
+							lowerRating = activeRatings.firstEntry();
+							upperRating = activeRatings.higherEntry(lowerRating.getKey());
+						}
+						//--------------------------//
+						// handle out of range high //
+						//--------------------------//
+						if (upperRating == null) {
+							method = ratingSpec.getOutRangeHighMethod();
+							switch(method) {
+							case ERROR:
+								throw new RatingException("Effective date is after latest rating");
+							case NULL:
+								Y[i] = Const.UNDEFINED_DOUBLE;
+								lastUsedRating = null;
+								continue;
+							case PREVIOUS:
+							case NEAREST:
+							case LOWER:
+							case CLOSEST:
 								if (isLazy) {
 									getConcreteRating(activeRatings.lastEntry());
 								}
 								lastUsedRating = activeRatings.lastEntry().getValue();
 								Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 								continue;
-							default :
-								throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+							default:
+								break;
 							}
+							if (activeRatings.size() == 1) {
+								switch (method) {
+								case LINEAR :
+									//-----------------------------------------------------------------//
+									// allow LINEAR out of range high method with single active rating //
+									//-----------------------------------------------------------------//
+									if (isLazy) {
+										getConcreteRating(activeRatings.lastEntry());
+									}
+									lastUsedRating = activeRatings.lastEntry().getValue();
+									Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+									continue;
+								default :
+									throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+								}
+							}
+							upperRating = activeRatings.lastEntry();
+							lowerRating = activeRatings.lowerEntry(upperRating.getKey());
 						}
-						upperRating = activeRatings.lastEntry();
-						lowerRating = activeRatings.lowerEntry(upperRating.getKey());
-					}
-					//-----------------------------------//
-					// handle in-range and extrapolation //
-					//-----------------------------------//
-					if (lowerRating.getKey() == valueTimes[i]) {
-						if (isLazy) {
-							lowerRating = getConcreteRating(lowerRating);
-						}
-						Y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-						continue;
-					}
-					if (upperRating.getKey() == valueTimes[i]) {
-						if (isLazy) {
-							upperRating = getConcreteRating(upperRating);
-						}
-						lastUsedRating = upperRating.getValue();
-						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-						continue;
-					}
-					switch (ratingSpec.getInRangeMethod()) {
-					case ERROR:
-						throw new RatingException("Effective date is between existing rating");
-					case NULL:
-						Y[i] = Const.UNDEFINED_DOUBLE;
-						lastUsedRating = null;
-						continue;
-					case PREVIOUS:
-					case LOWER:
-						if (isLazy) {
-							lowerRating = getConcreteRating(lowerRating);
-						}
-						lastUsedRating = lowerRating.getValue();
-						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-						continue;
-					case NEXT:
-					case HIGHER:
-						if (isLazy) {
-							upperRating = getConcreteRating(upperRating);
-						}
-						lastUsedRating = upperRating.getValue();
-						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-						continue;
-					case CLOSEST:
-						if (valueTimes[i] - lowerRating.getKey() < upperRating.getKey() - valueTimes[i]) {
+						//-----------------------------------//
+						// handle in-range and extrapolation //
+						//-----------------------------------//
+						if (lowerRating.getKey() == valueTimes[i]) {
 							if (isLazy) {
 								lowerRating = getConcreteRating(lowerRating);
 							}
-							lastUsedRating = lowerRating.getValue();
+							Y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+							continue;
 						}
-						else {
+						if (upperRating.getKey() == valueTimes[i]) {
 							if (isLazy) {
 								upperRating = getConcreteRating(upperRating);
 							}
 							lastUsedRating = upperRating.getValue();
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
 						}
-						Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-						continue;
-					default:
-						break;
+						switch (ratingSpec.getInRangeMethod()) {
+						case ERROR:
+							throw new RatingException("Effective date is between existing rating");
+						case NULL:
+							Y[i] = Const.UNDEFINED_DOUBLE;
+							lastUsedRating = null;
+							continue;
+						case PREVIOUS:
+						case LOWER:
+							if (isLazy) {
+								lowerRating = getConcreteRating(lowerRating);
+							}
+							lastUsedRating = lowerRating.getValue();
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
+						case NEXT:
+						case HIGHER:
+							if (isLazy) {
+								upperRating = getConcreteRating(upperRating);
+							}
+							lastUsedRating = upperRating.getValue();
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
+						case CLOSEST:
+							if (valueTimes[i] - lowerRating.getKey() < upperRating.getKey() - valueTimes[i]) {
+								if (isLazy) {
+									lowerRating = getConcreteRating(lowerRating);
+								}
+								lastUsedRating = lowerRating.getValue();
+							}
+							else {
+								if (isLazy) {
+									upperRating = getConcreteRating(upperRating);
+								}
+								lastUsedRating = upperRating.getValue();
+							}
+							Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+							continue;
+						default:
+							break;
+						}
+						//------------------------------------//
+						// handle interpolation/extrapolation //
+						//------------------------------------//
+						method = ratingSpec.getInRangeMethod();
 					}
-					//------------------------------------//
-					// handle interpolation/extrapolation //
-					//------------------------------------//
-					method = ratingSpec.getInRangeMethod();
-				}
-				lastUsedRating = null;
-				if (isLazy) {
-					lowerRating = getConcreteRating(lowerRating);
-					upperRating = getConcreteRating(upperRating);
-				}
-				long transitionStartMillis = upperRating.getValue().getTransitionStartDate();
-				long t  = valueTimes[i];
-				long t1 = lowerRating.getKey();
-				long t2 = upperRating.getKey();
-				double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-				double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-				if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
-					Y[i] = Const.UNDEFINED_DOUBLE;
-				}
-				else {
-					double y1 = Y1;
-					double y2 = Y2;
-					if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
-						t1 = ((UsgsStreamTableRating)lowerRating.getValue()).getLatestEffectiveDate(t2);
+					lastUsedRating = null;
+					if (isLazy) {
+						lowerRating = getConcreteRating(lowerRating);
+						upperRating = getConcreteRating(upperRating);
 					}
-					if (transitionStartMillis > t1 && transitionStartMillis < t2) {
-						t1 = transitionStartMillis;
+					long transitionStartMillis = upperRating.getValue().getTransitionStartDate();
+					long t  = valueTimes[i];
+					long t1 = lowerRating.getKey();
+					long t2 = upperRating.getKey();
+					double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+					double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+					if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
+						Y[i] = Const.UNDEFINED_DOUBLE;
 					}
-					Y[i] = y1;
-					if (t > t1) {
-						Y[i] += (((double)t - t1) / (t2 - t1)) * (y2 - y1);
+					else {
+						double y1 = Y1;
+						double y2 = Y2;
+						if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
+							t1 = ((UsgsStreamTableRating)lowerRating.getValue()).getLatestEffectiveDate(t2);
+						}
+						if (transitionStartMillis > t1 && transitionStartMillis < t2) {
+							t1 = transitionStartMillis;
+						}
+						Y[i] = y1;
+						if (t > t1) {
+							Y[i] += (((double)t - t1) / (t2 - t1)) * (y2 - y1);
+						}
 					}
 				}
 			}
+			else {
+				//------------------//
+				// reference rating //
+				//------------------//
+				Y = dbrating.rate(valueTimes, valueSets);
+			}
+			return Y;
 		}
-		else {
-			//------------------//
-			// reference rating //
-			//------------------//
-			Y = dbrating.rate(valueTimes, valueSets);
-		}
-		return Y;
 	}
 	/**
 	 * Rates the values in a TimeSeriesContainer and returns the results in a new TimeSeriesContainer. 
@@ -1908,151 +1942,153 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public TimeSeriesContainer rate(TimeSeriesContainer tsc, String ratedUnitStr) throws RatingException {
-		if (ratingSpec.getIndParamCount() != 1) {
-			throw new RatingException(String.format("Cannot rate a TimeSeriesContainer with a rating that has %d independent parameters", ratingSpec.getIndParamCount()));
-		}
-		if (ratings.size() == 0) throw new RatingException("No ratings.");
-		String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
-		String[] units = split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
-		String[] params = ratingSpec.getIndParameters();
-		if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
-		try {
-			//-------------------------------------//
-			// validate the time zone if specified //
-			//-------------------------------------//
-			TimeZone tz = null;
-			if (tsc.timeZoneID != null) {
-				tz = TimeZone.getTimeZone(tsc.timeZoneID);
-				if (!tz.getID().equals(tsc.timeZoneID)) {
-					String msg = String.format("TimeSeriesContainer has invalid time zone \"%s\".", tsc.timeZoneID);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-					tz = null;
-				}
+		synchronized(this) {
+			if (ratingSpec.getIndParamCount() != 1) {
+				throw new RatingException(String.format("Cannot rate a TimeSeriesContainer with a rating that has %d independent parameters", ratingSpec.getIndParamCount()));
 			}
-			//-----------------------------------------//
-			// validate the parameter and unit to rate //
-			//-----------------------------------------//
-			Parameter tscParam = null;
-			Units tscUnit = null;
-			Units ratedUnit = null;
-			boolean convertTscUnit = false;
-			boolean convertRatedUnit = false;
+			if (ratings.size() == 0) throw new RatingException("No ratings.");
+			String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
+			String[] units = split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
+			String[] params = ratingSpec.getIndParameters();
+			if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
 			try {
-				tscParam = new Parameter(tsc.parameter);
-			}
-			catch (Throwable t) {
-				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) logger.warning(t.getMessage());
-			}
-			if (tscParam != null) {
-				if (!tscParam.getParameter().equals(params[0])) {
-					String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam.getParameter(), params[0]);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg);
-				}
-			}
-			try {
-				tscUnit = new Units(tsc.units);
-			}
-			catch (Throwable t) {
-				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) logger.warning(t.getMessage());
-			}
-			if (tscParam != null) {
-				if (!Units.canConvertBetweenUnits(tsc.units, tscParam.getUnitsString())) {
-					
-					String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tsc.units, tscParam.getParameter());
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg);
-				}
-			} 
-			if (tscUnit != null) {
-				if (!tsc.units.equals(units[0])) {
-					if(Units.canConvertBetweenUnits(tsc.units, units[0])) {
-						convertTscUnit = true;
-					}
-					else {
-						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tsc.units, units[0]);
+				//-------------------------------------//
+				// validate the time zone if specified //
+				//-------------------------------------//
+				TimeZone tz = null;
+				if (tsc.timeZoneID != null) {
+					tz = TimeZone.getTimeZone(tsc.timeZoneID);
+					if (!tz.getID().equals(tsc.timeZoneID)) {
+						String msg = String.format("TimeSeriesContainer has invalid time zone \"%s\".", tsc.timeZoneID);
 						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+						if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
+						tz = null;
 					}
 				}
-			}
-			//--------------------------//
-			// validate the result unit //
-			//--------------------------//
-			try {
-				ratedUnit = new Units(ratedUnitStr);
+				//-----------------------------------------//
+				// validate the parameter and unit to rate //
+				//-----------------------------------------//
+				Parameter tscParam = null;
+				Units tscUnit = null;
+				Units ratedUnit = null;
+				boolean convertTscUnit = false;
+				boolean convertRatedUnit = false;
+				try {
+					tscParam = new Parameter(tsc.parameter);
+				}
+				catch (Throwable t) {
+					if (!allowUnsafe) throw new RatingException(t);
+					if (warnUnsafe) logger.warning(t.getMessage());
+				}
+				if (tscParam != null) {
+					if (!tscParam.getParameter().equals(params[0])) {
+						String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam.getParameter(), params[0]);
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg);
+					}
+				}
+				try {
+					tscUnit = new Units(tsc.units);
+				}
+				catch (Throwable t) {
+					if (!allowUnsafe) throw new RatingException(t);
+					if (warnUnsafe) logger.warning(t.getMessage());
+				}
+				if (tscParam != null) {
+					if (!Units.canConvertBetweenUnits(tsc.units, tscParam.getUnitsString())) {
+						
+						String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tsc.units, tscParam.getParameter());
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg);
+					}
+				} 
+				if (tscUnit != null) {
+					if (!tsc.units.equals(units[0])) {
+						if(Units.canConvertBetweenUnits(tsc.units, units[0])) {
+							convertTscUnit = true;
+						}
+						else {
+							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tsc.units, units[0]);
+							if (!allowUnsafe) throw new RatingException(msg);
+							if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+						}
+					}
+				}
+				//--------------------------//
+				// validate the result unit //
+				//--------------------------//
+				try {
+					ratedUnit = new Units(ratedUnitStr);
+				}
+				catch (Throwable t) {
+					if (!allowUnsafe) throw new RatingException(t);
+					if (warnUnsafe) logger.warning(t.getMessage());
+				}
+				if (ratedUnit != null) {
+					if (!ratedUnitStr.equals(units[units.length-1])) {
+						if (Units.canConvertBetweenUnits(ratedUnitStr, units[units.length-1])) {
+							convertRatedUnit = true;
+						}
+						else {
+							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length-1], ratedUnit);
+							if (!allowUnsafe) throw new RatingException(msg);
+							if (warnUnsafe) logger.warning(msg + "  Rated values will be unconverted.");
+						}
+					}
+				}
+				//-------------------------//
+				// finally - do the rating //
+				//-------------------------//
+				double[] indVals = null;
+				long[] millis = new long[tsc.times.length];
+				if (tz == null) {
+					for (int i = 0; i < millis.length; ++i) {
+						millis[i] = Conversion.toMillis(tsc.times[i]);
+					}
+				}
+				else {
+					Calendar cal = Calendar.getInstance();
+					cal.setTimeZone(tz);
+					SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
+					HecTime t = new HecTime();
+					for (int i = 0; i < millis.length; ++i) {
+						t.set(tsc.times[i]);
+						cal.setTime(sdf.parse((t.dateAndTime(4))));
+						millis[i] = cal.getTimeInMillis();
+					}
+				}
+				if (convertTscUnit) {
+					indVals = Arrays.copyOf(tsc.values, tsc.values.length);
+					Units.convertUnits(indVals, tsc.units, units[0]);
+				}
+				else {
+					indVals = tsc.values;
+				}
+				double[] depVals = rateOne(indVals, millis);
+				//-----------------------------------------//
+				// construct the rated TimeSeriesContainer //
+				//-----------------------------------------//
+				if (convertRatedUnit) Units.convertUnits(depVals, units[units.length-1], ratedUnitStr);
+				TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
+				tsc.clone(ratedTsc);
+				ratedTsc.values = depVals;
+				String paramStr = getRatingSpec().getDepParameter();
+				if (tsc.subParameter == null) {
+					ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
+				}
+				else {
+					ratedTsc.fullName = replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
+				}
+				String[] parts = split(paramStr, "-", "L", 2);
+				ratedTsc.parameter = parts[0];
+				ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
+				ratedTsc.units = ratedUnitStr;
+				return ratedTsc;
 			}
 			catch (Throwable t) {
-				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) logger.warning(t.getMessage());
+				if (t instanceof RatingException) throw (RatingException) t;
+				throw new RatingException(t);
 			}
-			if (ratedUnit != null) {
-				if (!ratedUnitStr.equals(units[units.length-1])) {
-					if (Units.canConvertBetweenUnits(ratedUnitStr, units[units.length-1])) {
-						convertRatedUnit = true;
-					}
-					else {
-						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length-1], ratedUnit);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg + "  Rated values will be unconverted.");
-					}
-				}
-			}
-			//-------------------------//
-			// finally - do the rating //
-			//-------------------------//
-			double[] indVals = null;
-			long[] millis = new long[tsc.times.length];
-			if (tz == null) {
-				for (int i = 0; i < millis.length; ++i) {
-					millis[i] = Conversion.toMillis(tsc.times[i]);
-				}
-			}
-			else {
-				Calendar cal = Calendar.getInstance();
-				cal.setTimeZone(tz);
-				SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
-				HecTime t = new HecTime();
-				for (int i = 0; i < millis.length; ++i) {
-					t.set(tsc.times[i]);
-					cal.setTime(sdf.parse((t.dateAndTime(4))));
-					millis[i] = cal.getTimeInMillis();
-				}
-			}
-			if (convertTscUnit) {
-				indVals = Arrays.copyOf(tsc.values, tsc.values.length);
-				Units.convertUnits(indVals, tsc.units, units[0]);
-			}
-			else {
-				indVals = tsc.values;
-			}
-			double[] depVals = rateOne(indVals, millis);
-			//-----------------------------------------//
-			// construct the rated TimeSeriesContainer //
-			//-----------------------------------------//
-			if (convertRatedUnit) Units.convertUnits(depVals, units[units.length-1], ratedUnitStr);
-			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
-			tsc.clone(ratedTsc);
-			ratedTsc.values = depVals;
-			String paramStr = getRatingSpec().getDepParameter();
-			if (tsc.subParameter == null) {
-				ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
-			}
-			else {
-				ratedTsc.fullName = replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
-			}
-			String[] parts = split(paramStr, "-", "L", 2);
-			ratedTsc.parameter = parts[0];
-			ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
-			ratedTsc.units = ratedUnitStr;
-			return ratedTsc;
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException) t;
-			throw new RatingException(t);
 		}
 	}
 	/**
@@ -2081,188 +2117,190 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs, String ratedUnitStr) throws RatingException {
-		if (ratingSpec.getIndParamCount() != tscs.length) {
-			throw new RatingException(String.format("Cannot rate a set of %d TimeSeriesContainers with a rating that has %d independent parameters", tscs.length, ratingSpec.getIndParamCount()));
-		}
-		String[] units = null;
-		String[] params = ratingSpec.getIndParameters();
-		if (dbrating == null) {
-			if (ratings.size() == 0) throw new RatingException("No ratings.");
-			units = ratings.firstEntry().getValue().getRatingUnits();
-		}
-		else {
-			units = dbrating.getRatingUnits();
-		}
-		if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
-		int ratedInterval = tscs[0].interval;
-		int indParamCount = tscs.length;
-		try {
-			//------------------------//
-			// validate the intervals //
-			//------------------------//
-			for (int i = 1; i < tscs.length; ++i) {
-				if (tscs[i].interval != tscs[0].interval) {
-					String msg = "TimeSeriesContainers have inconsistent intervals.";
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Rated values will be irregular interval.");
-					ratedInterval = 0;
-					break;
-				}
+		synchronized(this) {
+			if (ratingSpec.getIndParamCount() != tscs.length) {
+				throw new RatingException(String.format("Cannot rate a set of %d TimeSeriesContainers with a rating that has %d independent parameters", tscs.length, ratingSpec.getIndParamCount()));
 			}
-			//--------------------------------------//
-			// validate the time zones if specified //
-			//--------------------------------------//
-			String tzid = tscs[0].timeZoneID;
-			for (int i = 1; i < tscs.length; ++i) {
-				if (!TextUtil.equals(tscs[i].timeZoneID, tzid)) {
-					String msg = "TimeSeriesContainers have inconsistent time zones.";
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-					tzid = null;
-					break;
-				}
+			String[] units = null;
+			String[] params = ratingSpec.getIndParameters();
+			if (dbrating == null) {
+				if (ratings.size() == 0) throw new RatingException("No ratings.");
+				units = ratings.firstEntry().getValue().getRatingUnits();
 			}
-			TimeZone tz = null;
-			if (tzid != null) {
-				tz = TimeZone.getTimeZone(tzid);
-				if (!tz.getID().equals(tzid)) {
-					String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tzid);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-					tz = null;
-				}
+			else {
+				units = dbrating.getRatingUnits();
 			}
-			//-------------------------------------------//
-			// validate the parameters and units to rate //
-			//-------------------------------------------//
-			Parameter[] tscParam = new Parameter[indParamCount];
-			Units[] tscUnit = new Units[indParamCount];
-			Units ratedUnit = null;
-			boolean[] convertTscUnit = new boolean[indParamCount];
-			boolean convertRatedUnit = false;
-			for (int i = 0; i < indParamCount; ++i) {
-				tscParam[i] = null;
+			if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
+			int ratedInterval = tscs[0].interval;
+			int indParamCount = tscs.length;
+			try {
+				//------------------------//
+				// validate the intervals //
+				//------------------------//
+				for (int i = 1; i < tscs.length; ++i) {
+					if (tscs[i].interval != tscs[0].interval) {
+						String msg = "TimeSeriesContainers have inconsistent intervals.";
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg + "  Rated values will be irregular interval.");
+						ratedInterval = 0;
+						break;
+					}
+				}
+				//--------------------------------------//
+				// validate the time zones if specified //
+				//--------------------------------------//
+				String tzid = tscs[0].timeZoneID;
+				for (int i = 1; i < tscs.length; ++i) {
+					if (!TextUtil.equals(tscs[i].timeZoneID, tzid)) {
+						String msg = "TimeSeriesContainers have inconsistent time zones.";
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
+						tzid = null;
+						break;
+					}
+				}
+				TimeZone tz = null;
+				if (tzid != null) {
+					tz = TimeZone.getTimeZone(tzid);
+					if (!tz.getID().equals(tzid)) {
+						String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tzid);
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
+						tz = null;
+					}
+				}
+				//-------------------------------------------//
+				// validate the parameters and units to rate //
+				//-------------------------------------------//
+				Parameter[] tscParam = new Parameter[indParamCount];
+				Units[] tscUnit = new Units[indParamCount];
+				Units ratedUnit = null;
+				boolean[] convertTscUnit = new boolean[indParamCount];
+				boolean convertRatedUnit = false;
+				for (int i = 0; i < indParamCount; ++i) {
+					tscParam[i] = null;
+					try {
+						tscParam[i] = new Parameter(tscs[i].parameter);
+					}
+					catch (Throwable t) {
+						if (!allowUnsafe) throw new RatingException(t);
+						if (warnUnsafe) logger.warning(t.getMessage());
+					}
+					if (tscParam[i] != null) {
+						String[] parts = TextUtil.split(params[i], "-", 2);
+						if (!tscParam[i].getBaseParameter().equals(parts[0]) || 
+								(parts.length == 2 && !tscParam[i].getSubParameter().equals(parts[1]))) {
+							String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam[i].getParameter(), params[i]);
+							if (!allowUnsafe) throw new RatingException(msg);
+							if (warnUnsafe) logger.warning(msg);
+						}
+					}
+					try {
+						tscUnit[i] = new Units(tscs[i].units);
+					}
+					catch (Throwable t) {
+						if (!allowUnsafe) throw new RatingException(t);
+						if (warnUnsafe) logger.warning(t.getMessage());
+					}
+					if (tscParam[i] != null) {
+						if (!Units.canConvertBetweenUnits(tscs[i].units, tscParam[i].getUnitsString())) {
+							
+							String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tscs[i].units, tscParam[i].getParameter());
+							if (!allowUnsafe) throw new RatingException(msg);
+							if (warnUnsafe) logger.warning(msg);
+						}
+					} 
+					if (tscUnit != null) {
+						if (!tscs[i].units.equals(units[i])) {
+							if(Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
+								convertTscUnit[i] = true;
+							}
+							else {
+								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tscs[i].units, units[i]);
+								if (!allowUnsafe) throw new RatingException(msg);
+								if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+							}
+						}
+					}
+				}
+				//--------------------------//
+				// validate the result unit //
+				//--------------------------//
 				try {
-					tscParam[i] = new Parameter(tscs[i].parameter);
+					ratedUnit = new Units(ratedUnitStr);
 				}
 				catch (Throwable t) {
 					if (!allowUnsafe) throw new RatingException(t);
 					if (warnUnsafe) logger.warning(t.getMessage());
 				}
-				if (tscParam[i] != null) {
-					String[] parts = TextUtil.split(params[i], "-", 2);
-					if (!tscParam[i].getBaseParameter().equals(parts[0]) || 
-							(parts.length == 2 && !tscParam[i].getSubParameter().equals(parts[1]))) {
-						String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam[i].getParameter(), params[i]);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg);
-					}
-				}
-				try {
-					tscUnit[i] = new Units(tscs[i].units);
-				}
-				catch (Throwable t) {
-					if (!allowUnsafe) throw new RatingException(t);
-					if (warnUnsafe) logger.warning(t.getMessage());
-				}
-				if (tscParam[i] != null) {
-					if (!Units.canConvertBetweenUnits(tscs[i].units, tscParam[i].getUnitsString())) {
-						
-						String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tscs[i].units, tscParam[i].getParameter());
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg);
-					}
-				} 
-				if (tscUnit != null) {
-					if (!tscs[i].units.equals(units[i])) {
-						if(Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
-							convertTscUnit[i] = true;
+				if (ratedUnit != null) {
+					if (!ratedUnitStr.equals(units[units.length-1])) {
+						if (Units.canConvertBetweenUnits(ratedUnitStr, units[units.length-1])) {
+							convertRatedUnit = true;
 						}
 						else {
-							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tscs[i].units, units[i]);
+							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length-1], ratedUnit);
 							if (!allowUnsafe) throw new RatingException(msg);
-							if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+							if (warnUnsafe) logger.warning(msg + "  Rated values will be unconverted.");
 						}
 					}
 				}
-			}
-			//--------------------------//
-			// validate the result unit //
-			//--------------------------//
-			try {
-				ratedUnit = new Units(ratedUnitStr);
-			}
-			catch (Throwable t) {
-				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) logger.warning(t.getMessage());
-			}
-			if (ratedUnit != null) {
-				if (!ratedUnitStr.equals(units[units.length-1])) {
-					if (Units.canConvertBetweenUnits(ratedUnitStr, units[units.length-1])) {
-						convertRatedUnit = true;
-					}
-					else {
-						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length-1], ratedUnit);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg + "  Rated values will be unconverted.");
-					}
-				}
-			}
-			//-------------------------//
-			// finally - do the rating //
-			//-------------------------//
-			IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
-			double[] depVals = rate(ivc.indVals, ivc.valTimes);
-			//-----------------------------------------//
-			// construct the rated TimeSeriesContainer //
-			//-----------------------------------------//
-			if (convertRatedUnit) Units.convertUnits(depVals, units[units.length-1], ratedUnitStr);
-			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
-			tscs[0].clone(ratedTsc);
-			ratedTsc.interval = ratedInterval;
-			if (ivc.valTimes.length == tscs[0].times.length) {
-				ratedTsc.times = Arrays.copyOf(tscs[0].times, tscs[0].times.length);
-			}
-			else {
-				ratedTsc.times = new int[ivc.valTimes.length];
-				if (tz == null) {
-					for (int i = 0; i < ivc.valTimes.length; ++i) {
-						ratedTsc.times[i] = Conversion.toMinutes(ivc.valTimes[i]);
-					}
+				//-------------------------//
+				// finally - do the rating //
+				//-------------------------//
+				IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
+				double[] depVals = rate(ivc.indVals, ivc.valTimes);
+				//-----------------------------------------//
+				// construct the rated TimeSeriesContainer //
+				//-----------------------------------------//
+				if (convertRatedUnit) Units.convertUnits(depVals, units[units.length-1], ratedUnitStr);
+				TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
+				tscs[0].clone(ratedTsc);
+				ratedTsc.interval = ratedInterval;
+				if (ivc.valTimes.length == tscs[0].times.length) {
+					ratedTsc.times = Arrays.copyOf(tscs[0].times, tscs[0].times.length);
 				}
 				else {
-					Calendar cal = Calendar.getInstance();
-					cal.setTimeZone(tz);
-					SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
-					HecTime t = new HecTime();
-					for (int i = 0; i < ivc.valTimes.length; ++i) {
-						cal.setTimeInMillis(ivc.valTimes[i]);
-						t.set(sdf.format(cal.getTime()));
-						ratedTsc.times[i] = t.value();
+					ratedTsc.times = new int[ivc.valTimes.length];
+					if (tz == null) {
+						for (int i = 0; i < ivc.valTimes.length; ++i) {
+							ratedTsc.times[i] = Conversion.toMinutes(ivc.valTimes[i]);
+						}
+					}
+					else {
+						Calendar cal = Calendar.getInstance();
+						cal.setTimeZone(tz);
+						SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
+						HecTime t = new HecTime();
+						for (int i = 0; i < ivc.valTimes.length; ++i) {
+							cal.setTimeInMillis(ivc.valTimes[i]);
+							t.set(sdf.format(cal.getTime()));
+							ratedTsc.times[i] = t.value();
+						}
 					}
 				}
+				ratedTsc.values = depVals;
+				ratedTsc.numberValues = ratedTsc.times.length;
+				String paramStr = ratingSpec.getDepParameter();
+				if (ratedTsc.fullName.startsWith("/")) {
+					paramStr = paramStr.toUpperCase();
+				}
+				if (tscs[0].subParameter == null || tscs[0].subParameter.length() == 0) {
+					ratedTsc.fullName = replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
+				}
+				else {
+					ratedTsc.fullName = replaceAll(tscs[0].fullName, String.format("%s-%s", tscs[0].parameter, tscs[0].subParameter), paramStr, "IL");
+				}
+				String[] parts = split(paramStr, "-", "L", 2);
+				ratedTsc.parameter = parts[0];
+				ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
+				ratedTsc.units = ratedUnitStr;
+				return ratedTsc;
 			}
-			ratedTsc.values = depVals;
-			ratedTsc.numberValues = ratedTsc.times.length;
-			String paramStr = ratingSpec.getDepParameter();
-			if (ratedTsc.fullName.startsWith("/")) {
-				paramStr = paramStr.toUpperCase();
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException) t;
+				throw new RatingException(t);
 			}
-			if (tscs[0].subParameter == null || tscs[0].subParameter.length() == 0) {
-				ratedTsc.fullName = replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
-			}
-			else {
-				ratedTsc.fullName = replaceAll(tscs[0].fullName, String.format("%s-%s", tscs[0].parameter, tscs[0].subParameter), paramStr, "IL");
-			}
-			String[] parts = split(paramStr, "-", "L", 2);
-			ratedTsc.parameter = parts[0];
-			ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
-			ratedTsc.units = ratedUnitStr;
-			return ratedTsc;
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException) t;
-			throw new RatingException(t);
 		}
 	}
 	/* (non-Javadoc)
@@ -2326,7 +2364,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The rating specification
 	 */
 	public RatingSpec getRatingSpec() {
-		return ratingSpec;
+		synchronized(this) {
+			return ratingSpec;
+		}
 	}
 		
 		
@@ -2338,8 +2378,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public IRatingSpecification getRatingSpecification() throws DataSetException
 	{
-		IRatingSpecification ratingSpecification = getRatingSpec().getRatingSpecification();
-		return ratingSpecification;
+		synchronized(this) {
+			IRatingSpecification ratingSpecification = getRatingSpec().getRatingSpecification();
+			return ratingSpecification;
+		}
 	}
 	
 	/**
@@ -2349,8 +2391,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public IRatingTemplate getRatingTemplate() throws DataSetException
 	{
-		IRatingTemplate ratingTemplate = getRatingSpec().getRatingTemplate();
-		return ratingTemplate;
+		synchronized(this) {
+			IRatingTemplate ratingTemplate = getRatingSpec().getRatingTemplate();
+			return ratingTemplate;
+		}
 	}
 	
 	/**
@@ -2359,45 +2403,47 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void setRatingSpec(RatingSpec ratingSpec) throws RatingException {
-		if (ratings != null && ratings.size() > 0) {
-			if (ratingSpec.getIndParamCount() != ratings.firstEntry().getValue().getIndParamCount()) {
-				throw new RatingException("Number of independent parameters does not match existing ratings");
+		synchronized(this) {
+			if (ratings != null && ratings.size() > 0) {
+				if (ratingSpec.getIndParamCount() != ratings.firstEntry().getValue().getIndParamCount()) {
+					throw new RatingException("Number of independent parameters does not match existing ratings");
+				}
 			}
-		}
-		if (ratingSpec != null) {
-			switch (ratingSpec.getInRangeMethod()) {
-			case LOGARITHMIC :
-			case LOG_LIN:
-			case LIN_LOG:
-				throw new RatingException("Invalid in-range rating method for rating times: "+ratingSpec.getInRangeMethod());
-			default:
-				break;
+			if (ratingSpec != null) {
+				switch (ratingSpec.getInRangeMethod()) {
+				case LOGARITHMIC :
+				case LOG_LIN:
+				case LIN_LOG:
+					throw new RatingException("Invalid in-range rating method for rating times: "+ratingSpec.getInRangeMethod());
+				default:
+					break;
+				}
+				switch (ratingSpec.getOutRangeLowMethod()) {
+				case LOGARITHMIC :
+				case LOG_LIN:
+				case LIN_LOG:
+				case PREVIOUS:
+					throw new RatingException("Invalid out-of-range low rating method for rating times: "+ratingSpec.getOutRangeLowMethod());
+				default:
+					break;
+				}
+				switch (ratingSpec.getOutRangeHighMethod()) {
+				case LOGARITHMIC :
+				case LOG_LIN:
+				case LIN_LOG:
+				case NEXT:
+					throw new RatingException("Invalid out-of-range high rating method for rating times: "+ratingSpec.getOutRangeHighMethod());
+				default:
+					break;
+				}
 			}
-			switch (ratingSpec.getOutRangeLowMethod()) {
-			case LOGARITHMIC :
-			case LOG_LIN:
-			case LIN_LOG:
-			case PREVIOUS:
-				throw new RatingException("Invalid out-of-range low rating method for rating times: "+ratingSpec.getOutRangeLowMethod());
-			default:
-				break;
+			this.ratingSpec = ratingSpec;
+			for (Long effectiveDate : ratings.keySet()) {
+				ratings.get(effectiveDate).ratingSpec = this.ratingSpec;
 			}
-			switch (ratingSpec.getOutRangeHighMethod()) {
-			case LOGARITHMIC :
-			case LOG_LIN:
-			case LIN_LOG:
-			case NEXT:
-				throw new RatingException("Invalid out-of-range high rating method for rating times: "+ratingSpec.getOutRangeHighMethod());
-			default:
-				break;
+			for (Long effectiveDate : activeRatings.keySet()) {
+				activeRatings.get(effectiveDate).ratingSpec = this.ratingSpec;
 			}
-		}
-		this.ratingSpec = ratingSpec;
-		for (Long effectiveDate : ratings.keySet()) {
-			ratings.get(effectiveDate).ratingSpec = this.ratingSpec;
-		}
-		for (Long effectiveDate : activeRatings.keySet()) {
-			activeRatings.get(effectiveDate).ratingSpec = this.ratingSpec;
 		}
 	}
 	/**
@@ -2406,38 +2452,46 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public AbstractRating[] getRatings() {
-		return ratings.values().toArray(new AbstractRating[ratings.size()]);
+		synchronized(this) {
+			return ratings.values().toArray(new AbstractRating[ratings.size()]);
+		}
 	}
 	
 	@Override
 	public TreeMap<Long, AbstractRating> getRatingsMap()
 	{
-		return ratings;
+		synchronized(this) {
+			return ratings;
+		}
 	}
 	
 	@Override
 	public AbstractRating getRating(Long effectiveDate)
 	{
-		AbstractRating retval = null;
-		if(ratings != null)
-		{
-			retval = ratings.get(effectiveDate);
+		synchronized(this) {
+			AbstractRating retval = null;
+			if(ratings != null)
+			{
+				retval = ratings.get(effectiveDate);
+			}
+			return retval;
 		}
-		return retval;
 	}
 	
 	public AbstractRating getFloorRating(Long effectiveDate)
 	{
-		AbstractRating retval = null;
-		if(ratings != null && effectiveDate != null)
-		{
-			Entry<Long, AbstractRating> floorEntry = ratings.floorEntry(effectiveDate);
-			if (floorEntry != null)
+		synchronized(this) {
+			AbstractRating retval = null;
+			if(ratings != null && effectiveDate != null)
 			{
-				retval = floorEntry.getValue();
+				Entry<Long, AbstractRating> floorEntry = ratings.floorEntry(effectiveDate);
+				if (floorEntry != null)
+				{
+					retval = floorEntry.getValue();
+				}
 			}
+			return retval;
 		}
-		return retval;
 	}
 	
 //	public AbstractRating getTemporalInterpolatedRating(Long effectiveDate)
@@ -2451,143 +2505,173 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException 
 	 */
 	public void setRatings(AbstractRating[] ratings) throws RatingException {
-		removeAllRatings();
-		addRatings(ratings);
+		synchronized(this) {
+			removeAllRatings();
+			addRatings(ratings);
+		}
 	}
 	/**
 	 * Retrieves the number of ratings in this set.
 	 * @return The number of ratings in this set
 	 */
 	public int getRatingCount() {
-		return ratings == null ? 0 : ratings.size();
+		synchronized(this) {
+			return ratings == null ? 0 : ratings.size();
+		}
 	}
 	/**
 	 * Retrieves the number of active ratings in this set.
 	 * @return The number of active ratings in this set
 	 */
 	public int getActiveRatingCount() {
-		int count =  0;
-		if (ratings != null) {
-			count = ratings.size();
-			for (Iterator<AbstractRating> it = ratings.values().iterator(); it.hasNext();) {
-				if (!it.next().active) --count;			
+		synchronized(this) {
+			int count =  0;
+			if (ratings != null) {
+				count = ratings.size();
+				for (Iterator<AbstractRating> it = ratings.values().iterator(); it.hasNext();) {
+					if (!it.next().active) --count;			
+				}
 			}
+			return count;
 		}
-		return count;
 	}
 	/**
 	 * Retrieves the default value time. This is used for rating values that have no inherent times.
 	 * @return The default value time
 	 */
 	public long getDefaultValuetime() {
-		return defaultValueTime;
+		synchronized(this) {
+			return defaultValueTime;
+		}
 	}
 	/**
 	 * Resets the default value time. This is used for rating values that have no inherent times.
 	 */
 	@Override
 	public void resetDefaultValuetime() {
-		this.defaultValueTime = Const.UNDEFINED_TIME;
+		synchronized(this) {
+			this.defaultValueTime = Const.UNDEFINED_TIME;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingTime()
 	 */
 	@Override
 	public long getRatingTime() {
-		return ratingTime;
+		synchronized(this) {
+			return ratingTime;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#setRatingTime(long)
 	 */
 	@Override
 	public void setRatingTime(long ratingTime) {
-		this.ratingTime = ratingTime;
-		if (ratings != null) {
-			for (AbstractRating rating : ratings.values()) {
-				rating.setRatingTime(ratingTime);
+		synchronized(this) {
+			this.ratingTime = ratingTime;
+			if (ratings != null) {
+				for (AbstractRating rating : ratings.values()) {
+					rating.setRatingTime(ratingTime);
+				}
 			}
+			refreshRatings();
 		}
-		refreshRatings();
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#resetRatingtime()
 	 */
 	@Override
 	public void resetRatingTime() {
-		ratingTime = Long.MAX_VALUE;
-		if (ratings != null) {
-			Long[] effectiveDates = ratings.keySet().toArray(new Long[0]);
-			for (Long effectiveDate : effectiveDates) {
-				ratings.get(effectiveDate).resetRatingTime();
+		synchronized(this) {
+			ratingTime = Long.MAX_VALUE;
+			if (ratings != null) {
+				Long[] effectiveDates = ratings.keySet().toArray(new Long[0]);
+				for (Long effectiveDate : effectiveDates) {
+					ratings.get(effectiveDate).resetRatingTime();
+				}
 			}
+			refreshRatings();
 		}
-		refreshRatings();
 	}
 	/**
 	 * Retrieves whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @return A flag specifying whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public boolean doesAllowUnsafe() {
-		return allowUnsafe;
+		synchronized(this) {
+			return allowUnsafe;
+		}
 	}
 	/**
 	 * Sets whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @param allowUnsafe A flag specifying whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public void setAllowUnsafe(boolean allowUnsafe) {
-		this.allowUnsafe = allowUnsafe;
+		synchronized(this) {
+			this.allowUnsafe = allowUnsafe;
+		}
 	}
 	/**
 	 * Retrieves whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @return A flag specifying whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public boolean doesWarnUnsafe() {
-		return warnUnsafe;
+		synchronized(this) {
+			return warnUnsafe;
+		}
 	}
 	/**
 	 * Sets whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @param warnUnsafe  A flag specifying whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public void setWarnUnsafe(boolean warnUnsafe) {
-		this.warnUnsafe = warnUnsafe;
+		synchronized(this) {
+			this.warnUnsafe = warnUnsafe;
+		}
 	}
 	/**
 	 * Retrieves the standard HEC-DSS pathname for this rating set
 	 * @return The standard HEC-DSS pathname for this rating set
 	 */
 	public String getDssPathname() {
-		return ratingSpec == null ? null : ratingSpec.getDssPathname();
+		synchronized(this) {
+			return ratingSpec == null ? null : ratingSpec.getDssPathname();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getName()
 	 */
 	@Override
 	public String getName() {
-		String name = null;
-		if (ratingSpec == null) {
-			if (ratings.size() > 0) {
-				name = ratings.firstEntry().getValue().getName();
+		synchronized(this) {
+			String name = null;
+			if (ratingSpec == null) {
+				if (ratings.size() > 0) {
+					name = ratings.firstEntry().getValue().getName();
+				}
 			}
+			else {
+				name = ratingSpec.getRatingSpecId();
+			}
+			return name;
 		}
-		else {
-			name = ratingSpec.getRatingSpecId();
-		}
-		return name;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#setName(java.lang.String)
 	 */
 	@Override
 	public void setName(String name) throws RatingException {
-		for (AbstractRating rating : ratings.values()) {
-			rating.setName(name);
-		}
-		if (ratingSpec != null) {
-			String[] parts = split(name, SEPARATOR1, "L");
-			ratingSpec.setLocationId(parts[0]);
-			ratingSpec.setParametersId(parts[1]);
-			ratingSpec.setTemplateVersion(parts[2]);
-			ratingSpec.setVersion(parts[3]);
+		synchronized(this) {
+			for (AbstractRating rating : ratings.values()) {
+				rating.setName(name);
+			}
+			if (ratingSpec != null) {
+				String[] parts = split(name, SEPARATOR1, "L");
+				ratingSpec.setLocationId(parts[0]);
+				ratingSpec.setParametersId(parts[1]);
+				ratingSpec.setTemplateVersion(parts[2]);
+				ratingSpec.setVersion(parts[3]);
+			}
 		}
 	}
 	/* (non-Javadoc)
@@ -2595,59 +2679,67 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public String[] getRatingParameters() {
-		return getRatingSpec().getParameters();
+		synchronized(this) {
+			return getRatingSpec().getParameters();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingUnits()
 	 */
 	@Override
 	public String[] getRatingUnits() {
-		String[] units = null;
-		if (dbrating == null) {
-			if (ratings.size() > 0) {
-				units = ratings.firstEntry().getValue().getRatingUnits();
+		synchronized(this) {
+			String[] units = null;
+			if (dbrating == null) {
+				if (ratings.size() > 0) {
+					units = ratings.firstEntry().getValue().getRatingUnits();
+				}
 			}
+			else {
+				units = dbrating.getRatingUnits();
+			}
+			return units;
 		}
-		else {
-			units = dbrating.getRatingUnits();
-		}
-		return units;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getDataUnits()
 	 */
 	@Override
 	public String[] getDataUnits() {
-		String[] units = null;
-		if (dataUnits != null) {
-			units = Arrays.copyOf(dataUnits, dataUnits.length);
-		}
-		else {
-			if (dbrating == null) {
-				if (ratings.size() > 0) {
-					units = ratings.firstEntry().getValue().getDataUnits();
-				}
+		synchronized(this) {
+			String[] units = null;
+			if (dataUnits != null) {
+				units = Arrays.copyOf(dataUnits, dataUnits.length);
 			}
 			else {
-				units = dbrating.getDataUnits();
+				if (dbrating == null) {
+					if (ratings.size() > 0) {
+						units = ratings.firstEntry().getValue().getDataUnits();
+					}
+				}
+				else {
+					units = dbrating.getDataUnits();
+				}
 			}
+			return units;
 		}
-		return units;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#setDataUnits(java.lang.String[])
 	 */
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
-		if (dbrating == null) {
-			for (ICwmsRating rating : ratings.values()) {
-				rating.setDataUnits(units);
+		synchronized(this) {
+			if (dbrating == null) {
+				for (ICwmsRating rating : ratings.values()) {
+					rating.setDataUnits(units);
+				}
 			}
+			else {
+				dbrating.setDataUnits(units);
+			}
+			dataUnits = Arrays.copyOf(units, units.length);
 		}
-		else {
-			dbrating.setDataUnits(units);
-		}
-		dataUnits = Arrays.copyOf(units, units.length);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getRatingExtents()
@@ -2661,23 +2753,25 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
-		if (dbrating == null) {
-			if (activeRatings.size() == 0) {
-				throw new RatingException("No active ratings.");
+		synchronized(this) {
+			if (dbrating == null) {
+				if (activeRatings.size() == 0) {
+					throw new RatingException("No active ratings.");
+				}
+				Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
+		        
+		        if (rating == null)
+		        {
+		            rating = activeRatings.ceilingEntry(ratingTime);
+		        }
+		        if (isLazy) {
+		        	rating = getConcreteRating(rating);
+		        }
+		        return rating.getValue().getRatingExtents();
 			}
-			Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
-	        
-	        if (rating == null)
-	        {
-	            rating = activeRatings.ceilingEntry(ratingTime);
-	        }
-	        if (isLazy) {
-	        	rating = getConcreteRating(rating);
-	        }
-	        return rating.getValue().getRatingExtents();
-		}
-		else {
-			return dbrating.getRatingExtents(ratingTime);
+			else {
+				return dbrating.getRatingExtents(ratingTime);
+			}
 		}
 	}
 	/* (non-Javadoc)
@@ -2685,53 +2779,61 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public long[] getEffectiveDates() {
-		long[] effectiveDates = null;
-		if (dbrating == null) {
-			effectiveDates = new long[activeRatings.size()];
-			Iterator<AbstractRating> it = activeRatings.values().iterator(); 
-			for (int i = 0; i < effectiveDates.length; ++i) {
-				effectiveDates[i] = it.next().effectiveDate;
+		synchronized(this) {
+			long[] effectiveDates = null;
+			if (dbrating == null) {
+				effectiveDates = new long[activeRatings.size()];
+				Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+				for (int i = 0; i < effectiveDates.length; ++i) {
+					effectiveDates[i] = it.next().effectiveDate;
+				}
 			}
+			else {
+				return dbrating.getEffectiveDates();
+			}
+			return effectiveDates;
 		}
-		else {
-			return dbrating.getEffectiveDates();
-		}
-		return effectiveDates;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getCreateDates()
 	 */
 	@Override
 	public long[] getCreateDates() {
-		long[] createDates = null;
-		if (dbrating == null) {
-			createDates = new long[activeRatings.size()];
-			Iterator<AbstractRating> it = activeRatings.values().iterator(); 
-			for (int i = 0; i < createDates.length; ++i) {
-				createDates[i] = it.next().createDate;
+		synchronized(this) {
+			long[] createDates = null;
+			if (dbrating == null) {
+				createDates = new long[activeRatings.size()];
+				Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+				for (int i = 0; i < createDates.length; ++i) {
+					createDates[i] = it.next().createDate;
+				}
 			}
+			else {
+				createDates = dbrating.getCreateDates();
+			}
+			return createDates;
 		}
-		else {
-			createDates = dbrating.getCreateDates();
-		}
-		return createDates;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getDefaultValueTime()
 	 */
 	@Override
 	public long getDefaultValueTime() {
-		return defaultValueTime;
+		synchronized(this) {
+			return defaultValueTime;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#setDefaultValueTime(long)
 	 */
 	@Override
 	public void setDefaultValueTime(long defaultValueTime) {
-		this.defaultValueTime = defaultValueTime;
-		for (ICwmsRating rating : ratings.values()) {
-			if (rating != null) {
-				rating.setDefaultValueTime(defaultValueTime);
+		synchronized(this) {
+			this.defaultValueTime = defaultValueTime;
+			for (ICwmsRating rating : ratings.values()) {
+				if (rating != null) {
+					rating.setDefaultValueTime(defaultValueTime);
+				}
 			}
 		}
 	}
@@ -2889,232 +2991,234 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
-		double[] Y = new double[depVals.length];
-		if (dbrating == null) {
-			if (activeRatings.size() == 0) {
-				throw new RatingException("No active ratings.");
-			}
-			if (getDataUnits() == null) {
-				Map.Entry<Long, AbstractRating> entry1 = ratings.firstEntry();
-				Map.Entry<Long, AbstractRating> entry2 = ratings.higherEntry(entry1.getKey());
-				while (entry2 != null) {
-					if (!(entry1.getValue().getRatingUnitsId().equalsIgnoreCase(entry2.getValue().getRatingUnitsId()))) {
-						throw new RatingException("Data units must be specified when rating set has multiple rating units.");
-					}
-					entry1 = entry2;
-					entry2 = ratings.higherEntry(entry1.getKey());
+		synchronized(this) {
+			double[] Y = new double[depVals.length];
+			if (dbrating == null) {
+				if (activeRatings.size() == 0) {
+					throw new RatingException("No active ratings.");
 				}
-			}
-			Map.Entry<Long, AbstractRating> lowerRating = null;
-			Map.Entry<Long, AbstractRating> upperRating = null;
-			IRating lastUsedRating = null;
-			RatingMethod method = null;
-			for (int i = 0; i < depVals.length; ++i) {
-				if (i > 0 && valTimes[i] == valTimes[i-1]) {
-					if (lastUsedRating == null) {
-						Y[i] = Y[i-1];
+				if (getDataUnits() == null) {
+					Map.Entry<Long, AbstractRating> entry1 = ratings.firstEntry();
+					Map.Entry<Long, AbstractRating> entry2 = ratings.higherEntry(entry1.getKey());
+					while (entry2 != null) {
+						if (!(entry1.getValue().getRatingUnitsId().equalsIgnoreCase(entry2.getValue().getRatingUnitsId()))) {
+							throw new RatingException("Data units must be specified when rating set has multiple rating units.");
+						}
+						entry1 = entry2;
+						entry2 = ratings.higherEntry(entry1.getKey());
+					}
+				}
+				Map.Entry<Long, AbstractRating> lowerRating = null;
+				Map.Entry<Long, AbstractRating> upperRating = null;
+				IRating lastUsedRating = null;
+				RatingMethod method = null;
+				for (int i = 0; i < depVals.length; ++i) {
+					if (i > 0 && valTimes[i] == valTimes[i-1]) {
+						if (lastUsedRating == null) {
+							Y[i] = Y[i-1];
+						}
+						else {
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+						}
+						continue;
 					}
 					else {
-						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-					}
-					continue;
-				}
-				else {
-					lowerRating = activeRatings.floorEntry(valTimes[i]);
-					upperRating = activeRatings.ceilingEntry(valTimes[i]);
-					//-------------------------//
-					// handle out of range low //
-					//-------------------------//
-					if (lowerRating == null) {
-						method = ratingSpec.getOutRangeLowMethod();
-						switch(method) {
-						case ERROR:
-							throw new RatingException("Effective date is before earliest rating");
-						case NULL:
-							Y[i] = Const.UNDEFINED_DOUBLE;
-							lastUsedRating = null;
-							continue;
-						case NEXT:
-						case NEAREST:
-						case HIGHER:
-						case CLOSEST:
-							if (isLazy) {
-								getConcreteRating(activeRatings.firstEntry());
+						lowerRating = activeRatings.floorEntry(valTimes[i]);
+						upperRating = activeRatings.ceilingEntry(valTimes[i]);
+						//-------------------------//
+						// handle out of range low //
+						//-------------------------//
+						if (lowerRating == null) {
+							method = ratingSpec.getOutRangeLowMethod();
+							switch(method) {
+							case ERROR:
+								throw new RatingException("Effective date is before earliest rating");
+							case NULL:
+								Y[i] = Const.UNDEFINED_DOUBLE;
+								lastUsedRating = null;
+								continue;
+							case NEXT:
+							case NEAREST:
+							case HIGHER:
+							case CLOSEST:
+								if (isLazy) {
+									getConcreteRating(activeRatings.firstEntry());
+								}
+								lastUsedRating = activeRatings.firstEntry().getValue(); 
+								Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+								continue;
+							default:
+								break;
 							}
-							lastUsedRating = activeRatings.firstEntry().getValue(); 
-							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-							continue;
-						default:
-							break;
-						}
-						if (activeRatings.size() == 1) {
-							throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
-						}
-						lowerRating = activeRatings.firstEntry();
-						upperRating = activeRatings.higherEntry(lowerRating.getKey());
-					}
-					//--------------------------//
-					// handle out of range high //
-					//--------------------------//
-					if (upperRating == null) {
-						method = ratingSpec.getOutRangeHighMethod();
-						switch(method) {
-						case ERROR:
-							throw new RatingException("Effective date is after latest rating");
-						case NULL:
-							Y[i] = Const.UNDEFINED_DOUBLE;
-							lastUsedRating = null;
-							continue;
-						case PREVIOUS:
-						case NEAREST:
-						case LOWER:
-						case CLOSEST:
-							if (isLazy) {
-								getConcreteRating(activeRatings.lastEntry());
+							if (activeRatings.size() == 1) {
+								throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
 							}
-							lastUsedRating = activeRatings.lastEntry().getValue();
-							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-							continue;
-						default:
-							break;
+							lowerRating = activeRatings.firstEntry();
+							upperRating = activeRatings.higherEntry(lowerRating.getKey());
 						}
-						if (activeRatings.size() == 1) {
-							switch (method) {
-							case LINEAR :
-								//-----------------------------------------------------------------//
-								// allow LINEAR out of range high method with single active rating //
-								//-----------------------------------------------------------------//
+						//--------------------------//
+						// handle out of range high //
+						//--------------------------//
+						if (upperRating == null) {
+							method = ratingSpec.getOutRangeHighMethod();
+							switch(method) {
+							case ERROR:
+								throw new RatingException("Effective date is after latest rating");
+							case NULL:
+								Y[i] = Const.UNDEFINED_DOUBLE;
+								lastUsedRating = null;
+								continue;
+							case PREVIOUS:
+							case NEAREST:
+							case LOWER:
+							case CLOSEST:
 								if (isLazy) {
 									getConcreteRating(activeRatings.lastEntry());
 								}
 								lastUsedRating = activeRatings.lastEntry().getValue();
 								Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 								continue;
-							default :
-								throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+							default:
+								break;
 							}
+							if (activeRatings.size() == 1) {
+								switch (method) {
+								case LINEAR :
+									//-----------------------------------------------------------------//
+									// allow LINEAR out of range high method with single active rating //
+									//-----------------------------------------------------------------//
+									if (isLazy) {
+										getConcreteRating(activeRatings.lastEntry());
+									}
+									lastUsedRating = activeRatings.lastEntry().getValue();
+									Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+									continue;
+								default :
+									throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+								}
+							}
+							upperRating = activeRatings.lastEntry();
+							lowerRating = activeRatings.lowerEntry(upperRating.getKey());
 						}
-						upperRating = activeRatings.lastEntry();
-						lowerRating = activeRatings.lowerEntry(upperRating.getKey());
-					}
-					//-----------------------------------//
-					// handle in-range and extrapolation //
-					//-----------------------------------//
-					if (lowerRating.getKey() == valTimes[i]) {
-						if (isLazy) {
-							lowerRating = getConcreteRating(lowerRating);
-						}
-						Y[i] = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
-						continue;
-					}
-					if (upperRating.getKey() == valTimes[i]) {
-						if (isLazy) {
-							upperRating = getConcreteRating(upperRating);
-						}
-						lastUsedRating = upperRating.getValue();
-						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-						continue;
-					}
-					switch (ratingSpec.getInRangeMethod()) {
-					case ERROR:
-						throw new RatingException("Effective date is between existing rating");
-					case NULL:
-						Y[i] = Const.UNDEFINED_DOUBLE;
-						lastUsedRating = null;
-						continue;
-					case PREVIOUS:
-					case LOWER:
-						if (isLazy) {
-							lowerRating = getConcreteRating(lowerRating);
-						}
-						lastUsedRating = lowerRating.getValue();
-						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-						continue;
-					case NEXT:
-					case HIGHER:
-						if (isLazy) {
-							upperRating = getConcreteRating(upperRating);
-						}
-						lastUsedRating = upperRating.getValue();
-						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-						continue;
-					case CLOSEST:
-						if (valTimes[i] - lowerRating.getKey() < upperRating.getKey() - valTimes[i]) {
+						//-----------------------------------//
+						// handle in-range and extrapolation //
+						//-----------------------------------//
+						if (lowerRating.getKey() == valTimes[i]) {
 							if (isLazy) {
 								lowerRating = getConcreteRating(lowerRating);
 							}
-							lastUsedRating = lowerRating.getValue();
+							Y[i] = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
+							continue;
 						}
-						else {
+						if (upperRating.getKey() == valTimes[i]) {
 							if (isLazy) {
 								upperRating = getConcreteRating(upperRating);
 							}
 							lastUsedRating = upperRating.getValue();
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
 						}
-						Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-						continue;
-					default:
-						break;
+						switch (ratingSpec.getInRangeMethod()) {
+						case ERROR:
+							throw new RatingException("Effective date is between existing rating");
+						case NULL:
+							Y[i] = Const.UNDEFINED_DOUBLE;
+							lastUsedRating = null;
+							continue;
+						case PREVIOUS:
+						case LOWER:
+							if (isLazy) {
+								lowerRating = getConcreteRating(lowerRating);
+							}
+							lastUsedRating = lowerRating.getValue();
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
+						case NEXT:
+						case HIGHER:
+							if (isLazy) {
+								upperRating = getConcreteRating(upperRating);
+							}
+							lastUsedRating = upperRating.getValue();
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
+						case CLOSEST:
+							if (valTimes[i] - lowerRating.getKey() < upperRating.getKey() - valTimes[i]) {
+								if (isLazy) {
+									lowerRating = getConcreteRating(lowerRating);
+								}
+								lastUsedRating = lowerRating.getValue();
+							}
+							else {
+								if (isLazy) {
+									upperRating = getConcreteRating(upperRating);
+								}
+								lastUsedRating = upperRating.getValue();
+							}
+							Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+							continue;
+						default:
+							break;
+						}
+						//------------------------------------//
+						// handle interpolation/extrapolation //
+						//------------------------------------//
+						method = ratingSpec.getInRangeMethod();
 					}
-					//------------------------------------//
-					// handle interpolation/extrapolation //
-					//------------------------------------//
-					method = ratingSpec.getInRangeMethod();
-				}
-				lastUsedRating = null;
-				if (isLazy) {
-					lowerRating = getConcreteRating(lowerRating);
-					upperRating = getConcreteRating(upperRating);
-				}
-				boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
-				boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
-				double x  = valTimes[i];
-				double x1 = lowerRating.getKey();
-				double x2 = upperRating.getKey();
-				double Y1 = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
-				double Y2 = upperRating.getValue().reverseRate(valTimes[i], depVals[i]);
-				double y1 = Y1;
-				double y2 = Y2;
-				if (ind_log) {
-					x  = Math.log10(x);
-					x1 = Math.log10(x1);
-					x2 = Math.log10(x2);
-					if (Double.isNaN(x) || Double.isInfinite(x)   
-							|| Double.isNaN(x1) || Double.isInfinite(x1) 
-							|| Double.isNaN(x2) || Double.isInfinite(x2))  {
-						//-------------------------------------------------//
-						// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
-						//-------------------------------------------------//
-						x  = valTimes[i];
-						x1 = lowerRating.getKey();
-						x2 = upperRating.getKey();
-						dep_log = false;
+					lastUsedRating = null;
+					if (isLazy) {
+						lowerRating = getConcreteRating(lowerRating);
+						upperRating = getConcreteRating(upperRating);
 					}
-				}
-				if (dep_log) {
-					y1 = Math.log10(y1);
-					y2 = Math.log10(y2);
-					if (Double.isNaN(y1) || Double.isInfinite(y1) || Double.isNaN(y2) || Double.isInfinite(y2))  {
-						//-------------------------------------------------//
-						// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
-						//-------------------------------------------------//
-						x  = valTimes[i];
-						x1 = lowerRating.getKey();
-						x2 = upperRating.getKey();
-						y1 = Y1;
-						y2 = Y2;
-						dep_log = false;
+					boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
+					boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
+					double x  = valTimes[i];
+					double x1 = lowerRating.getKey();
+					double x2 = upperRating.getKey();
+					double Y1 = lowerRating.getValue().reverseRate(valTimes[i], depVals[i]);
+					double Y2 = upperRating.getValue().reverseRate(valTimes[i], depVals[i]);
+					double y1 = Y1;
+					double y2 = Y2;
+					if (ind_log) {
+						x  = Math.log10(x);
+						x1 = Math.log10(x1);
+						x2 = Math.log10(x2);
+						if (Double.isNaN(x) || Double.isInfinite(x)   
+								|| Double.isNaN(x1) || Double.isInfinite(x1) 
+								|| Double.isNaN(x2) || Double.isInfinite(x2))  {
+							//-------------------------------------------------//
+							// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
+							//-------------------------------------------------//
+							x  = valTimes[i];
+							x1 = lowerRating.getKey();
+							x2 = upperRating.getKey();
+							dep_log = false;
+						}
 					}
+					if (dep_log) {
+						y1 = Math.log10(y1);
+						y2 = Math.log10(y2);
+						if (Double.isNaN(y1) || Double.isInfinite(y1) || Double.isNaN(y2) || Double.isInfinite(y2))  {
+							//-------------------------------------------------//
+							// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
+							//-------------------------------------------------//
+							x  = valTimes[i];
+							x1 = lowerRating.getKey();
+							x2 = upperRating.getKey();
+							y1 = Y1;
+							y2 = Y2;
+							dep_log = false;
+						}
+					}
+					double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
+					if (dep_log) y = Math.pow(10, y);
+					Y[i] = y;
 				}
-				double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
-				if (dep_log) y = Math.pow(10, y);
-				Y[i] = y;
 			}
+			else {
+				Y = dbrating.reverseRate(valTimes, depVals);
+			}
+			return Y;
 		}
-		else {
-			Y = dbrating.reverseRate(valTimes, depVals);
-		}
-		return Y;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#reverseRate(hec.io.TimeSeriesContainer)
@@ -3122,39 +3226,42 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc)
 			throws RatingException {
-		TimeSeriesContainer[] tscs = {tsc};
-		String[] units = {tsc.units};
-		TimeZone tz = null;
-		if (tsc.timeZoneID != null) {
-			tz = TimeZone.getTimeZone(tsc.timeZoneID);
-			if (!tz.getID().equals(tsc.timeZoneID)) {
-				String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tsc.timeZoneID);
-				if (!allowUnsafe) throw new RatingException(msg);
-				if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
-				tz = null;
+		synchronized(this) {
+			TimeSeriesContainer[] tscs = {tsc};
+			String[] units = {tsc.units};
+			TimeZone tz = null;
+			if (tsc.timeZoneID != null) {
+				tz = TimeZone.getTimeZone(tsc.timeZoneID);
+				if (!tz.getID().equals(tsc.timeZoneID)) {
+					String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tsc.timeZoneID);
+					if (!allowUnsafe) throw new RatingException(msg);
+					if (warnUnsafe) logger.warning(msg + "  Value times will be treated as UTC.");
+					tz = null;
+				}
 			}
+			IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
+			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
+			tsc.clone(ratedTsc);
+			double[] depVals = new double[ivc.indVals.length];
+			for (int i = 0; i < depVals.length; ++i) depVals[i] = ivc.indVals[i][0];
+			ratedTsc.values = reverseRate(ivc.valTimes, depVals);
+			String[] params = getRatingParameters();
+			String paramStr = params[0];
+			if (tsc.subParameter == null) {
+				ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
+			}
+			else {
+				ratedTsc.fullName = replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
+			}
+			String[] parts = split(paramStr, "-", "L", 2);
+			ratedTsc.parameter = parts[0];
+			ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
+			String[] dataUnits = getDataUnits();
+			ratedTsc.units = dataUnits == null ? getRatingUnits()[0] : dataUnits[0];
+			return ratedTsc;
 		}
-		IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
-		TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
-		tsc.clone(ratedTsc);
-		double[] depVals = new double[ivc.indVals.length];
-		for (int i = 0; i < depVals.length; ++i) depVals[i] = ivc.indVals[i][0];
-		ratedTsc.values = reverseRate(ivc.valTimes, depVals);
-		String[] params = getRatingParameters();
-		String paramStr = params[0];
-		if (tsc.subParameter == null) {
-			ratedTsc.fullName = replaceAll(tsc.fullName, tsc.parameter, paramStr, "IL");
-		}
-		else {
-			ratedTsc.fullName = replaceAll(tsc.fullName, String.format("%s-%s", tsc.parameter, tsc.subParameter), paramStr, "IL");
-		}
-		String[] parts = split(paramStr, "-", "L", 2);
-		ratedTsc.parameter = parts[0];
-		ratedTsc.subParameter = parts.length > 1 ? parts[1] : null;
-		String[] dataUnits = getDataUnits();
-		ratedTsc.units = dataUnits == null ? getRatingUnits()[0] : dataUnits[0];
-		return ratedTsc;
 	}
+		
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
 	 */
@@ -3173,7 +3280,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
-		return ratingSpec != null ? ratingSpec.getIndParamCount() : ratings.firstEntry().getValue().getIndParamCount();
+		synchronized(this) {
+			return ratingSpec != null ? ratingSpec.getIndParamCount() : ratings.firstEntry().getValue().getIndParamCount();
+		}
 	}
 	/**
 	 * Outputs the rating set as an XML instance
@@ -3235,7 +3344,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				}
 			}
 		}
-		RatingSet.storeToDatabase(conn, getData().toXml("", 0, includeTemplate), overwriteExisting);
+		synchronized(this) {
+			RatingSet.storeToDatabase(conn, getData().toXml("", 0, includeTemplate), overwriteExisting);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
@@ -3250,7 +3361,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @see java.util.Observer
 	 */
 	public void addObserver(Observer o) {
-		observationTarget.addObserver(o);
+		synchronized(observationTarget) {
+			observationTarget.addObserver(o);
+		}
 	}
 	/**
 	 * Deletes an Observer from this RatingSet. The Observer will no longer be notified of any changes to this RatingSet
@@ -3258,31 +3371,35 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @see java.util.Observer
 	 */
 	public void deleteObserver(Observer o) {
-		observationTarget.deleteObserver(o);
+		synchronized(observationTarget) {
+			observationTarget.deleteObserver(o);
+		}
 	}
 	/**
 	 * Retrieves a RatingSetContainer containing the data of this object. 
 	 * @return The RatingSetContainer
 	 */
 	public RatingSetContainer getData() {
-		RatingSetContainer rsc = null;
-		if (dbrating != null) {
-			logger.info("Reference ratings cannot return RatingSetContainer objects.");
-		}
-		else {
-			rsc = new RatingSetContainer();
-			if (ratingSpec != null) {
-				rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
+		synchronized(this) {
+			RatingSetContainer rsc = null;
+			if (dbrating != null) {
+				logger.info("Reference ratings cannot return RatingSetContainer objects.");
 			}
-			if (ratings.size() > 0) {
-				rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];
-				Iterator<AbstractRating> it = ratings.values().iterator();
-				for (int i = 0; it.hasNext(); ++i) {
-					rsc.abstractRatingContainers[i] = it.next().getData(); 
+			else {
+				rsc = new RatingSetContainer();
+				if (ratingSpec != null) {
+					rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
+				}
+				if (ratings.size() > 0) {
+					rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];
+					Iterator<AbstractRating> it = ratings.values().iterator();
+					for (int i = 0; it.hasNext(); ++i) {
+						rsc.abstractRatingContainers[i] = it.next().getData(); 
+					}
 				}
 			}
+			return rsc;
 		}
-		return rsc;
 	}
 	/**
 	 * Sets the data from this object from a RatingSetContainer
@@ -3290,33 +3407,35 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void setData(RatingSetContainer rsc) throws RatingException {
-		try {
-			if (dbrating != null) {
-				throw new RatingException("Cannot set data for reference ratings.");
-			}
-			removeAllRatings();
-			if (rsc.ratingSpecContainer == null) {
-				ratingSpec = null;
-			}
-			else {
-				setRatingSpec(new RatingSpec(rsc.ratingSpecContainer));
-			}
-			if (rsc.abstractRatingContainers == null) {
-				throw new RatingObjectDoesNotExistException("RatingSetContainer contains no ratings.");
-			}
-			else {
-				for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
-					addRating(rsc.abstractRatingContainers[i].newRating());
+		synchronized(this) {
+			try {
+				if (dbrating != null) {
+					throw new RatingException("Cannot set data for reference ratings.");
+				}
+				removeAllRatings();
+				if (rsc.ratingSpecContainer == null) {
+					ratingSpec = null;
+				}
+				else {
+					setRatingSpec(new RatingSpec(rsc.ratingSpecContainer));
+				}
+				if (rsc.abstractRatingContainers == null) {
+					throw new RatingObjectDoesNotExistException("RatingSetContainer contains no ratings.");
+				}
+				else {
+					for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
+						addRating(rsc.abstractRatingContainers[i].newRating());
+					}
+				}
+				if (observationTarget != null) {
+					observationTarget.setChanged();
+					observationTarget.notifyObservers();
 				}
 			}
-			if (observationTarget != null) {
-				observationTarget.setChanged();
-				observationTarget.notifyObservers();
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
 			}
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
 		}
 	}
 	/**
@@ -3325,18 +3444,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException 
 	 */
 	public TextContainer getDssData() throws RatingException {
-		try {
-			if (dbrating != null) {
-				throw new RatingException("Reference ratings cannot return DSS Data.");
+		synchronized(this) {
+			try {
+				if (dbrating != null) {
+					throw new RatingException("Reference ratings cannot return DSS Data.");
+				}
+				TextContainer tc = new TextContainer();
+				tc.fullName = getDssPathname();
+				tc.text = String.format("%s\n%s", this.getClass().getName(), toCompressedXmlString());
+				return tc;
+			}		
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
 			}
-			TextContainer tc = new TextContainer();
-			tc.fullName = getDssPathname();
-			tc.text = String.format("%s\n%s", this.getClass().getName(), toCompressedXmlString());
-			return tc;
-		}		
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
 		}
 	}
 	/**
@@ -3345,22 +3466,24 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void setData(TextContainer tc) throws RatingException {
-		if (dbrating != null) {
-			throw new RatingException("Cannot set data for reference ratings.");
-		}
-		String[] lines = tc.text.split("\\n");
-		String className = getClass().getName();
-		for (int i = 0; i < lines.length-1; ++i) {
-			if (lines[i].equals(className)) {
-				int extra = lines[i+1].length() % 4;
-				int last = lines[i+1].length() - extra;
-				RatingSet other = RatingSet.fromCompressedXml(lines[i+1].substring(0, last));
-				removeAllRatings();
-				setData(other.getData());
-				return;
+		synchronized(this) {
+			if (dbrating != null) {
+				throw new RatingException("Cannot set data for reference ratings.");
 			}
+			String[] lines = tc.text.split("\\n");
+			String className = getClass().getName();
+			for (int i = 0; i < lines.length-1; ++i) {
+				if (lines[i].equals(className)) {
+					int extra = lines[i+1].length() % 4;
+					int last = lines[i+1].length() - extra;
+					RatingSet other = RatingSet.fromCompressedXml(lines[i+1].substring(0, last));
+					removeAllRatings();
+					setData(other.getData());
+					return;
+				}
+			}
+			throw new RatingException("Invalid text for RatingSet");
 		}
-		throw new RatingException("Invalid text for RatingSet");
 	}
 	/**
 	 * Returns whether this object has any vertical datum info
@@ -3662,22 +3785,24 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	
 	private void refreshRatings() {
-		if (dbrating == null) {
-			AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
-			ratings.clear();
-			activeRatings.clear();
-			for (AbstractRating rating : ratingArray) {
-				long effectiveDate = rating.getEffectiveDate();
-				ratings.put(effectiveDate, rating);
-				if (rating.isActive() && rating.getCreateDate() < ratingTime) {
-					activeRatings.put(effectiveDate, rating);
+		synchronized(this) {
+			if (dbrating == null) {
+				AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
+				ratings.clear();
+				activeRatings.clear();
+				for (AbstractRating rating : ratingArray) {
+					long effectiveDate = rating.getEffectiveDate();
+					ratings.put(effectiveDate, rating);
+					if (rating.isActive() && rating.getCreateDate() < ratingTime) {
+						activeRatings.put(effectiveDate, rating);
+					}
+					rating.deleteObserver(this);
+					rating.addObserver(this);
 				}
-				rating.deleteObserver(this);
-				rating.addObserver(this);
-			}
-			if (observationTarget != null) {
-				observationTarget.setChanged();
-				observationTarget.notifyObservers();
+				if (observationTarget != null) {
+					observationTarget.setChanged();
+					observationTarget.notifyObservers();
+				}
 			}
 		}
 	}
@@ -3686,64 +3811,66 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException if the rating set is not valid
 	 */
 	private void validate() throws RatingException {
-		if (dbrating != null) return;
-		if (ratings.size() == 0) return;
-		String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
-		String[] units = unitsId == null ? null : split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
-		String[] params = null;
-		boolean[] validParams = null;
-		boolean[] validUnits = null;
-		try {
-			if (ratingSpec != null) {
-				params = ratingSpec.getIndParameters();
-				validParams = new boolean[ratingSpec.getIndParamCount()+1];
-				validUnits = new boolean[ratingSpec.getIndParamCount()+1];
-				Parameter ratingParam = null;
-				Units ratingUnit = null;
-				for (int i = 0; i < params.length; ++i) {
-					ratingParam = null;
-					validParams[i] = false;
-					if (ratingSpec != null) {
+		synchronized(this) {
+			if (dbrating != null) return;
+			if (ratings.size() == 0) return;
+			String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
+			String[] units = unitsId == null ? null : split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
+			String[] params = null;
+			boolean[] validParams = null;
+			boolean[] validUnits = null;
+			try {
+				if (ratingSpec != null) {
+					params = ratingSpec.getIndParameters();
+					validParams = new boolean[ratingSpec.getIndParamCount()+1];
+					validUnits = new boolean[ratingSpec.getIndParamCount()+1];
+					Parameter ratingParam = null;
+					Units ratingUnit = null;
+					for (int i = 0; i < params.length; ++i) {
+						ratingParam = null;
+						validParams[i] = false;
+						if (ratingSpec != null) {
+							try {
+								ratingParam = new Parameter(params[i]);
+								validParams[i] = true;
+							}
+							catch (Throwable t) {
+								if (!allowUnsafe) throw new RatingException(t);
+								if (warnUnsafe) logger.warning(t.getMessage());
+							}
+						}
+					}
+					if (units != null) {
+					for (int i = 0; i < units.length; ++i) {
+						ratingUnit = null;
+						validUnits[i] = false;
 						try {
-							ratingParam = new Parameter(params[i]);
-							validParams[i] = true;
+							ratingUnit = new Units(units[i], true);
+							validUnits[i] = true;
 						}
 						catch (Throwable t) {
 							if (!allowUnsafe) throw new RatingException(t);
 							if (warnUnsafe) logger.warning(t.getMessage());
 						}
 					}
-				}
-				if (units != null) {
-				for (int i = 0; i < units.length; ++i) {
-					ratingUnit = null;
-					validUnits[i] = false;
-					try {
-						ratingUnit = new Units(units[i], true);
-						validUnits[i] = true;
 					}
-					catch (Throwable t) {
-						if (!allowUnsafe) throw new RatingException(t);
-						if (warnUnsafe) logger.warning(t.getMessage());
-					}
-				}
-				}
-				for (int i = 0; i < params.length; ++i) {
-					if (validParams[i] && validUnits[i]) {
-						ratingParam = new Parameter(params[i]);
-						ratingUnit = new Units(units[i], true);
-						if (!Units.canConvertBetweenUnits(ratingParam.getUnitsString(), ratingUnit.toString())) {
-							String msg = String.format("Unit \"%s\" is not consistent with parameter \"%s\".", units[i], params[i]);
-							if (!allowUnsafe) throw new RatingException(msg);
-							if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+					for (int i = 0; i < params.length; ++i) {
+						if (validParams[i] && validUnits[i]) {
+							ratingParam = new Parameter(params[i]);
+							ratingUnit = new Units(units[i], true);
+							if (!Units.canConvertBetweenUnits(ratingParam.getUnitsString(), ratingUnit.toString())) {
+								String msg = String.format("Unit \"%s\" is not consistent with parameter \"%s\".", units[i], params[i]);
+								if (!allowUnsafe) throw new RatingException(msg);
+								if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+							}
 						}
 					}
 				}
 			}
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException) t;
-			throw new RatingException(t);
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException) t;
+				throw new RatingException(t);
+			}
 		}
 	}
 		
