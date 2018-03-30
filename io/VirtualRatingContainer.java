@@ -119,7 +119,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		Vector<String> units = new Vector<String>();
 		for (int i = 0; i < sourceRatings.length; ++i) {
 			for (int j = 0; j < sourceRatings[i].units.length; ++j) {
-				if (!connectionPoints.contains(String.format("R%dI%d", i+1, j+1))) {
+				if (!connectionPoints.contains("R"+(i+1)+"I"+(j+1))) {
 					units.add(sourceRatings[i].units[j]);
 					if (connectionPoints.size() == indParamCount) {
 						break;
@@ -128,7 +128,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 			}
 		}
 		for (int i = 0; i < sourceRatings.length; ++i) {
-			if (!connectionPoints.contains(String.format("R%dD", i+1))) {
+			if (!connectionPoints.contains("R"+(i+1)+"D")) {
 				units.add(sourceRatings[i].units[sourceRatings[i].units.length-1]);
 				break;
 			}

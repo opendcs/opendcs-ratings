@@ -64,9 +64,17 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	protected String ratingUnitsId = null;
 	/**
+	 * The ratingUnitsId parsed into an array
+	 */
+	protected String[] ratingUnits = null;
+	/**
 	 * A CWMS-style units identifier for the data using the rating
 	 */
 	protected String dataUnitsId = null;
+	/**
+	 * The dataUnitsId parsed into an array
+	 */
+	protected String[] dataUnits = null;
 	/**
 	 * The earliest date/time at which the rating is considered to be in effect 
 	 */
@@ -215,42 +223,54 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public void addObserver(Observer o) {
-		observationTarget.addObserver(o);
+		synchronized(this) {
+			observationTarget.addObserver(o);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#deleteObserver(java.util.Observer)
 	 */
 	@Override
 	public void deleteObserver(Observer o) {
-		observationTarget.deleteObserver(o);
+		synchronized(this) {
+			observationTarget.deleteObserver(o);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#getRatingSpecId()
 	 */
 	@Override
 	public String getRatingSpecId() {
-		return ratingSpecId;
+		synchronized(this) {
+			return ratingSpecId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#getOfficeId()
 	 */
 	@Override
 	public String getOfficeId() {
-		return officeId;
+		synchronized(this) {
+			return officeId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setOfficeId(java.lang.String)
 	 */
 	@Override
 	public void setOfficeId(String officeId) {
-		this.officeId = officeId;
+		synchronized(this) {
+			this.officeId = officeId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setRatingSpecId(java.lang.String)
 	 */
 	@Override
 	public void setRatingSpecId(String ratingSpecId) {
-		this.ratingSpecId = ratingSpecId;
+		synchronized(this) {
+			this.ratingSpecId = ratingSpecId;
+		}
 		
 	}
 	/* (non-Javadoc)
@@ -258,35 +278,46 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public String getRatingUnitsId() {
-		return ratingUnitsId;
+		synchronized(this) {
+			return ratingUnitsId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setUnitsId(java.lang.String)
 	 */
 	@Override
 	public void setRatingUnitsId(String ratingUnitsId) {
-		this.ratingUnitsId = ratingUnitsId;
+		synchronized(this) {
+			this.ratingUnitsId = ratingUnitsId;
+			ratingUnits = null;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#getDataUnitsId()
 	 */
 	@Override
 	public String getDataUnitsId() {
-		return dataUnitsId;
+		synchronized(this) {
+			return dataUnitsId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setDataUnitsId(java.lang.String)
 	 */
 	@Override
 	public void setDataUnitsId(String dataUnitsId) {
-		this.dataUnitsId = dataUnitsId;
+		synchronized(this) {
+			this.dataUnitsId = dataUnitsId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getName()
 	 */
 	@Override
 	public String getName() {
-		return ratingSpecId;
+		synchronized(this) {
+			return ratingSpecId;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#setName(java.lang.String)
@@ -305,113 +336,142 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 		if (newIndParams.length != getIndParamCount()) {
 			throw new RatingException("Name has different number of independent parameters than rating");
 		}
-		ratingSpecId = name;
+		synchronized(this) {
+			ratingSpecId = name;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingParameters()
 	 */
 	@Override
 	public String[] getRatingParameters() {
-		String parametersId = split(ratingSpecId, SEPARATOR1, "L")[1];
-		return split(replaceAll(parametersId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+		synchronized(this) {
+			String parametersId = split(ratingSpecId, SEPARATOR1, "L")[1];
+			return split(replaceAll(parametersId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingUnits()
 	 */
 	@Override
 	public String[] getRatingUnits() {
-		return split(replaceAll(ratingUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+		synchronized(this) {
+			if (ratingUnits == null) {
+				ratingUnits = split(replaceAll(ratingUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+			};
+			return Arrays.copyOf(ratingUnits, ratingUnits.length);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getDataUnits()
 	 */
 	@Override
 	public String[] getDataUnits() {
-		return dataUnitsId == null ? getRatingUnits() : split(replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+		synchronized(this) {
+			if (dataUnits == null) {
+				dataUnits = dataUnitsId == null ? getRatingUnits() : split(replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+			}
+			return Arrays.copyOf(dataUnits, dataUnits.length);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#setDataUnits(java.lang.String[])
 	 */
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
-		String[] ratingUnits = getRatingUnits();
-		if (units.length != ratingUnits.length) {
-			throw new RatingException("Invalid number of data units.");
-		}
-		Units unit = null;
-		for (int i = 0; i < units.length; ++i) {
-			try {
-				unit = new Units(units[i]);
+		synchronized(this) {
+			String[] ratingUnits = getRatingUnits();
+			if (units.length != ratingUnits.length) {
+				throw new RatingException("Invalid number of data units.");
 			}
-			catch (Throwable t) {
-				if (!allowUnsafe) throw new RatingException(t);
-				if (warnUnsafe) logger.warning(t.getMessage());
-				unit = null;
-			}
-			if (unit != null) {
-				if (!units[i].equals(ratingUnits[i])) {
-					if(!Units.canConvertBetweenUnits(units[i], ratingUnits[i])) {
-						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], ratingUnits[i]);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) {
-							if (i == ratingUnits.length - 1) {
-								logger.warning(msg + "  Rated values will be unconverted.");
-							}
-							else {
-								logger.warning(msg + "  Rating will be performed using unconverted values.");
+			Units unit = null;
+			for (int i = 0; i < units.length; ++i) {
+				try {
+					unit = new Units(units[i]);
+				}
+				catch (Throwable t) {
+					if (!allowUnsafe) throw new RatingException(t);
+					if (warnUnsafe) logger.warning(t.getMessage());
+					unit = null;
+				}
+				if (unit != null) {
+					if (!units[i].equals(ratingUnits[i])) {
+						if(!Units.canConvertBetweenUnits(units[i], ratingUnits[i])) {
+							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], ratingUnits[i]);
+							if (!allowUnsafe) throw new RatingException(msg);
+							if (warnUnsafe) {
+								if (i == ratingUnits.length - 1) {
+									logger.warning(msg + "  Rated values will be unconverted.");
+								}
+								else {
+									logger.warning(msg + "  Rating will be performed using unconverted values.");
+								}
 							}
 						}
 					}
 				}
 			}
+			
+			StringBuilder sb = new StringBuilder(units[0]);
+			for (int i = 1; i < units.length - 1; ++i) sb.append(",").append(units[i]);
+			sb.append(";").append(units[units.length-1]);
+			dataUnitsId = sb.toString();
+			dataUnits = null;
 		}
-		
-		StringBuilder sb = new StringBuilder(units[0]);
-		for (int i = 1; i < units.length - 1; ++i) sb.append(",").append(units[i]);
-		sb.append(";").append(units[units.length-1]);
-		dataUnitsId = sb.toString();
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getIndParamCount()
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
-		return this.getRatingParameters().length - 1;
+		synchronized(this) {
+			return this.getRatingParameters().length - 1;
+		}
 	}
 	/**
 	 * Retrieves whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @return A flag specifying whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public boolean doesAllowUnsafe() {
-		return allowUnsafe;
+		synchronized(this) {
+			return allowUnsafe;
+		}
 	}
 	/**
 	 * Sets whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @param allowUnsafe A flag specifying whether this object allows "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public void setAllowUnsafe(boolean allowUnsafe) {
-		this.allowUnsafe = allowUnsafe;
+		synchronized(this) {
+			this.allowUnsafe = allowUnsafe;
+		}
 	}
 	/**
 	 * Retrieves whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @return A flag specifying whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public boolean doesWarnUnsafe() {
-		return warnUnsafe;
+		synchronized(this) {
+			return warnUnsafe;
+		}
 	}
 	/**
 	 * Sets whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 * @param warnUnsafe  A flag specifying whether this object outputs warning messages about "risky" operations such as working with mismatched units, unknown parameters, etc.
 	 */
 	public void setWarnUnsafe(boolean warnUnsafe) {
-		this.warnUnsafe = warnUnsafe;
+		synchronized(this) {
+			this.warnUnsafe = warnUnsafe;
+		}
 	}
 	/**
 	 * Retrieves the effective date of the rating. The effective date is the earliest date/time for which the rating should be applied
 	 * @return The effective date of the rating in epoch milliseconds
 	 */
 	public long getEffectiveDate() {
-		return effectiveDate;
+		synchronized(this) {
+			return effectiveDate;
+		}
 	}
 	/**
 	 * Sets the effective date of the rating. The effective date is the earliest date/time for which the rating should be applied
@@ -419,25 +479,32 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @throws RatingException if effectiveDate violates other values (e.g., UsgsStreamTableRating shift effective dates)
 	 */
 	public void setEffectiveDate(long effectiveDate) throws RatingException {
-		this.effectiveDate = effectiveDate;
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		synchronized(this) {
+			this.effectiveDate = effectiveDate;
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
+		
 	/**
 	 * Retrieves the transition start date of the rating. The transition start date is the date/time to being transition (interpolation) from any previous rating
 	 * @return The transition start date of the rating in epoch milliseconds
 	 */
 	public long getTransitionStartDate() {
-		return transitionStartDate;
+		synchronized(this) {
+			return transitionStartDate;
+		}
 	}
 	/**
 	 * Sets the transition start date of the rating. The transition start date is the date/time to being transition (interpolation) from any previous rating
 	 * @param transitionStartDate The transition start date of the rating in epoch milliseconds
 	 */
 	public void setTransitionStartDate(long transitionStartDate) {
-		this.transitionStartDate = transitionStartDate;
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		synchronized(this) {
+			this.transitionStartDate = transitionStartDate;
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+	}
 	}
 	/**
 	 * Retrieves the creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
@@ -445,7 +512,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @return The creation date of the rating in epoch milliseconds
 	 */
 	public long getCreateDate() {
-		return createDate;
+		synchronized(this) {
+			return createDate;
+		}
 	}
 	/**
 	 * Sets the creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
@@ -453,108 +522,138 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @param createDate The creation date of the rating in epoch milliseconds
 	 */
 	public void setCreateDate(long createDate) {
-		this.createDate = createDate;
+		synchronized(this) {
+			this.createDate = createDate;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#isActive()
 	 */
 	@Override
 	public boolean isActive() {
-		return active;
+		synchronized(this) {
+			return active;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setActive(boolean)
 	 */
 	@Override
 	public void setActive(boolean active) {
-		this.active = active;
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		synchronized(this) {
+			this.active = active;
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+	}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#getDescription()
 	 */
 	@Override
 	public String getDescription() {
-		return description;
+		synchronized(this) {
+			return description;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setDescription(java.lang.String)
 	 */
 	@Override
 	public void setDescription(String description) {
-		this.description = description;
+		synchronized(this) {
+			this.description = description;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
 	 */
 	@Override
 	public void update(java.util.Observable o, Object arg) {
-		observationTarget.setChanged();
-		observationTarget.notifyObservers();
+		synchronized(this) {
+			observationTarget.setChanged();
+			observationTarget.notifyObservers();
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#getDefaultValuetime()
 	 */
 	@Override
 	public long getDefaultValueTime() {
-		return defaultValueTime == UNDEFINED_TIME ? System.currentTimeMillis() : defaultValueTime;
+		synchronized(this) {
+			return defaultValueTime == UNDEFINED_TIME ? System.currentTimeMillis() : defaultValueTime;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#setDefaultValuetime(long)
 	 */
 	@Override
 	public void setDefaultValueTime(long defaultValueTime) {
-		this.defaultValueTime = defaultValueTime;
+		synchronized(this) {
+			this.defaultValueTime = defaultValueTime;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#resetDefaultValuetime()
 	 */
 	@Override
 	public void resetDefaultValuetime() {
-		this.defaultValueTime = UNDEFINED_TIME;
+		synchronized(this) {
+			this.defaultValueTime = UNDEFINED_TIME;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getRatingTime()
 	 */
 	@Override
 	public long getRatingTime() {
-		return ratingTime;
+		synchronized(this) {
+			return ratingTime;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#setRatingTime(long)
 	 */
 	@Override
 	public void setRatingTime(long ratingTime) {
-		this.ratingTime = ratingTime; 
+		synchronized(this) {
+			this.ratingTime = ratingTime;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#resetRatingtime()
 	 */
 	@Override
 	public void resetRatingTime() {
-		ratingTime = Long.MAX_VALUE;
+		synchronized(this) {
+			ratingTime = Long.MAX_VALUE;
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getRatingExtents()
 	 */
 	@Override
 	public double[][] getRatingExtents() throws RatingException {
-		return getRatingExtents(getRatingTime());
+		synchronized(this) {
+			return getRatingExtents(getRatingTime());
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getEffectiveDates()
 	 */
 	@Override
 	public long[] getEffectiveDates() {
-		return new long[] {effectiveDate};
+		synchronized(this) {
+			return new long[] {effectiveDate};
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getCreateDates()
 	 */
 	@Override
 	public long[] getCreateDates() {
-		return new long[] {createDate};
+		synchronized(this) {
+			return new long[] {createDate};
+		}
 	}
 	/**
 	 * Retrieves a AbstractRatingContainer object for this rating.
@@ -581,10 +680,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
-		if (tsRater == null) {
-			tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+		synchronized(tsRater) {
+			if (tsRater == null) {
+				tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+			}
+			return tsRater.rate(tscs);
 		}
-		return tsRater.rate(tscs);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
@@ -662,10 +763,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
-		if (tsRater == null) {
-			tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+		synchronized(tsRater) {
+			if (tsRater == null) {
+				tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+			}
+			return tsRater.reverseRate(tsc);
 		}
-		return tsRater.reverseRate(tsc);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
@@ -864,16 +967,18 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @param arc The AbstractRatingContainer object to fill
 	 */
 	protected void getData(AbstractRatingContainer arc) {
-		arc.officeId = officeId;
-		arc.ratingSpecId = ratingSpecId;
-		arc.unitsId = ratingUnitsId;
-		arc.effectiveDateMillis = effectiveDate;
-		arc.transitionStartDateMillis = transitionStartDate;
-		arc.createDateMillis = createDate;
-		arc.active = active;
-		arc.description = description;
-		if (vdc != null) {
-			arc.vdc = vdc.clone();
+		synchronized(this) {
+			arc.officeId = officeId;
+			arc.ratingSpecId = ratingSpecId;
+			arc.unitsId = ratingUnitsId;
+			arc.effectiveDateMillis = effectiveDate;
+			arc.transitionStartDateMillis = transitionStartDate;
+			arc.createDateMillis = createDate;
+			arc.active = active;
+			arc.description = description;
+			if (vdc != null) {
+				arc.vdc = vdc.clone();
+			}
 		}
 	}
 	/**
@@ -881,16 +986,18 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @param arc The AbstractRatingContainer object containing the rating information
 	 */
 	protected void _setData(AbstractRatingContainer arc) {
-		officeId = arc.officeId;
-		ratingSpecId = arc.ratingSpecId;
-		ratingUnitsId = arc.unitsId;
-		effectiveDate = arc.effectiveDateMillis;
-		transitionStartDate = arc.transitionStartDateMillis;
-		createDate = arc.createDateMillis;
-		active = arc.active;
-		description = arc.description;
-		if (arc.vdc != null) {
-			vdc = arc.vdc.clone();
+		synchronized(this) {
+			officeId = arc.officeId;
+			ratingSpecId = arc.ratingSpecId;
+			ratingUnitsId = arc.unitsId;
+			effectiveDate = arc.effectiveDateMillis;
+			transitionStartDate = arc.transitionStartDateMillis;
+			createDate = arc.createDateMillis;
+			active = arc.active;
+			description = arc.description;
+			if (arc.vdc != null) {
+				vdc = arc.vdc.clone();
+			}
 		}
 	}
 	
@@ -922,8 +1029,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	public IRatingSpecification getRatingSpecification() throws DataSetException
 	{
-		String officeId2 = getOfficeId();
-		String ratingSpecId2 = getRatingSpecId();
+		String officeId2 = null;
+		String ratingSpecId2 = null;
+		synchronized(this) {
+			officeId2 = getOfficeId();
+			ratingSpecId2 = getRatingSpecId();
+		}
 		JDomRatingSpecification ratingSpecification = new JDomRatingSpecification(officeId2, ratingSpecId2);
 		return ratingSpecification;
 	}
@@ -951,7 +1062,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
     @Override
 	public boolean isModified()
     {
-    	return modified;
+		synchronized(this) {
+			return modified;
+		}
     }
     /**
      * Sets the modified state of this rating curve.
@@ -959,7 +1072,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
     @Override
 	public void setModified(boolean bool)
     {
-    	modified = bool;
+		synchronized(this) {
+			modified = bool;
+		}
     }	
     
     public abstract AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException;
