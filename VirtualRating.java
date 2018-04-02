@@ -49,6 +49,10 @@ public class VirtualRating extends AbstractRating {
 	
 	protected String depParamConn = null;
 
+	String[][]inputs = null;
+
+	String[] outputs = null;
+	
 	protected static void parseConnectionPoint(String connectionPoint, int[] results) {
 //		Matcher m = p.matcher(connectionPoint);
 //		if (m.matches()) {
@@ -243,6 +247,25 @@ public class VirtualRating extends AbstractRating {
 	public void setSourceRatings(SourceRating[] sources) {
 		synchronized(this) {
 			sourceRatings = sources == null ? null : Arrays.copyOf(sources, sources.length);
+			if (sourceRatings == null) {
+				inputs = null;
+				outputs = null;
+			}else {
+				inputs = new String[sourceRatings.length][];
+				outputs = new String[sourceRatings.length];
+				for (int i = 0; i < sourceRatings.length; ++i) {
+					try {
+						inputs[i] = new String[sourceRatings[i].getIndParamCount()];
+						outputs[i] = "R"+(i+1)+"D";
+						for (int j = 0; j < sourceRatings[i].getIndParamCount(); ++j) {
+							inputs[i][j] = "R"+(i+1)+"I"+(j+1);
+						}
+					}
+					catch (RatingException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
 		}
 	}
 	/**
@@ -517,20 +540,20 @@ public class VirtualRating extends AbstractRating {
 						//------------------------------------------------------------------//
 						double[][] _indVals = new double[count][];
 						for (p = 0; p < count; ++p) {
-							_indVals[p] = cpValues.get("R"+(r+1)+"I"+(p+1));
+							_indVals[p] = cpValues.get(inputs[r][p]);
 						}
-						cpValues.put("R"+(r+1)+"D", sourceRatings[r].rate(valTimes, _indVals));
+						cpValues.put(outputs[r], sourceRatings[r].rate(valTimes, _indVals));
 						for (p = 0; p < count; ++p) {
-							cpValues.remove("R"+(r+1)+"I"+(p+1));
+							cpValues.remove(inputs[r][p]);
 						}
 					}
-					else if (cpValues.containsKey("R"+(r+1)+"D")) {
+					else if (cpValues.containsKey(outputs[r])) {
 						//------------------------------------------------------------------//
 						// reverse rate and remove source rating inputs from the population //
 						//------------------------------------------------------------------//
-						double[] depVals = cpValues.get("R"+(r+1)+"D");
-						cpValues.put("R"+(r+1)+"I1", sourceRatings[r].reverseRate(valTimes, depVals));
-						cpValues.remove("R"+(r+1)+"D");
+						double[] depVals = cpValues.get(outputs[r]);
+						cpValues.put(inputs[r][0], sourceRatings[r].reverseRate(valTimes, depVals));
+						cpValues.remove(outputs[r]);
 					}
 				}
 			}
@@ -580,10 +603,11 @@ public class VirtualRating extends AbstractRating {
 			super._setData(arc);
 			VirtualRatingContainer vrc = (VirtualRatingContainer)arc;
 			if (vrc.sourceRatings != null && vrc.sourceRatings.length > 0) {
-				sourceRatings = new SourceRating[vrc.sourceRatings.length];
+				SourceRating[] sourceRatings = new SourceRating[vrc.sourceRatings.length];
 				for (int i = 0; i < vrc.sourceRatings.length; ++i) {
 					sourceRatings[i] = new SourceRating(vrc.sourceRatings[i]);
 				}
+				setSourceRatings(sourceRatings);
 			}
 			setConnections(vrc.connections);
 		}

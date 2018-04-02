@@ -60,6 +60,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	protected String ratingSpecId = null;
 	/**
+	 * The parameters part of ratingSpecId parsed into an array
+	 */
+	protected String[] ratingParameters = null;
+	/**
 	 * The CWMS-style units identifier for the native units of the rating
 	 */
 	protected String ratingUnitsId = null;
@@ -346,8 +350,11 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	@Override
 	public String[] getRatingParameters() {
 		synchronized(this) {
-			String parametersId = split(ratingSpecId, SEPARATOR1, "L")[1];
-			return split(replaceAll(parametersId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+			if (ratingParameters == null) {
+				String parametersId = split(ratingSpecId, SEPARATOR1, "L")[1];
+				ratingParameters = split(replaceAll(parametersId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+			}
+			return Arrays.copyOf(ratingParameters, ratingParameters.length);
 		}
 	}
 	/* (non-Javadoc)

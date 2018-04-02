@@ -43,6 +43,10 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		protected MathExpression mathExpression = null;
 		/**
+		 * The variables for the match epxression, if used
+		 */
+		protected VariableSet vars = null;
+		/**
 		 * The source rating set
 		 */
 		protected RatingSet ratings = null;
@@ -599,13 +603,13 @@ public class SourceRating implements IRating, IVerticalDatum {
 							throw new RatingException("Inconsistent independent values set");
 						}
 					}
-					VariableSet vars = mathExpression.getVariables();
-					vars.reset();
+					if (vars == null) {
+						vars = mathExpression.getVariables();
+					}
 					results = new double[indVals[0].length];
 					for (int j = 0; j < indVals[0].length; ++j) {
 						for (int i = 0; i < indVals.length; ++i) {
-							String varName = String.format("$I%d", i+1);
-							vars.getVariable(varName).setValue(indVals[i][j]);
+							vars.getVariable("$I"+(i+1)).setValue(indVals[i][j]);
 						}
 						results[j] = mathExpression.evaluate();
 					}
