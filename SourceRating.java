@@ -99,7 +99,9 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		SourceRatingContainer getData() {
 			SourceRatingContainer src = new SourceRatingContainer();
-			src.units = Arrays.copyOf(ratingUnits, ratingUnits.length);
+			if (ratingUnits != null) {
+				src.units = Arrays.copyOf(ratingUnits, ratingUnits.length);
+			}
 			if (mathExpression != null) {
 				src.mathExpression = getMathExpression();
 			}
