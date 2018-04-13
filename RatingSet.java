@@ -2738,7 +2738,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			else {
 				dbrating.setDataUnits(units);
 			}
-			dataUnits = Arrays.copyOf(units, units.length);
+			dataUnits = units == null ? null : Arrays.copyOf(units, units.length);
 		}
 	}
 	/* (non-Javadoc)

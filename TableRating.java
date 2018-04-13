@@ -321,21 +321,29 @@ public class TableRating extends AbstractRating {
 	}
 	
 	protected double rate(double[] pIndVals, int p_offset) throws RatingException {
-		String[] dataUnits = getDataUnits();
 		String[] ratingUnits = getRatingUnits();
-		for (int i = 0; i < ratingUnits.length; ++i) {
-			if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
-				dataUnits[i] = ratingUnits[i] = null;
-			}
-			else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
-			}
-			else {
-				String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
-				if (!allowUnsafe) throw new RatingException(msg);
-				if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
-			}
+		if (ratingUnits == null) {
+			throw new RatingException("Rating units have not been set");
 		}
-		return rate(pIndVals, dataUnits, ratingUnits, p_offset);
+		String[] dataUnits = getDataUnits();
+		if (dataUnits == null) {
+			return rate(pIndVals, ratingUnits, ratingUnits, p_offset);
+		}
+		else {
+			for (int i = 0; i < ratingUnits.length; ++i) {
+				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+					dataUnits[i] = ratingUnits[i] = null;
+				}
+				else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+				}
+				else {
+					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
+					if (!allowUnsafe) throw new RatingException(msg);
+					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+				}
+			}
+			return rate(pIndVals, dataUnits, ratingUnits, p_offset);
+		}
 	}
 	
 	protected double rate(double[] pIndVals, String[] dataUnits, String[] ratingUnits, int p_offset) throws RatingException {

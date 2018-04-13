@@ -427,6 +427,10 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 	public void setDataUnits(String[] units) throws RatingException {
 		synchronized(this) {
 			try {
+				if (units == null) {
+					dataUnits = null;
+					return;
+				}
 				if (units.length != parameters.length) {
 					throw new RatingException(String.format("Expected %d units, got %d instead.", parameters.length, units.length));
 				}

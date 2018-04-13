@@ -178,16 +178,18 @@ public class VirtualRating extends AbstractRating {
 				// add the default connections from the independent parameters //
 				//-------------------------------------------------------------//
 				Set<String> unconnectedSet = new HashSet<String>(unconnectedList);
-				for (int i = 0; i < Math.min(unconnectedList.size(), getIndParamCount()); ++i) {
-					String indParam = "I"+(i+1);
-					connectionPoint = unconnectedList.get(i);
-					connMap.put(connectionPoint, new HashSet<String>());
-					connMap.get(connectionPoint).add(indParam);
-					if (!connMap.containsKey(indParam)) {
-						connMap.put(indParam, new HashSet<String>());
+				if (unconnectedSet.size() > 1) {
+					for (int i = 0; i < Math.min(unconnectedList.size(), getIndParamCount()); ++i) {
+						String indParam = "I"+(i+1);
+						connectionPoint = unconnectedList.get(i);
+						connMap.put(connectionPoint, new HashSet<String>());
+						connMap.get(connectionPoint).add(indParam);
+						if (!connMap.containsKey(indParam)) {
+							connMap.put(indParam, new HashSet<String>());
+						}
+						connMap.get(indParam).add(connectionPoint);
+						unconnectedSet.remove(connectionPoint);
 					}
-					connMap.get(indParam).add(connectionPoint);
-					unconnectedSet.remove(connectionPoint);
 				}
 				if (unconnectedSet.size() < 1) {
 					throw new RatingException("Virtual rating is over-connected");
@@ -528,22 +530,28 @@ public class VirtualRating extends AbstractRating {
 				// process any source ratings that have all their inputs populated //
 				//-----------------------------------------------------------------//
 				for (r = 0; r < sourceRatings.length; ++r) {
-					int count = sourceRatings[r].getIndParamCount();
-					for (p = 0; p < count; ++p) {
+					int paramCount = sourceRatings[r].getIndParamCount();
+					for (p = 0; p < paramCount; ++p) {
 						if (!cpValues.containsKey("R"+(r+1)+"I"+(p+1))) {
 							break;
 						}
 					}
-					if (p == count) {
+					if (p == paramCount) {
 						//------------------------------------------------------------------//
 						// forward rate and remove source rating inputs from the population //
 						//------------------------------------------------------------------//
-						double[][] _indVals = new double[count][];
-						for (p = 0; p < count; ++p) {
-							_indVals[p] = cpValues.get(inputs[r][p]);
+						int len = cpValues.get(inputs[r][0]).length;
+						double[][] _indVals = new double[len][];
+						for (int i = 0; i < len; ++i) {
+							_indVals[i] = new double[paramCount];
+							for (p = 0; p < paramCount; ++p) {
+								double[] vals = cpValues.get(inputs[r][p]);
+								_indVals[i][p] = vals[i]; 
+							}
 						}
-						cpValues.put(outputs[r], sourceRatings[r].rate(valTimes, _indVals));
-						for (p = 0; p < count; ++p) {
+						double[] results = sourceRatings[r].rate(valTimes, _indVals);
+						cpValues.put(outputs[r], results);
+						for (p = 0; p < paramCount; ++p) {
 							cpValues.remove(inputs[r][p]);
 						}
 					}

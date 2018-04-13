@@ -199,10 +199,17 @@ public class ExpressionRating extends AbstractRating {
 				throw new RatingException(String.format("Data has %d independent parameters; rating %s requires %d", pIndVals[0].length, this.ratingSpecId, variables.length));
 			}
 			try {
-				String[] dataUnits = getDataUnits();
 				String[] ratingUnits = getRatingUnits();
+				if (ratingUnits == null) {
+					throw new RatingException("Rating units have not been set");
+				}
+				String[] dataUnits = getDataUnits();
+				if (dataUnits == null) {
+					dataUnits = new String[ratingUnits.length];
+					Arrays.fill(dataUnits, null);
+				}
 				for (int i = 0; i < ratingUnits.length; ++i) {
-					if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
+					if (dataUnits[i] == null || TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 						dataUnits[i] = ratingUnits[i] = null;
 					}
 					else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {

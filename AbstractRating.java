@@ -32,6 +32,7 @@ import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.io.VerticalDatumContainer;
 import hec.lang.Observable;
+import hec.util.TextUtil;
 import rma.lang.Modifiable;
 
 /**
@@ -274,6 +275,13 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	public void setRatingSpecId(String ratingSpecId) {
 		synchronized(this) {
 			this.ratingSpecId = ratingSpecId;
+			if (ratingSpecId == null) {
+				ratingParameters = null;
+			}
+			else {
+				String[] parts = split(ratingSpecId, SEPARATOR1);
+				ratingParameters = TextUtil.split(parts[1].replaceAll(SEPARATOR2, SEPARATOR3), SEPARATOR3);
+			}
 		}
 		
 	}
@@ -351,6 +359,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	public String[] getRatingParameters() {
 		synchronized(this) {
 			if (ratingParameters == null) {
+				if (ratingSpecId == null) {
+					return null;
+				}
 				String parametersId = split(ratingSpecId, SEPARATOR1, "L")[1];
 				ratingParameters = split(replaceAll(parametersId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
 			}
@@ -364,6 +375,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	public String[] getRatingUnits() {
 		synchronized(this) {
 			if (ratingUnits == null) {
+				if (ratingUnitsId == null) {
+					return null;
+				}
 				ratingUnits = split(replaceAll(ratingUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
 			};
 			return Arrays.copyOf(ratingUnits, ratingUnits.length);
@@ -376,6 +390,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	public String[] getDataUnits() {
 		synchronized(this) {
 			if (dataUnits == null) {
+				if (dataUnitsId == null) {
+					return null;
+				}
 				dataUnits = dataUnitsId == null ? getRatingUnits() : split(replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
 			}
 			return Arrays.copyOf(dataUnits, dataUnits.length);
@@ -387,8 +404,13 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
 		synchronized(this) {
+			if (units == null) {
+				this.dataUnitsId = null;
+				this.dataUnits = null;
+				return;
+			}
 			String[] ratingUnits = getRatingUnits();
-			if (units.length != ratingUnits.length) {
+			if (ratingUnits != null && units.length != ratingUnits.length) {
 				throw new RatingException("Invalid number of data units.");
 			}
 			Units unit = null;
