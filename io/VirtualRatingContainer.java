@@ -4,14 +4,18 @@
 package hec.data.cwmsRating.io;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jdom.Element;
 
@@ -63,11 +67,12 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * @param ratings A collection of ratings that includes the necessary source ratings
 	 * @param specs A collection of rating specifications for the source ratings
 	 * @param temlates A collection of rating templates for the source ratings.
+	 * @throws RatingException 
 	 */
 	public void populateSourceRatings(
 			Map<String, SortedSet<AbstractRatingContainer>> ratings, 
 			Map<String, RatingSpecContainer> specs, 
-			Map<String, RatingTemplateContainer> templates) {
+			Map<String, RatingTemplateContainer> templates) throws RatingException {
 		
 		List<SourceRatingContainer> srList = new ArrayList<SourceRatingContainer>();
 		List<String> specsToUse = new ArrayList<String>();
@@ -112,30 +117,109 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		}
 		sourceRatings = srList.toArray(new SourceRatingContainer[0]);
 		int indParamCount = TextUtil.split(ratingSpecId, SEPARATOR3).length;
-		HashSet<String> connectionPoints = new HashSet<String>();
-		for (String connectionPoint : TextUtil.split(connections.replaceAll("=", ","), ",")) {
-			connectionPoints.add(connectionPoint);
+		String[] units = new String[indParamCount+1];
+		Arrays.fill(units, null);
+		//                                  groups   1 2       3     4 5 
+		Pattern connectionPattern = Pattern.compile("(I(\\d+)|R(\\d+)(I(\\d+)|D)|D)");
+		Matcher[] m = new Matcher[2];
+		HashSet<String> connected = new HashSet<String>();
+		//-------------------------------------------------------//
+		// first get the units of specified external connections //
+		//-------------------------------------------------------//
+		for (String connectionPair : TextUtil.split(connections, ",")) {
+			String[] parts = TextUtil.split(connectionPair, "=");
+			if (parts.length != 2) {
+				throw new RatingException("Invalid connection string: "+connections);
+			}
+			connected.add(parts[0]);
+			connected.add(parts[1]);
+			m[0] = connectionPattern.matcher(parts[0]);
+			m[1] = connectionPattern.matcher(parts[1]);
+			if (!m[0].matches() || !m[1].matches()) {
+				throw new RatingException("Invalid connection string: "+connections);
+			}
+			int matchedIdx = m[0].group(1).charAt(0) == 'I' ? 0 : m[1].group(1).charAt(0) == 'I' ? 1 : -1;
+			if (matchedIdx != -1) {
+				//-------------------------------------------//
+				// external independent connection specified //
+				//-------------------------------------------//
+				int inputIdx = Integer.parseInt(m[matchedIdx].group(2));
+				int connectedIdx = (matchedIdx + 1) % 2;
+				if (m[connectedIdx].group(2).charAt(0) != 'R') {
+					throw new RatingException("Invalid connection string: "+connections);
+				}
+				int ratingIdx = Integer.parseInt(m[connectedIdx].group(3)); 
+				switch (m[connectedIdx].group(4).charAt(0)) {
+				case 'I' :
+					int ratingInput = Integer.parseInt(m[connectedIdx].group(5));
+					units[inputIdx-1] = sourceRatings[ratingIdx-1].units[ratingInput-1];
+					break;
+				case 'D' :
+					units[inputIdx-1] = sourceRatings[ratingIdx-1].units[sourceRatings[ratingIdx-1].units.length-1];
+					break;
+				default :
+					throw new RatingException("Invalid connection string: "+connections);
+				}
+			}
+			else {
+				matchedIdx = m[0].group(1).charAt(0) == 'D' ? 0 : m[1].group(1).charAt(0) == 'D' ? 1 : -1;
+				if (matchedIdx != -1) {
+					//-----------------------------------------//
+					// external dependent connection specified //
+					//-----------------------------------------//
+					int connectedIdx = (matchedIdx + 1) % 2;
+					if (m[connectedIdx].group(2).charAt(0) != 'R') {
+						throw new RatingException("Invalid connection string: "+connections);
+					}
+					int ratingIdx = Integer.parseInt(m[connectedIdx].group(3)); 
+					switch (m[connectedIdx].group(4).charAt(0)) {
+					case 'I' :
+						int ratingInput = Integer.parseInt(m[connectedIdx].group(5));
+						units[indParamCount] = sourceRatings[ratingIdx-1].units[ratingInput-1];
+						break;
+					case 'D' :
+						units[indParamCount] = sourceRatings[ratingIdx-1].units[sourceRatings[ratingIdx-1].units.length-1];
+						break;
+					default :
+						throw new RatingException("Invalid connection string: "+connections);
+					}
+				}
+			}
 		}
-		Vector<String> units = new Vector<String>();
+		//------------------------------------------------//
+		// now populate unassigned units in default order //
+		//------------------------------------------------//
+		LinkedList<Integer> unassignedUnits = new LinkedList<Integer>();
+		for (int i = 0; i < units.length; ++i) {
+			if (units[i] == null) {
+				unassignedUnits.add(i);
+			}
+		}
+		indUnits:
 		for (int i = 0; i < sourceRatings.length; ++i) {
-			for (int j = 0; j < sourceRatings[i].units.length; ++j) {
-				if (!connectionPoints.contains("R"+(i+1)+"I"+(j+1))) {
-					units.add(sourceRatings[i].units[j]);
-					if (connectionPoints.size() == indParamCount) {
+			for (int j = 0; j < sourceRatings[i].units.length - 1; ++j) {
+				if (!connected.contains("R"+(i+1)+"I"+(j+1))) {
+					units[unassignedUnits.get(0)] = sourceRatings[i].units[j];
+					unassignedUnits.remove();
+					if (unassignedUnits.peek() == null) {
+						break indUnits;
+					}
+				}
+			}
+		}
+		if (unassignedUnits.peek() != null) {
+			for (int i = 0; i < sourceRatings.length; ++i) {
+				if (!connected.contains("R"+(i+1)+"D")) {
+					units[unassignedUnits.get(0)] = sourceRatings[i].units[sourceRatings[i].units.length-1];
+					if (unassignedUnits.peek() == null) {
 						break;
 					}
 				}
 			}
 		}
-		for (int i = 0; i < sourceRatings.length; ++i) {
-			if (!connectionPoints.contains("R"+(i+1)+"D")) {
-				units.add(sourceRatings[i].units[sourceRatings[i].units.length-1]);
-				break;
-			}
-		}
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < units.size(); ++i) {
-			sb.append(i == 0 ? "" : i == units.size()-1 ? ";" : ",").append(units.get(i));
+		for (int i = 0; i < units.length; ++i) {
+			sb.append(i == 0 ? "" : i == units.length-1 ? ";" : ",").append(units[i]);
 		}
 		unitsId = sb.toString();
 	}

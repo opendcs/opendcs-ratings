@@ -64,11 +64,12 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * @param ratings A collection of ratings that includes the necessary source ratings
 	 * @param specs A collection of rating specifications for the source ratings
 	 * @param temlates A collection of rating templates for the source ratings.
+	 * @throws RatingException 
 	 */
 	public void populateSourceRatings(
 			Map<String, SortedSet<AbstractRatingContainer>> ratings, 
 			Map<String, RatingSpecContainer> specs, 
-			Map<String, RatingTemplateContainer> templates) {
+			Map<String, RatingTemplateContainer> templates) throws RatingException {
 		
 		if (sourceRatingIds != null) {
 			List<SourceRatingContainer> srList = new ArrayList<SourceRatingContainer>();

@@ -835,11 +835,21 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			for (AbstractRatingContainer arc : arcs) {
 				if (arc instanceof VirtualRatingContainer) {
 					vrc = (VirtualRatingContainer)arc;
-					vrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+					try {
+						vrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+					}
+					catch (RatingException e) {
+						throw new RuntimeException(e);
+					}
 				}
 				else if (arc instanceof TransitionalRatingContainer) {
 					trrc = (TransitionalRatingContainer)arc;
-					trrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+					try {
+						trrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+					}
+					catch (RatingException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 			//------------------------------------//
