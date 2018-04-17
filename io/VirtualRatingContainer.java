@@ -145,7 +145,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 				//-------------------------------------------//
 				int inputIdx = Integer.parseInt(m[matchedIdx].group(2));
 				int connectedIdx = (matchedIdx + 1) % 2;
-				if (m[connectedIdx].group(2).charAt(0) != 'R') {
+				if (m[connectedIdx].group(1).charAt(0) != 'R') {
 					throw new RatingException("Invalid connection string: "+connections);
 				}
 				int ratingIdx = Integer.parseInt(m[connectedIdx].group(3)); 
@@ -168,7 +168,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 					// external dependent connection specified //
 					//-----------------------------------------//
 					int connectedIdx = (matchedIdx + 1) % 2;
-					if (m[connectedIdx].group(2).charAt(0) != 'R') {
+					if (m[connectedIdx].group(1).charAt(0) != 'R') {
 						throw new RatingException("Invalid connection string: "+connections);
 					}
 					int ratingIdx = Integer.parseInt(m[connectedIdx].group(3)); 

@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observer;
@@ -1269,65 +1270,56 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		validate();
 	}
 	/**
+	 * Retrieves a map of all included rating specifications, keyed by their rating spec ids
+	 * @param specMap a non-null map to add to
+	 * @param ratings the ratings to evaluate
+	 * @throws RatingException if the same spec id maps to two non-equal rating specs 
+	 */
+	protected static void getAllRatingSpecs(HashMap<String, Object[]> specMap, Iterable<AbstractRating> ratings, String path) 
+			throws RatingException {
+		if (specMap == null) {
+			throw new RatingException("Cannot use a null specMap parameter");
+		}
+		for (AbstractRating r : ratings) {
+			String thisPath = path + "/" + r.getRatingSpecId(); 
+			if (r instanceof VirtualRating) {
+				VirtualRating vr = (VirtualRating)r;
+				for (SourceRating sr : vr.getSourceRatings()) {
+					if (sr.ratings != null) {
+						getAllRatingSpecs(specMap, Arrays.asList(sr.ratings.getRatings()), thisPath);
+					}
+				}
+			}
+			else if (r instanceof TransitionalRating) {
+				TransitionalRating tr = (TransitionalRating)r;
+				for (SourceRating sr : tr.getSourceRatings()) {
+					if (sr.ratings != null) {
+						getAllRatingSpecs(specMap, Arrays.asList(sr.ratings.getRatings()), thisPath);
+					}
+				}
+			}
+			RatingSpec spec = r.ratingSpec;
+			if (spec != null) {
+				String specId = spec.getRatingSpecId();
+				if (specMap.containsKey(specId)) {
+					if (!spec.equals(specMap.get(specId)[1])) {
+						throw new RatingException("Ratings contain multiple definitions of rating spec \""+specId+"\"");
+					}
+				}
+				else {
+					specMap.put(specId, new Object[] {thisPath, spec});
+				}
+			}
+		}
+	}
+	/**
 	 * Adds a single rating to the existing ratings.
 	 * @param rating The rating to add
 	 * @throws RatingException
 	 */
 	@Override
 	public void addRating(AbstractRating rating) throws RatingException {
-		synchronized(this) {
-			if (dbrating != null) {
-				throw new RatingException("Cannot add to a reference rating");
-			}
-			if (rating.getEffectiveDate() == Const.UNDEFINED_TIME) {
-				throw new RatingException("Cannot add rating with undefined effective date.");
-			}
-			Long effectiveDate = rating.getEffectiveDate();
-			if(ratings.containsKey(effectiveDate)) {
-				SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyyyy, HH:mm");
-				sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-				logger.fine("Replacing existing rating with effective date of " + sdf.format(effectiveDate) + " UTC");
-			}
-			if (ratingSpec != null && rating.getIndParamCount() != ratingSpec.getIndParamCount()) {
-				throw new RatingException("Number of independent parameters does not match rating specification");
-			}
-			if (ratings.size() > 0) {
-				if (!TextUtil.equalsIgnoreCase(rating.getRatingSpecId(), ratings.firstEntry().getValue().getRatingSpecId())) {
-					throw new RatingException("Cannot add rating with different rating specification.");
-				}
-				if (!AbstractRating.compatibleUnits(rating.getRatingUnitsId(), ratings.firstEntry().getValue().getRatingUnitsId())) {
-					throw new RatingException(String.format(
-							"Rating units of \"%s\" aren't compatible with rating units of \"%s\"",
-							rating.getRatingUnitsId(),
-							ratings.firstEntry().getValue().getRatingUnitsId()));
-				}
-			}
-			if (rating instanceof UsgsStreamTableRating) {
-				UsgsStreamTableRating streamRating = (UsgsStreamTableRating)rating;
-				if (streamRating.shifts != null) {
-					streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
-				}
-			}
-			ratings.put(effectiveDate, rating);
-			if (dataUnits == null) {
-				setDataUnits(rating.getDataUnits());
-			}
-			else {
-				rating.setDataUnits(dataUnits);
-			}
-			ratings.get(effectiveDate).ratingSpec = ratingSpec;
-			if (rating.isActive() && rating.createDate <= ratingTime) {
-				activeRatings.put(effectiveDate, rating);
-				activeRatings.get(effectiveDate).ratingSpec = ratingSpec;
-			}
-			rating.deleteObserver(this);
-			rating.addObserver(this);
-			validate();
-			if (observationTarget != null) {
-				observationTarget.setChanged();
-				observationTarget.notifyObservers();
-			}
-		}
+		addRatings(Arrays.asList(new AbstractRating[] {rating}));
 	}
 	/**
 	 * Adds multiple ratings to the existing ratings.
@@ -1336,9 +1328,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public void addRatings(AbstractRating[] ratings) throws RatingException {
-		synchronized(this) {
-			addRatings(Arrays.asList(ratings));
-		}
+		addRatings(Arrays.asList(ratings));
 	}
 	/**
 	 * Adds multiple ratings to the existing ratings.
@@ -1378,9 +1368,45 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							unitsId));
 				}
 			}
+			HashMap<String, Object[]> newSpecs = new HashMap<String, Object[]>();
+			RatingSet.getAllRatingSpecs(newSpecs, ratings, "");
 			if (this.ratings.size() > 0) {
 				if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
-					throw new RatingException("Cannot add ratings with different rating specification.");
+					throw new RatingException("Cannot add ratings with different rating specification IDs");
+				}
+				HashMap<String, Object[]> oldSpecs = new HashMap<String, Object[]>();
+				RatingSet.getAllRatingSpecs(oldSpecs, this.ratings.values(), "");
+				for (String specId : oldSpecs.keySet()) {
+					if (newSpecs.containsKey(specId) && !newSpecs.get(specId)[1].equals(oldSpecs.get(specId)[1])) {
+						StringBuilder sb = new StringBuilder("Cannot add ratings with different rating template or specification definitions.\n");
+						sb.append("Existing :")
+						  .append((String)oldSpecs.get(specId)[0])
+						  .append("\n")
+						  .append("Incoming :")
+						  .append((String)newSpecs.get(specId)[0])
+						  .append("\n");
+						String oldXml = ((RatingSpec)oldSpecs.get(specId)[1]).toTemplateXml("  ", 3);
+						String newXml = ((RatingSpec)newSpecs.get(specId)[1]).toTemplateXml("  ", 3);
+						if (!newXml.equals(oldXml)) {
+							sb.append("Definitions for template \"")
+							  .append(((RatingSpec)oldSpecs.get(specId)[1]).getTemplateId())
+							  .append("\" differ.\nExisting Definition :\n")
+							  .append(oldXml)
+							  .append("New Definition :\n")
+							  .append(newXml);
+						}
+						oldXml = ((RatingSpec)oldSpecs.get(specId)[1]).toSpecXml("  ", 3);
+						newXml = ((RatingSpec)newSpecs.get(specId)[1]).toSpecXml("  ", 3);
+						if (!newXml.equals(oldXml)) {
+							sb.append("Definitions for specification \"")
+							  .append(((RatingSpec)oldSpecs.get(specId)[1]).getRatingSpecId())
+							  .append("\"differ.\nExisting Definition :\n")
+							  .append(oldXml)
+							  .append("New Definition :\n")
+							  .append(newXml);
+						}
+						throw new RatingException(sb.toString());
+					}
 				}
 				if (!AbstractRating.compatibleUnits(unitsId, this.ratings.firstEntry().getValue().getRatingUnitsId())) {
 					throw new RatingException(String.format(
