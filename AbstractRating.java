@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import hec.data.DataSetException;
 import hec.data.IVerticalDatum;
+import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
@@ -319,8 +320,14 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	@Override
 	public void setDataUnitsId(String dataUnitsId) {
 		synchronized(this) {
-			this.dataUnitsId = dataUnitsId;
+			try {
+				setDataUnits(TextUtil.split(TextUtil.replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3), SEPARATOR3));
+			}
+			catch (RatingException e) {
+				logger.warning("Invalid data units string : " + dataUnitsId);
+			}
 		}
+		
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getName()
@@ -383,6 +390,42 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 			return Arrays.copyOf(ratingUnits, ratingUnits.length);
 		}
 	}
+	/**
+	 * Set the rating units
+	 * @param units The rating units
+	 * @throws RatingException
+	 */
+	public void setRatingUnits(String[] units) throws RatingException {
+		if (units == null) {
+			ratingUnits = null;
+			return;
+		}
+		String[] parameters = getRatingParameters();
+		if (parameters != null) {
+			if (units.length != parameters.length) {
+				throw new RatingException(String.format("Invalid number of rating units (%d units for %d parameters)", units.length, parameters.length));
+			}
+			Units parameterUnit = null;
+			for (int i = 0; i < parameters.length; ++i) {
+				try {
+					parameterUnit = new Parameter(parameters[i]).getUnits();
+				}
+				catch (Throwable t) {
+					if (!allowUnsafe) throw new RatingException(t);
+					if (warnUnsafe) logger.warning(t.getMessage());
+					parameterUnit = null;
+				}
+				if (parameterUnit != null) {
+					if(!Units.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
+						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit.toString());
+						if (!allowUnsafe) throw new RatingException(msg);
+						if (warnUnsafe) logger.warning(msg);
+					}
+				}
+			}
+		}
+		setDataUnits(getDataUnits());
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.IRating#getDataUnits()
 	 */
@@ -391,7 +434,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 		synchronized(this) {
 			if (dataUnits == null) {
 				if (dataUnitsId == null) {
-					return null;
+					return getRatingUnits();
 				}
 				dataUnits = dataUnitsId == null ? getRatingUnits() : split(replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
 			}
@@ -410,30 +453,69 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 				return;
 			}
 			String[] ratingUnits = getRatingUnits();
-			if (ratingUnits != null && units.length != ratingUnits.length) {
+			String[] parameters = getRatingParameters();
+			if (ratingUnits == null) {
+				if (parameters != null && units.length != parameters.length) {
+					throw new RatingException("Invalid number of data units.");
+				}
+			}
+			else if (units.length != ratingUnits.length) {
 				throw new RatingException("Invalid number of data units.");
 			}
-			Units unit = null;
+			Units dataUnit = null;
+			Units parameterUnit = null;
 			for (int i = 0; i < units.length; ++i) {
 				try {
-					unit = new Units(units[i]);
+					dataUnit = new Units(units[i]);
 				}
 				catch (Throwable t) {
 					if (!allowUnsafe) throw new RatingException(t);
 					if (warnUnsafe) logger.warning(t.getMessage());
-					unit = null;
+					dataUnit = null;
 				}
-				if (unit != null) {
-					if (!units[i].equals(ratingUnits[i])) {
-						if(!Units.canConvertBetweenUnits(units[i], ratingUnits[i])) {
-							String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], ratingUnits[i]);
-							if (!allowUnsafe) throw new RatingException(msg);
-							if (warnUnsafe) {
-								if (i == ratingUnits.length - 1) {
-									logger.warning(msg + "  Rated values will be unconverted.");
+				if (dataUnit != null) {
+					if (ratingUnits == null) {
+						//--------------------------------------------//
+						// compare against default unit for parameter //
+						//--------------------------------------------//
+						try {
+							parameterUnit = new Parameter(parameters[i]).getUnits();
+						}
+						catch (Throwable t) {
+							if (!allowUnsafe) throw new RatingException(t);
+							if (warnUnsafe) logger.warning(t.getMessage());
+							parameterUnit = null;
+						}
+						if (parameterUnit != null && !units[i].equals(parameterUnit)) {
+							if(!Units.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
+								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit.toString());
+								if (!allowUnsafe) throw new RatingException(msg);
+								if (warnUnsafe) {
+									if (i == parameters.length - 1) {
+										logger.warning(msg + "  Rated values will be unconverted.");
+									}
+									else {
+										logger.warning(msg + "  Rating will be performed using unconverted values.");
+									}
 								}
-								else {
-									logger.warning(msg + "  Rating will be performed using unconverted values.");
+							}
+						}
+					}
+					else {
+						//-----------------------------//
+						// compare against rating unit //
+						//-----------------------------//
+						if (!units[i].equals(ratingUnits[i])) {
+							if(!Units.canConvertBetweenUnits(units[i], ratingUnits[i])) {
+								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], ratingUnits[i]);
+								if (!allowUnsafe) throw new RatingException(msg);
+								if (warnUnsafe) {
+									if (i == ratingUnits.length - 1) {
+										logger.warning(msg + "  Rated values will be unconverted.");
+									}
+									else {
+										logger.warning(msg + "  Rating will be performed using unconverted values.");
+									}
 								}
 							}
 						}
@@ -445,7 +527,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 			for (int i = 1; i < units.length - 1; ++i) sb.append(",").append(units[i]);
 			sb.append(";").append(units[units.length-1]);
 			dataUnitsId = sb.toString();
-			dataUnits = null;
+			dataUnits = Arrays.copyOf(units, units.length);
 		}
 	}
 	/* (non-Javadoc)

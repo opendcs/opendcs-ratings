@@ -158,7 +158,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 * @param units the units as a string array
 		 * @throws ComputationException 
 		 */
-		public void setMathExpression(String mathExpression, String[] units) throws ComputationException {
+		public void setMathExpression(String mathExpression, String[] units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
 			this.mathExpression = new MathExpression(mathExpression);
 			setRatingUnits(units);
@@ -169,7 +169,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 * @param units the units as a string
 		 * @throws ComputationException 
 		 */
-		public void setMathExpression(String mathExpression, String units) throws ComputationException {
+		public void setMathExpression(String mathExpression, String units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
 			this.mathExpression = new MathExpression(mathExpression);
 			setRatingUnits(units);
@@ -184,8 +184,9 @@ public class SourceRating implements IRating, IVerticalDatum {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string array
+		 * @throws RatingException 
 		 */
-		public void setRatingSet(RatingSet ratings, String[] units) {
+		public void setRatingSet(RatingSet ratings, String[] units) throws RatingException {
 			this.ratings = ratings;
 			setRatingUnits(units);
 			mathExpression = null;
@@ -193,16 +194,18 @@ public class SourceRating implements IRating, IVerticalDatum {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string
+		 * @throws RatingException 
 		 */
-		public void setRatingSet(RatingSet ratings, String units) {
+		public void setRatingSet(RatingSet ratings, String units) throws RatingException {
 			this.ratings = ratings;
 			setRatingUnits(units);
 			mathExpression = null;
 		}
 		/**
 		 * @param ratings the ratings to set, using the RatingUnits of the set
+		 * @throws RatingException 
 		 */
-		public void setRatingSet(RatingSet ratings) {
+		public void setRatingSet(RatingSet ratings) throws RatingException {
 			this.ratings = ratings;
 			setRatingUnits(ratings.getRatingUnits());
 			mathExpression = null;
@@ -223,18 +226,29 @@ public class SourceRating implements IRating, IVerticalDatum {
 		/**
 		 * Sets the ratingUnits array from a string array
 		 * @param ratingUnits The string array to set the ratingUnits array from
+		 * @throws RatingException 
 		 */
-		protected void setRatingUnits(String[] units) {
-			ratingUnits = units == null ? getRatingSet().getRatingUnits() : units;
-			if (dataUnits == null) {
-				dataUnits = units;
+		protected void setRatingUnits(String[] units) throws RatingException {
+			if (ratings != null) {
+				for (AbstractRating r : ratings.getRatings()) {
+					r.setRatingUnits(units);
+				}
 			}
+			if (mathExpression != null) {
+				int varCount = mathExpression.getVariables().getVariableCount();
+				if (units != null && units.length != varCount + 1) {
+					throw new RatingException(String.format("Expected %d units for math expression (%s), got %d", varCount+1, mathExpression.toString(), units.length));
+				}
+			}
+			ratingUnits = units == null ? getRatingSet().getRatingUnits() : units;
+			setDataUnits(getDataUnits());
 		}
 		/**
 		 * Sets the ratingUnits array from a string
 		 * @param ratingUnits The string to set the ratingUnits array from
+		 * @throws RatingException 
 		 */
-		protected void setRatingUnits(String units) {
+		protected void setRatingUnits(String units) throws RatingException {
 			if (units == null) {
 				setRatingUnits(getRatingSet().getRatingUnits());
 			}
@@ -418,7 +432,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		@Override
 		public String getName() {
-			return ratings == null ? null : ratings.getName();
+			return ratings == null ? mathExpression == null ? null : mathExpression.toString() : ratings.getName();
 		}
 		/* (non-Javadoc)
 		 * @see hec.data.IRating#setName(java.lang.String)
@@ -456,10 +470,16 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		@Override
 		public void setDataUnits(String[] units) throws RatingException {
-			dataUnits = units == null ? null : units;
 			if (ratings != null) {
 				ratings.setDataUnits(units);
 			}
+			if (mathExpression != null) {
+				int varCount = mathExpression.getVariables().getVariableCount();
+				if (units != null && units.length != varCount + 1) {
+					throw new RatingException(String.format("Expected %d units for math expression (%s), got %d", varCount+1, mathExpression.toString(), units.length));
+				}
+			}
+			dataUnits = units == null ? null : units;
 		}
 		/* (non-Javadoc)
 		 * @see hec.data.IRating#getDefaultValueTime()
