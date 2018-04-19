@@ -26,6 +26,7 @@ import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
+import hec.lang.Const;
 import hec.util.TextUtil;
 
 import java.util.Arrays;
@@ -486,7 +487,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		@Override
 		public long getDefaultValueTime() {
-			return ratings == null ? null : ratings.getDefaultValueTime();
+			return ratings == null ? Const.UNDEFINED_TIME : ratings.getDefaultValueTime();
 		}
 		/* (non-Javadoc)
 		 * @see hec.data.IRating#setDefaultValueTime(long)

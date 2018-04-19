@@ -1422,7 +1422,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						streamRating.shifts.ratingSpec.inRangeMethod = this.ratingSpec.inRangeMethod;
 					}
 				}
-				this.ratings.put(rating.getEffectiveDate(), rating);
+				if (rating instanceof VirtualRating) {
+					VirtualRating vr = (VirtualRating)rating;
+					if (vr.isNormalized()) {
+						this.ratings.put(rating.getEffectiveDate(), vr);
+					}
+					else {
+						this.ratings.put(rating.getEffectiveDate(), vr.normalizedCopy());
+					}
+				}
+				else {
+					this.ratings.put(rating.getEffectiveDate(), rating);
+				}
 				this.ratings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
 				if (rating.isActive() && rating.createDate <= ratingTime) {
 					activeRatings.put(rating.getEffectiveDate(), rating);

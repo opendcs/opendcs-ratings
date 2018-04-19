@@ -6,8 +6,11 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +52,8 @@ public class VirtualRating extends AbstractRating {
 	protected String[] ratingUnits;
 	
 	protected String depParamConn = null;
+	
+	protected boolean isNormalized = false;
 
 	String[][]inputs = null;
 
@@ -161,6 +166,9 @@ public class VirtualRating extends AbstractRating {
 				if (connMap.containsKey("D")) {
 					depParamConn = connMap.get("D").iterator().next();
 				}
+				else {
+					depParamConn = null;
+				}
 				//--------------------------------------------//
 				// take note of unspecified connection points //
 				//--------------------------------------------//
@@ -205,6 +213,7 @@ public class VirtualRating extends AbstractRating {
 					boolean first = true;
 					for (String unconnected : unconnectedSet) {
 						sb.append(first ? "" : ", ").append(unconnected);
+						first = false;
 					}
 					sb.append("\n\tautomatic connections are: ");
 					for (int i = 0; i < automaticConnections.size(); ++i) {
@@ -248,8 +257,292 @@ public class VirtualRating extends AbstractRating {
 				setRatingUnitsId(sb.toString());
 				connectionsMap = connMap;
 				connectionsString = connections;
+				isNormalized = false;
 			}
 		}
+	}
+	/**
+	 * Arranges source ratings in deterministic order and removes unnecessary external connections
+	 * @throws RatingException 
+	 */
+	public void normalize() throws RatingException {
+		synchronized(this) {
+			//---------------------------------------//
+			// determine the new source rating order //
+			//---------------------------------------//
+			Pattern pat = Pattern.compile("(R|I)(\\d+)(D|I(\\d+))");
+			int[] newPos = new int[sourceRatings.length];
+			Arrays.fill(newPos, -1);
+			//
+			// put the rating for external dependent connection last
+			//
+			Matcher m = pat.matcher(depParamConn);
+			if (!m.matches()) {
+				throw new RatingException("Unexpected dependent parameter connection: " + depParamConn);
+			}
+			int dep = Integer.parseInt(m.group(2)) - 1;
+			newPos[dep] = sourceRatings.length-1;
+			//
+			// put the ratings for external independent connections first
+			//
+			int nextPos = 0;
+			for (int i = 0; i < getIndParamCount(); ++i) {
+				String input = "I"+(i+1);
+				Set<String> set = connectionsMap.get(input);
+				if (set != null) {
+					String[] conns = set.toArray(new String[set.size()]);
+					if (conns.length > 1) {
+						// this is an expensive sort, but assures the same order based on source rating names 
+						Arrays.sort(conns, new Comparator<String>() {
+							@Override
+							public int compare(String arg0, String arg1) {
+								Matcher m = pat.matcher(arg0);
+								if (m.matches()) {
+									int i = Integer.parseInt(m.group(2)) - 1;
+									m = pat.matcher(arg1);
+									if (m.matches()) {
+										int j = Integer.parseInt(m.group(2)) - 1;
+										return sourceRatings[i].getName().compareTo(sourceRatings[j].getName());
+									}
+									else {
+										// shouldn't happen
+										return arg0.compareTo(arg1);
+									}
+								}
+								else {
+									// shouldn't happen
+									return arg0.compareTo(arg1);
+								}
+							}
+						});
+					}
+					for (int j = 0; j < conns.length; ++j) {
+						m = pat.matcher(conns[j]);
+						if (!m.matches()) {
+							throw new RatingException("Unexpected independent parameter connection for "+input+": " + conns[0]);
+						}
+						int ind = Integer.parseInt(m.group(2)) - 1;
+						if (newPos[ind] == -1) {
+							newPos[ind]= nextPos++;
+							break;
+						}
+					}
+				}
+			}
+			//
+			// put ratings for remaining connections in alphabetical order
+			//
+			Object[][] sourcePos = new Object[sourceRatings.length][2];
+			for (int i = 0; i < sourceRatings.length; ++i) {
+				sourcePos[i][0] = sourceRatings[i].getName();
+				sourcePos[i][1] = new Integer(i);
+			}
+			Arrays.sort(sourcePos, new Comparator<Object[]>() {
+				@Override
+				public int compare(Object[] arg0, Object[] arg1) {
+					String s0 = (String)arg0[0];
+					String s1 = (String)arg1[0];
+					return s0.compareTo(s1);
+				}
+			});
+			for (int i = 0; i < sourcePos.length; ++i) {
+				int pos = (Integer)sourcePos[i][1];
+				if (newPos[pos] == -1) {
+					newPos[pos] = nextPos++;
+				}
+			}
+			//------------------------------------//
+			// copy the connections map to modify //
+			//------------------------------------//
+			SourceRating[] newSourceRatings = new SourceRating[sourceRatings.length];
+			Map<String, Set<String>> newConnectionsMap = new HashMap<String, Set<String>>();
+			for (String conn1 : connectionsMap.keySet()) {
+				HashSet<String> set = new HashSet<String>();
+				for (String conn2 : (HashSet<String>)connectionsMap.get(conn1)) {
+					set.add(conn2);
+				}
+				newConnectionsMap.put(conn1, set);
+			}
+			//------------------------------//
+			// first pass - update position //
+			//------------------------------//
+			//
+			// first update the keys
+			//
+			for (int i = 0; i < newPos.length; ++i) {
+				newSourceRatings[newPos[i]] = sourceRatings[i];
+				String _old = "R"+(i+1);
+				String _new = "r"+(newPos[i]+1);
+				for (String conn1 : newConnectionsMap.keySet().toArray(new String[newConnectionsMap.size()])) {
+					HashSet<String>set = (HashSet<String>)newConnectionsMap.get(conn1);
+					if (conn1.startsWith(_old)) {
+						newConnectionsMap.remove(conn1);
+						conn1 = conn1.replaceAll(_old, _new);
+						newConnectionsMap.put(conn1, set);
+					}
+				}
+			}
+			//
+			// now update the sets 
+			//
+			for (int i = 0; i < newPos.length; ++i) {
+				String _old = "R"+(i+1);
+				String _new = "r"+(newPos[i]+1);
+				for (String conn1 : newConnectionsMap.keySet().toArray(new String[newConnectionsMap.size()])) {
+					HashSet<String>set = (HashSet<String>)newConnectionsMap.get(conn1);
+					if (set == null) {
+						continue;
+					}
+					for (String conn2 : set.toArray(new String[set.size()])) {
+						if (conn2.startsWith(_old)) {
+							set.remove(conn2);
+							set.add(conn2.replaceAll(_old, _new));
+							newConnectionsMap.put(conn1, set);
+						}
+					}
+				}
+			}
+			//----------------------------------//
+			// second pass - restore upper case //
+			//----------------------------------//
+			for (String conn1 : newConnectionsMap.keySet().toArray(new String[newConnectionsMap.size()])) {
+				Set<String> set = newConnectionsMap.get(conn1);
+				for (String conn2 : set.toArray(new String[set.size()])) {
+					set.remove(conn2);
+					set.add(conn2.toUpperCase());
+				}
+				newConnectionsMap.remove(conn1);
+				conn1 = conn1.toUpperCase();
+				newConnectionsMap.put(conn1, set);
+			}
+			String _old = "R"+(dep+1);
+			String _new = "R"+(newPos[dep]+1);
+			String newDepParamConn = depParamConn.replaceAll(_old, _new);
+			//----------------------------------------------------------------//
+			// rebuild the connections string, omitting automatic connections //
+			//----------------------------------------------------------------//
+			HashSet<HashSet<String>> conns = new HashSet<HashSet<String>>();
+			for (String conn1 : newConnectionsMap.keySet()) {
+				for (String conn2 : newConnectionsMap.get(conn1)) {
+					HashSet<String> set = new HashSet<String>();
+					set.add(conn1);
+					set.add(conn2);
+					conns.add(set);
+				}
+			}
+			String[][] connArray = new String[conns.size()][];
+			int pos = 0;
+			for (HashSet<String> set : conns) {
+				connArray[pos] = set.toArray(new String[2]);
+				Arrays.sort(connArray[pos]);
+				if (connArray[pos][0].endsWith("D")) {
+					String temp = connArray[pos][0];
+					connArray[pos][0] = connArray[pos][1];
+					connArray[pos][1] = temp;
+				}
+				++pos;
+			}
+			Arrays.sort(connArray, new Comparator<String[]>() {
+
+				@Override
+				public int compare(String[] arg0, String[] arg1) {
+					int level1 = arg0[0].compareTo(arg1[0]);
+					return level1 == 0 ? arg0[1].compareTo(arg1[1]) : level1;
+				}
+			});
+			HashSet<String> skipped = new HashSet<String>();
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < connArray.length; ++i) {
+				if (connArray[i][0].charAt(0) == 'I') {
+					if (!skipped.contains(connArray[i][0])) {
+						skipped.add(connArray[i][0]);
+						continue;
+					}
+				}
+				else if (connArray[i][0].charAt(0) == 'D' || connArray[i][1].charAt(0) == 'D') {
+					continue;
+				}
+				if (sb.length() > 0) {
+					sb.append(",");
+				}
+				if (connArray[i][0].charAt(0) == 'I') {
+					sb.append(connArray[i][1]).append("=").append(connArray[i][0]);
+				}
+				else {
+					sb.append(connArray[i][0]).append("=").append(connArray[i][1]);
+				}
+			}
+			//------------------------------------------------//
+			// store the new order, mappings, and connections //
+			//------------------------------------------------//
+			sourceRatings = newSourceRatings;
+			connectionsMap = newConnectionsMap;
+			depParamConn = newDepParamConn;
+			setConnections(sb.toString());
+			isNormalized = true;
+		}
+	}
+	/**
+	 * @returns whether this virtual rating has been normalized
+	 */
+	public boolean isNormalized() {
+		return isNormalized;
+	}
+	/**
+	 * @return a normalized copy of this virtual rating
+	 * @throws RatingException
+	 */
+	public VirtualRating normalizedCopy() throws RatingException {
+		VirtualRating vr = new VirtualRating(getData());
+		vr.normalize();
+		return vr;
+	}
+	/**
+	 * @return a connections string that explicitly declares all external connections
+	 */
+	public String getConnectionsComplete() {
+		Set<Set<String>> conns = new HashSet<Set<String>>();
+		for (String conn1 : connectionsMap.keySet()) {
+			for (String conn2 : connectionsMap.get(conn1)) {
+				Set<String> set = new HashSet<String>();
+				set.add(conn1);
+				set.add(conn2);
+				conns.add(set);
+			}
+		}
+		String[][] connArray = new String[conns.size()][];
+		int i = 0;
+		for (Set<String> conn : conns) {
+			connArray[i] = conn.toArray(new String[2]);
+			Arrays.sort(connArray[i]);
+			if (connArray[i][0].endsWith("D")) {
+				String temp = connArray[i][0];
+				connArray[i][0] = connArray[i][1];
+				connArray[i][1] = temp;
+			}
+			++i;
+		}
+		Arrays.sort(connArray, new Comparator<String[]>(){
+			@Override
+			public int compare(String[] arg0, String[] arg1) {
+				int result = arg0[0].compareTo(arg1[0]);
+				if (result == 0) {
+					result = arg0[1].compareTo(arg1[1]);
+				}
+				return result;
+			}
+		});
+		StringBuilder sb = new StringBuilder();
+		for (String[] conn : connArray) {
+			if (conn[0].indexOf('I') == 0) {
+				sb.append(conn[1]).append("=").append(conn[0]).append(",");
+			}
+			else {
+				sb.append(conn[0]).append("=").append(conn[1]).append(",");
+			}
+		}
+		sb.append("D=").append(depParamConn);
+		return sb.toString();
 	}
 	/**
 	 * @return a copy of the source ratings array 
@@ -298,6 +591,7 @@ public class VirtualRating extends AbstractRating {
 					}
 				}
 			}
+			isNormalized = false;
 		}
 	}
 	/**
@@ -837,5 +1131,17 @@ public class VirtualRating extends AbstractRating {
 	@Override
 	public int hashCode() {
 		return getClass().getName().hashCode() + getData().hashCode();
+	}
+	/* (non-Javadoc)
+	 * @see hec.data.cwmsRating.AbstractRating#storeToDatabase(java.sql.Connection, boolean)
+	 */
+	@Override
+	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
+		if(!isNormalized()) {
+			normalizedCopy().storeToDatabase(conn, overwriteExisting);
+		}
+		else {
+			super.storeToDatabase(conn, overwriteExisting);
+		}
 	}
 }
