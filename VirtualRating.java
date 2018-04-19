@@ -475,7 +475,7 @@ public class VirtualRating extends AbstractRating {
 			//------------------------------------------------//
 			// store the new order, mappings, and connections //
 			//------------------------------------------------//
-			sourceRatings = newSourceRatings;
+			setSourceRatings(newSourceRatings);
 			connectionsMap = newConnectionsMap;
 			depParamConn = newDepParamConn;
 			setConnections(sb.toString());
