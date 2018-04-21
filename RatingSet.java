@@ -889,7 +889,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							String xmlText = clob.getSubString(1, (int)clob.length());
 							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
 							rs = fromXml(xmlText, false);
-							rs.isLazy = true;
+							rs.setLazy();
 						}
 						finally {
 							freeClob(clob);
@@ -1578,6 +1578,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				observationTarget.setChanged();
 				observationTarget.notifyObservers();
 			}
+		}
+	}
+	/**
+	 * Loads all rating values from table ratings that haven't already been loaded.
+	 * @throws RatingException
+	 */
+	public void getConcreteRatings() throws RatingException {
+		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
+			getConcreteRating(entry);
 		}
 	}
 	protected Map.Entry<Long, AbstractRating> getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
@@ -3420,7 +3429,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		synchronized(this) {
 			RatingSetContainer rsc = null;
 			if (dbrating != null) {
-				logger.info("Reference ratings cannot return RatingSetContainer objects.");
+				throw new RuntimeException("Reference ratings cannot return RatingSetContainer objects.");
+			}
+			else if (hasNullValues()) {
+				throw new RuntimeException("RatingSet has incomplete TableRating objects.\n\tTry using EAGER loading method or calling getConcreteRatings().");
 			}
 			else {
 				rsc = new RatingSetContainer();
@@ -3537,6 +3549,48 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 		return getData().hasVerticalDatum();
+	}
+	protected void setLazy() {
+		isLazy = true;
+		for(AbstractRating r : getRatings()) {
+			if (r instanceof VirtualRating) {
+				for (SourceRating sr : ((VirtualRating)r).getSourceRatings()) {
+					if (sr.ratings != null) {
+						sr.ratings.setLazy();
+					}
+				}
+			}
+			else if (r instanceof TransitionalRating) {
+				for (SourceRating sr : ((TransitionalRating)r).getSourceRatings()) {
+					if (sr.ratings != null) {
+						sr.ratings.setLazy();
+					}
+				}
+			}
+		}
+	}
+	protected boolean hasNullValues() {
+		for(AbstractRating r : getRatings()) {
+			if (r instanceof TableRating) {
+				TableRating tr = (TableRating)r;
+				if (tr.values == null) return true;
+			}
+			else if (r instanceof VirtualRating) {
+				for (SourceRating sr : ((VirtualRating)r).getSourceRatings()) {
+					if (sr.ratings != null) {
+						if (sr.ratings.hasNullValues()) return true;
+					}
+				}
+			}
+			else if (r instanceof TransitionalRating) {
+				for (SourceRating sr : ((TransitionalRating)r).getSourceRatings()) {
+					if (sr.ratings != null) {
+						if (sr.ratings.hasNullValues()) return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
