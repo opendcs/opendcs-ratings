@@ -91,6 +91,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		List<String> ratingXmlStrings = new ArrayList<String>();
 		SortedSet<String> templateXmlStrings = new TreeSet<String>();
 		SortedSet<String> specXmlStrings = new TreeSet<String>();
+		String thisTemplateXml = ratingSpecContainer.toTemplateXml(indent, level+1);
 		if (level == 0) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
@@ -108,7 +109,9 @@ public class RatingSetContainer implements IVerticalDatum {
 			}
 		}
 		for (String templateXml : templateXmlStrings) {
-			sb.append(templateXml);
+			if (!templateXml.equals(thisTemplateXml)) {
+				sb.append(templateXml);
+			}
 		}
 		if (ratingSpecContainer != null) {
 			sb.append(ratingSpecContainer.toXml(indent, level+1, includeTemplate));
@@ -121,8 +124,8 @@ public class RatingSetContainer implements IVerticalDatum {
 				sb.append(arc.toXml(indent, level+1));
 			}
 		}
-		for (String specXml : ratingXmlStrings) {
-			sb.append(specXml);
+		for (String ratingXml : ratingXmlStrings) {
+			sb.append(ratingXml);
 		}
 		if (level == 0) {
 			sb.append(prefix).append("</ratings>\n");
