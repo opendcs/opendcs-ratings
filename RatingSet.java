@@ -25,7 +25,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observer;
@@ -49,7 +48,6 @@ import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
@@ -254,6 +252,55 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) 
+			throws RatingException {
+		synchronized (conn) {
+			try {
+				try {
+					CallableStatement stmt = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2, :3, :4); end;");
+					stmt.registerOutParameter(1, Types.CLOB);
+					stmt.setString(2, xml);
+					stmt.setString(3, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
+					stmt.setString(4, replaceBase ? "T" : "F");
+					stmt.execute();
+					Clob clob = stmt.getClob(1);
+					if (clob != null) {
+						try {
+							if (clob.length() > Integer.MAX_VALUE) {
+								throw new RatingException("CLOB too long.");
+							}
+							String errors = clob.getSubString(1, (int)clob.length());
+							if (errors.length() > 0) {
+								throw new RatingException(errors);
+							}
+						}
+						finally {
+							freeClob(clob);
+						}
+					}
+				}
+				catch (SQLException e) {
+					if (e.getMessage().indexOf("PLS-00306") < 0) {
+						throw e;
+					}
+					// try older database API
+					storeToDatabaseOld(conn, xml, overwriteExisting, replaceBase);
+				}
+			}
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
+		}
+	}
+	/**
+	 * Stores the rating set to a CWMS database
+	 * @param conn The connection to the CWMS database
+	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
+	 * @param replaceBase Flag specifying whether to replace the base curves of USGS-style stream ratings (false = only store shifts)
+	 * @throws RatingException
+	 * @deprecated Should not be needed after database schema 18.1.1 is fully distributed
+	 */
+	static void storeToDatabaseOld(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) 
 			throws RatingException {
 		CallableStatement[] stmts = new CallableStatement[3];
 		synchronized (conn) {
