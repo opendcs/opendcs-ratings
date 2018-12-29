@@ -72,6 +72,14 @@ public class ExpressionRating extends AbstractRating {
 
 	}
 	/**
+	 * Public constructor from XML text
+	 * @param xmlText The XML text to initialize from
+	 * @throws RatingException
+	 */
+	public ExpressionRating(String xmlText) throws RatingException {
+		setData(new ExpressionRatingContainer(xmlText));
+	}
+	/**
 	 * Retrieves the mathematical expression for this rating
 	 * @return
 	 */

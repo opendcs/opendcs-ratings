@@ -6,6 +6,7 @@ package hec.data.cwmsRating.io;
 import org.jdom.Element;
 
 import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.ExpressionRating;
@@ -22,7 +23,55 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 * The mathematical expression for the rating
 	 */
 	public String expression = null;
-
+	/**
+	 * Public empty constructor;
+	 */
+	public ExpressionRatingContainer() {}
+	/**
+	 * Public constructor from a jdom element
+	 * @param ratingElement the jdom element
+	 * @throws RatingException
+	 */
+	public ExpressionRatingContainer(Element ratingElement) throws RatingException {
+		populateFromXml(ratingElement);
+	}
+	/**
+	 * public constructor from an XML snippet
+	 * @param xmlText the XML snippet
+	 * @throws RatingException
+	 */
+	public ExpressionRatingContainer(String xmlText) throws RatingException {
+		populateFromXml(xmlText);
+	}
+	/**
+	 * Populates data from an jdom element
+	 * @param ratingElement
+	 * @throws RatingException
+	 */
+	public void populateFromXml(Element ratingElement) throws RatingException {
+		try {
+			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
+		}
+		catch (VerticalDatumException e) {
+			throw new RatingException(e);
+		}
+		expression = ratingElement.getChildTextTrim("formula");
+	}
+	/**
+	 * Populates data from an XML snippet
+	 * @param ratingElement
+	 * @throws RatingException
+	 */
+	public void populateFromXml(String xmlText) throws RatingException {
+		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
+		if (arc instanceof ExpressionRatingContainer) {
+			arc.clone(this);
+		}
+		else {
+			throw new RatingException("XML text does not specify an ExpressionRating object.");
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
 	 */
@@ -85,19 +134,6 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 		ExpressionRating rating = new ExpressionRating(this);
 		return rating;
 	}
-
-	public static ExpressionRatingContainer fromXml(Element ratingElement) throws RatingException {
-		ExpressionRatingContainer erc = new ExpressionRatingContainer();
-		try {
-			AbstractRatingContainer.fromXml(ratingElement, erc);
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingException(e);
-		}
-		erc.expression = ratingElement.getChildTextTrim("formula");
-		return erc;
-	}
-
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
 	 */
@@ -120,7 +156,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 			}
 		}
 		catch (VerticalDatumException e) {
-			throw new RuntimeException(e);
+			throw new RatingRuntimeException(e);
 		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);

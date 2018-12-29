@@ -1,21 +1,12 @@
 package hec.data.cwmsRating;
 
-import hec.data.NotMonotonicRatingException;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
-import hec.data.RatingException;
-import hec.data.RatingOutOfRangeException;
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.*;
-import hec.data.Units;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.lang.Observable;
-import hec.util.TextUtil;
 
 import java.io.StringReader;
 import java.util.Arrays;
@@ -25,6 +16,17 @@ import java.util.Vector;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
+
+import hec.data.NotMonotonicRatingException;
+import hec.data.RatingException;
+import hec.data.RatingOutOfRangeException;
+import hec.data.Units;
+import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.RatingValueContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.lang.Observable;
+import hec.util.TextUtil;
 /**
  * Table-based (lookup) rating implementation.
  * 
@@ -155,6 +157,14 @@ public class TableRating extends AbstractRating {
 		if (trc.vdc != null) {
 			vdc = trc.vdc.clone();
 		}
+	}
+	/**
+	 * Public constructor from XML text
+	 * @param xmlText The XML text to initialize from
+	 * @throws RatingException
+	 */
+	public TableRating(String xmlText) throws RatingException {
+		setData(new TableRatingContainer(xmlText));
 	}
 	/**
 	 * Public Constructor 

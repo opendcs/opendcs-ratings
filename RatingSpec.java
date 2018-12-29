@@ -17,10 +17,14 @@ import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
 import hec.util.TextUtil;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Types;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.xpath.XPathConstants;
 
@@ -32,6 +36,9 @@ import org.w3c.dom.NodeList;
  * @author Mike Perryman
  */
 public class RatingSpec extends RatingTemplate {
+
+	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
+	
 	/**
 	 * The identifier of the location for the rating specification
 	 */
@@ -103,9 +110,8 @@ public class RatingSpec extends RatingTemplate {
 			}
 			parts = TextUtil.split(parts[1].replace(SEPARATOR2, SEPARATOR3), SEPARATOR3);
 			if (parts.length < 2) break;
-			Parameter p = null;
 			for (String part : parts) {
-				try {p = new Parameter(part);}
+				try {new Parameter(part);}
 				catch (DataSetIllegalArgumentException e) {break test;}
 			}
 			isValid = true;
@@ -114,17 +120,18 @@ public class RatingSpec extends RatingTemplate {
 	}
 	
 	/**
-	 * Generates a new RatingTemplate object from a CWMS database connection
+	 * Retrieves a RatingTemplate XML instance from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
-	 * @param ratingSepcId The rating specification identifier
+	 * @param ratingSpecId The rating specification identifier
 	 * @throws RatingException
 	 */
-	public static RatingSpec fromDatabase(
+	public static String getXmlfromDatabase(
 			Connection conn, 
 			String officeId, 
-			String ratingSepcId)
+			String ratingSpecId)
 			throws RatingException {
+		String xmlText = null;
 		synchronized(conn) {
 			try {
 				String sql = 
@@ -136,7 +143,7 @@ public class RatingSpec extends RatingTemplate {
 						"end;";
 				CallableStatement stmt = conn.prepareCall(sql);
 				stmt.registerOutParameter(1, Types.CLOB);
-				stmt.setString(2, ratingSepcId);
+				stmt.setString(2, ratingSpecId);
 				if (officeId == null) {
 					stmt.setNull(3, Types.VARCHAR);
 				}
@@ -146,143 +153,31 @@ public class RatingSpec extends RatingTemplate {
 				stmt.execute();
 				Clob clob = stmt.getClob(1);
 				stmt.close();
-				if (clob.length() > Integer.MAX_VALUE) {
-					throw new RatingException("CLOB too long.");
+				try {
+					if (clob.length() > Integer.MAX_VALUE) {
+						throw new RatingException("CLOB too long.");
+					}
+					xmlText = clob.getSubString(1, (int)clob.length());
 				}
-				String xmlText = clob.getSubString(1, (int)clob.length());
-				RatingSpec rs = new RatingSpec(RatingSpecContainer.fromXml(xmlText));
-				String[] parts = TextUtil.split(ratingSepcId, SEPARATOR1);
-				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
-				RatingTemplate rt = RatingTemplate.fromDatabase(conn, officeId, templateId);
-				rs.setData(rt.getData()); 
-				return rs;
+				finally {
+					try {
+						clob.free();
+					}
+					catch(Throwable t) {
+						if (logger.isLoggable(Level.WARNING)) {
+							StringWriter sw = new StringWriter();
+							PrintWriter pw = new PrintWriter(sw);
+							t.printStackTrace(pw);
+							logger.log(Level.WARNING, sw.toString());
+						}
+					}
+				}
+				return xmlText;
 			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;
 				throw new RatingException(t);
 			}
-		}
-	}
-	/**
-	 * Generator from XML DOM nodes
-	 * @param templateNode The node containing the rating template information
-	 * @param specNode The node containing the rating specification information
-	 * @return A new RatingSpec object initialized with the data from the XML nodes
-	 * @throws RatingException
-	 */
-	public static RatingTemplate fromXml(Node templateNode, Node specNode) throws RatingException {
-		try {
-			//-------------------------//
-			// parse the template node //
-			//-------------------------//
-			String parametersId = (String)RatingConst.parametersIdXpath.evaluate(templateNode, XPathConstants.STRING);
-			String officeId = (String)RatingConst.officeIdXpath.evaluate(templateNode, XPathConstants.STRING);
-			String[] paramIds = split(parametersId, SEPARATOR2, "L");
-			if (paramIds.length != 2) {
-				throw new RatingException(String.format("Rating template has invalid parameters identifier: %s", parametersId));
-			}
-			String depParam = paramIds[1];
-			paramIds = split(paramIds[0], SEPARATOR3, "L");
-			String templateVersion = (String)RatingConst.versionXpath.evaluate(templateNode, XPathConstants.STRING);
-			Node indParamsNode = (Node)RatingConst.indParamsNodeXpath.evaluate(templateNode, XPathConstants.NODE);
-			NodeList indParamNodes = (NodeList)RatingConst.indParamNodesXpath.evaluate(indParamsNode, XPathConstants.NODESET);
-			int indParamCount = indParamNodes.getLength();
-			if (indParamCount != paramIds.length) {
-				throw new RatingException("Rating template has inconsistent numbers of independent parameters.");
-			}
-			RatingMethod[] inRangeMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeLowMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeHighMethods = new RatingMethod[indParamCount];
-			for (int i = 0; i < indParamCount; ++i) {
-				Node indParamNode = indParamNodes.item(i);
-				double pos = (Double)RatingConst.indParamPosXpath.evaluate(indParamNode, XPathConstants.NUMBER);
-				if (pos != i+1) {
-					throw new RatingException("Parameters out of order in rating template.");
-				}
-				if (!paramIds[i].equals(RatingConst.parameterXpath.evaluate(indParamNode, XPathConstants.STRING))) {
-					throw new RatingException(String.format("Rating template has inconsistent independent parameter %d.", (i+1)));
-				}
-				inRangeMethods[i] = RatingMethod.fromString((String)RatingConst.inRangeMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
-				outRangeLowMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeLowMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
-				outRangeHighMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeHighMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
-			}
-			if (!depParam.equals(RatingConst.depParamXpath.evaluate(templateNode, XPathConstants.STRING))) {
-				throw new RatingException("Rating template has inconsistent dependent parameter.");
-			}
-			String templateDescription = (String)RatingConst.descriptionXpath.evaluate(templateNode, XPathConstants.STRING);
-			//----------------------------//
-			// parse the rating spec node //
-			//----------------------------//
-			if (!officeId.equals(RatingConst.officeIdXpath.evaluate(specNode, XPathConstants.STRING))) {
-				throw new RatingException("Rating template and specification have different office identifiers.");
-			}
-			String ratingSpecId = (String)RatingConst.ratingSpecIdXpath.evaluate(specNode, XPathConstants.STRING);
-			String templateId = (String)RatingConst.templateIdXpath.evaluate(specNode, XPathConstants.STRING);
-			String locationId = (String)RatingConst.locationIdXpath.evaluate(specNode, XPathConstants.STRING);
-			String[] parts = split(ratingSpecId, SEPARATOR1, "L");
-			if (parts.length != 4) {
-				throw new RatingException("Rating specification has invalid identifier");
-			}
-//			String specVersion = parts[3];
-			if (!parts[0].equals(locationId)) {
-				throw new RatingException("Rating template and specification have different locations.");
-			}
-			if (!templateId.equals(String.format("%s%s%s", parametersId, SEPARATOR1, templateVersion))) {
-				throw new RatingException("Rating template and specification have inconsistent identifiers.");
-			}
-			String sourceAgencyId = (String)RatingConst.sourceAgencyXpath.evaluate(specNode, XPathConstants.STRING);
-			String inRangeMethod = (String)RatingConst.inRangeMethodXpath.evaluate(specNode, XPathConstants.STRING);
-			String outRangeLowMethod = (String)RatingConst.outRangeLowMethodXpath.evaluate(specNode, XPathConstants.STRING);
-			String outRangeHighMethod = (String)RatingConst.outRangeHighMethodXpath.evaluate(specNode, XPathConstants.STRING);
-			String activeStr = (String)RatingConst.activeXpath.evaluate(specNode, XPathConstants.STRING);
-			String autoUpdateStr = (String)RatingConst.autoUpdateXpath.evaluate(specNode, XPathConstants.STRING);
-			String autoActivateStr = (String)RatingConst.autoActivateXpath.evaluate(specNode, XPathConstants.STRING);
-			String autoMigrateExtensionsStr = (String)RatingConst.autoMigrateExtXpath.evaluate(specNode, XPathConstants.STRING);
-			boolean active =  activeStr.equals("true");
-			boolean autoUpdate = autoUpdateStr.equals("true");
-			boolean autoActivate = autoActivateStr.equals("true");
-			boolean autoMigrateExtensions = autoMigrateExtensionsStr.equals("true");
-			indParamsNode = (Node)RatingConst.indRoundingNodeXpath.evaluate(specNode, XPathConstants.NODE);
-			indParamNodes = (NodeList)RatingConst.indRoundingNodesXpath.evaluate(indParamsNode, XPathConstants.NODESET);
-			indParamCount = indParamNodes.getLength();
-			if (indParamCount != paramIds.length) {
-				throw new RatingException("Rating specification has different numbers of independent parameters than rating template.");
-			}
-			String[] indRoundingSpecs = new String[indParamCount];
-			for (int i = 0; i < indParamCount; ++i) {
-				Node indParamNode = indParamNodes.item(i);
-				double pos = (Double)RatingConst.indParamPosXpath.evaluate(indParamNode, XPathConstants.NUMBER);
-				if (pos != i+1) {
-					throw new RatingException("Parameters out of order in rating specification.");
-				}
-				indRoundingSpecs[i] = indParamNode.getFirstChild().getNodeValue().trim();
-			}
-			String depRoundingSpec = (String)RatingConst.depRoundingXpath.evaluate(specNode, XPathConstants.STRING);
-			String specDescription = (String)RatingConst.descriptionXpath.evaluate(specNode, XPathConstants.STRING);
-			RatingTemplate rs = new RatingSpec(
-					officeId,
-					ratingSpecId,
-					sourceAgencyId,
-					inRangeMethod,
-					outRangeLowMethod,
-					outRangeHighMethod,
-					active,
-					autoUpdate,
-					autoActivate,
-					autoMigrateExtensions,
-					indRoundingSpecs,
-					depRoundingSpec,
-					specDescription);
-			rs.setInRangeMethods(inRangeMethods);
-			rs.setOutRangeLowMethods(outRangeLowMethods);
-			rs.setOutRangeHighMethods(outRangeHighMethods);
-			rs.setTemplateId(templateId);
-			rs.setTemplateDescription(templateDescription);
-			return rs;
-		} 
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
 		}
 	}
 	/**
@@ -337,12 +232,48 @@ public class RatingSpec extends RatingTemplate {
 		setDepRoundingSpec(depRoundingSpec);
 	}
 	/**
+	 * Public Constructor
+	 */
+	public RatingSpec() {};
+	/**
 	 * Public Constructor from RatingSpecContainer
 	 * @param rsc The RatingSpecContainer object to initialize from
 	 * @throws RatingException
 	 */
 	public RatingSpec(RatingSpecContainer rsc) throws RatingException {
 		setData(rsc);
+	}
+	/**
+	 * Public constructor from the CWMS database
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @throws RatingException
+	 */
+	public RatingSpec (
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId)
+			throws RatingException {
+		setData(conn, officeId, ratingSpecId);
+	}
+	/**
+	 * Public constructor from XML nodes
+	 * @param templateXml The template XML node 
+	 * @param specXml The specification XML node
+	 * @throws RatingException
+	 */
+	public RatingSpec(Node templateNode, Node specNode) throws RatingException {
+		setData(new RatingSpec(templateNode, specNode).getData());
+	}
+	/**
+	 * Public constructor from XML strings
+	 * @param templateXml The template XML text
+	 * @param specXml The specification XML text
+	 * @throws RatingException
+	 */
+	public RatingSpec(String templateXml , String specXml) throws RatingException {
+		setData(templateXml, specXml);
 	}
 	/**
 	 * Retrieves the identifier of the office that owns this rating specification
@@ -436,6 +367,8 @@ public class RatingSpec extends RatingTemplate {
 		case PREVIOUS:
 		case LOWER:
 			throw new RatingException("Invalid out of range low specification method: " + outRangeLowMethod);
+		default:
+			break;
 		}
 		this.outRangeLowMethod = outRangeLowMethod;
 	}
@@ -456,6 +389,8 @@ public class RatingSpec extends RatingTemplate {
 		case NEXT:
 		case HIGHER:
 			throw new RatingException("Invalid out of range high specification method: " + outRangeHighMethod);
+		default:
+			break;
 		}
 		this.outRangeHighMethod = outRangeHighMethod;
 	}
@@ -798,6 +733,168 @@ public class RatingSpec extends RatingTemplate {
 			depRoundingSpec = new UsgsRounder(rsc.depRoundingSpec);
 			description = rsc.specDescription;
 		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
+	/**
+	 * Sets the data from this object from a the database
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @throws RatingException
+	 */
+	public void setData (
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId)
+			throws RatingException {
+		synchronized(conn) {
+			try {
+				String specXml = RatingSpec.getXmlfromDatabase(conn, officeId, ratingSpecId);
+				String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
+				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+				String templateXml = RatingTemplate.getXmlfromDatabase(conn, officeId, templateId);
+				setData(specXml, templateXml); 
+			}
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
+		}
+	}
+	/**
+	 * Sets the data for this object from XML Text
+	 * @param templateXml The template XML text
+	 * @param specXml The specification XML text
+	 * @throws RatingException
+	 */
+	public void setData(String templateXml , String specXml) throws RatingException {
+		if (specXml != null) {
+			setData(specXml);
+		}
+		if (templateXml != null) {
+			setData(new RatingTemplateContainer(templateXml));
+		}
+	}
+	/**
+	 * Sets the data for this object from XML nodes
+	 * @param templateXml The template XML node 
+	 * @param specXml The specification XML node
+	 * @throws RatingException
+	 */
+	public void setData(Node templateNode, Node specNode) throws RatingException {
+		try {
+			//-------------------------//
+			// parse the template node //
+			//-------------------------//
+			String parametersId = (String)RatingConst.parametersIdXpath.evaluate(templateNode, XPathConstants.STRING);
+			String officeId = (String)RatingConst.officeIdXpath.evaluate(templateNode, XPathConstants.STRING);
+			String[] paramIds = split(parametersId, SEPARATOR2, "L");
+			if (paramIds.length != 2) {
+				throw new RatingException(String.format("Rating template has invalid parameters identifier: %s", parametersId));
+			}
+			String depParam = paramIds[1];
+			paramIds = split(paramIds[0], SEPARATOR3, "L");
+			String templateVersion = (String)RatingConst.versionXpath.evaluate(templateNode, XPathConstants.STRING);
+			Node indParamsNode = (Node)RatingConst.indParamsNodeXpath.evaluate(templateNode, XPathConstants.NODE);
+			NodeList indParamNodes = (NodeList)RatingConst.indParamNodesXpath.evaluate(indParamsNode, XPathConstants.NODESET);
+			int indParamCount = indParamNodes.getLength();
+			if (indParamCount != paramIds.length) {
+				throw new RatingException("Rating template has inconsistent numbers of independent parameters.");
+			}
+			RatingMethod[] inRangeMethods = new RatingMethod[indParamCount];
+			RatingMethod[] outRangeLowMethods = new RatingMethod[indParamCount];
+			RatingMethod[] outRangeHighMethods = new RatingMethod[indParamCount];
+			for (int i = 0; i < indParamCount; ++i) {
+				Node indParamNode = indParamNodes.item(i);
+				double pos = (Double)RatingConst.indParamPosXpath.evaluate(indParamNode, XPathConstants.NUMBER);
+				if (pos != i+1) {
+					throw new RatingException("Parameters out of order in rating template.");
+				}
+				if (!paramIds[i].equals(RatingConst.parameterXpath.evaluate(indParamNode, XPathConstants.STRING))) {
+					throw new RatingException(String.format("Rating template has inconsistent independent parameter %d.", (i+1)));
+				}
+				inRangeMethods[i] = RatingMethod.fromString((String)RatingConst.inRangeMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
+				outRangeLowMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeLowMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
+				outRangeHighMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeHighMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
+			}
+			if (!depParam.equals(RatingConst.depParamXpath.evaluate(templateNode, XPathConstants.STRING))) {
+				throw new RatingException("Rating template has inconsistent dependent parameter.");
+			}
+			String templateDescription = (String)RatingConst.descriptionXpath.evaluate(templateNode, XPathConstants.STRING);
+			//----------------------------//
+			// parse the rating spec node //
+			//----------------------------//
+			if (!officeId.equals(RatingConst.officeIdXpath.evaluate(specNode, XPathConstants.STRING))) {
+				throw new RatingException("Rating template and specification have different office identifiers.");
+			}
+			String ratingSpecId = (String)RatingConst.ratingSpecIdXpath.evaluate(specNode, XPathConstants.STRING);
+			String templateId = (String)RatingConst.templateIdXpath.evaluate(specNode, XPathConstants.STRING);
+			String locationId = (String)RatingConst.locationIdXpath.evaluate(specNode, XPathConstants.STRING);
+			String[] parts = split(ratingSpecId, SEPARATOR1, "L");
+			if (parts.length != 4) {
+				throw new RatingException("Rating specification has invalid identifier");
+			}
+			if (!parts[0].equals(locationId)) {
+				throw new RatingException("Rating template and specification have different locations.");
+			}
+			if (!templateId.equals(String.format("%s%s%s", parametersId, SEPARATOR1, templateVersion))) {
+				throw new RatingException("Rating template and specification have inconsistent identifiers.");
+			}
+			String sourceAgencyId = (String)RatingConst.sourceAgencyXpath.evaluate(specNode, XPathConstants.STRING);
+			String inRangeMethod = (String)RatingConst.inRangeMethodXpath.evaluate(specNode, XPathConstants.STRING);
+			String outRangeLowMethod = (String)RatingConst.outRangeLowMethodXpath.evaluate(specNode, XPathConstants.STRING);
+			String outRangeHighMethod = (String)RatingConst.outRangeHighMethodXpath.evaluate(specNode, XPathConstants.STRING);
+			String activeStr = (String)RatingConst.activeXpath.evaluate(specNode, XPathConstants.STRING);
+			String autoUpdateStr = (String)RatingConst.autoUpdateXpath.evaluate(specNode, XPathConstants.STRING);
+			String autoActivateStr = (String)RatingConst.autoActivateXpath.evaluate(specNode, XPathConstants.STRING);
+			String autoMigrateExtensionsStr = (String)RatingConst.autoMigrateExtXpath.evaluate(specNode, XPathConstants.STRING);
+			boolean active =  activeStr.equals("true");
+			boolean autoUpdate = autoUpdateStr.equals("true");
+			boolean autoActivate = autoActivateStr.equals("true");
+			boolean autoMigrateExtensions = autoMigrateExtensionsStr.equals("true");
+			indParamsNode = (Node)RatingConst.indRoundingNodeXpath.evaluate(specNode, XPathConstants.NODE);
+			indParamNodes = (NodeList)RatingConst.indRoundingNodesXpath.evaluate(indParamsNode, XPathConstants.NODESET);
+			indParamCount = indParamNodes.getLength();
+			if (indParamCount != paramIds.length) {
+				throw new RatingException("Rating specification has different numbers of independent parameters than rating template.");
+			}
+			String[] indRoundingSpecs = new String[indParamCount];
+			for (int i = 0; i < indParamCount; ++i) {
+				Node indParamNode = indParamNodes.item(i);
+				double pos = (Double)RatingConst.indParamPosXpath.evaluate(indParamNode, XPathConstants.NUMBER);
+				if (pos != i+1) {
+					throw new RatingException("Parameters out of order in rating specification.");
+				}
+				indRoundingSpecs[i] = indParamNode.getFirstChild().getNodeValue().trim();
+			}
+			String depRoundingSpec = (String)RatingConst.depRoundingXpath.evaluate(specNode, XPathConstants.STRING);
+			setOfficeId(officeId);
+			parts = split(ratingSpecId, SEPARATOR1, "L");
+			if (parts.length != 4) throw new RatingException("Invalid rating specification: " + ratingSpecId);
+			setLocationId(parts[0]);
+			super.setParametersId(parts[1]);
+			super.setVersion(parts[2]);
+			setVersion(parts[3]);
+			setSourceAgencyId(sourceAgencyId);
+			setDescription(description);
+			setInRangeMethod(RatingMethod.fromString(inRangeMethod));
+			setOutRangeLowMethod(RatingMethod.fromString(outRangeLowMethod));
+			setOutRangeHighMethod(RatingMethod.fromString(outRangeHighMethod));
+			setActive(active);
+			setAutoUpdate(autoUpdate);
+			setAutoActivate(autoActivate);
+			setAutoMigrateExtensions(autoMigrateExtensions);
+			setIndRoundingSpecs(indRoundingSpecs);
+			setDepRoundingSpec(depRoundingSpec);
+			setInRangeMethods(inRangeMethods);
+			setOutRangeLowMethods(outRangeLowMethods);
+			setOutRangeHighMethods(outRangeHighMethods);
+			setTemplateId(templateId);
+			setTemplateDescription(templateDescription);
+		} 
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);

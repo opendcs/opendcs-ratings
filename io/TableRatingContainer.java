@@ -1,19 +1,17 @@
 package hec.data.cwmsRating.io;
 
-import hec.data.RatingException;
-import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.TableRating;
-import hec.io.VerticalDatumContainer;
-import hec.util.TextUtil;
-
 import java.io.StringReader;
 
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
+
+import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
+import hec.data.VerticalDatumException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.TableRating;
 
 /**
  * Data container class for TableRating objects
@@ -44,6 +42,59 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
 	 */
 	public String outRangeHighMethod = null;
+	/**
+	 * Public empty constructor
+	 */
+	public TableRatingContainer() {}
+	/**
+	 * Public constructor from a jdom element
+	 * @param element the jdom element
+	 * @throws RatingException
+	 */
+	public TableRatingContainer(Element element) throws RatingException {
+		populateFromXml(element);
+	}
+	/**
+	 * Public constructor from an XML snippet
+	 * @param xmlText the XML snippet
+	 * @throws RatingException
+	 */
+	public TableRatingContainer(String xmlText) throws RatingException {
+		populateFromXml(xmlText);
+	}
+	/**
+	 * Populate this container from a jdom element
+	 * @param ratingElement The jdom element
+	 * @throws RatingException
+	 */
+	public void populateFromXml(Element ratingElement) throws RatingException {
+		try {
+			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
+		}
+		catch (VerticalDatumException e) {
+			throw new RatingException(e);
+		}
+		if (ratingElement.getChildren("rating-points").size() > 0) {
+			values = RatingValueContainer.makeContainers(ratingElement, "rating-points");
+		}
+		if (ratingElement.getChildren("extension-points").size() > 0) {
+			extensionValues = RatingValueContainer.makeContainers(ratingElement, "extension-points");
+		}
+	}
+	/**
+	 * Populate this container from an XML snippet
+	 * @param xmlText the XML snippet
+	 * @throws RatingException
+	 */
+	public void populateFromXml(String xmlText) throws RatingException {
+		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
+		if (arc instanceof TableRatingContainer) {
+			arc.clone(this);
+		}
+		else {
+			throw new RatingException("XML text does not specify an TableRating object.");
+		}
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
 	 */
@@ -102,16 +153,18 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			hashCode += 11;
 		}
 		else {
+			hashCode += 13 * values.length;
 			for (int i = 0; i < values.length; ++i) {
-				hashCode += 13 * (values[i] == null ? (i+1) : values[i].hashCode());
+				hashCode += 17 * (values[i] == null ? i+1 : values[i].hashCode());
 			}
 		}
 		if (extensionValues == null) {
-			hashCode += 17;
+			hashCode += 19;
 		}
 		else {
+			hashCode += 23 * extensionValues.length;
 			for (int i = 0; i < extensionValues.length; ++i) {
-				hashCode += 19 * (extensionValues[i] == null ? (i+1) : extensionValues[i].hashCode());
+				hashCode += 29 * (extensionValues[i] == null ? i+1 : extensionValues[i].hashCode());
 			}
 		}
 		return hashCode;
@@ -167,23 +220,6 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		return rating;
 	}
 
-	public static TableRatingContainer fromXml(Element ratingElement) throws RatingException {
-		TableRatingContainer trc = new TableRatingContainer();
-		try {
-			AbstractRatingContainer.fromXml(ratingElement, trc);
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingException(e);
-		}
-		if (ratingElement.getChildren("rating-points").size() > 0) {
-			trc.values = RatingValueContainer.makeContainers(ratingElement, "rating-points");
-		}
-		if (ratingElement.getChildren("extension-points").size() > 0) {
-			trc.extensionValues = RatingValueContainer.makeContainers(ratingElement, "extension-points");
-		}
-		return trc;
-	}
-
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
 	 */
@@ -206,7 +242,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			}
 		}
 		catch (VerticalDatumException e) {
-			throw new RuntimeException(e);
+			throw new RatingRuntimeException(e);
 		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
@@ -221,11 +257,18 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		String pointsPrefix = prefix + indent;
 		if (values != null) {
 			boolean multiParam = values[0].depTable != null;
-			if (!multiParam) sb.append(prefix).append(indent).append("<rating-points>\n");
-			for (int i = 0; i < values.length; ++i) {
-				values[i].toXml(pointsPrefix, indent, sb);
+			if (!multiParam) {
+				if (values == null) {
+					sb.append(prefix).append(indent).append("<rating-points/>\n");
+				}
+				else {
+					sb.append(prefix).append(indent).append("<rating-points>\n");
+					for (int i = 0; i < values.length; ++i) {
+						values[i].toXml(pointsPrefix, indent, sb);
+					}
+					sb.append(prefix).append(indent).append("</rating-points>\n");
+				}
 			}
-			if (!multiParam) sb.append(prefix).append(indent).append("</rating-points>\n");
 		}
 		if (extensionValues != null) {
 			boolean multiParam = extensionValues[0].depTable != null;
@@ -233,11 +276,13 @@ public class TableRatingContainer extends AbstractRatingContainer {
 				AbstractRating.getLogger().severe("Multiple independent parameter ratings cannot use extension values, ignoring");
 			}
 			else {
-				sb.append(prefix).append(indent).append("<extension-points>\n");
-				for (int i = 0; i < extensionValues.length; ++i) {
-					extensionValues[i].toXml(pointsPrefix, indent, sb);
+				if (extensionValues != null) {
+					sb.append(prefix).append(indent).append("<extension-points>\n");
+					for (int i = 0; i < extensionValues.length; ++i) {
+						extensionValues[i].toXml(pointsPrefix, indent, sb);
+					}
+					sb.append(prefix).append(indent).append("</extension-points>\n");
 				}
-				sb.append(prefix).append(indent).append("</extension-points>\n");
 			}
 		}
 		sb.append(prefix).append("</simple-rating>\n");

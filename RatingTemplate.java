@@ -12,11 +12,15 @@ import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingTemplate;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import rma.lang.Modifiable;
 
@@ -27,6 +31,8 @@ import rma.lang.Modifiable;
  */
 public class RatingTemplate implements Modifiable
 {
+
+	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 	
 	/**
 	 * The templateVersion text of the rating template
@@ -70,11 +76,12 @@ public class RatingTemplate implements Modifiable
 	 * @param templateId The rating template identifier
 	 * @throws RatingException
 	 */
-	public static RatingTemplate fromDatabase(
+	public static String getXmlfromDatabase(
 			Connection conn, 
 			String officeId, 
 			String templateId)
 			throws RatingException {
+		String xmlText = null;
 		synchronized(conn) {
 			try {
 				String sql = 
@@ -96,11 +103,26 @@ public class RatingTemplate implements Modifiable
 				stmt.execute();
 				Clob clob = stmt.getClob(1);
 				stmt.close();
-				if (clob.length() > Integer.MAX_VALUE) {
-					throw new RatingException("CLOB too long.");
+				try {
+					if (clob.length() > Integer.MAX_VALUE) {
+						throw new RatingException("CLOB too long.");
+					}
+					xmlText = clob.getSubString(1, (int)clob.length());
 				}
-				String xmlText = clob.getSubString(1, (int)clob.length());
-				return new RatingTemplate(RatingTemplateContainer.fromXml(xmlText));
+				finally {
+					try {
+						clob.free();
+					}
+					catch(Throwable t) {
+						if (logger.isLoggable(Level.WARNING)) {
+							StringWriter sw = new StringWriter();
+							PrintWriter pw = new PrintWriter(sw);
+							t.printStackTrace(pw);
+							logger.log(Level.WARNING, sw.toString());
+						}
+					}
+				}
+				return xmlText;
 			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;
@@ -141,12 +163,26 @@ public class RatingTemplate implements Modifiable
 		this.description = description;
 	}
 	/**
-	 * Protected constructor from RatingTemplateContainer 
+	 * Public constructor from RatingTemplateContainer 
 	 * @param rtc The RatingTemplateContainer to initialize from
 	 * @throws RatingException
 	 */
 	public RatingTemplate(RatingTemplateContainer rtc) throws RatingException {
 		setData(rtc);
+	}
+	/**
+	 * Public constructor from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param templateId The rating template identifier
+	 * @throws RatingException
+	 */
+	public RatingTemplate(
+			Connection conn, 
+			String officeId, 
+			String templateId)
+			throws RatingException {
+		setData(conn, officeId, templateId);
 	}
 	/**
 	 * Retrieves the parameters identifier portion of the template
@@ -355,6 +391,36 @@ public class RatingTemplate implements Modifiable
 		RatingTemplateContainer rtc = new RatingTemplateContainer();
 		getData(rtc);
 		return rtc;
+	}
+	/**
+	 * Sets the data for this object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param templateId The rating template identifier
+	 * @throws RatingException
+	 */
+	public void setData (
+			Connection conn, 
+			String officeId, 
+			String templateId)
+			throws RatingException {
+		synchronized(conn) {
+			try {
+				setData(RatingTemplate.getXmlfromDatabase(conn, officeId, templateId));
+			}
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
+		}
+	}
+	/**
+	 * Sets the data from this object from an XML instance
+	 * @param xmlText The XML instance
+	 * @throws RatingException
+	 */
+	public void setData(String xmlText) throws RatingException {
+		setData(new RatingTemplateContainer(xmlText));
 	}
 	/**
 	 * Sets the data from this object from a RatingTemplateContainer

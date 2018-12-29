@@ -2,6 +2,14 @@ package hec.data.cwmsRating;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_TIME;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+
 import hec.data.DataSetException;
 import hec.data.RatingException;
 import hec.data.RoundingException;
@@ -16,13 +24,6 @@ import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.location.LocationTemplate;
 import hec.data.rating.IRatingSpecification;
 import hec.util.TextUtil;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
 
 /**
  * TableRating sub-type for USGS-style stream ratings, which may include dated shifts and log interpolation offsets
@@ -133,6 +134,14 @@ public class UsgsStreamTableRating extends TableRating {
 			}
 			this.shifts.addObserver(this);
 		}
+	}
+	/**
+	 * Public constructor from XML text
+	 * @param xmlText The XML text to initialize from
+	 * @throws RatingException
+	 */
+	public UsgsStreamTableRating(String xmlText) throws RatingException {
+		setData(new UsgsStreamTableRatingContainer(xmlText));
 	}
 
 	/* (non-Javadoc)

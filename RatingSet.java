@@ -10,7 +10,6 @@ import static hec.util.TextUtil.split;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -41,6 +40,7 @@ import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
+import hec.data.RoundingException;
 import hec.data.Units;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
@@ -48,6 +48,8 @@ import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.ReferenceRatingContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
@@ -76,18 +78,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * Flag specifying whether to load actual ratings only when needed.
 	 */
 	private boolean isLazy = false;
-	/**
-	 * URL of database connection (if any) the object is loaded from
-	 */
-	private String dbUrl      = null;
-	/**
-	 * User name of database connection (if any) the object is loaded from 
-	 */
-	private String dbUserName = null;
-	/**
-	 * Session office id of connection (if any) the object is loaded from
-	 */
-	private String dbOfficeId = null;
 	/**
 	 * Flag specifying whether new RatingSet objects will by default allow "risky" behavior such as using mismatched units, unknown parameters, etc.
 	 */
@@ -136,9 +126,86 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	protected boolean warnUnsafe = true;
 	/**
-	 * Connection for lazy and reference ratings if not loaded using CWMS-compatible connection.
+	 * Connection for lazy and reference ratings.
 	 */
 	protected Connection conn = null;
+	/**
+	 * Connection info for lazy and reference ratings.
+	 */
+	protected DbInfo dbInfo = null;
+	/**
+	 * Class for use in LAZY and REFERENCE ratings to be able to release and re-retrieve connections from the connection pool
+	 */
+	protected class DbInfo {
+		private String url = null;
+		private String userName = null;
+		private String officeId = null;
+		
+		public DbInfo(String url, String userName, String officeId) throws RatingException {
+			if (url      == null) throw new RatingException("DbInfo.url cannot be null");
+			if (userName == null) throw new RatingException("DbInfo.userName cannot be null");
+			if (officeId == null) throw new RatingException("DbInfo.officeId cannot be null");
+			this.userName = userName;
+			this.url = url;
+			this.officeId = officeId;
+		}
+		
+		public String getUserName() { return userName; }
+		public String getUrl()      { return url;      }
+		public String getOfficeId() { return officeId; }
+		@Override
+		public int hashCode() { 
+			return getClass().getName().hashCode() 
+					+ 3 * url.toLowerCase().hashCode() 
+					+ 5 * userName.toLowerCase().hashCode() 
+					+ 7 * officeId.toLowerCase().hashCode();
+		}
+		public boolean equals(Object obj) {
+			return obj == this 
+					|| (obj instanceof DbInfo
+							&& ((DbInfo)obj).url.equalsIgnoreCase(url)
+							&& ((DbInfo)obj).userName.equalsIgnoreCase(userName)
+							&& ((DbInfo)obj).officeId.equalsIgnoreCase(officeId));
+		}
+	}
+	
+	protected class ConnectionInfo {
+		private Connection conn = null;
+		private boolean wasRetrieved = false;
+		
+		public ConnectionInfo(Connection conn, boolean wasRetrieved) {
+			this.conn = conn;
+			this.wasRetrieved = wasRetrieved;
+		}
+		
+		public Connection getConnection() { return conn; }
+		public boolean wasRetrieved() { return wasRetrieved; }
+		@Override
+		public int hashCode() {
+			return getClass().getName().hashCode() + conn.hashCode() + (wasRetrieved ? 3 : 5);
+		}
+		@Override
+		public boolean equals(Object obj) {
+			boolean result = obj == this;
+			if (!result) {
+				if (obj instanceof ConnectionInfo) {
+					ConnectionInfo other = (ConnectionInfo) obj;
+					if (other.wasRetrieved != wasRetrieved) return false;
+					if (other.conn == conn) return true;
+					DatabaseMetaData md1;
+					DatabaseMetaData md2;
+					try {
+						md1 = conn.getMetaData();
+						md2 = other.conn.getMetaData();
+						if (!md1.getURL().equalsIgnoreCase(md2.getURL())) return false;
+						if (!md1.getUserName().equalsIgnoreCase(md2.getUserName())) return false;
+						return true;
+					} catch (SQLException e) {}
+				}
+			}
+			return result;
+		}
+	}
 	/**
 	 * Enumeration for specifying the method used to load a RatingSet object from a CWMS database 
 	 * <table border>
@@ -188,50 +255,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static void setAlwaysWarnUnsafe(Boolean alwaysWarnUnsafe) {
 		RatingSet.alwaysWarnUnsafe = alwaysWarnUnsafe;
-	}
-	/**
-	 * Generates a new RatingSet object from an XML instance.
-	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @return A new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromXml(String xmlText) throws RatingException {
-		return fromXml(xmlText, true);
-	}
-	/**
-	 * Generates a new RatingSet object from an XML instance.
-	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @param withRatingPoints Specifies whether to retrieve actual rating points for the ratings.
-	 * @return A new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromXml(String xmlText, boolean withRatingPoints) throws RatingException {
-		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText, withRatingPoints);
-		return new RatingSet(rsc);
-	}
-	/**
-	 * Generates a new RatingSet object from a compressed XML instance.
-	 * @param compressedXml The compressed XML instance to construct the RatingSet object from. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @return A new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromCompressedXml(String compressedXml) throws RatingException {
-		try {
-			return fromXml(TextUtil.uncompress(compressedXml, "base64"));
-		} 
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			throw new RatingException(t);
-		}
 	}
 	/**
 	 * Stores the rating set to a CWMS database
@@ -368,22 +391,22 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param ratingSpecId The rating specification identifier
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			Connection conn, 
 			String ratingSpecId) 
 			throws RatingException {
 				
-		return fromDatabase(null, conn, null, ratingSpecId, null, null);
+		this(null, conn, null, ratingSpecId, null, null);
 				
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
@@ -391,51 +414,33 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			Connection conn, 
 			String ratingSpecId, 
 			Long startTime, 
 			Long endTime)
 			throws RatingException {
 		
-		return fromDatabase(null, conn, null, ratingSpecId, startTime, endTime);
+		this(null, conn, null, ratingSpecId, startTime, endTime);
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
 	 * @param ratingSpecId The rating specification identifier
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			Connection conn, 
 			String officeId, 
 			String ratingSpecId)
 			throws RatingException {
 		
-		return fromDatabase(null, conn, officeId, ratingSpecId, null, null);
+		this(null, conn, officeId, ratingSpecId, null, null);
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param ratingSpecId The rating specification identifier
-	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
-	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromDatabaseEffective(
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
-			Long endTime)
-			throws RatingException {
-		
-		return fromDatabaseEffective(null, conn, null, ratingSpecId, startTime, endTime);
-	}
-	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
 	 * @param ratingSpecId The rating specification identifier
@@ -444,33 +449,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			Connection conn, 
 			String officeId, 
 			String ratingSpecId, 
 			Long startTime, 
 			Long endTime)
 			throws RatingException {
-		return fromDatabase(null, conn, officeId, ratingSpecId, startTime, endTime, false);
-	}
-	/**
-	 * Generates a new RatingSet object from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
-	 * @param ratingSpecId The rating specification identifier
-	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
-	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromDatabaseEffective(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
-			Long endTime)
-			throws RatingException {
-		return fromDatabase(null, conn, officeId, ratingSpecId, startTime, endTime, true);
+		this(null, conn, officeId, ratingSpecId, startTime, endTime, false);
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
@@ -494,7 +480,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			Connection conn, 
 			String officeId, 
 			String ratingSpecId, 
@@ -502,10 +488,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
-		return fromDatabase(null, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
+		this(null, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
@@ -528,17 +514,17 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			DatabaseLoadMethod loadMethod,
 			Connection conn, 
 			String ratingSpecId) 
 			throws RatingException {
 				
-		return fromDatabase(loadMethod, conn, null, ratingSpecId, null, null);
+		this(loadMethod, conn, null, ratingSpecId, null, null);
 				
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
@@ -563,7 +549,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			DatabaseLoadMethod loadMethod,
 			Connection conn, 
 			String ratingSpecId, 
@@ -571,10 +557,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			Long endTime)
 			throws RatingException {
 		
-		return fromDatabase(loadMethod, conn, null, ratingSpecId, startTime, endTime);
+		this(loadMethod, conn, null, ratingSpecId, startTime, endTime);
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
@@ -598,53 +584,17 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			DatabaseLoadMethod loadMethod,
 			Connection conn, 
 			String officeId, 
 			String ratingSpecId)
 			throws RatingException {
 		
-		return fromDatabase(loadMethod, conn, officeId, ratingSpecId, null, null);
+		this(loadMethod, conn, officeId, ratingSpecId, null, null);
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
-	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
-	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
-	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
-	 *          <tr>
-	 *            <th>Value (case insensitive)</th>
-	 *            <th>Interpretation</th>
-	 *          </tr>
-	 *          <tr>
-	 *            <td>Eager</td>
-	 *            <td>Ratings for all effective times are loaded initially</td>
-	 *            <td>Lazy</td>
-	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
-	 *            <td>Reference</td>
-	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
-	 *          </tr>
-	 *        </table>
-	 * @param conn The connection to a CWMS database
-	 * @param ratingSpecId The rating specification identifier
-	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
-	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromDatabaseEffective(
-			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
-			Long endTime)
-			throws RatingException {
-		
-		return fromDatabaseEffective(loadMethod, conn, null, ratingSpecId, startTime, endTime);
-	}
-	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Public constructor from a CWMS database connection
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
@@ -670,7 +620,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public RatingSet(
 			DatabaseLoadMethod loadMethod,
 			Connection conn, 
 			String officeId, 
@@ -678,47 +628,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			Long startTime, 
 			Long endTime)
 			throws RatingException {
-		return fromDatabase(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, false);
+		this(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, false);
 	}
 	/**
-	 * Generates a new RatingSet object from a CWMS database connection
-	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
-	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
-	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
-	 *          <tr>
-	 *            <th>Value (case insensitive)</th>
-	 *            <th>Interpretation</th>
-	 *          </tr>
-	 *          <tr>
-	 *            <td>Eager</td>
-	 *            <td>Ratings for all effective times are loaded initially</td>
-	 *            <td>Lazy</td>
-	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
-	 *            <td>Reference</td>
-	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
-	 *          </tr>
-	 *        </table>
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
-	 * @param ratingSpecId The rating specification identifier
-	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
-	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSet fromDatabaseEffective(
-			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
-			Long endTime)
-			throws RatingException {
-		return fromDatabase(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, true);
-	}
-	/**
-	 * Generates a new RatingSet object from a CWMS database connection
+	 * Returns the XML required to generate a new RatingSet object based on specified criteria
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
@@ -754,10 +667,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *            <td>Time time window specifies the time extent of data rate</td>
 	 *          </tr>
 	 *        </table>
-	 * @return The new RatingSet object
+	 * @return The XML instance
 	 * @throws RatingException
 	 */
-	public static RatingSet fromDatabase(
+	public static String getXmlFromDatabase(
 			DatabaseLoadMethod loadMethod,
 			Connection conn, 
 			String officeId, 
@@ -768,14 +681,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			throws RatingException {
 		
 		CallableStatement cstmt = null;
-		RatingSet rs = null;
+		String specifiedLoadMethod = null;
 		String databaseLoadMethod = null;
+		String xmlText = null;
 		synchronized (conn) {
 			try {
-				databaseLoadMethod = loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name();
-				RatingSpec spec = null;
+				specifiedLoadMethod = (loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toLowerCase();
+				databaseLoadMethod = specifiedLoadMethod.toLowerCase();
 				String sql = null;
-				switch (databaseLoadMethod.toLowerCase()) {
+				switch (databaseLoadMethod) {
 				case "eager" :
 				case "lazy" : 
 				case "reference" :
@@ -783,13 +697,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				default :
 						logger.log(
 								Level.WARNING,
-								"Invalid value for " + loadMethod == null ? "property hec.data.cwmsRating.RatingSet.databaseLoadMethod: " : "loadMethod argument: "
-								+ databaseLoadMethod
+								"Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: "
+								+ specifiedLoadMethod
 								+ "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"");
 					databaseLoadMethod = "lazy";
 				}
 				Clob clob = null;
-				switch (databaseLoadMethod.toLowerCase()) {
+				switch (databaseLoadMethod) {
 				case "eager" :
 					//------------------------------------//
 					// Load all rating data from database //
@@ -866,9 +780,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							if (clob.length() > Integer.MAX_VALUE) {
 								throw new RatingException("CLOB too long.");
 							}
-							String xmlText = clob.getSubString(1, (int)clob.length());
-							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-							rs = fromXml(xmlText);
+							xmlText = clob.getSubString(1, (int)clob.length());
 						}
 						finally {
 							freeClob(clob);
@@ -933,10 +845,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							if (clob.length() > Integer.MAX_VALUE) {
 								throw new RatingException("CLOB too long.");
 							}
-							String xmlText = clob.getSubString(1, (int)clob.length());
-							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-							rs = fromXml(xmlText, false);
-							rs.setLazy();
+							xmlText = clob.getSubString(1, (int)clob.length());
 						}
 						finally {
 							freeClob(clob);
@@ -947,97 +856,97 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					}
 				break;
 				case "reference" :
-					//--------------------------------------------------------------------------------------------------//
-					// Load only spec from database and keep the database connection to perform ratings in the database //
-					//--------------------------------------------------------------------------------------------------//
-					spec = RatingSpec.fromDatabase(conn, officeId, ratingSpecId);
-					rs = new RatingSet(spec);
-					rs.dbrating = ReferenceRating.fromDatabase(conn, spec.officeId, ratingSpecId);
-					rs.dbrating.ratingSet = rs;
+					//----------------------------------------//
+					// Load only /template+spec from database //
+					//----------------------------------------//
+					String specXmlText = RatingSpec.getXmlfromDatabase(conn, officeId, ratingSpecId);
+					String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
+					String ratingTemplateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+					String templateXmlText = RatingTemplate.getXmlfromDatabase(conn, officeId, ratingTemplateId);
+					StringBuilder sb = new StringBuilder();
+					sb.append(templateXmlText.substring(0, templateXmlText.indexOf("</ratings>")));
+					sb.append("  ");
+					sb.append(specXmlText.substring(specXmlText.indexOf("<rating-spec")));
+					xmlText = sb.toString();
 					break;
-				}
-				if (!databaseLoadMethod.equalsIgnoreCase("eager")) {
-					//-------------------------------------------------------------------------------//
-					// collect info about the connection so we can retrieve it when we need it later //
-					//-------------------------------------------------------------------------------//
-					DatabaseMetaData md = conn.getMetaData();
-					rs.dbUrl = md.getURL();
-					rs.dbUserName = md.getUserName();
-					CallableStatement stmt = conn.prepareCall("begin :1 := cwms_util.user_office_id; end;");
-					stmt.registerOutParameter(1, Types.VARCHAR);
-					stmt.execute();
-					rs.dbOfficeId = stmt.getString(1);
-					stmt.close();
 				}
 			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;
 				throw new RatingException(t);
 			}
-			finally {
-				if (rs != null && !databaseLoadMethod.equalsIgnoreCase("eager")) {
-					//-----------------------------------------------------------------------------------------//
-					// if the connection isn't from a DataAccessFactory, then keep a reference to it for later //
-					//-----------------------------------------------------------------------------------------//
-					Connection conn2 = null;
-					try {
-						conn2 = rs.getConnection();
-					}
-					catch (Exception e) {}
-					if (conn2 == null) {
-						rs.conn = conn;
-					}
-					else {
-						try {
-							Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn2);
-						}
-						catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-							if (logger.isLoggable(Level.INFO)) {
-								StringWriter sw = new StringWriter();
-								PrintWriter pw = new PrintWriter(sw);
-								e.printStackTrace(pw);
-								logger.log(Level.INFO, sw.toString());
-							}
-						}
-					}
-				}
-			}
-			return rs;
+			logger.log(Level.FINE,"Retrieved XML:\n"+xmlText);
+			return xmlText;
 		}
 	}
 	/**
-	 * @return a connection to the same database with the same user and office as the one 
-	 *         used to retrieve this object initially, or null if not found
+	 * @return a the current database connection plus a flag specifying whether it was retrieved using the DbInfo
 	 * @throws RatingException
 	 */
-	Connection getConnection() throws Exception {
+	protected ConnectionInfo getConnectionInfo() throws RatingException {
 		synchronized(this) {
-			if (conn != null) return conn;
-			Class<?> connClass = Class.forName("wcds.dbi.client.JdbcConnection");
-			Class<?> stringClass = Class.forName("java.lang.String");
-			return (Connection)connClass.getMethod("retrieveConnection", stringClass, stringClass, stringClass).invoke(null, dbUrl, dbUserName, dbOfficeId);
+			if (conn != null) {
+				return new ConnectionInfo(conn, false);
+			}
+			else {
+				if (dbInfo == null) {
+					String msg = String.format(
+							"Rating set %s - %s is not currently connected to a database.\n"
+							+ "Call setConnection(Connection) first or use a method with a Connection parameter.", 
+							getRatingSpec().getRatingSpecId(),
+							System.identityHashCode(this));
+					throw new RatingException(msg);
+				}
+				else {
+					try {
+						conn = (Connection)Class.forName(
+								"wcds.dbi.client.JdbcConnection"
+								).getMethod(
+										"retrieveConnection", 
+										String.class, 
+										String.class, 
+										String.class
+										).invoke(
+												null, 
+												dbInfo.getUrl(),
+												dbInfo.getUserName(),
+												dbInfo.getOfficeId()
+												);
+					} catch (Exception e) {
+						throw new RatingException(e);
+					} 
+					if (conn == null) {
+						String msg = String.format(
+								"Rating set %s could not retrieve connection with current database information.\n"
+								+ "Call setConnection(Connection) first or use a method with a Connection parameter.", 
+								getRatingSpec().getRatingSpecId());
+						throw new RatingException(msg);
+					}
+					setDatabaseConnection(conn);
+					return new ConnectionInfo(conn, true);
+				}
+			}			
 		}
 	}
 	/**
-	 * Closes a connection if it is transient/statelesss, otherwise leaves it open
-	 * @param conn The connection
-	 * @throws Exception
+	 * Releases a database connection that was retrieved using the DbInfo
+	 * @param ci The database connection information
+	 * @throws RatingException
 	 */
-	void releaseConnection(Connection conn) throws Exception {
-		synchronized(this) {
-			if (conn != null) {
-				if (conn == this.conn) {
-					// nothing
-				}
-				else {
-					// have the DataAccessFactory close the connection
-					try {
-						Class.forName("wcds.dbi.client.JdbcConnection").getMethod("closeConnection", Class.forName("java.sql.Connection")).invoke(null, conn);
-					}
-					catch (Exception e) {
-						throw new RatingException(e);
-					}
-				}
+	protected void releaseConnection(ConnectionInfo ci) throws RatingException {
+		if (ci.wasRetrieved()) {
+			clearDatabaseConnection();
+			try {
+				Class.forName(
+						"wcds.dbi.client.JdbcConnection"
+						).getMethod(
+								"closeConnection", 
+								Connection.class).invoke(
+										null, 
+										ci.getConnection()
+										);
+			} catch (Exception e) {
+				throw new RatingException(e);
 			}
 		}
 	}
@@ -1146,11 +1055,26 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	/**
 	 * @return whether this rating set has been updated in the database
+	 * @param conn The database connection to use
 	 * @throws Exception
 	 */
-	public boolean isUpdated() throws Exception {
+	public boolean isUpdated(Connection conn) throws Exception {
+		setDatabaseConnection(conn);
+		try {
+			return isUpdated();
+		}
+		finally {
+			clearDatabaseConnection();
+		}
+	}
+	/**
+	 * @return whether this rating set has been updated in the database
+	 * @throws Exception
+	 */
+	private boolean isUpdated() throws Exception {
 		synchronized(this) {
-			Connection _conn = getConnection();
+			ConnectionInfo ci = getConnectionInfo();
+			Connection _conn = ci.getConnection();
 			synchronized(_conn) {
 				PreparedStatement stmt = null;
 				ResultSet rs = null;
@@ -1171,16 +1095,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					try {
 						if (rs != null) {
 							try {rs.close();}
-							catch (Exception e) {}
+							finally {}
 						}
 						if (stmt != null) {
 							try {stmt.close();}
-							catch (Exception e) {}
+							finally {}
 						}
 					}
-					finally {
-						releaseConnection(_conn);
-					}
+					finally {}
+					releaseConnection(ci);
 				}
 			}
 		}
@@ -1190,35 +1113,135 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @param clob the object to free
 	 */
 	static void freeClob(Clob clob) {
-		String clobClassName = clob.getClass().getName();  
 		try {
-			if (clobClassName.equals("oracle.sql.CLOB")) {
-				//---------------//
-				// pre Oracle 12 //
-				//---------------//
-				clob.getClass().getMethod("freeTemporary").invoke(clob);
-			}
-			else if (clobClassName.equals("java.sql.Clob")) {
-				//----------------------------------------------------------------//
-				// Oracle 12 deprecates oracle.sql.CLOB in favor of java.sql.Clob //
-				//----------------------------------------------------------------//
-				clob.free();
-			}
-			else {
-				throw new Exception("Don't know how to free resources for class " + clobClassName);
-			}
+			clob.free();
 		}
 		catch(Throwable t) {
-			//-----------------------------//
-			// log any errors freeing clob //
-			//-----------------------------//
-			if (logger.isLoggable(Level.INFO)) {
+			if (logger.isLoggable(Level.WARNING)) {
 				StringWriter sw = new StringWriter();
 				PrintWriter pw = new PrintWriter(sw);
 				t.printStackTrace(pw);
-				logger.log(Level.INFO, sw.toString());
+				logger.log(Level.WARNING, sw.toString());
 			}
 		}
+	}
+	/**
+	 * Public Constructor - sets rating specification only
+	 * @param officeId The office that owns the rating specification
+	 * @param ratingSpecId The rating specification identifier
+	 * @param sourceAgencyId The identifier of the agency that maintains ratings using this specification
+	 * @param inRangeMethod The prescribed behavior for when the time of the value to rate falls within the range of rating effective dates
+	 * @param outRangeLowMethod The prescribed behavior for when the time of the value to rate falls before the earliest rating effective date
+	 * @param outRangeHighMethod The prescribed behavior for when the time of the value to rate falls after the latest rating effective date
+	 * @param active Specifies whether to utilize any ratings using this specification
+	 * @param autoUpdate Specifies whether ratings using this specification should be automatically loaded when new ratings are available
+	 * @param autoActivate Specifies whether ratings using this specification should be automatically activated when new ratings are available
+	 * @param autoMigrateExtensions Specifies whether existing should be automatically applied to ratings using this specification when new ratings are loaded  
+	 * @param indRoundingSpecs The USGS-style rounding specifications for each independent parameter
+	 * @param depRoundingSpec The USGS-style rounding specifications for the dependent parameter
+	 * @param description The description of this rating specification
+	 * @throws RatingException
+	 * @throws RoundingException
+	 */
+	public RatingSet(
+			String officeId,
+			String ratingSpecId,
+			String sourceAgencyId,
+			String inRangeMethod,
+			String outRangeLowMethod,
+			String outRangeHighMethod,
+			boolean active,
+			boolean autoUpdate,
+			boolean autoActivate,
+			boolean autoMigrateExtensions,
+			String[] indRoundingSpecs,
+			String depRoundingSpec,
+			String description) throws RatingException, RoundingException {
+		this(new RatingSpec(
+				officeId,
+				ratingSpecId,
+				sourceAgencyId,
+				inRangeMethod,
+				outRangeLowMethod,
+				outRangeHighMethod,
+				active,
+				autoUpdate,
+				autoActivate,
+				autoMigrateExtensions,
+				indRoundingSpecs,
+				depRoundingSpec,
+				description));
+	}
+	/**
+	 * Public Constructor from RatingSpecContainer
+	 * @param rsc The RatingSpecContainer object to initialize from
+	 * @throws RatingException
+	 */
+	public RatingSet(RatingSpecContainer rsc) throws RatingException {
+		this(new RatingSpec(rsc));
+	}
+	/**
+	 * Public constructor a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
+	 * @param dataTimes Determines how startTime and endTime are interpreted.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>false</td>
+	 *            <td>The time window specifies the extent of when the ratings became effective</td>
+	 *            <td>true</td>
+	 *            <td>Time time window specifies the time extent of data rate</td>
+	 *          </tr>
+	 *        </table>
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public RatingSet(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime,
+			boolean dataTimes)
+			throws RatingException {
+		
+		setData(
+			loadMethod,
+			conn, 
+			officeId, 
+			ratingSpecId, 
+			startTime, 
+			endTime,
+			dataTimes);
+		
+		observationTarget = new Observable();
+		validate();
+		
 	}
 	/**
 	 * Public Constructor - sets rating specification only
@@ -1269,6 +1292,33 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public RatingSet(RatingSpec ratingSpec, Iterable<AbstractRating> ratings) throws RatingException {
 		setRatingSpec(ratingSpec);
 		addRatings(ratings);
+		allowUnsafe = alwaysAllowUnsafe;
+		warnUnsafe = alwaysWarnUnsafe;
+		observationTarget = new Observable();
+		validate();
+	}
+	/**
+	 * Public Constructor from an uncompressed XML instance
+	 * @param xmlStr The XML instance to initialize from
+	 * @param isCompressed Flag specifying whether the string is a compressed XML string
+	 * @throws RatingException
+	 */
+	public RatingSet(String xmlStr) throws RatingException {
+		this(xmlStr, false);
+	}
+	/**
+	 * Public Constructor from an XML instance
+	 * @param xmlStr The XML instance to initialize from
+	 * @param isCompressed Flag specifying whether the string is a compressed XML string
+	 * @throws RatingException
+	 */
+	public RatingSet(String xmlStr, boolean isCompressed) throws RatingException {
+		try {
+			setData(new RatingSetContainer(isCompressed ? TextUtil.uncompress(xmlStr, "base64") : xmlStr).clone()); // clone might return a ReferenceRatingContainer 
+		} catch (Exception e) {
+			if (e instanceof RatingException) throw (RatingException)e;
+			throw new RatingException(e);
+		}
 		allowUnsafe = alwaysAllowUnsafe;
 		warnUnsafe = alwaysWarnUnsafe;
 		observationTarget = new Observable();
@@ -1631,6 +1681,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * Loads all rating values from table ratings that haven't already been loaded.
 	 * @throws RatingException
 	 */
+	public void getConcreteRatings(Connection conn) throws RatingException {
+		setDatabaseConnection(conn);
+		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
+			getConcreteRating(entry);
+		}
+		clearDatabaseConnection();
+	}
+	/**
+	 * Loads all rating values from table ratings that haven't already been loaded.
+	 * @deprecated
+	 * @throws RatingException
+	 */
 	public void getConcreteRatings() throws RatingException {
 		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
 			getConcreteRating(entry);
@@ -1638,6 +1700,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	protected Map.Entry<Long, AbstractRating> getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
 		synchronized(this) {
+			ConnectionInfo ci = getConnectionInfo();
 			Map.Entry<Long, AbstractRating> newEntry = ratingEntry;
 			try {
 				if (ratingEntry != null) {
@@ -1647,75 +1710,78 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						//----------------------------------------//
 						// rating not yet retrieved from database //
 						//----------------------------------------//
-						if (logger.isLoggable(Level.FINE)) {
+						conn = ci.getConnection();
+						if (logger.isLoggable(Level.INFO)) {
 							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 							sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-							logger.fine(String.format("RatingSet %s retrieving rating for %s UTC", getRatingSpec().getRatingSpecId(), sdf.format(key)));
+							logger.info(String.format(
+									"Retrieving rating from %s: %s @ %s UTC", 
+									conn.getMetaData().getURL(),
+									getName(),
+									sdf.format(key)));
 						}
-						Connection conn = getConnection();
-						if (conn == null) {
-							throw new RatingException("No database connections available");
-						}
-						try {
-							synchronized(conn) {
-								AbstractRating newRating = null;
-								String sql = "begin cwms_rating.retrieve_ratings_xml(:1, :2, cwms_util.to_timestamp(:3), cwms_util.to_timestamp(:4),'UTC', :5); end;";
-								CallableStatement stmt = conn.prepareCall(sql);
-								stmt.registerOutParameter(1, Types.CLOB);
-								stmt.setString(2, rating.ratingSpecId);
-								stmt.setLong(3, rating.effectiveDate);
-								stmt.setLong(4, rating.effectiveDate);
-								stmt.setString(5, rating.officeId);
-								stmt.execute();
-								Clob clob = stmt.getClob(1);
-								stmt.close();
-								String xmlText = null;
-								try {
-									if (clob.length() > Integer.MAX_VALUE) {
-										throw new RatingException("CLOB too long.");
-									}
-									xmlText = clob.getSubString(1, (int)clob.length());
+						synchronized(conn) {
+							AbstractRating newRating = null;
+							String sql = "begin cwms_rating.retrieve_ratings_xml(:1, :2, cwms_util.to_timestamp(:3), cwms_util.to_timestamp(:4),'UTC', :5); end;";
+							CallableStatement stmt = conn.prepareCall(sql);
+							stmt.registerOutParameter(1, Types.CLOB);
+							stmt.setString(2, rating.ratingSpecId);
+							stmt.setLong(3, rating.effectiveDate);
+							stmt.setLong(4, rating.effectiveDate);
+							stmt.setString(5, rating.officeId);
+							stmt.execute();
+							Clob clob = stmt.getClob(1);
+							stmt.close();
+							String xmlText = null;
+							try {
+								if (clob.length() > Integer.MAX_VALUE) {
+									throw new RatingException("CLOB too long.");
 								}
-								catch (Exception e) {
-									throw e;
+								xmlText = clob.getSubString(1, (int)clob.length());
+							}
+							catch (Exception e) {
+								throw e;
+							}
+							finally {
+								freeClob(clob);
+							}
+							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
+							if (xmlText.indexOf("<simple-rating ") > 0) {
+								if (xmlText.indexOf("<formula>") > 0) {
+									newRating = ExpressionRating.fromXml(xmlText);
 								}
-								finally {
-									freeClob(clob);
-								}
-								logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-								if (xmlText.indexOf("<simple-rating ") > 0) {
-									if (xmlText.indexOf("<formula>") > 0) {
-										newRating = ExpressionRating.fromXml(xmlText);
-									}
-									else {
-										newRating = TableRating.fromXml(xmlText);
-										((TableRating)newRating).setBehaviors(ratingSpec);
-									}
-								}
-								else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
-									newRating = UsgsStreamTableRating.fromXml(xmlText);
-									((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
-								}
-								else if (xmlText.indexOf("<virtual-rating ") > 0) {
-									newRating = VirtualRating.fromXml(xmlText);
-								}
-								else if (xmlText.indexOf("<transitional-rating ") > 0) {
-									newRating = TransitionalRating.fromXml(xmlText);
-								}
-								else throw new RatingException("Unexpected rating type: \n" + xmlText);
-								newRating.ratingSpec = ratingSpec;
-								ratings.put(key, newRating);
-								if (activeRatings.containsKey(key)) {
-									activeRatings.put(key, newRating);
-								}
-								newEntry = ratings.floorEntry(key);
-								if (!newEntry.getKey().equals(key)) {
-									throw new RatingException("Could not retrieve new rating for same time.");
+								else {
+									newRating = TableRating.fromXml(xmlText);
+									((TableRating)newRating).setBehaviors(ratingSpec);
 								}
 							}
+							else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
+								newRating = UsgsStreamTableRating.fromXml(xmlText);
+								((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
+							}
+							else if (xmlText.indexOf("<virtual-rating ") > 0) {
+								newRating = VirtualRating.fromXml(xmlText);
+							}
+							else if (xmlText.indexOf("<transitional-rating ") > 0) {
+								newRating = TransitionalRating.fromXml(xmlText);
+							}
+							else throw new RatingException("Unexpected rating type: \n" + xmlText);
+							newRating.ratingSpec = ratingSpec;
+							if (newRating.active) {
+								activeRatings.put(key, newRating);
+								newEntry = activeRatings.floorEntry(key);
+								if (!newEntry.getKey().equals(key)) {
+									throw new RatingException("Could not retrieve concrete rating from database.");
+								}
+							}
+							else {
+								ratings.get(key).setActive(false);
+							}
+							refreshRatings();
 						}
-						finally {
-							releaseConnection(conn);
+						if (observationTarget != null) {
+							observationTarget.setChanged();
+							observationTarget.notifyObservers();
 						}
 					}
 				}
@@ -1723,6 +1789,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			catch (Exception e) {
 				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
+			}
+			finally {
+				if (ci != null && ci.wasRetrieved()) {
+					releaseConnection(ci);
+					conn = null;
+				}
 			}
 			return newEntry;
 		}
@@ -2039,9 +2111,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			if (ratingSpec.getIndParamCount() != 1) {
 				throw new RatingException(String.format("Cannot rate a TimeSeriesContainer with a rating that has %d independent parameters", ratingSpec.getIndParamCount()));
 			}
-			if (ratings.size() == 0) throw new RatingException("No ratings.");
-			String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
-			String[] units = split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
+			if (dbrating == null && ratings.size() == 0) throw new RatingException("No ratings.");
+			String[] units = null;
+			if (dbrating == null) {
+				units = ratings.firstEntry().getValue().getRatingUnits();
+			}
+			else {
+				units = dbrating.getRatingUnits();
+			}
 			String[] params = ratingSpec.getIndParameters();
 			if (ratedUnitStr == null || ratedUnitStr.length() == 0) ratedUnitStr = units[units.length-1];
 			try {
@@ -2341,7 +2418,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				//-------------------------//
 				// finally - do the rating //
 				//-------------------------//
-				IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
+				IndependentValuesContainer ivc = RatingUtil.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
 				double[] depVals = rate(ivc.indVals, ivc.valTimes);
 				//-----------------------------------------//
 				// construct the rated TimeSeriesContainer //
@@ -2839,7 +2916,29 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public double[][] getRatingExtents() throws RatingException {
+		if (dbrating != null) {
+			return dbrating.getRatingExtents();
+		}
 		return getRatingExtents(getRatingTime());
+	}
+	/**
+	 * Retrieves the rating extents for a specified time
+	 * @param ratingTime The time for which to retrieve the rating extents 
+	 * @param conn The database connection to use if the rating was lazily loaded
+	 * @return The rating extents
+	 * @throws RatingException
+	 * @see hec.data.IRating#getRatingExtents(long)
+	 */
+	public double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {
+		synchronized(this) {
+			setDatabaseConnection(conn);
+			try { 
+				return getRatingExtents(ratingTime); 
+			}
+			finally { 
+				clearDatabaseConnection(); 
+			}
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getRatingExtents(long)
@@ -3332,7 +3431,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					tz = null;
 				}
 			}
-			IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
+			IndependentValuesContainer ivc = RatingUtil.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
 			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
 			tsc.clone(ratedTsc);
 			double[] depVals = new double[ivc.indVals.length];
@@ -3378,22 +3477,688 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
+	 * Retrieves the data ratingUnits. These are the ratingUnits expected for independent parameters and the unit produced 
+	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit 
+	 * conversions.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @return The ratingUnits identifier, one unit for each parameter
+	 */
+	public String[] getDataUnits(Connection conn) {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return getDataUnits();
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Sets the data ratingUnits. These are  the ratingUnits expected for independent parameters and the unit produced 
+	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit 
+	 * conversions.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param ratingUnits The ratingUnits, one unit for each parameter
+	 */
+	public void setDataUnits(Connection conn, String[] units) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			setDataUnits(units);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Retrieves the min and max value for each parameter of the rating, in the current ratingUnits.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @return The min and max values for each parameter. The outer (Connection conn, first) dimension will be 2, with the first containing
+	 *         min values and the second containing max values. The inner (Connection conn, second) dimension will be the number of independent
+	 *         parameters for the rating plus one. The first value will be the extent for the first independent parameter, and
+	 *         the last value will be the extent for the dependent parameter.
+	 */
+	public double[][] getRatingExtents(Connection conn) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return getRatingExtents();
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Retrieves the min and max value for each parameter of the rating, in the current ratingUnits.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param ratingTime The time to use in determining the rating extents
+	 * @return The min and max values for each parameter. The outer (Connection conn, first) dimension will be 2, with the first containing
+	 *         min values and the second containing max values. The inner (Connection conn, second) dimension will be the number of independent
+	 *         parameters for the rating plus one. The first value will be the extent for the first independent parameter, and
+	 *         the last value will be the extent for the dependent parameter.
+	 */
+	public double[][] getRatingExtents(Connection conn, long ratingTime) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return getRatingExtents(ratingTime);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Retrieves the effective dates of the rating in milliseconds, one for each contained rating
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 */
+	public long[] getEffectiveDates(Connection conn) {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return getEffectiveDates();
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Retrieves the creation dates of the rating in milliseconds, one for each contained rating
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 */
+	public long[] getCreateDates(Connection conn) {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return getCreateDates();
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the dependent value for a single independent value.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param indVal The independent value to rate.
+	 * @return The dependent value
+	 * @throws RatingException
+	 */
+	public double rate(Connection conn, double indVal) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(indVal);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the dependent value for a set of independent values. The rating must be for as many independent parameters as there are arguments.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param indVals The independent parameters to rate
+	 * @return The dependent value
+	 * @throws RatingException
+	 */
+	public double rateOne(Connection conn, double... indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rateOne(indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the dependent value for a set of independent values. The rating must be for as many independent parameters as there are arguments.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param indVals The independent parameters to rate
+	 * @return The dependent value
+	 * @throws RatingException
+	 */
+	public double rateOne2(Connection conn, double[] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rateOne(indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple dependent values for multiple single independent values.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param indVals The independent values to rate
+	 * @return The dependent values
+	 * @throws RatingException
+	 */
+	public double[] rate(Connection conn, double[] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple dependent values for multiple sets of independent values.  The rating must be for as many independent
+	 * parameters as the length of each independent parameter set.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param indVals The independent values to rate. Each set of independent values must be the same length.
+	 * @return The dependent values
+	 * @throws RatingException
+	 */
+	public double[] rate(Connection conn, double[][] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the dependent value for a single independent value at a specified time.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the value to rate, in Java milliseconds
+	 * @param indVal The independent value to rate
+	 * @return The dependent value
+	 * @throws RatingException
+	 */
+	public double rate(Connection conn, long valTime, double indVal) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(valTime, indVal);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the dependent value for a set of independent values. The rating must be for as many independent parameters as there are arguments.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the set of value to rate, in Java milliseconds
+	 * @param indVals The independent parameters to rate
+	 * @return The dependent value
+	 * @throws RatingException
+	 */
+	public double rateOne(Connection conn, long valTime, double... indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rateOne(valTime, indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the dependent value for a set of independent values. The rating must be for as many independent parameters as there are arguments.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the set of value to rate, in Java milliseconds
+	 * @param indVals The independent parameters to rate
+	 * @return The dependent value
+	 * @throws RatingException
+	 */
+	public double rateOne2(Connection conn, long valTime, double[] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rateOne(valTime, indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple dependent values for multiple single independent values at a specified time.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the values to rate, in Java milliseconds
+	 * @param indVals The independent values to rate
+	 * @return The dependent values
+	 * @throws RatingException
+	 */
+	public double[] rate(Connection conn, long valTime, double[] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(valTime, indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple dependent values for multiple single independent and times.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTimes The times associated with the values to rate, in Java milliseconds
+	 * @param indVals The independent values to rate
+	 * @return The dependent values
+	 * @throws RatingException
+	 */
+	public double[] rate(Connection conn, long[] valTimes, double[] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(valTimes, indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple dependent values for multiple sets of independent values at a specified time.  The rating must be for as many independent
+	 * parameters as the length of each independent parameter set.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the values to rate, in Java milliseconds
+	 * @param indVals The independent values to rate. Each set of independent values must be the same length.
+	 * @return The dependent values
+	 * @throws RatingException
+	 */
+	public double[] rate(Connection conn, long valTime, double[][] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(valTime, indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple dependent values for multiple sets of independent values and times.  The rating must be for as many independent
+	 * parameters as the length of each independent parameter set.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTimes The time associated with the values to rate, in Java milliseconds
+	 * @param indVals The independent values to rate. Each set of independent values must be the same length.
+	 * @return The dependent values
+	 * @throws RatingException
+	 */
+	public double[] rate(Connection conn, long[] valTimes, double[][] indVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(valTimes, indVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Rates the values in the specified TimeSeriesContainer to generate a resulting TimeSeriesContainer. The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param tsc The TimeSeriesContainer of independent values.
+	 * @return The TimeSeriesContainer of dependent values.
+	 * @throws RatingException
+	 */
+	public TimeSeriesContainer rate(Connection conn, TimeSeriesContainer tsc) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(tsc);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Rates the values in the specified TimeSeriesContainer objects to generate a resulting TimeSeriesContainer. The rating must be for as many independent parameters as the length of tscs.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param tscs The TimeSeriesContainers of independent values, one for each independent parameter.
+	 * @return The TimeSeriesContainer of dependent values.
+	 * @throws RatingException
+	 */
+	public TimeSeriesContainer rate(Connection conn, TimeSeriesContainer[] tscs) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(tscs);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Rates the values in the specified TimeSeriesMath to generate a resulting TimeSeriesMath. The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param tsm The TimeSeriesMath of independent values.
+	 * @return The TimeSeriesMath of dependent values.
+	 * @throws RatingException
+	 */
+	public TimeSeriesMath rate(Connection conn, TimeSeriesMath tsm) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(tsm);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	
+	/**
+	 * Rates the values in the specified TimeSeriesMath objects to generate a resulting TimeSeriesMath. The rating must be for as many independent parameters as the length of tscs.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param tsms The TimeSeriesMaths of independent values, one for each independent parameter.
+	 * @return The TimeSeriesMath of dependent values.
+	 * @throws RatingException
+	 */
+	public TimeSeriesMath rate(Connection conn, TimeSeriesMath[] tsms) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return rate(tsms);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the independent value for a single independent value.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param depVal The dependent value to rate.
+	 * @return The independent value
+	 * @throws RatingException
+	 */
+	public double reverseRate(Connection conn, double depVal) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(depVal);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple independent values for multiple single independent values.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param depVals The dependent values to rate
+	 * @return The independent values
+	 * @throws RatingException
+	 */
+	public double[] reverseRate(Connection conn, double[] depVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(depVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds the independent value for a single independent value at a specified time.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the value to rate, in Java milliseconds
+	 * @param depVal The dependent value to rate
+	 * @return The independent value
+	 * @throws RatingException
+	 */
+	public double reverseRate(Connection conn, long valTime, double depVal) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(valTime, depVal);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple independent values for multiple single independent values at a specified time.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTime The time associated with the values to rate, in Java milliseconds
+	 * @param depVals The dependent values to rate
+	 * @return The independent values
+	 * @throws RatingException
+	 */
+	public double[] reverseRate(Connection conn, long valTime, double[] depVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(valTime, depVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Finds multiple independent values for multiple single independent and times.  The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param valTimes The times associated with the values to rate, in Java milliseconds
+	 * @param depVals The dependent values to rate
+	 * @return The independent values
+	 * @throws RatingException
+	 */
+	public double[] reverseRate(Connection conn, long[] valTimes, double[] depVals) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(valTimes, depVals);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Rates the values in the specified TimeSeriesContainer to generate a resulting TimeSeriesContainer. The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param tsc The TimeSeriesContainer of dependent values.
+	 * @return The TimeSeriesContainer of independent values.
+	 * @throws RatingException
+	 */
+	public TimeSeriesContainer reverseRate(Connection conn, TimeSeriesContainer tsc) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(tsc);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+
+	/**
+	 * Rates the values in the specified TimeSeriesMath to generate a resulting TimeSeriesMath. The rating must be for a single independent parameter.
+	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @param tsm The TimeSeriesMath of dependent values.
+	 * @return The TimeSeriesMath of independent values.
+	 * @throws RatingException
+	 */
+	public TimeSeriesMath reverseRate(Connection conn, TimeSeriesMath tsm) throws RatingException {
+		Connection oldConn = this.conn;
+		setDatabaseConnection(conn);
+		try {
+			return reverseRate(tsm);
+		}
+		finally {
+			if (oldConn != null) {
+				setDatabaseConnection(oldConn);
+			}
+			else {
+				clearDatabaseConnection();
+			}
+		}
+	}
+	/**
 	 * Outputs the rating set as an XML instance
 	 * @param indent the text use for indentation
 	 * @return the XML text
 	 * @throws RatingException
 	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
-		if (dbrating != null) {
-			throw new RatingException("Cannot serialize a RatingSet that was loaded with \"reference\" method.");
-		}
-		if (isLazy) {
-			for (AbstractRating rating : ratings.values()) {
-				if (rating.getClass() == TableRating.class && ((TableRating)rating).values == null) {
-					throw new RatingException("Cannot serialize a RatingSet that was loaded with \"lazy\" method and is incomplete.");
-				}
-			}
-		}
 		return getData().toXml(indent, 0, true);
 	}
 	/**
@@ -3428,17 +4193,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
 		if (dbrating != null) {
-			throw new RatingException("Cannot store a RatingSet that was loaded with \"reference\" method.");
+			//-----------------//
+			// quietly succeed //
+			//-----------------//
 		}
-		if (isLazy) {
-			for (AbstractRating rating : ratings.values()) {
-				if (rating.getClass() == TableRating.class && ((TableRating)rating).values == null) {
-					throw new RatingException("Cannot store a RatingSet that was loaded with \"lazy\" method and is incomplete.");
-				}
+		else {
+			synchronized(this) {
+				RatingSet.storeToDatabase(conn, getData().toXml("", 0, includeTemplate, false), overwriteExisting);
 			}
-		}
-		synchronized(this) {
-			RatingSet.storeToDatabase(conn, getData().toXml("", 0, includeTemplate), overwriteExisting);
 		}
 	}
 	/* (non-Javadoc)
@@ -3447,6 +4209,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public void update(java.util.Observable arg0, Object arg1) {
 		refreshRatings();
+		observationTarget.setChanged();
+		observationTarget.notifyObservers();
 	}
 	/**
 	 * Adds an Observer to this RatingSet. The Observer will be notified of any changes to this RatingSet
@@ -3474,15 +4238,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public RatingSetContainer getData() {
 		synchronized(this) {
-			RatingSetContainer rsc = null;
 			if (dbrating != null) {
-				throw new RuntimeException("Reference ratings cannot return RatingSetContainer objects.");
-			}
-			else if (hasNullValues()) {
-				throw new RuntimeException("RatingSet has incomplete TableRating objects.\n\tTry using EAGER loading method or calling getConcreteRatings().");
+				ReferenceRatingContainer rrc = new ReferenceRatingContainer();
+				if (ratingSpec != null) {
+					rrc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
+				}
+				return rrc;
 			}
 			else {
-				rsc = new RatingSetContainer();
+				RatingSetContainer rsc = new RatingSetContainer();
 				if (ratingSpec != null) {
 					rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
 				}
@@ -3493,8 +4257,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						rsc.abstractRatingContainers[i] = it.next().getData(); 
 					}
 				}
+				return rsc;
 			}
-			return rsc;
 		}
 	}
 	/**
@@ -3503,11 +4267,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void setData(RatingSetContainer rsc) throws RatingException {
+		boolean isLazy = false;
 		synchronized(this) {
 			try {
-				if (dbrating != null) {
-					throw new RatingException("Cannot set data for reference ratings.");
-				}
 				removeAllRatings();
 				if (rsc.ratingSpecContainer == null) {
 					ratingSpec = null;
@@ -3515,13 +4277,25 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				else {
 					setRatingSpec(new RatingSpec(rsc.ratingSpecContainer));
 				}
-				if (rsc.abstractRatingContainers == null) {
-					throw new RatingObjectDoesNotExistException("RatingSetContainer contains no ratings.");
+				if (rsc instanceof ReferenceRatingContainer) {
+					dbrating = new ReferenceRating((ReferenceRatingContainer)rsc);
+					dbrating.parent = this;
 				}
 				else {
-					for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
-						addRating(rsc.abstractRatingContainers[i].newRating());
+					if (rsc.abstractRatingContainers == null) {
+						throw new RatingObjectDoesNotExistException("RatingSetContainer contains no ratings.");
 					}
+					else {
+						for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
+							if (rsc.abstractRatingContainers[i] instanceof TableRatingContainer) {
+								if (((TableRatingContainer)rsc.abstractRatingContainers[i]).values == null) {
+									isLazy = true;
+								}
+							}
+							addRating(rsc.abstractRatingContainers[i].newRating());
+						}
+					}
+					if (isLazy) setLazy();
 				}
 				if (observationTarget != null) {
 					observationTarget.setChanged();
@@ -3532,6 +4306,221 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				if (t instanceof RatingException) throw (RatingException)t;
 				throw new RatingException(t);
 			}
+		}
+	}
+	/**
+	 * Sets the data from this object from an XML instance
+	 * @param rsc The RatingSetContainer with the data
+	 * @throws RatingException
+	 */
+	public void setData(String xmlText) throws RatingException {
+		setData(new RatingSetContainer(xmlText).clone()); // clone might return a ReferenceRatingContainer
+	}
+	/**
+	 * Sets the data from this object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
+	 * @param dataTimes Determines how startTime and endTime are interpreted.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>false</td>
+	 *            <td>The time window specifies the extent of when the ratings became effective</td>
+	 *            <td>true</td>
+	 *            <td>Time time window specifies the time extent of data rate</td>
+	 *          </tr>
+	 *        </table>
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public void setData(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime,
+			boolean dataTimes)
+			throws RatingException {
+
+		String xml = RatingSet.getXmlFromDatabase(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
+		setData(xml);
+		switch (loadMethod) {
+		case LAZY :
+		case REFERENCE :
+			try {
+				PreparedStatement stmt = conn.prepareStatement("select cwms_util.get_user_id, cwms_util.user_office_id from dual");
+				ResultSet rs = stmt.executeQuery();
+				rs.next();
+				String dbUserId = rs.getString(1);
+				String dbOfficeId = rs.getString(2);
+				rs.close();
+				stmt.close();
+				this.setDbInfo(conn.getMetaData().getURL(), dbUserId, dbOfficeId);
+			} catch (Exception e) {
+				if (e instanceof RatingException) throw (RatingException)e;
+				throw new RatingException(e);
+			}
+		default :
+			break;
+		}
+	}
+	/**
+	 * Sets the database connection for this RatingSet and any constituent RatingSet objects
+	 * @param conn the connection
+	 */
+	public synchronized void setDatabaseConnection(Connection conn) {
+		this.conn = conn;
+		if (dbrating == null) {
+			for (AbstractRating rating : activeRatings.values()) {
+				if (rating instanceof UsgsStreamTableRating) {
+					RatingSet shifts = ((UsgsStreamTableRating)rating).shifts;
+					if (shifts != null) shifts.setDatabaseConnection(conn);
+				}
+				else if (rating instanceof VirtualRating) {
+					SourceRating[] sourceRatings  = ((VirtualRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((VirtualRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.setDatabaseConnection(conn);
+						}
+					}
+				}
+				else if (rating instanceof TransitionalRating) {
+					SourceRating[] sourceRatings  = ((TransitionalRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((TransitionalRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.setDatabaseConnection(conn);
+						}
+					}
+				}
+			}
+		}
+	}
+	/**
+	 * Retrieves the database info required to retrieve a database connection
+	 * @return the database info required to retrieve a database connection
+	 * @throws RatingException
+	 */
+	public synchronized DbInfo getDbInfo() throws RatingException {
+		if (dbInfo == null) return null;
+		return new DbInfo(dbInfo.getUrl(), dbInfo.getUserName(), dbInfo.getOfficeId());
+	}
+	/**
+	 * Sets the database info required to retrieve a database connection
+	 * @param dbInfo the database info required to retrieve a database connection
+	 * @throws RatingException
+	 */
+	public synchronized void setDbInfo(DbInfo dbInfo) throws RatingException {
+		this.dbInfo = dbInfo;
+		if (dbrating == null) {
+			for (AbstractRating rating : activeRatings.values()) {
+				if (rating instanceof UsgsStreamTableRating) {
+					RatingSet shifts = ((UsgsStreamTableRating)rating).shifts;
+					if (shifts != null) shifts.setDbInfo(dbInfo);
+				}
+				else if (rating instanceof VirtualRating) {
+					SourceRating[] sourceRatings  = ((VirtualRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((VirtualRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.setDbInfo(dbInfo);
+						}
+					}
+				}
+				else if (rating instanceof TransitionalRating) {
+					SourceRating[] sourceRatings  = ((TransitionalRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((TransitionalRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.setDbInfo(dbInfo);
+						}
+					}
+				}
+			}
+			for (AbstractRating rating : ratings.values()) {
+				if (rating instanceof UsgsStreamTableRating) {
+					RatingSet shifts = ((UsgsStreamTableRating)rating).shifts;
+					if (shifts != null) shifts.setDbInfo(dbInfo);
+				}
+				else if (rating instanceof VirtualRating) {
+					SourceRating[] sourceRatings  = ((VirtualRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((VirtualRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.setDbInfo(dbInfo);
+						}
+					}
+				}
+				else if (rating instanceof TransitionalRating) {
+					SourceRating[] sourceRatings  = ((TransitionalRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((TransitionalRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.setDbInfo(dbInfo);
+						}
+					}
+				}
+			}
+		}
+	}
+	/**
+	 * Sets the database info required to retrieve a database connection
+	 * @param url the database URL
+	 * @param userName the database user name
+	 * @param officeId the database office 
+	 * @throws RatingException
+	 */
+	public synchronized void setDbInfo(String url, String userName, String officeId) throws RatingException {
+		setDbInfo(new DbInfo(url, userName, officeId));
+	}
+	/**
+	 * Clears the database connection for this RatingSet and any constituent RatingSet objects
+	 * @param conn the connection
+	 */
+	public synchronized void clearDatabaseConnection() {
+		if (dbrating == null) {
+			for (AbstractRating rating : activeRatings.values()) {
+				if (rating instanceof UsgsStreamTableRating) {
+					RatingSet shifts = ((UsgsStreamTableRating)rating).shifts;
+					if (shifts != null) shifts.clearDatabaseConnection();
+				}
+				else if (rating instanceof VirtualRating) {
+					SourceRating[] sourceRatings  = ((VirtualRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((VirtualRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.clearDatabaseConnection();
+						}
+					}
+				}
+				else if (rating instanceof TransitionalRating) {
+					SourceRating[] sourceRatings  = ((TransitionalRating)rating).sourceRatings;
+					if (sourceRatings != null) {
+						for (SourceRating sourceRating : ((TransitionalRating)rating).sourceRatings) {
+							if (sourceRating.ratings != null) sourceRating.ratings.clearDatabaseConnection();
+						}
+					}
+				}
+			}
+			conn = null;
 		}
 	}
 	/**
@@ -3572,9 +4561,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				if (lines[i].equals(className)) {
 					int extra = lines[i+1].length() % 4;
 					int last = lines[i+1].length() - extra;
-					RatingSet other = RatingSet.fromCompressedXml(lines[i+1].substring(0, last));
+					String compressedXml = lines[i+1].substring(0, last);
+					String uncompressed = null;
+					try {
+						uncompressed = TextUtil.uncompress(compressedXml, "base64");
+					} catch (Exception e) {
+						throw new RatingException(e);
+					}
 					removeAllRatings();
-					setData(other.getData());
+					setData(uncompressed);
 					return;
 				}
 			}
@@ -3639,32 +4634,46 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 		return false;
 	}
+	public String getNativeVerticalDatum(Connection conn) throws VerticalDatumException {
+		setDatabaseConnection(conn);
+		try {
+			return getNativeVerticalDatum();
+		}
+		finally {
+			clearDatabaseConnection();
+		}
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
 	 */
 	@Override
 	public String getNativeVerticalDatum() throws VerticalDatumException {
 		if (dbrating != null) {
-			Connection conn = null;
+			ConnectionInfo ci = null;
 			try {
-				conn = getConnection();
-				PreparedStatement stmt = conn.prepareStatement("select vertical_datum from cwms_v_loc where location_id = :1 and unit_system = 'EN'");
-				stmt.setString(1, ratingSpec.locationId);
-				ResultSet rs = stmt.executeQuery();
-				rs.next();
-				String vertical_datum = rs.getString(1);
-				rs.close();
-				stmt.close();
-				return vertical_datum;
+				ci = getConnectionInfo();
+				conn = ci.getConnection();
+				synchronized(conn) {
+					PreparedStatement stmt = conn.prepareStatement("select vertical_datum from cwms_v_loc where location_id = :1 and unit_system = 'EN'");
+					stmt.setString(1, ratingSpec.locationId);
+					ResultSet rs = stmt.executeQuery();
+					rs.next();
+					String vertical_datum = rs.getString(1);
+					rs.close();
+					stmt.close();
+					return vertical_datum;
+				}
 			}
 			catch (Exception e) {
 				throw new VerticalDatumException(e);
 			}
 			finally {
-				try {
-					releaseConnection(conn);
-				}
-				catch(Exception e){
+				if (ci != null && ci.wasRetrieved()) {
+					try {
+						releaseConnection(ci);
+					} catch (RatingException e) {
+						throw new VerticalDatumException(e);
+					}
 				}
 			}
 		}
@@ -3907,24 +4916,82 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (dbrating == null) {
-			return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingSet)obj).getData()));
+		boolean same =  obj == this 
+				|| (obj instanceof RatingSet 
+						&& (((RatingSet)obj).dbInfo == null) == (dbInfo == null)
+						&& (((RatingSet)obj).conn == null) == (conn == null)
+						&& (((RatingSet)obj).dbrating == null) == (dbrating == null)
+						&& (dbInfo == null || ((RatingSet)obj).dbInfo.equals(dbInfo))
+						&& ((RatingSet)obj).allowUnsafe == allowUnsafe
+						&& ((RatingSet)obj).warnUnsafe == warnUnsafe
+						&& ((RatingSet)obj).defaultValueTime == defaultValueTime
+						&& ((RatingSet)obj).ratingTime == ratingTime
+						&& getData().equals(((RatingSet)obj).getData())
+						&& (((RatingSet)obj).activeRatings == null) == (activeRatings == null));
+		if (same) {
+			if (activeRatings != null) {
+				if (((RatingSet)obj).activeRatings.size() != activeRatings.size()) return false;
+				for (Long key : activeRatings.keySet()) {
+					if (!((RatingSet)obj).activeRatings.containsKey(key)) return false;
+					if(!((RatingSet)obj).activeRatings.get(key).equals(activeRatings.get(key))) return false;
+				}
+			}
 		}
-		else {
-			return dbrating.equals(obj);
-		}
+		return same;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {
-		return getClass().getName().hashCode() + getData().hashCode();
+		int hashCode = getClass().getName().hashCode()
+				+ 3 * (dbInfo == null ? 1 : dbInfo.hashCode())
+				+ 5 * (conn == null ? 1 : 5)
+				+ 7 * (dbrating == null ? 1 : 7)
+				+ 11 * (allowUnsafe ? 1 : 11)
+				+ 13 * (warnUnsafe ? 1 : 13)
+				+ 17 * (int)defaultValueTime
+				+ 19 * (int)ratingTime
+				+ getData().hashCode();
+		if (activeRatings != null) {
+			Iterator<AbstractRating> it = activeRatings.values().iterator();
+			for (int i = 0; it.hasNext(); ++i) {
+				hashCode += 23 * i * it.next().hashCode();
+			}
+		}
+//		System.err.println(3 * (dbInfo == null ? 1 : dbInfo.hashCode()));
+//		System.err.println(5 * (conn == null ? 1 : 5));
+//		System.err.println(7 * (dbrating == null ? 1 : 7));
+//		System.err.println(11 * (allowUnsafe ? 1 : 11));
+//		System.err.println(13 * (warnUnsafe ? 1 : 13));
+//		System.err.println(17 * (int)defaultValueTime);
+//		System.err.println(19 * (int)ratingTime);
+//		System.err.println(getData().hashCode());
+//		if (activeRatings != null) {
+//			Iterator<AbstractRating> it = activeRatings.values().iterator();
+//			for (int i = 0; it.hasNext(); ++i) {
+//				System.err.println(String.format("%d : %d", i, 23 * i * it.next().hashCode()));
+//			}
+//		}
+		return hashCode;
 	}
 	
 	private void refreshRatings() {
 		synchronized(this) {
 			if (dbrating == null) {
+				if (isLazy) {
+					//-------------------------------------------------------------------//
+					// first update ratings from active ratings (if rating still exists) //
+					//-------------------------------------------------------------------//
+					for (Long key : activeRatings.keySet()) {
+						if (ratings.containsKey(key)) {
+							ratings.put(key, activeRatings.get(key));
+						}
+					}
+				}
+				//---------------------------------------------//
+				// now rebuild both ratings and active ratings //
+				//---------------------------------------------//
 				AbstractRating[] ratingArray = ratings.values().toArray(new AbstractRating[ratings.size()]);
 				ratings.clear();
 				activeRatings.clear();
@@ -4011,199 +5078,4 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-		
-//	public static void main(String[] args) throws Exception {
-//		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.129:1521/CWMS22DEV", "cwms_20", "cwms22dev");
-//		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "ARCA.Count-Conduit_Gates,Opening-Conduit_Gates,Elev;Flow-Conduit_Gates.Standard.Production");
-//		double[][] extents = rs.getRatingExtents();
-//		String[] params = rs.getRatingParameters();
-//		String[] units = rs.getDataUnits();
-//		for (int i = 0; i < params.length; ++i) {
-//			System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", params[i], extents[0][i], extents[1][i], units[i]));
-//		}
-//		System.out.println("==================================");
-//		rs.setDataUnits(new String[] {"unit", "m", "m", "cms"});
-//		for (int i = 0; i < params.length; ++i) {
-//			System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", params[i], extents[0][i], extents[1][i], units[i]));
-//		}
-//		System.out.println("==================================");
-//		hec.heclib.dss.HecDss dssFile = hec.heclib.dss.HecDss.open("u:/junk/service_level.dss");
-//		hec.hecmath.PairedDataMath r = (hec.hecmath.PairedDataMath)dssFile.read("/MISSOURI/MAINSTEM/DATE-VOLUME/SERVICE_LEVEL///");
-//		hec.io.PairedDataContainer pdc = (hec.io.PairedDataContainer)r.getData();
-//		extents = r.getRatingExtents();
-//		System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", "Service Level", extents[0][0], extents[1][0], "n/a"));
-//		System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", pdc.xparameter,  extents[0][1], extents[1][1], pdc.xunits));
-//		System.out.println(String.format("%s\tmin = %f\tmax = %f\t%s", pdc.yparameter,  extents[0][2], extents[1][2], pdc.yunits));
-//	}
-	
-//	public static void main(String[] args) throws Exception {
-//		
-//		Connection conn = wcds.dbi.client.JdbcConnection.getConnection("jdbc:oracle:thin:@192.168.65.128:1521/CWMS22DEV", "cwms_20", "cwms22dev");
-//		RatingSet rs = RatingSet.fromDatabase(conn, "SWT", "TULA.Stage;Flow.Logarithmic.Production");
-//		RatingSetContainer rsc = rs.getData();
-//		RatingSet rs2 = new RatingSet(rsc);		
-//		rs.getRatingSpec().setVersion("TESTER");
-//		for(AbstractRating rating : rs.getRatings()) {
-//			rating.setRatingSpecId(rs.getRatingSpec().getRatingSpecId());
-//		}
-//		rs.storeToDatabase(conn, true);
-//		conn.commit();
-//		double minStage = -Double.MAX_VALUE;
-//		double maxStage = Double.MAX_VALUE;
-//		AbstractRating[] ratings = rs.getRatings();
-//		long[] valueTimes = new long[ratings.length * 2 + 1];
-//		valueTimes[0] = ratings[0].getEffectiveDate();
-//		UsgsRounder indRounder = rs.getRatingSpec().getIndRoundingSpecs()[0];
-//		UsgsRounder depRounder = rs.getRatingSpec().getDepRoundingSpec();
-//
-//		String sql = 
-//				"begin " +
-//				   ":1 := cwms_rating.rate_f("   +
-//				      "p_rating_spec => :2,"     +
-//				      "p_value       => :3,"     +
-//				      "p_units       => cwms_util.split_text(replace(:4, ';', ','), ',')," +
-//				      "p_value_times => cast(cwms_util.to_timestamp(:5) as date),"   +
-//				      "p_time_zone   => 'UTC',"  +
-//				      "p_office_id   => :6);"    +
-//				"end;";
-//		CallableStatement rateStmt = conn.prepareCall(sql);
-//		rateStmt.registerOutParameter(1, Types.NUMERIC);
-//		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-//		rateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-//		rateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-//		
-//		CallableStatement revRateStmt = conn.prepareCall(sql.replaceAll("rate_f", "reverse_rate_f"));
-//		revRateStmt.registerOutParameter(1, Types.NUMERIC);
-//		revRateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-//		revRateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-//		revRateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-//		
-//		for (int i = 0; i < ratings.length; ++i) {
-//			TableRating tr = (TableRating)ratings[i];
-//			TableRatingContainer trc = (TableRatingContainer)tr.getData();
-//			int j = 2 * i + 1;
-//			int k = 2 * (i + 1);
-//			valueTimes[k] = trc.effectiveDateMillis;
-//			valueTimes[j] = (valueTimes[i] + valueTimes[k]) / 2;
-//			double low = trc.values[0].indValue;
-//			double high = trc.values[trc.values.length-1].indValue;
-//			if (low > minStage) minStage = low;
-//			if (high < maxStage) maxStage = high;
-//		}
-//		for (long valueTime : valueTimes) System.out.println(valueTime);
-//		double flow;
-//		double stage2;
-//		for (double stage = minStage; stage <= maxStage; stage += 2.5) {
-//			System.out.print(String.format("%12s", indRounder.format(stage)));
-//			for (int i = 0; i < valueTimes.length; ++i) {
-//				flow = rs.rate(valueTimes[i], stage);
-//				stage2 = rs.reverseRate(valueTimes[i], flow);
-//				System.out.print(String.format("%12s", depRounder.format(flow)));
-//				System.out.print(String.format("%12s", indRounder.format(stage2)));
-//			}
-//			System.out.println("");
-//			System.out.print(String.format("%12s", indRounder.format(stage)));
-//			for (int i = 0; i < valueTimes.length; ++i) {
-//				rateStmt.setDouble(3, stage);
-//				rateStmt.setLong(5, valueTimes[i]);
-//				rateStmt.execute();
-//				flow = rateStmt.getDouble(1);
-//				revRateStmt.setDouble(3, flow);
-//				revRateStmt.setLong(5, valueTimes[i]);
-//				revRateStmt.execute();
-//				stage2 = revRateStmt.getDouble(1);
-//				System.out.print(String.format("%12s", depRounder.format(flow)));
-//				System.out.print(String.format("%12s", indRounder.format(stage2)));
-//			}
-//			System.out.println("\n");
-//			
-//		}
-//
-//		rs = RatingSet.fromDatabase(conn, "SWT", "KEYS.Elev;Stor.Linear.Production");
-//		rs.setDefaultValueTime(System.currentTimeMillis());
-//		indRounder = rs.getRatingSpec().getIndRoundingSpecs()[0];
-//		depRounder = rs.getRatingSpec().getDepRoundingSpec();
-//		
-//		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-//		rateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-//		rateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-//		
-//		revRateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-//		revRateStmt.setString(4, rs.getRatings()[0].getRatingUnitsId());
-//		revRateStmt.setString(6, rs.getRatingSpec().getOfficeId());
-//		
-//		for (double elev = 658.; elev < 780.; elev += 5.) {
-//			double stor = rs.rate(elev);
-//			double elev2 = rs.reverseRate(stor);
-//			System.out.print(String.format("%12s", indRounder.format(elev)));
-//			System.out.print(String.format("%12s", depRounder.format(stor)));
-//			System.out.print(String.format("%12s", indRounder.format(elev2)));
-//			System.out.println("");
-//			rateStmt.setDouble(3, elev);
-//			rateStmt.setLong(5, System.currentTimeMillis());
-//			rateStmt.execute();
-//			stor = rateStmt.getDouble(1);
-//			revRateStmt.setDouble(3, stor);
-//			revRateStmt.setLong(5, System.currentTimeMillis());
-//			revRateStmt.execute();
-//			elev2 = revRateStmt.getDouble(1);
-//			System.out.print(String.format("%12s", indRounder.format(elev)));
-//			System.out.print(String.format("%12s", depRounder.format(stor)));
-//			System.out.print(String.format("%12s", indRounder.format(elev2)));
-//			System.out.println("\n");
-//		}
-//
-//		rs = RatingSet.fromDatabase(conn, "SWT", "ARCA.Count-Conduit_Gates,Opening-Conduit_Gates,Elev;Flow-Conduit_Gates.Standard.Production");
-//		rs.setDefaultValueTime(System.currentTimeMillis());
-//		UsgsRounder[] indRounders = rs.getRatingSpec().getIndRoundingSpecs();
-//		indRounders[2] = new UsgsRounder("5555555555");
-//		depRounder = rs.getRatingSpec().getDepRoundingSpec();
-//		
-//		sql = 
-//			"begin " +
-//			   ":1 := cwms_rating.rate_one_f("   +
-//			      "p_rating_spec => :2,"     +
-//			      "_values      => double_tab_t(:3,:4,:5),"     +
-//			      "p_units       => cwms_util.split_text(replace(:6, ';', ','), ',')," +
-//			      "p_value_time  => cast(cwms_util.to_timestamp(:7) as date),"   +
-//			      "p_time_zone   => 'UTC',"  +
-//			      "p_office_id   => :8);"    +
-//			"end;";
-//		rateStmt = conn.prepareCall(sql);
-//		rateStmt.registerOutParameter(1, Types.NUMERIC);
-//		rateStmt.setString(2, rs.getRatingSpec().getRatingSpecId());
-//		rateStmt.setString(6, rs.getRatings()[0].getRatingUnitsId());
-//		rateStmt.setLong(7, System.currentTimeMillis());
-//		rateStmt.setString(8, rs.getRatingSpec().getOfficeId());
-//		
-//		double[] valueSet = new double[3];
-//		for (double count = 1.; count <= 2.; count += 1.) {
-//			valueSet[0] = count;
-//			rateStmt.setDouble(3, count);
-//			for (double opening = .5; opening <= 7.; opening += .5) {
-//				valueSet[1] = opening;
-//				rateStmt.setDouble(4, opening);
-//				for (double elev = 956.; elev <= 1030.; elev += 2.5) {
-//					valueSet[2] = elev;
-//					rateStmt.setDouble(5, elev);
-//					flow = rs.rateOne(valueSet);
-//					System.out.println(String.format(
-//							"%12s%12s%12s%12s", 
-//							indRounders[0].format(count), 
-//							indRounders[1].format(opening), 
-//							indRounders[2].format(elev), 
-//							depRounder.format(flow)));
-//					rateStmt.execute();
-//					flow = rateStmt.getDouble(1);
-//					System.out.println(String.format(
-//							"%12s%12s%12s%12s\n", 
-//							indRounders[0].format(count), 
-//							indRounders[1].format(opening), 
-//							indRounders[2].format(elev), 
-//							depRounder.format(flow)));
-//				}
-//			}
-//		}
-//		conn.close();
-//	}
 }

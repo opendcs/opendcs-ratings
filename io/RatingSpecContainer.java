@@ -1,11 +1,5 @@
 package hec.data.cwmsRating.io;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.util.TextUtil;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -17,6 +11,10 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.filter.ElementFilter;
 import org.jdom.input.SAXBuilder;
+
+import hec.data.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.util.TextUtil;
 
 /**
  * Container class for RatingSpec objects
@@ -89,6 +87,18 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	 * The description of this rating specification
 	 */
 	public String specDescription = null;
+	/**
+	 * Public empty constructor
+	 */
+	public RatingSpecContainer() {}
+	/**
+	 * Public constructor from an XML snippet
+	 * @param xmlStr The XML snippet
+	 * @throws RatingObjectDoesNotExistException
+	 */
+	public RatingSpecContainer(String xmlStr) throws RatingObjectDoesNotExistException {
+		populateFromXml(xmlStr);
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -157,24 +167,25 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode()
 				+ super.hashCode()
-				+ (specId == null ? 3 : specId.hashCode())
-				+ (officeId == null ? 7 : officeId.hashCode())
-				+ (specVersion == null ? 11 : specVersion.hashCode())
-				+ (sourceAgencyId == null ? 13 : sourceAgencyId.hashCode())
-				+ (inRangeMethod == null ? 17 : inRangeMethod.hashCode())
-				+ (outRangeLowMethod == null ? 19 : outRangeLowMethod.hashCode())
-				+ (outRangeHighMethod == null ? 23 : outRangeHighMethod.hashCode())
-				+ new Boolean(active).hashCode()
-				+ new Boolean(autoUpdate).hashCode()
-				+ new Boolean(autoActivate).hashCode()
-				+ new Boolean(autoMigrateExtensions).hashCode()
-				+ (depRoundingSpec == null ? 27 : depRoundingSpec.hashCode());
+				+  3 * (specId == null ? 1 : specId.hashCode())
+				+  5 * (officeId == null ? 1 : officeId.hashCode())
+				+  7 * (specVersion == null ? 1 : specVersion.hashCode())
+				+ 11 * (sourceAgencyId == null ? 1 : sourceAgencyId.hashCode())
+				+ 13 * (inRangeMethod == null ? 1 : inRangeMethod.hashCode())
+				+ 17 * (outRangeLowMethod == null ? 1 : outRangeLowMethod.hashCode())
+				+ 19 * (outRangeHighMethod == null ? 1 : outRangeHighMethod.hashCode())
+				+ 23 * (active ? 3 : 7)
+				+ 29 * (autoUpdate ? 3 : 7)
+				+ 31 * (autoActivate ? 3 : 7)
+				+ 37 * (autoMigrateExtensions ? 3 : 7)
+				+ 41 * (depRoundingSpec == null ? 1 : depRoundingSpec.hashCode());
 		if (indRoundingSpecs == null) {
-			hashCode += 29;
+			hashCode += 43;
 		}
 		else {
+			hashCode += 47 * indRoundingSpecs.length;
 			for (int i = 0; i < indRoundingSpecs.length; ++i) {
-				hashCode += indRoundingSpecs[i] == null ? i+1 : indRoundingSpecs[i].hashCode();
+				hashCode += 53 * (indRoundingSpecs[i] == null ? i+1 : indRoundingSpecs[i].hashCode());
 			}
 		}
 		return hashCode;
@@ -210,17 +221,16 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		return other;
 	}
 	/**
-	 * Constructs a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
+	 * Populates the RatingSpecContainer from the first &lt;rating-spec&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
 	 */
-	public static RatingSpecContainer fromXml(String xmlStr) throws RatingObjectDoesNotExistException {
-		RatingSpecContainer rsc = new RatingSpecContainer();
+	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		final String elementName = "rating-spec";
 		RatingObjectDoesNotExistException noTemplateException = null;
 		try {
-			RatingTemplateContainer rtc = RatingTemplateContainer.fromXml(xmlStr);
-			rtc.clone(rsc);
+			RatingTemplateContainer rtc = new RatingTemplateContainer(xmlStr);
+			rtc.clone(this);
 		}
 		catch (RatingObjectDoesNotExistException e) {
 			noTemplateException = e;
@@ -242,50 +252,50 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 				Element elem = null;
 				@SuppressWarnings("rawtypes")
 				List elems = null;
-				rsc.specOfficeId = root.getAttributeValue("office-id");
+				specOfficeId = root.getAttributeValue("office-id");
 				elem = root.getChild("rating-spec-id");
-				if (elem != null) rsc.specId = elem.getTextTrim();
+				if (elem != null) specId = elem.getTextTrim();
 				elem = root.getChild("template-id");
-				if (elem != null) rsc.templateId = elem.getTextTrim();
+				if (elem != null) templateId = elem.getTextTrim();
 				elem = root.getChild("location-id");
-				if (elem != null) rsc.locationId = elem.getTextTrim();
+				if (elem != null) locationId = elem.getTextTrim();
 				elem = root.getChild("version");
-				if (elem != null) rsc.specVersion = elem.getTextTrim();
+				if (elem != null) specVersion = elem.getTextTrim();
 				elem = root.getChild("source-agency");
-				if (elem != null) rsc.sourceAgencyId = elem.getTextTrim();
+				if (elem != null) sourceAgencyId = elem.getTextTrim();
 				elem = root.getChild("in-range-method");
-				if (elem != null) rsc.inRangeMethod = elem.getTextTrim();
+				if (elem != null) inRangeMethod = elem.getTextTrim();
 				elem = root.getChild("out-range-low-method");
-				if (elem != null) rsc.outRangeLowMethod = elem.getTextTrim();
+				if (elem != null) outRangeLowMethod = elem.getTextTrim();
 				elem = root.getChild("out-range-high-method");
-				if (elem != null) rsc.outRangeHighMethod = elem.getTextTrim();
+				if (elem != null) outRangeHighMethod = elem.getTextTrim();
 				elem = root.getChild("active");
-				if (elem != null) rsc.active = Boolean.parseBoolean(elem.getTextTrim());
+				if (elem != null) active = Boolean.parseBoolean(elem.getTextTrim());
 				elem = root.getChild("auto-update");
-				if (elem != null) rsc.autoUpdate = Boolean.parseBoolean(elem.getTextTrim());
+				if (elem != null) autoUpdate = Boolean.parseBoolean(elem.getTextTrim());
 				elem = root.getChild("auto-activate");
-				if (elem != null) rsc.autoActivate = Boolean.parseBoolean(elem.getTextTrim());
+				if (elem != null) autoActivate = Boolean.parseBoolean(elem.getTextTrim());
 				elem = root.getChild("auto-migrate-extension");
-				if (elem != null) rsc.autoMigrateExtensions = Boolean.parseBoolean(elem.getTextTrim());
+				if (elem != null) autoMigrateExtensions = Boolean.parseBoolean(elem.getTextTrim());
 				elem = root.getChild("ind-rounding-specs");
 				if (elem != null) {
 					elems = elem.getChildren("ind-rounding-spec");
-					rsc.indRoundingSpecs = new String[elems.size()];
+					indRoundingSpecs = new String[elems.size()];
 					for (Object obj : elems) {
 						elem = (Element)obj;
 						try {
 							int i = Integer.parseInt(elem.getAttributeValue("position")) - 1;
 							if (i >= 0 && i < elems.size()) {
-								rsc.indRoundingSpecs[i] = elem.getTextTrim();
+								indRoundingSpecs[i] = elem.getTextTrim();
 							}
 						}
 						catch (Throwable t) {}
 					}
 				}
 				elem = root.getChild("dep-rounding-spec");
-				if (elem != null) rsc.depRoundingSpec = elem.getTextTrim();
+				if (elem != null) depRoundingSpec = elem.getTextTrim();
 				elem = root.getChild("description");
-				if (elem != null) rsc.specDescription = elem.getTextTrim();
+				if (elem != null) specDescription = elem.getTextTrim();
 			}
 			if (noTemplateException != null) {
 				AbstractRating.getLogger().finer(noTemplateException.getMessage());
@@ -294,7 +304,6 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		catch (JDOMException | IOException e) {
 			AbstractRating.getLogger().severe(e.getMessage());
 		}
-		return rsc;
 	}
 	/**
 	 * Generates an XML string (template and spec) from this object

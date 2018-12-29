@@ -9,7 +9,6 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -226,6 +226,14 @@ public class VirtualRating extends AbstractRating {
 		setData(vrc);
 	}
 	/**
+	 * Public constructor from XML text
+	 * @param xmlText The XML text to initialize from
+	 * @throws RatingException
+	 */
+	public VirtualRating(String xmlText) throws RatingException {
+		setData(new VirtualRatingContainer(xmlText));
+	}
+	/**
 	 * performs common initialization tasks
 	 */
 	protected void init() {
@@ -307,7 +315,7 @@ public class VirtualRating extends AbstractRating {
 				if (unconnectedList.size() > (depParamConn == null ? 1 : 0)) {
 					for (int i = 0; i < Math.min(unconnectedList.size(), getIndParamCount()); ++i) {
 						String indParam = "I"+(i+1);
-						connectionPoint = unconnectedList.get(i);
+						connectionPoint = unconnectedList.get(0);
 						if (!connMap.containsKey(connectionPoint)) {
 							connMap.put(connectionPoint, new HashSet<String>());
 						}
@@ -613,8 +621,9 @@ public class VirtualRating extends AbstractRating {
 						}
 					}
 					catch (RatingException e) {
-						throw new RuntimeException(e);
+						throw new RatingRuntimeException(e);
 					}
+					sourceRatings[i].addObserver(this);
 				}
 			}
 			isNormalized = false;
@@ -639,6 +648,7 @@ public class VirtualRating extends AbstractRating {
 				int[] cpInfo = {-1, -1};
 				VirtualRating.parseConnectionPoint(startingPoint, cpInfo);
 				int startingPointRating = cpInfo[0];
+				int startingPointPoint = cpInfo[1];
 				List<String> endingPoints = new ArrayList<String>();
 				for (Iterator<String> it = connections.iterator(); it.hasNext();) {
 					String connectionPoint = it.next();
@@ -651,20 +661,40 @@ public class VirtualRating extends AbstractRating {
 					int r = cpInfo[0];
 					int p = cpInfo[1];
 					if (r < 0) {
-						throw new RatingException("Connection path leads to independent parameter");
+						//-------------------------------------------------------------------------------//
+						// starting point is the output of an internal rating that is connected to an    //
+						// input of the virtual rating - enumerate the inputs of the internal rating     //
+						// to find the first one not connected or connected to the virtual rating output //
+						//-------------------------------------------------------------------------------//
+						if (startingPointPoint == -1) {
+							String partialInput = "R"+(startingPointRating+1)+"I";
+							for (int i = 0; i < 9; ++i) {
+								String input = partialInput+(i+1);
+								if (!map.containsKey(input) || (map.get(input).size() == 1 && map.get(input).toArray(new String[1])[0].equals("D"))) {
+									endingPoint = input;
+									break;
+								}
+							}
+						}
+						if (endingPoint == null) {
+							throw new RatingException(String.format("Connection path from %s leads to independent parameter", startingPoint));
+						}
+						else {
+							break;
+						}
 					}
 					else if (r >= sourceRatings.length) {
-						throw new RatingException("Connection path specifies rating beyond source rating count");
+						throw new RatingException(String.format("Connection path from %s specifies rating beyond source rating count", startingPoint));
 					}
 					else if (r == startingPointRating) {
 						throw new RatingException("Connection path specifies a connection from one rating to itself");
 					}
 					if (p < 0) {
 						if (sourceRatings[r].mathExpression != null) {
-							throw new RatingException("Connection path would reverse throgh a math expression");
+							throw new RatingException(String.format("Connection path from %s would reverse throgh a math expression", startingPoint));
 						}
 						else if (sourceRatings[r].getIndParamCount() > 1) {
-							throw new RatingException("Connection path would reverse through a multiple-independent-parameter rating");
+							throw new RatingException(String.format("Connection path from %s would reverse through a multiple-independent-parameter rating", startingPoint));
 						}
 						connectionPoint1 = "R"+(r+1)+"I1";
 					}
@@ -673,7 +703,7 @@ public class VirtualRating extends AbstractRating {
 					}
 					endingPoints.add(walkConnections(map, connectionPoint1));
 					if (endingPoints.size() > 1 && !endingPoints.get(endingPoints.size()-1).equals(endingPoints.get(0))) {
-						throw new RatingException(String.format("Connection point %s leads to multiple termination points"));
+						throw new RatingException(String.format("Connection point %s leads to multiple termination points", connectionPoint1));
 					}
 					endingPoint = endingPoints.get(0);
 				}

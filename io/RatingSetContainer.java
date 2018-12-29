@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.jdom.Element;
+
 import hec.data.IVerticalDatum;
 import hec.data.RatingException;
 import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingSetXmlParser;
+import hec.data.cwmsRating.RatingUtil;
 import hec.io.VerticalDatumContainer;
 
 /**
@@ -25,28 +27,68 @@ public class RatingSetContainer implements IVerticalDatum {
 	 * Contains the individual ratings
 	 */
 	public AbstractRatingContainer[] abstractRatingContainers = null;
+	
 	/**
-	 * Fills another RatingSetContainer object with data from this one
-	 * @param other The RatingSetContainer object to fill
+	 * Public empty Constructor
 	 */
-	public void clone(RatingSetContainer other) {
-		if (ratingSpecContainer == null) {
-			other.ratingSpecContainer = null;
-		}
-		else {
-			if (other.ratingSpecContainer == null) other.ratingSpecContainer = new RatingSpecContainer();
-			ratingSpecContainer.clone(other.ratingSpecContainer);
-		}
-		if (abstractRatingContainers == null) {
-			other.abstractRatingContainers = null;
-		}
-		else {
-			other.abstractRatingContainers = new AbstractRatingContainer[abstractRatingContainers.length];
+	public RatingSetContainer() {}
+	/**
+	 * Public constructor from a JDOM Element.
+	 * @param ratingElement The JDOM Element. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 */
+	public RatingSetContainer(Element ratingElement) throws RatingException {
+		populateFromXml(ratingElement);
+	}
+	/**
+	 * Public constructor from an XML instance.
+	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 * @throws RatingException
+	 */
+	public RatingSetContainer(String xmlText) throws RatingException {
+		populateFromXml(xmlText);
+	}
+	/**
+	 * Populates this RatingSetContainer object from a JDOM Element.
+	 * @param ratingElement The JDOM Element. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 */
+	public void populateFromXml(Element ratingElement) throws RatingException {
+		populateFromXml(RatingUtil.jdomElementToText(ratingElement));
+	}
+	/**
+	 * Populates this RatingSetContainer object from an XML instance.
+	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 * @throws RatingException
+	 */
+	public void populateFromXml(String xmlText) throws RatingException {
+		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText);
+		ratingSpecContainer = rsc.ratingSpecContainer;
+		abstractRatingContainers = rsc.abstractRatingContainers;
+	}
+	/**
+	 * Creates another RatingSetContainer object and fills it with with data from this one
+	 */
+	public RatingSetContainer clone() {
+		RatingSetContainer rsc  = abstractRatingContainers == null ? new ReferenceRatingContainer() : new RatingSetContainer();
+		rsc.ratingSpecContainer = ratingSpecContainer == null ? null : ratingSpecContainer.clone();
+		if (abstractRatingContainers != null) {
+			rsc.abstractRatingContainers = new AbstractRatingContainer[abstractRatingContainers.length];
 			for (int i = 0; i < abstractRatingContainers.length; ++i) {
-				other.abstractRatingContainers[i] = new TableRatingContainer();
-				abstractRatingContainers[i].clone(other.abstractRatingContainers[i]);
+				rsc.abstractRatingContainers[i] = abstractRatingContainers[i].clone();
 			}
 		}
+		return rsc;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -63,18 +105,6 @@ public class RatingSetContainer implements IVerticalDatum {
 			return ((Object)this).toString();
 		}
 	}
-	/**
-	 * Generates a new RatingSetContainer object from an XML instance.
-	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @return A new RatingSet object
-	 * @throws RatingException
-	 */
-	public static RatingSetContainer fromXml(String xmlText) throws RatingException {
-		return RatingSetXmlParser.parseString(xmlText);
-	}
 	public String toXml(CharSequence indent) {
 		return toXml(indent, 0);
 	}
@@ -84,6 +114,10 @@ public class RatingSetContainer implements IVerticalDatum {
 	}
 
 	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
+		return toXml(indent, level, includeTemplate, true);
+	}
+
+	public String toXml(CharSequence indent, int level, boolean includeTemplate, boolean includeEmptyTableRatings) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
@@ -121,6 +155,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		}
 		if (abstractRatingContainers != null) {
 			for (AbstractRatingContainer arc : abstractRatingContainers) {
+				if (includeEmptyTableRatings || !(arc instanceof TableRatingContainer) || ((TableRatingContainer)arc).values != null)
 				sb.append(arc.toXml(indent, level+1));
 			}
 		}
@@ -477,11 +512,12 @@ public class RatingSetContainer implements IVerticalDatum {
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode() + (ratingSpecContainer == null ? 3 : ratingSpecContainer.hashCode());
 		if (abstractRatingContainers == null) {
-			hashCode += 7;
+			hashCode += 3;
 		}
 		else {
+			hashCode += 5 * abstractRatingContainers.length;
 			for (int i = 0; i < abstractRatingContainers.length; ++i) {
-				hashCode += (abstractRatingContainers[i] == null ? i+1 : abstractRatingContainers[i].hashCode());
+				hashCode += 7 * (abstractRatingContainers[i] == null ? i+1 : abstractRatingContainers[i].hashCode());
 			}
 		}
 		return hashCode;

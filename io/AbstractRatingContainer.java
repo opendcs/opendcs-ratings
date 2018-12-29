@@ -1,11 +1,8 @@
 package hec.data.cwmsRating.io;
 
 import static hec.lang.Const.UNDEFINED_TIME;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 
-import java.io.IOException;
-import java.io.StringReader;
+import org.jdom.Element;
 
 import hec.data.IVerticalDatum;
 import hec.data.RatingException;
@@ -13,15 +10,10 @@ import hec.data.RatingObjectDoesNotExistException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst;
+import hec.data.cwmsRating.RatingUtil;
 import hec.heclib.util.HecTime;
 import hec.io.VerticalDatumContainer;
 import hec.util.TextUtil;
-
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
 
 /**
  * Container for AbstractRating data
@@ -111,10 +103,10 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 				+  3 * (officeId == null ? 1 : officeId.hashCode())
 				+  5 * (ratingSpecId == null ? 1 : ratingSpecId.hashCode())
 				+  7 * (unitsId == null ? 1 : unitsId.hashCode())
-				+ 11 * new Boolean(active).hashCode()
-				+ 13 * new Long(effectiveDateMillis).hashCode()
-				+ 17 * new Long(transitionStartDateMillis).hashCode()
-				+ 19 * new Long(createDateMillis).hashCode()
+				+ 11 * (active ? 3 : 7)
+				+ 13 * (int)effectiveDateMillis
+				+ 17 * (int)transitionStartDateMillis
+				+ 19 * (int)createDateMillis
 				+ 23 * (vdc == null ? 1 : vdc.hashCode());
 		return hashCode;
 	}
@@ -376,73 +368,68 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	 * @return The RatingTemplateContainer object
 	 * @throws RatingException 
 	 */
-	public static AbstractRatingContainer fromXml(String xmlStr) throws RatingException {
+	public static AbstractRatingContainer buildFromXml(String xmlStr) throws RatingException {
 		AbstractRatingContainer arc = null;
-		Document doc;
-		try {
-			doc = new SAXBuilder().build(new StringReader(xmlStr));
-			//----------------------------//
-			// first try the root element //
-			//----------------------------//
-			Element elem = doc.getRootElement();
-			if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
-				if(elem.getChild("formula") != null) {
-					arc = ExpressionRatingContainer.fromXml(elem);
-				}
-				else {
-					arc = TableRatingContainer.fromXml(elem);
-				}
-			}
-			else if (elem.getName().equals("usgs-stream-rating")) {
-				arc = UsgsStreamTableRatingContainer.fromXml(elem);
-			}
-			else if (elem.getName().equals("virtual-rating")) {
-				arc = VirtualRatingContainer.fromXml(xmlStr);
-			}
-			else if (elem.getName().equals("transitional-rating")) {
-				arc = TransitionalRatingContainer.fromXml(xmlStr);
+		//----------------------------//
+		// first try the root element //
+		//----------------------------//
+		Element elem = RatingUtil.textToJdomElement(xmlStr);
+		if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
+			if(elem.getChild("formula") != null) {
+				arc = new ExpressionRatingContainer(elem);
 			}
 			else {
-				//------------------------------------------//
-				// next try immediate descendants from root //
-				//------------------------------------------//
-				for (Object obj : elem.getChildren()) {
-					elem = (Element)obj;
-					if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
-						if(elem.getChild("formula") != null) {
-							arc = ExpressionRatingContainer.fromXml(elem);
-							break;
-						}
-						else {
-							arc = TableRatingContainer.fromXml(elem);
-							break;
-						}
-					}
-					else if (elem.getName().equals("usgs-stream-rating")) {
-						arc = UsgsStreamTableRatingContainer.fromXml(elem);
-						break;
-					}
-					else if (elem.getName().equals("virtual-rating")) {
-						arc = VirtualRatingContainer.fromXml(xmlStr);
-					}
-					else if (elem.getName().equals("transitional-rating")) {
-						arc = TransitionalRatingContainer.fromXml(xmlStr);
-					}
-				}
-				if (arc == null) {
-					throw new RatingObjectDoesNotExistException("No <rating>, <simple-rating>, <usgs-stream-rating>, <virtual-rating>, or <transitional-rating> element in XML.");
-				}
+				arc = new TableRatingContainer(elem);
 			}
 		}
-		catch (JDOMException | IOException e) {
+		else if (elem.getName().equals("usgs-stream-rating")) {
+			arc = new UsgsStreamTableRatingContainer(elem);
+		}
+		else if (elem.getName().equals("virtual-rating")) {
+			arc = new VirtualRatingContainer(xmlStr);
+		}
+		else if (elem.getName().equals("transitional-rating")) {
+			arc = new TransitionalRatingContainer(xmlStr);
+		}
+		else {
+			//------------------------------------------//
+			// next try immediate descendants from root //
+			//------------------------------------------//
+			for (Object obj : elem.getChildren()) {
+				elem = (Element)obj;
+				if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
+					if(elem.getChild("formula") != null) {
+						arc = new ExpressionRatingContainer(elem);
+						break;
+					}
+					else {
+						arc = new TableRatingContainer(elem);
+						break;
+					}
+				}
+				else if (elem.getName().equals("usgs-stream-rating")) {
+					arc = new UsgsStreamTableRatingContainer(elem);
+					break;
+				}
+				else if (elem.getName().equals("virtual-rating")) {
+					arc = new VirtualRatingContainer(xmlStr);
+				}
+				else if (elem.getName().equals("transitional-rating")) {
+					arc = new TransitionalRatingContainer(xmlStr);
+				}
+			}
+			if (arc == null) {
+				throw new RatingObjectDoesNotExistException("No <rating>, <simple-rating>, <usgs-stream-rating>, <virtual-rating>, or <transitional-rating> element in XML.");
+			}
 		}
 		return arc;
 	}
 	/**
 	 * Common code called from subclasses
 	 * @throws VerticalDatumException 
+	 * @throws RatingException 
 	 */
-	protected static void fromXml(Element ratingElement, AbstractRatingContainer arc) throws VerticalDatumException {
+	protected static void populateCommonDataFromXml(Element ratingElement, AbstractRatingContainer arc) throws VerticalDatumException {
 		HecTime hectime = new HecTime();
 		String data = null;
 		arc.officeId = ratingElement.getAttributeValue("office-id");
@@ -450,7 +437,7 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 		arc.unitsId = ratingElement.getChildTextTrim("units-id");
 		Element verticalDatumElement = ratingElement.getChild("vertical-datum-info");
 		if (verticalDatumElement != null) {
-			arc.vdc = new VerticalDatumContainer(new XMLOutputter().outputString(verticalDatumElement));
+			arc.vdc = new VerticalDatumContainer(RatingUtil.jdomElementToText(verticalDatumElement));
 		}
 		data = ratingElement.getChildTextTrim("effective-date");
 		if (data != null) {

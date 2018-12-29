@@ -3,6 +3,10 @@
  */
 package hec.data.cwmsRating;
 
+import static hec.util.TextUtil.replaceAll;
+
+import java.util.Arrays;
+
 import hec.data.RatingException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.SourceRatingContainer;
@@ -12,10 +16,6 @@ import hec.hecmath.computation.Condition;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
-
-import static hec.util.TextUtil.replaceAll;
-
-import java.util.Arrays;
 
 /**
  * Rating that selects among multiple possible ratings depending on input parameter values.
@@ -49,6 +49,14 @@ public class TransitionalRating extends AbstractRating {
 	public TransitionalRating(TransitionalRatingContainer trrc) throws RatingException {
 		init();
 		setData(trrc);
+	}
+	/**
+	 * Public constructor from XML text
+	 * @param xmlText The XML text to initialize from
+	 * @throws RatingException
+	 */
+	public TransitionalRating(String xmlText) throws RatingException {
+		setData(new TransitionalRatingContainer(xmlText));
 	}
 	/**
 	 * performs common initialization tasks
@@ -171,6 +179,9 @@ public class TransitionalRating extends AbstractRating {
 	public void setSourceRatings(SourceRating[] sources) {
 		synchronized(this) {
 			sourceRatings = Arrays.copyOf(sources, sources.length);
+			for (SourceRating sr : sources) {
+				sr.addObserver(this);
+			}
 		}
 	}
 	/* (non-Javadoc)

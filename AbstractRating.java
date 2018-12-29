@@ -135,7 +135,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 * @throws RatingException
 	 */
 	public static AbstractRating fromXml(String xmlText) throws RatingException {
-		AbstractRatingContainer arc = AbstractRatingContainer.fromXml(xmlText);
+		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
 		if (arc instanceof UsgsStreamTableRatingContainer) return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)arc);
 		if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
 		if (arc instanceof ExpressionRatingContainer) return new ExpressionRating((ExpressionRatingContainer)arc);
@@ -486,7 +486,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 							if (warnUnsafe) logger.warning(t.getMessage());
 							parameterUnit = null;
 						}
-						if (parameterUnit != null && !units[i].equals(parameterUnit)) {
+						if (parameterUnit != null && !units[i].equals(parameterUnit.toString())) {
 							if(!Units.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
 								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit.toString());
 								if (!allowUnsafe) throw new RatingException(msg);

@@ -113,7 +113,7 @@ public class TimeSeriesRater {
 				//-------------------------//
 				newDataUnits[tscs.length] = dataUnits[tscs.length];
 				ratingObj.setDataUnits(newDataUnits);
-				IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, ratingUnits, tz, allowUnsafe, warnUnsafe);
+				IndependentValuesContainer ivc = RatingUtil.tscsToIvc(tscs, ratingUnits, tz, allowUnsafe, warnUnsafe);
 				double[] depVals = ratingObj.rate(ivc.valTimes, ivc.indVals);
 				ratingObj.setDataUnits(dataUnits);
 				//-----------------------------------------//
@@ -180,7 +180,7 @@ public class TimeSeriesRater {
 			}
 			TimeSeriesContainer[] tscs = {tsc};
 			String[] units = {tsc.units};
-			IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
+			IndependentValuesContainer ivc = RatingUtil.tscsToIvc(tscs, units, tz, allowUnsafe, warnUnsafe);
 			TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
 			tsc.clone(ratedTsc);
 			double[] depVals = new double[ivc.indVals.length];

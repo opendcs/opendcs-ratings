@@ -61,8 +61,8 @@ public class RatingValueContainer {
 	@Override
 	public int hashCode() {
 		return getClass().getName().hashCode() 
-				+  3 * new Double(indValue).hashCode()
-				+  5 * new Double(depValue).hashCode()
+				+  3 * (int)(indValue * 1000)
+				+  5 * (int)(depValue * 1000)
 				+  7 * (note == null ? 1 : note.hashCode())
 				+ 11 * (depTable == null ? 1 : depTable.hashCode());
 	}
@@ -216,7 +216,7 @@ public class RatingValueContainer {
 		//---------------------------------//
 		// determine the shape of the data //
 		//---------------------------------//
-		List pointsElems = ratingElement.getChildren(pointsElementsName);
+		List<?> pointsElems = ratingElement.getChildren(pointsElementsName);
 		if (pointsElems.size() == 0) return null;
 		for (Object pointsObj : pointsElems) {
 			Element pointsElem = (Element)pointsObj;

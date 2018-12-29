@@ -70,8 +70,9 @@ public class SourceRatingContainer {
 			hashCode += 7;
 		}
 		else {
+			hashCode += 9 * units.length;
 			for (int i = 0; i < units.length; ++i) {
-				hashCode += 9 * (units[i] == null ? i+1 : units[i].hashCode());
+				hashCode += 11 * (units[i] == null ? i+1 : units[i].hashCode());
 			}
 		}
 		return hashCode;
@@ -84,13 +85,11 @@ public class SourceRatingContainer {
 	public void clone(SourceRatingContainer other)  {
 		
 		other.mathExpression = mathExpression;
-		if (rsc == null) {
-			other.rsc = null;
+		if (units != null) {
+			other.units = new String[units.length];
+			for (int i = 0; i < units.length; ++i) other.units[i] = units[i];
 		}
-		else {
-			other.rsc = new RatingSetContainer();
-			rsc.clone(other.rsc);
-		}
+		other.rsc = rsc == null ? null : rsc.clone();
 	}
 	
 	public SourceRatingContainer clone() {

@@ -3,6 +3,10 @@
  */
 package hec.data.cwmsRating.io;
 
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,21 +17,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jdom.Element;
 
 import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.VirtualRating;
 import hec.util.TextUtil;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 /**
  *
@@ -46,20 +47,55 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 */
 	public String connections = null;
 	/**
-	 * Creates a new VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement
+	 * Public empty constructor
+	 */
+	public VirtualRatingContainer() {}
+	/**
+	 * Public constructor from a JDOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement The JDOM Element
 	 * @return
 	 * @throws RatingException
 	 */
-	public static VirtualRatingContainer fromXml(Element ratingElement) throws RatingException {
-		VirtualRatingContainer vrc = new VirtualRatingContainer();
+	public VirtualRatingContainer(Element ratingElement) throws RatingException {
+		populateFromXml(ratingElement);
+	}
+	/**
+	 * Public constructor from an XML snippet. The connections and sourceRatings fields will be null
+	 * @param xmlText The XML snippet
+	 * @return
+	 * @throws RatingException
+	 */
+	public VirtualRatingContainer(String xmlText) throws RatingException {
+		populateFromXml(xmlText);
+	}
+	/**
+	 * Populates the VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement The JDOM Element
+	 * @return
+	 * @throws RatingException
+	 */
+	public void populateFromXml(Element ratingElement) throws RatingException {
 		try {
-			AbstractRatingContainer.fromXml(ratingElement, vrc);
+			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
 		}
 		catch (VerticalDatumException e) {
 			throw new RatingException(e);
 		}
-		return vrc;
+	}
+	/**
+	 * Populates the VirtualRatingContainer from an XML snippet. The connections and sourceRatings fields will be null
+	 * @param xmlText The XML snippet
+	 * @return
+	 * @throws RatingException
+	 */
+	public void populateFromXml(String xmlText) throws RatingException {
+		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
+		if (arc instanceof VirtualRatingContainer) {
+			arc.clone(this);
+		}
+		else {
+			throw new RatingException("XML text does not specify an VirtualRating object.");
+		}
 	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
@@ -289,8 +325,9 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 			hashCode += 5;
 		}
 		else {
+			hashCode += 7 * sourceRatings.length;
 			for (int i = 0; i < sourceRatings.length; ++i) {
-				hashCode += 7 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
+				hashCode += 11 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
 			}
 		}
 		return hashCode;
@@ -438,7 +475,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 			}
 		}
 		catch (VerticalDatumException e) {
-			throw new RuntimeException(e);
+			throw new RatingRuntimeException(e);
 		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);

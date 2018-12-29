@@ -27,9 +27,11 @@ import hec.hecmath.computation.VariableSet;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
+import hec.lang.Observable;
 import hec.util.TextUtil;
 
 import java.util.Arrays;
+import java.util.Observer;
 import java.util.TimeZone;
 
 /**
@@ -37,7 +39,7 @@ import java.util.TimeZone;
  * 
  * @author Mike Perryman
  */
-public class SourceRating implements IRating, IVerticalDatum {
+public class SourceRating implements IRating, IVerticalDatum, Observer {
 
 		/**
 		 * A math expression to be evaluated instead of using the rating set.
@@ -60,9 +62,14 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		protected String[] dataUnits = null;
 		/**
+		 * Object that provides the Observable-by-composition functionality
+		 */
+		protected Observable observationTarget = null;
+		/**
 		 * Default constructor
 		 */
 		public SourceRating() {
+			this.observationTarget = new Observable();
 		}
 		/**
 		 * Public constructor from SourceRatingContainer object
@@ -70,6 +77,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 * @throws RatingException 
 		 */
 		public SourceRating(SourceRatingContainer src) throws RatingException {
+			this.observationTarget = new Observable();
 			setData(src);
 		}
 		/**
@@ -79,7 +87,8 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 * @throws RatingException 
 		 */
 		public SourceRating(RatingSet ratingSet, String[] ratingUnits) throws RatingException {
-			this.setRatingSet(ratingSet, ratingUnits);
+			this.observationTarget = new Observable();
+			setRatingSet(ratingSet, ratingUnits);
 		}
 		/**
 		 * Public constructor from a RatingSet object and units
@@ -88,7 +97,8 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 * @throws RatingException 
 		 */
 		public SourceRating(RatingSet ratingSet, String ratingUnitsId) throws RatingException {
-			this.setRatingSet(ratingSet, ratingUnitsId);
+			this.observationTarget = new Observable();
+			setRatingSet(ratingSet, ratingUnitsId);
 		}
 		/**
 		 * Public constructor from a RatingSet object and default units
@@ -96,7 +106,8 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 * @throws RatingException 
 		 */
 		public SourceRating(RatingSet ratingSet) throws RatingException {
-			this.setRatingSet(ratingSet);
+			this.observationTarget = new Observable();
+			setRatingSet(ratingSet);
 		}
 		/**
 		 * Initialize the object from a SourceRatingContainer object
@@ -189,6 +200,9 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		public void setRatingSet(RatingSet ratings, String[] units) throws RatingException {
 			this.ratings = ratings;
+			if (this.ratings != null) {
+				this.ratings.addObserver(this);
+			}
 			setRatingUnits(units);
 			mathExpression = null;
 		}
@@ -199,6 +213,9 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		public void setRatingSet(RatingSet ratings, String units) throws RatingException {
 			this.ratings = ratings;
+			if (this.ratings != null) {
+				this.ratings.addObserver(this);
+			}
 			setRatingUnits(units);
 			mathExpression = null;
 		}
@@ -208,6 +225,9 @@ public class SourceRating implements IRating, IVerticalDatum {
 		 */
 		public void setRatingSet(RatingSet ratings) throws RatingException {
 			this.ratings = ratings;
+			if (this.ratings != null) {
+				this.ratings.addObserver(this);
+			}
 			setRatingUnits(ratings.getRatingUnits());
 			mathExpression = null;
 		}
@@ -853,7 +873,7 @@ public class SourceRating implements IRating, IVerticalDatum {
 				results = new TimeSeriesContainer();
 				tscs[0].clone(results);
 				TimeZone tz = TimeZone.getTimeZone(String.format("Etc/GMT+%+d", -tscs[0].timeZoneRawOffset));
-				IndependentValuesContainer ivc = RatingConst.tscsToIvc(tscs, ratingUnits, tz, true, true);
+				IndependentValuesContainer ivc = RatingUtil.tscsToIvc(tscs, ratingUnits, tz, true, true);
 				VariableSet vars = mathExpression.getVariables();
 				results.numberValues = ivc.valTimes.length;
 				results.times = new int[results.numberValues];
@@ -1145,5 +1165,31 @@ public class SourceRating implements IRating, IVerticalDatum {
 		public int hashCode() {
 			return getClass().getName().hashCode() + getData().hashCode();
 		}
-		
+		@Override
+		public void update(java.util.Observable o, Object arg) {
+			synchronized(this) {
+				observationTarget.setChanged();
+				observationTarget.notifyObservers();
+			}
+		}
+		/**
+		 * Adds an Observer to this SourceRating. The Observer will be notified of any changes to this SourceRating
+		 * @param o The Observer object to add
+		 * @see java.util.Observer
+		 */
+		public void addObserver(Observer o) {
+			synchronized(observationTarget) {
+				observationTarget.addObserver(o);
+			}
+		}
+		/**
+		 * Deletes an Observer from this SourceRating. The Observer will no longer be notified of any changes to this SourceRating
+		 * @param o The Observer object to delete
+		 * @see java.util.Observer
+		 */
+		public void deleteObserver(Observer o) {
+			synchronized(observationTarget) {
+				observationTarget.deleteObserver(o);
+			}
+		}
 }

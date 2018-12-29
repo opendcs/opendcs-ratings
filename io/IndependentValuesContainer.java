@@ -67,13 +67,18 @@ public class IndependentValuesContainer {
 		int hashCode = getClass().getName().hashCode();
 		if (valTimes != null) {
 			for (int i = 0; i < valTimes.length; ++i)
-			hashCode += (i+1) * new Long(valTimes[i]).hashCode();
+			hashCode += (i+1) * (int)valTimes[i];
 		}
 		if (indVals != null) {
+			hashCode += 3 * indVals.length;
 			for (int i = 0; i < indVals.length; ++i) {
-				if (indVals[i] != null) {
+				if (indVals[i] == null) {
+					hashCode += 5 * (i+1);
+				}
+				else {
+					hashCode += 7 * (i+1) * indVals[i].length;
 					for (int j = 0; j < indVals[i].length; ++j) {
-						hashCode += (i+1) * (j+1) * new Double(indVals[i][j]).hashCode();
+						hashCode += 9 * (j+1) * (int)(indVals[i][j] * 1000);
 					}
 				}
 			}

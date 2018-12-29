@@ -6,15 +6,9 @@ package hec.data.cwmsRating.io;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import hec.data.RatingException;
-import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.TransitionalRating;
-import hec.util.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +16,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.jdom.Element;
+
+import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
+import hec.data.VerticalDatumException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.TransitionalRating;
+import hec.util.TextUtil;
 
 /**
  *
@@ -43,20 +44,51 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 */
 	public SourceRatingContainer[] sourceRatings = null;
 	/**
-	 * Creates a new TransitionalRatingContainer from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param ratingElement
-	 * @return
+	 * Public empty constructor
+	 */
+	public TransitionalRatingContainer() {}
+	/**
+	 * Public constructor from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param ratingElement The JDOM Element
 	 * @throws RatingException
 	 */
-	public static TransitionalRatingContainer fromXml(Element ratingElement) throws RatingException {
-		TransitionalRatingContainer trc = new TransitionalRatingContainer();
+	public TransitionalRatingContainer(Element ratingElement) throws RatingException {
+		populateFromXml(ratingElement);
+	}
+	/**
+	 * Public constructor from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param xmlText The XML snippet
+	 * @throws RatingException
+	 */
+	public TransitionalRatingContainer(String xmlText) throws RatingException {
+		populateFromXml(xmlText);
+	}
+	/**
+	 * Populates the TransitionalRatingContainer from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param ratingElement The jdom element
+	 * @throws RatingException
+	 */
+	public void populateFromXml(Element ratingElement) throws RatingException {
 		try {
-			AbstractRatingContainer.fromXml(ratingElement, trc);
+			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
 		}
 		catch (VerticalDatumException e) {
 			throw new RatingException(e);
 		}
-		return trc;
+	}
+	/**
+	 * Populates the TransitionalRatingContainer from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param xmlText The XML snippet
+	 * @throws RatingException
+	 */
+	public void populateFromXml(String xmlText) throws RatingException {
+		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
+		if (arc instanceof TransitionalRatingContainer) {
+			arc.clone(this);
+		}
+		else {
+			throw new RatingException("XML text does not specify an TransitionalRating object.");
+		}
 	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
@@ -124,7 +156,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 				sourceRatings[i].clone(trc.sourceRatings[i]);
 			}
 		}
-		else if (sourceRatingIds != null) {
+		if (sourceRatingIds != null) {
 			trc.sourceRatingIds = new String[sourceRatingIds.length];
 			for (int i = 0; i < sourceRatingIds.length; ++i) {
 				trc.sourceRatingIds[i] = sourceRatingIds[i];
@@ -189,24 +221,27 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 			hashCode += 3;
 		}
 		else {
+			hashCode += 5 * conditions.length;
 			for (int i = 0; i < conditions.length; ++i) {
-				hashCode += 5 * (conditions[i] == null ? i+1 : conditions[i].hashCode());
+				hashCode += 7 * (conditions[i] == null ? i+1 : conditions[i].hashCode());
 			}
 		}
 		if (evaluations == null) {
-			hashCode += 7;
+			hashCode += 11;
 		}
 		else {
+			hashCode += 13 * evaluations.length;
 			for (int i = 0; i < evaluations.length; ++i) {
-				hashCode += 11 * (evaluations[i] == null ? i+1 : evaluations[i].hashCode());
+				hashCode += 17 * (evaluations[i] == null ? i+1 : evaluations[i].hashCode());
 			}
 		}
 		if (sourceRatings == null) {
-			hashCode += 13;
+			hashCode += 19;
 		}
 		else {
+			hashCode += 23 * sourceRatings.length;
 			for (int i = 0; i < sourceRatings.length; ++i) {
-				hashCode += 15 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
+				hashCode += 29 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
 			}
 		}
 		return hashCode;
@@ -361,7 +396,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 			}
 		}
 		catch (VerticalDatumException e) {
-			throw new RuntimeException(e);
+			throw new RatingRuntimeException(e);
 		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);

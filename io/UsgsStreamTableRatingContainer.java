@@ -1,8 +1,21 @@
 package hec.data.cwmsRating.io;
 
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
+import static hec.lang.Const.UNDEFINED_TIME;
+
 import java.util.List;
 
+import org.jdom.Element;
+
 import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingMethodId;
@@ -10,19 +23,6 @@ import hec.data.cwmsRating.UsgsStreamTableRating;
 import hec.heclib.util.HecTime;
 import hec.io.VerticalDatumContainer;
 import hec.util.TextUtil;
-
-import org.jdom.Element;
-
-import static hec.lang.Const.UNDEFINED_TIME;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
 /**
  * Data container class for UsgsStreamTableRating data
  * @author Mike Perryman
@@ -37,7 +37,27 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 * The logarithmic interpolation offsets
 	 */
 	public TableRatingContainer offsets = null;
-	
+
+	/**
+	 * Public empty constructor
+	 */
+	public UsgsStreamTableRatingContainer() {}
+	/**
+	 * Public constructor from a jdom element
+	 * @param ratingElement The jdom element
+	 * @throws RatingException
+	 */
+	public UsgsStreamTableRatingContainer(Element ratingElement) throws RatingException {
+		populateFromXml(ratingElement);
+	}
+	/**
+	 * Public constructor from an XML snippet
+	 * @param xmlText The XML snippet
+	 * @throws RatingException
+	 */
+	public UsgsStreamTableRatingContainer(String xmlText) throws RatingException {
+		populateFromXml(xmlText);
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.TableRatingContainer#equals(java.lang.Object)
 	 */
@@ -84,20 +104,8 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		}
 		super.clone(other);
 		UsgsStreamTableRatingContainer ustrc = (UsgsStreamTableRatingContainer)other;
-		if (shifts == null) {
-			ustrc.shifts = null;
-		}
-		else {
-			if (ustrc.shifts == null) ustrc.shifts = new RatingSetContainer();
-			shifts.clone(ustrc.shifts);
-		}
-		if (offsets == null) {
-			ustrc.offsets = null;
-		}
-		else {
-			if (ustrc.offsets == null) ustrc.offsets = new TableRatingContainer();
-			offsets.clone(ustrc.offsets);
-		}
+		ustrc.shifts = shifts == null ? null : shifts.clone();
+		ustrc.offsets = offsets == null ? null : (TableRatingContainer)offsets.clone();
 	}
 	
 	@Override
@@ -113,11 +121,13 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		UsgsStreamTableRating rating = new UsgsStreamTableRating(this);
 		return rating;
 	}
-
-	public static UsgsStreamTableRatingContainer fromXml(Element ratingElement) throws RatingException {
-		UsgsStreamTableRatingContainer ustrc = new UsgsStreamTableRatingContainer();
+	/**
+	 * Populates the UsgsStreamRatingContainer object from a jdom element
+	 * @param ratingElement the jdom element
+	 */
+	public void populateFromXml(Element ratingElement) throws RatingException {
 		try {
-			AbstractRatingContainer.fromXml(ratingElement, ustrc);
+			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
 		}
 		catch (VerticalDatumException e1) {
 			throw new RatingException(e1);
@@ -126,19 +136,19 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		String[] parts;
 		@SuppressWarnings("rawtypes")
 		List elems = ratingElement.getChildren("height-shifts");
-		String heightUnit = ustrc.unitsId.split(";", 'L')[0];
+		String heightUnit = unitsId.split(";", 'L')[0];
 		if (elems.size() > 0) {
 			HecTime hectime = new HecTime();
-			ustrc.shifts = new RatingSetContainer();
-			ustrc.shifts.ratingSpecContainer = new RatingSpecContainer();
-			RatingSpecContainer rsc = ustrc.shifts.ratingSpecContainer;
+			shifts = new RatingSetContainer();
+			shifts.ratingSpecContainer = new RatingSpecContainer();
+			RatingSpecContainer rsc = shifts.ratingSpecContainer;
 			rsc.inRangeMethod = RatingMethodId.Linear.name();
 			rsc.outRangeLowMethod = RatingMethodId.Nearest.name();
 			rsc.outRangeHighMethod = RatingMethodId.Nearest.name();
 			rsc.inRangeMethods = new String[] {RatingMethodId.Linear.name()};
 			rsc.outRangeLowMethods = new String[] {RatingMethodId.Nearest.name()};
 			rsc.outRangeHighMethods = new String[] {RatingMethodId.Nearest.name()};
-			parts = TextUtil.split(ustrc.ratingSpecId, SEPARATOR1);
+			parts = TextUtil.split(ratingSpecId, SEPARATOR1);
 			rsc.locationId = parts[0];
 			rsc.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
 			rsc.specVersion = USGS_SHIFTS_SPEC_VERSION;
@@ -161,10 +171,10 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			rsc.indRoundingSpecs = new String[] {"4444444449"};
 			rsc.depRoundingSpec = "4444444449";
 			
-			ustrc.shifts.abstractRatingContainers = new TableRatingContainer[elems.size()];
+			shifts.abstractRatingContainers = new TableRatingContainer[elems.size()];
 			for (int i = 0; i < elems.size(); ++i) {
-				ustrc.shifts.abstractRatingContainers[i] = new TableRatingContainer();
-				TableRatingContainer trc = (TableRatingContainer)ustrc.shifts.abstractRatingContainers[i];
+				shifts.abstractRatingContainers[i] = new TableRatingContainer();
+				TableRatingContainer trc = (TableRatingContainer)shifts.abstractRatingContainers[i];
 				trc.ratingSpecId = rsc.specId;
 				elem =  (Element)elems.get(i);
 				String data = elem.getChildTextTrim("effective-date");
@@ -199,9 +209,9 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		}
 		elem = ratingElement.getChild("height-offsets");
 		if (elem != null) {
-			ustrc.offsets = new TableRatingContainer();
-			TableRatingContainer trc = ustrc.offsets;
-			parts = TextUtil.split(ustrc.ratingSpecId, SEPARATOR1);
+			offsets = new TableRatingContainer();
+			TableRatingContainer trc = offsets;
+			parts = TextUtil.split(ratingSpecId, SEPARATOR1);
 			String indParamId = TextUtil.split(parts[1], SEPARATOR2)[0];
 			trc.ratingSpecId = TextUtil.join(
 					SEPARATOR1, 
@@ -231,13 +241,13 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			@SuppressWarnings("rawtypes")
 			List pointElems = elem.getChildren("point");
 			if (pointElems.size() > 0) {
-				ustrc.values = new RatingValueContainer[pointElems.size()];
+				values = new RatingValueContainer[pointElems.size()];
 				for (int i = 0; i < pointElems.size(); ++i) {
-					ustrc.values[i] = new RatingValueContainer();
+					values[i] = new RatingValueContainer();
 					elem = (Element)pointElems.get(i);
-					ustrc.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-					ustrc.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-					ustrc.values[i].note = elem.getChildTextTrim("note");
+					values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
+					values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
+					values[i].note = elem.getChildTextTrim("note");
 				}
 			}
 		}
@@ -246,26 +256,38 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			@SuppressWarnings("rawtypes")
 			List pointElems = elem.getChildren("point");
 			if (pointElems.size() > 0) {
-				ustrc.values = new RatingValueContainer[pointElems.size()];
+				values = new RatingValueContainer[pointElems.size()];
 				for (int i = 0; i < pointElems.size(); ++i) {
-					ustrc.values[i] = new RatingValueContainer();
+					values[i] = new RatingValueContainer();
 					elem = (Element)pointElems.get(i);
-					ustrc.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-					ustrc.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-					ustrc.values[i].note = elem.getChildTextTrim("note");
+					values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
+					values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
+					values[i].note = elem.getChildTextTrim("note");
 				}
 			}
 		}
 		Element verticalDatumElement = ratingElement.getChild("vertical-datum-info");
 		if (verticalDatumElement != null) {
 			try {
-				ustrc.vdc = new VerticalDatumContainer(verticalDatumElement.toString());
+				vdc = new VerticalDatumContainer(verticalDatumElement.toString());
 			}
 			catch (VerticalDatumException e) {
 				throw new RatingException(e);
 			}
 		}
-		return ustrc;
+	}
+	/**
+	 * Populates the UsgsStreamRatingContainer object from an XML snippet
+	 * @param xmlText the XML snippet
+	 */
+	public void populateFromXml(String xmlText) throws RatingException {
+		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
+		if (arc instanceof UsgsStreamTableRatingContainer) {
+			arc.clone(this);
+		}
+		else {
+			throw new RatingException("XML text does not specify an UsgsStreamTableRating object.");
+		}
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNativeVerticalDatum()
@@ -378,9 +400,10 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
+		boolean hasValues = values != null;
 		boolean hasShifts = shifts != null && shifts.abstractRatingContainers != null;
 		boolean hasOffsets = offsets != null && offsets.values != null; 
-		if (!hasShifts && !hasOffsets) {
+		if (hasValues && !hasShifts && !hasOffsets) {
 			//-----------------------------//
 			// serialize as a table rating //
 			//-----------------------------//
@@ -395,7 +418,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			}
 		}
 		catch (VerticalDatumException e) {
-			throw new RuntimeException(e);
+			throw new RatingRuntimeException(e);
 		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < level; ++i) sb.append(indent);
@@ -453,7 +476,10 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			}
 			sb.append(prefix).append(indent).append("</height-offsets>\n");
 		}
-		if (values != null) {
+		if (values == null) {
+			sb.append(prefix).append(indent).append("<rating-points/>\n");
+		}
+		else {
 			sb.append(prefix).append(indent).append("<rating-points>\n");
 			for (RatingValueContainer rvc : values) {
 				rvc.toXml(pointPrefix, indent, sb);

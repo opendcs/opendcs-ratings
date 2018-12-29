@@ -10,6 +10,7 @@ import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
 import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
+import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -225,7 +226,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @throws RatingException
 	 */
 	public static RatingSetContainer parseString(String str) throws RatingException {
-		return parseString(str, true);
+		return parseString(str, false);
 	}
 	/**
 	 * Parses a RatingSetContainer XML instance from a string.
@@ -363,7 +364,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		return rsc;
 	}
 	/**
-	 * @throws a new RuntimeException if XML doesn't match expected structure
+	 * @throws a new RatingRuntimeException if XML doesn't match expected structure
 	 */
 	private void elementError() {
 		if (!inVerticalDatumInfo) { // don't worry about structure in here
@@ -372,7 +373,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				message.append(i == 0 ? "" : "/").append(parts[i]);
 			}
 			message.append("\"");
-			throw new RuntimeException(message.toString());
+			throw new RatingRuntimeException(message.toString());
 		}
 	}
 	/**
@@ -589,7 +590,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 										sourceRatingIdsByPos = new HashMap<Integer, String>();
 									}
 									if (sourceRatingIdsByPos.containsKey(pos)) {
-										throw new RuntimeException(String.format("Transitional rating %s specifies source rating %d more than once.", trrc.ratingSpecId, pos+1));
+										throw new RatingRuntimeException(String.format("Transitional rating %s specifies source rating %d more than once.", trrc.ratingSpecId, pos+1));
 									}
 									sourceRatingIdsByPos.put(pos, trrc.officeId+"/"+data);
 							}
@@ -597,7 +598,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						else if (parts[2].equals(SELECT_STR)) {
 							if (parts[3].equals(DEFAULT_STR)) {
 								if (defaultEvaluation != null) {
-									throw new RuntimeException(String.format("Select structure or transitional rating %s specifies multiple default evalations", trrc.ratingSpecId));
+									throw new RatingRuntimeException(String.format("Select structure or transitional rating %s specifies multiple default evalations", trrc.ratingSpecId));
 								}
 								defaultEvaluation = data;
 							}
@@ -691,7 +692,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 										conditions = new HashMap<Integer, String>();
 									}
 									if (conditions.containsKey(pos)) {
-										throw new RuntimeException(String.format("Transitional rating %s selection case %d is specified more than once, or case %d contains multiple <WHEN> elements", trrc.ratingSpecId, pos+1, pos+1));
+										throw new RatingRuntimeException(String.format("Transitional rating %s selection case %d is specified more than once, or case %d contains multiple <WHEN> elements", trrc.ratingSpecId, pos+1, pos+1));
 									}
 									conditions.put(pos, data);
 								}
@@ -700,7 +701,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 										evaluations = new HashMap<Integer, String>();
 									}
 									if (evaluations.containsKey(pos)) {
-										throw new RuntimeException(String.format("Transitional rating %s selection case %d is specified more than once, or case %d contains multiple <THEN> elements", trrc.ratingSpecId, pos+1, pos+1));
+										throw new RatingRuntimeException(String.format("Transitional rating %s selection case %d is specified more than once, or case %d contains multiple <THEN> elements", trrc.ratingSpecId, pos+1, pos+1));
 									}
 									evaluations.put(pos, data);
 								}
@@ -725,31 +726,33 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	@Override
 	public void endDocument() {
 		
-		if (rtcsById == null || rtcsById.size() == 0) {
-			throw new RuntimeException("No rating templates in data");
-		}
-		if(rspcsById == null || rspcsById.size() == 0) {
-			throw new RuntimeException("No rating specifications in data");
-		}
-		if(arcs == null || arcs.size() == 0) {
-			throw new RuntimeException("No ratings in data");
-		}
-		int rtcCount = rtcsById.size();
-		int rspcCount = rspcsById.size();
+//		if (rtcsById == null || rtcsById.size() == 0) {
+//			throw new RatingRuntimeException("No rating templates in data");
+//		}
+//		if(rspcsById == null || rspcsById.size() == 0) {
+//			throw new RatingRuntimeException("No rating specifications in data");
+//		}
+//		if(arcs == null || arcs.size() == 0) {
+//			throw new RatingRuntimeException("No ratings in data");
+//		}
+		int rtcCount = rtcsById == null ? 0 : rtcsById.size();
+		int rspcCount = rspcsById == null ? 0 : rspcsById.size();
 		int vrcCount = 0;
 		int trcCount = 0;
-		for (AbstractRatingContainer arc : arcs) {
-			if (arc instanceof VirtualRatingContainer) {
-				vrcCount++;
-			}
-			else if (arc instanceof TransitionalRatingContainer) {
-				trcCount++;
+		if (arcs != null) {
+			for (AbstractRatingContainer arc : arcs) {
+				if (arc instanceof VirtualRatingContainer) {
+					vrcCount++;
+				}
+				else if (arc instanceof TransitionalRatingContainer) {
+					trcCount++;
+				}
 			}
 		}
 		if (vdcs != null && vdcs.size() > 0) {
 			for (int i = 1; i < vdcs.size(); ++i) {
 				if (!vdcs.get(i).equals(vdcs.get(0))) {
-					throw new RuntimeException("XML contains inconsistent vertical datum information");
+					throw new RatingRuntimeException("XML contains inconsistent vertical datum information");
 				}
 			}
 				for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
@@ -817,7 +820,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				for (int i = 0; i < topLevelIds.size(); ++i) {
 					sb.append("\n\t").append((i+1)).append(": ").append(topLevelIds.get(i));
 				}
-				throw new RuntimeException(sb.toString());
+				throw new RatingRuntimeException(sb.toString());
 			}
 			else if (noInfoIds.size() > 0) {
 				StringBuilder sb = new StringBuilder();
@@ -825,7 +828,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				for (int i = 0; i < noInfoIds.size(); ++i) {
 					sb.append("\n\t").append((i+1)).append(": ").append(noInfoIds.get(i));
 				}
-				throw new RuntimeException(sb.toString());
+				throw new RatingRuntimeException(sb.toString());
 			}
 			String topLevelSpecId = topLevelIds.get(0);
 			//-----------------------------//
@@ -839,7 +842,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						vrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
 					}
 					catch (RatingException e) {
-						throw new RuntimeException(e);
+						throw new RatingRuntimeException(e);
 					}
 				}
 				else if (arc instanceof TransitionalRatingContainer) {
@@ -848,7 +851,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						trrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
 					}
 					catch (RatingException e) {
-						throw new RuntimeException(e);
+						throw new RatingRuntimeException(e);
 					}
 				}
 			}
@@ -929,54 +932,68 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			// simple ratings only, must have only one template, one spec, and they should agree with ratings //
 			//------------------------------------------------------------------------------------------------//
 			if (rtcCount > 1) {
-				throw new RuntimeException("XML specifies more than one rating template.");
+				throw new RatingRuntimeException("XML specifies more than one rating template.");
 			}
 			if (rspcCount > 1) {
-				throw new RuntimeException("XML specifies more than one rating specification.");
+				throw new RatingRuntimeException("XML specifies more than one rating specification.");
 			}
 			//------------------------------------//
 			// populate the rating spec container //
 			//------------------------------------//
-			rspc = rspcsById.values().iterator().next();
+			if (rtcsById == null) {
+				throw new RatingRuntimeException("XML contains no rating templates");
+			}
+			if (rspcsById == null) {
+				throw new RatingRuntimeException("XML contains no rating specifications");
+			}
 			rtc = rtcsById.values().iterator().next();
-			String specId = rspc.toString();
 			String templateId = rtc.toString();
+			rspc = rspcsById.values().iterator().next();
+			String specId = rspc.toString();
 			String[] parts = TextUtil.split(specId, SEPARATOR1);
 			if (!(TextUtil.join(SEPARATOR1, parts[1], parts[2])).equals(templateId)) {
-				throw new RuntimeException("Specification ("+specId+") does not agree with template ("+templateId+")");
+				throw new RatingRuntimeException("Specification ("+specId+") does not agree with template ("+templateId+")");
 			}
 			rtc.clone(rspc);
 			//-----------------------------------//
 			// populate the rating set container //
 			//-----------------------------------//
 			rsc.ratingSpecContainer = rspc.clone();
-			rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
+			if (arcs != null) {
+				rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
+			}
 		}
 		
 		partsLen = -1;
 		StringBuilder sb = new StringBuilder();
 		sb.append("\nRating Templates:\n");
-		for (RatingTemplateContainer rtc : rtcsById.values()) {
-			sb.append("\t" + rtc.toString()+"\n");
+		if (rtcsById != null) {
+			for (RatingTemplateContainer rtc : rtcsById.values()) {
+				sb.append("\t" + rtc.toString()+"\n");
+			}
 		}
 		sb.append("\nRating Specs:\n");
-		for (RatingSpecContainer rspc : rspcsById.values()) {
-			sb.append("\t" + rspc.toString()+"\n");
+		if (rspcsById != null) {
+			for (RatingSpecContainer rspc : rspcsById.values()) {
+				sb.append("\t" + rspc.toString()+"\n");
+			}
 		}
 		sb.append("\nRatings:\n");
-		for (SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
-			for (AbstractRatingContainer rc : rcs) {
-				HecTime ht = new HecTime();
-				ht.setTimeInMillis(rc.effectiveDateMillis);
-				sb.append("\t").
-				   append(rc.toString()).
-				   append("@").
-				   append(ht.getXMLDateTime(0)).
-				   append(" ").
-				   append(" (").
-				   append(rc.getClass().getName()).
-				   append(")\n");
-				
+		if (arcs != null) {
+			for (SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				for (AbstractRatingContainer rc : rcs) {
+					HecTime ht = new HecTime();
+					ht.setTimeInMillis(rc.effectiveDateMillis);
+					sb.append("\t").
+					   append(rc.toString()).
+					   append("@").
+					   append(ht.getXMLDateTime(0)).
+					   append(" ").
+					   append(" (").
+					   append(rc.getClass().getName()).
+					   append(")\n");
+					
+				}
 			}
 		}
 		AbstractRating.logger.fine(sb.toString());
@@ -1005,13 +1022,13 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				rsc = new RatingSetContainer();
 			}
 			else {
-				throw new RuntimeException("Invalid document node name: " + parts[0]);
+				throw new RatingRuntimeException("Invalid document node name: " + parts[0]);
 			}
 			break;
 		case 2 :
 			if (localName.equals(RATING_TEMPLATE_STR)) {
 				if (rspc != null) {
-					throw new RuntimeException("Only one rating template may be processed");
+					throw new RatingRuntimeException("Only one rating template may be processed");
 				}
 				rtc = new RatingTemplateContainer();
 				rtc.officeId = attrs.getValue(OFFICE_ID_STR);
@@ -1054,7 +1071,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							++ratingPointSetCount;
 						}
 						else {
-							throw new RuntimeException("Multiple independent paramters are not allowed on USGS-style stream ratings"); 
+							throw new RatingRuntimeException("Multiple independent paramters are not allowed on USGS-style stream ratings"); 
 						}
 					}
 				}
@@ -1065,7 +1082,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				else if (localName.equals(EXTENSION_POINTS_STR)) {
 					switch (ratingPointSetCount) {
 					case 0 :
-						throw new RuntimeException("Extension points cannot be specified without or before rating points");
+						throw new RatingRuntimeException("Extension points cannot be specified without or before rating points");
 					case 1 :
 						if (extensionPointSetCount == 0) {
 							extensionPoints = new ArrayList<RatingPoints>();
@@ -1073,11 +1090,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							++extensionPointSetCount;
 						}
 						else {
-							throw new RuntimeException("Only one set of extension points is allowed");
+							throw new RatingRuntimeException("Only one set of extension points is allowed");
 						}
 						break;
 					default :
-						throw new RuntimeException("Extension points are allowed only on single independent parameter ratings");
+						throw new RatingRuntimeException("Extension points are allowed only on single independent parameter ratings");
 					}
 				}
 				else if (localName.equals(HEIGHT_SHIFTS_STR)) {
@@ -1099,7 +1116,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							++offsetPointSetCount;
 						}
 						else {
-							throw new RuntimeException("Only one set offsets is allowed");
+							throw new RatingRuntimeException("Only one set offsets is allowed");
 						}
 					}
 					else elementError();
@@ -1224,13 +1241,13 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					}
 				pos = Integer.parseInt(attrs.getValue(POSITION_STR)); 
 				if (pos < 1) {
-					throw new RuntimeException("Virtual rating specifies invalid source rating postion: ("+pos+").");
+					throw new RatingRuntimeException("Virtual rating specifies invalid source rating postion: ("+pos+").");
 				}
 				if (sourceRatingIdsByPos == null) {
 					sourceRatingIdsByPos = new HashMap<Integer, String>();
 				}
 				else if (sourceRatingIdsByPos.containsKey(pos)) {
-					throw new RuntimeException("Virtual rating specifies source rating postion "+pos+" more than once.");
+					throw new RatingRuntimeException("Virtual rating specifies source rating postion "+pos+" more than once.");
 				}
 			}
 			else if (parts[1].equals(TRANSITIONAL_RATING_STR)) {
@@ -1347,7 +1364,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			verticalDatumInfo.append("</").append(localName).append(">");
 		}
 		if (!localName.equals(parts[partsLen-1])) {
-			throw new RuntimeException("Expected end element " + parts[partsLen-1] + ", got " + localName);
+			throw new RatingRuntimeException("Expected end element " + parts[partsLen-1] + ", got " + localName);
 		}
 		switch (partsLen) {
 		case 2 :
@@ -1366,12 +1383,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						rtcsById = new HashMap<String, RatingTemplateContainer>();
 				}
 					else if (rtcsById.containsKey(id)) {
-						throw new RuntimeException("Rating template specified multiple times: "+id);
+						throw new RatingRuntimeException("Rating template specified multiple times: "+id);
 					}
 					rtcsById.put(rtc.toString(), rtc);
 				}
 				catch (Exception e) {
-					throw new RuntimeException(e);
+					throw new RatingRuntimeException(e);
 				}
 				rtc = null;
 			}
@@ -1381,7 +1398,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					rspcsById = new HashMap<String, RatingSpecContainer>();
 				}
 				else if (rspcsById.containsKey(id)) {
-					throw new RuntimeException("Rating specification specified multiple times: "+id);
+					throw new RatingRuntimeException("Rating specification specified multiple times: "+id);
 				}
 				rspcsById.put(id, rspc);
 				rspc = null;
@@ -1401,7 +1418,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						arc = erc;
 					erc = null;
 					}
-					else if (trc != null) {
+					else  {
+						if (trc == null) {
+							trc = new TableRatingContainer();
+							arc.clone(trc);
+						}
 						String[] parts = TextUtil.split(trc.ratingSpecId, SEPARATOR1);
 						RatingTemplateContainer thisRtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
 						trc.inRangeMethod = thisRtc.inRangeMethods[0];
@@ -1415,7 +1436,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 								width = pointSet.getOtherIndCount();
 							}
 							else if (pointSet.getOtherIndCount() != width) {
-								throw new RuntimeException("Inconsistent number of independent parameters");
+								throw new RatingRuntimeException("Inconsistent number of independent parameters");
 							}
 							depth += pointSet.getPointCount();							
 						}
@@ -1439,7 +1460,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						}
 						if (points == null || points.length == 0) {
 							if (requireRatingPoints) {
-								throw new RuntimeException("No rating values!");
+								throw new RatingRuntimeException("No rating values!");
 							}
 							trc.values = null;
 						}
@@ -1453,7 +1474,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						}
 						if (extensionPointSetCount == 1) {
 							if (width > 2) {
-								throw new RuntimeException("Cannot have extension points with more than one independent parameter");
+								throw new RatingRuntimeException("Cannot have extension points with more than one independent parameter");
 							}
 							int pointCount = extensionPoints.get(0).getPointCount();
 							trc.extensionValues = new RatingValueContainer[pointCount];
@@ -1474,188 +1495,194 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					}
 				}
 				else if (localName.equals(USGS_STREAM_RATING_STR)) {
-					String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
-					String location = parts[0];
-					String indParam = TextUtil.split(parts[1], SEPARATOR2)[0];
-					String heightUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
-					RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
-					urc.inRangeMethod = rtc.inRangeMethods[0];
-					urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
-					urc.outRangeHighMethod = rtc.outRangeHighMethods[0];
-					int pointCount = ratingPoints.get(0).getPointCount();
-					if (pointCount > 0) {
-						urc.values = new RatingValueContainer[pointCount];
-						for (int i = 0; i < pointCount; ++i) {
-							urc.values[i] = new RatingValueContainer();
-							urc.values[i].indValue = ratingPoints.get(0).getIndValue(i);
-							urc.values[i].depValue = ratingPoints.get(0).getDepValue(i);
-							urc.values[i].note = ratingPoints.get(0).getNote(i);
-						}
-						if (extensionPointSetCount == 1) {
-							pointCount = extensionPoints.get(0).getPointCount();
-							urc.extensionValues = new RatingValueContainer[pointCount];
+					if (urc != null) {
+						String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
+						String location = parts[0];
+						String indParam = TextUtil.split(parts[1], SEPARATOR2)[0];
+						String heightUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+						RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+						urc.inRangeMethod = rtc.inRangeMethods[0];
+						urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
+						urc.outRangeHighMethod = rtc.outRangeHighMethods[0];
+						int pointCount = ratingPoints.get(0).getPointCount();
+						if (pointCount > 0) {
+							urc.values = new RatingValueContainer[pointCount];
 							for (int i = 0; i < pointCount; ++i) {
-								urc.extensionValues[i] = new RatingValueContainer();
-								urc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
-								urc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
-								urc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+								urc.values[i] = new RatingValueContainer();
+								urc.values[i].indValue = ratingPoints.get(0).getIndValue(i);
+								urc.values[i].depValue = ratingPoints.get(0).getDepValue(i);
+								urc.values[i].note = ratingPoints.get(0).getNote(i);
 							}
-						}
-						if (offsetPointSetCount > 0) {
-							urc.offsets = new TableRatingContainer();
-							RatingPoints pointSet = offsetPoints.get(0);
-							int offsetCount = pointSet.getPointCount();
-							urc.offsets.values = new RatingValueContainer[offsetCount];
-							for (int i = 0; i < offsetCount; ++i) {
-								urc.offsets.values[i] = new RatingValueContainer();
-								urc.offsets.values[i].indValue = pointSet.getIndValue(i);
-								urc.offsets.values[i].depValue = pointSet.getDepValue(i);
-								urc.offsets.values[i].note = pointSet.getNote(i);
+							if (extensionPointSetCount == 1) {
+								pointCount = extensionPoints.get(0).getPointCount();
+								urc.extensionValues = new RatingValueContainer[pointCount];
+								for (int i = 0; i < pointCount; ++i) {
+									urc.extensionValues[i] = new RatingValueContainer();
+									urc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
+									urc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
+									urc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+								}
 							}
-							urc.offsets.unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
-							urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1, 
-									location,
-									String.format("%s%s%s-%s", indParam, SEPARATOR2, indParam, USGS_OFFSETS_SUBPARAM),
-									USGS_OFFSETS_TEMPLATE_VERSION,
-									USGS_OFFSETS_SPEC_VERSION);
-							urc.offsets.inRangeMethod = "PREVIOUS";
-							urc.offsets.outRangeLowMethod = "NEXT";
-							urc.offsets.outRangeHighMethod = "PREVIOUS";
-						}
-						if (shiftPointSetCount > 0) {
-							urc.shifts = new RatingSetContainer();
-							urc.shifts.ratingSpecContainer = new RatingSpecContainer();
-							urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
-							urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
-							urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
-							urc.shifts.ratingSpecContainer.indParams = new String[1];
-							urc.shifts.ratingSpecContainer.indParams[0] = indParam;
-							urc.shifts.ratingSpecContainer.depParam = String.format("%s-%s", indParam, USGS_SHIFTS_SUBPARAM);
-							urc.shifts.ratingSpecContainer.locationId = location;
-							urc.shifts.ratingSpecContainer.parametersId = String.format("%s%s%s", urc.shifts.ratingSpecContainer.indParams[0], SEPARATOR2, urc.shifts.ratingSpecContainer.depParam);
-							urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
-							urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
-							urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
-							urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1, 
-									urc.shifts.ratingSpecContainer.locationId, 
-									urc.shifts.ratingSpecContainer.templateId, 
-									urc.shifts.ratingSpecContainer.specVersion);
-							urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
-							urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
-							urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
-							urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
-							urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
-							urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
-							urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
-							urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
-							urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
-							int emptyCount = 0;
-							for (int i = 0; i < shiftPointSetCount; ++i) {
-								if (shiftPoints.get(i).getPointCount() == 0) ++emptyCount;
+							if (offsetPointSetCount > 0) {
+								urc.offsets = new TableRatingContainer();
+								RatingPoints pointSet = offsetPoints.get(0);
+								int offsetCount = pointSet.getPointCount();
+								urc.offsets.values = new RatingValueContainer[offsetCount];
+								for (int i = 0; i < offsetCount; ++i) {
+									urc.offsets.values[i] = new RatingValueContainer();
+									urc.offsets.values[i].indValue = pointSet.getIndValue(i);
+									urc.offsets.values[i].depValue = pointSet.getDepValue(i);
+									urc.offsets.values[i].note = pointSet.getNote(i);
+								}
+								urc.offsets.unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
+								urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1, 
+										location,
+										String.format("%s%s%s-%s", indParam, SEPARATOR2, indParam, USGS_OFFSETS_SUBPARAM),
+										USGS_OFFSETS_TEMPLATE_VERSION,
+										USGS_OFFSETS_SPEC_VERSION);
+								urc.offsets.inRangeMethod = "PREVIOUS";
+								urc.offsets.outRangeLowMethod = "NEXT";
+								urc.offsets.outRangeHighMethod = "PREVIOUS";
 							}
-							urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount-emptyCount];
-							for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
-								RatingPoints pointSet = shiftPoints.get(i);
-								int shiftCount = pointSet.getPointCount();
-								if (shiftCount > 0) {
-									urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
-											urc.shifts.ratingSpecContainer.locationId, 
-											urc.shifts.ratingSpecContainer.templateId, 
-											urc.shifts.ratingSpecContainer.specVersion);
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate;
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).active = shiftInfo.get(i).active;
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
-									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
-									for (int k = 0; k < shiftCount; ++k) {
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
+							if (shiftPointSetCount > 0) {
+								urc.shifts = new RatingSetContainer();
+								urc.shifts.ratingSpecContainer = new RatingSpecContainer();
+								urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
+								urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
+								urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
+								urc.shifts.ratingSpecContainer.indParams = new String[1];
+								urc.shifts.ratingSpecContainer.indParams[0] = indParam;
+								urc.shifts.ratingSpecContainer.depParam = String.format("%s-%s", indParam, USGS_SHIFTS_SUBPARAM);
+								urc.shifts.ratingSpecContainer.locationId = location;
+								urc.shifts.ratingSpecContainer.parametersId = String.format("%s%s%s", urc.shifts.ratingSpecContainer.indParams[0], SEPARATOR2, urc.shifts.ratingSpecContainer.depParam);
+								urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
+								urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
+								urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
+								urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1, 
+										urc.shifts.ratingSpecContainer.locationId, 
+										urc.shifts.ratingSpecContainer.templateId, 
+										urc.shifts.ratingSpecContainer.specVersion);
+								urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
+								urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
+								urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
+								urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
+								urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
+								urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
+								urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
+								urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
+								urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
+								int emptyCount = 0;
+								for (int i = 0; i < shiftPointSetCount; ++i) {
+									if (shiftPoints.get(i).getPointCount() == 0) ++emptyCount;
+								}
+								urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount-emptyCount];
+								for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
+									RatingPoints pointSet = shiftPoints.get(i);
+									int shiftCount = pointSet.getPointCount();
+									if (shiftCount > 0) {
+										urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
+												urc.shifts.ratingSpecContainer.locationId, 
+												urc.shifts.ratingSpecContainer.templateId, 
+												urc.shifts.ratingSpecContainer.specVersion);
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate;
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).active = shiftInfo.get(i).active;
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
+										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
+										for (int k = 0; k < shiftCount; ++k) {
+											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
+											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
+											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
+											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
+										}
 									}
 								}
 							}
 						}
+						offsetPoints = null;
+						offsetPointSetCount = 0;
+						shiftPoints = null;
+						shiftPointSetCount = 0;
+						ratingPoints = null;
+						ratingPointSetCount = 0;
+						extensionPoints = null;
+						extensionPointSetCount = 0;
+						shiftInfo = null;
+						arcs.add(urc.clone());
+						arc = urc;
+						urc = null;
 					}
-					offsetPoints = null;
-					offsetPointSetCount = 0;
-					shiftPoints = null;
-					shiftPointSetCount = 0;
-					ratingPoints = null;
-					ratingPointSetCount = 0;
-					extensionPoints = null;
-					extensionPointSetCount = 0;
-					shiftInfo = null;
-					arcs.add(urc.clone());
-					arc = urc;
-					urc = null;
 				}
 				else if (localName.equals(VIRTUAL_RATING_STR)) {
-					SortedSet<Integer> keys = new TreeSet<Integer>(sourceRatingIdsByPos.keySet());
-					vrc.sourceRatingIds = new String[keys.size()];
-					Iterator<Integer> it = keys.iterator();
-					for (int i = 0; it.hasNext(); ++i) {
-						if (it.next() != (i+1)) {
-							throw new RuntimeException("No position "+(i+1)+" in source ratings.");
+					if (vrc != null) {
+						SortedSet<Integer> keys = new TreeSet<Integer>(sourceRatingIdsByPos.keySet());
+						vrc.sourceRatingIds = new String[keys.size()];
+						Iterator<Integer> it = keys.iterator();
+						for (int i = 0; it.hasNext(); ++i) {
+							if (it.next() != (i+1)) {
+								throw new RatingRuntimeException("No position "+(i+1)+" in source ratings.");
+							}
+							vrc.sourceRatingIds[i] = sourceRatingIdsByPos.get((i+1));
 						}
-						vrc.sourceRatingIds[i] = sourceRatingIdsByPos.get((i+1));
+						sourceRatingIdsByPos.clear();
+						arcs.add(vrc.clone());
+						arc = vrc;
+						vrc = null;
 					}
-					sourceRatingIdsByPos.clear();
-					arcs.add(vrc.clone());
-					arc = vrc;
-					vrc = null;
 				}				
 				else if (localName.equals(TRANSITIONAL_RATING_STR)) {
-					SortedSet<Integer> keys = new TreeSet<Integer>(conditions.keySet());
-					trrc.conditions = new String[keys.size()];
-					Iterator<Integer> it = keys.iterator();
-					for (int i = 0; it.hasNext(); ++i) {
-						if (it.next() != (i+1)) {
-							throw new RuntimeException("No position "+(i+1)+" in conditions.");
+					if (trrc != null) {
+						SortedSet<Integer> keys = new TreeSet<Integer>(conditions.keySet());
+						trrc.conditions = new String[keys.size()];
+						Iterator<Integer> it = keys.iterator();
+						for (int i = 0; it.hasNext(); ++i) {
+							if (it.next() != (i+1)) {
+								throw new RatingRuntimeException("No position "+(i+1)+" in conditions.");
+							}
+							trrc.conditions[i] = conditions.get((i+1));
 						}
-						trrc.conditions[i] = conditions.get((i+1));
-					}
-					conditions.clear();
-					keys.clear();
-					keys.addAll(evaluations.keySet());
-					if (keys.size() != trrc.conditions.length) {
-						throw new RuntimeException(String.format("Transitional rating %s has inconsitent numbers of conditions and evaluations", trrc.ratingSpecId));
-					}
-					trrc.evaluations = new String[keys.size()+1];
-					it = keys.iterator();
-					for (int i = 0; it.hasNext(); ++i) {
-						if (it.next() != (i+1)) {
-							throw new RuntimeException("No position "+(i+1)+" in evaluations.");
+						conditions.clear();
+						keys.clear();
+						keys.addAll(evaluations.keySet());
+						if (keys.size() != trrc.conditions.length) {
+							throw new RatingRuntimeException(String.format("Transitional rating %s has inconsitent numbers of conditions and evaluations", trrc.ratingSpecId));
 						}
-						trrc.evaluations[i] = evaluations.get((i+1));
-					}
-					evaluations.clear();
-					if (defaultEvaluation == null) {
-						throw new RuntimeException(String.format("Transitional rating %s doesn't specify a default evaluation", trrc.ratingSpecId));
-					}
-					trrc.evaluations[trrc.evaluations.length-1] = defaultEvaluation;
-					defaultEvaluation = null;
-					keys.clear();
-					if (sourceRatingIdsByPos != null) {
-						keys.addAll(sourceRatingIdsByPos.keySet());
-						trrc.sourceRatingIds = new String[keys.size()];
+						trrc.evaluations = new String[keys.size()+1];
 						it = keys.iterator();
 						for (int i = 0; it.hasNext(); ++i) {
 							if (it.next() != (i+1)) {
-								throw new RuntimeException("No position "+(i+1)+" in source ratings.");
+								throw new RatingRuntimeException("No position "+(i+1)+" in evaluations.");
 							}
-							trrc.sourceRatingIds[i] = sourceRatingIdsByPos.get((i+1));
+							trrc.evaluations[i] = evaluations.get((i+1));
 						}
-						sourceRatingIdsByPos.clear();
+						evaluations.clear();
+						if (defaultEvaluation == null) {
+							throw new RatingRuntimeException(String.format("Transitional rating %s doesn't specify a default evaluation", trrc.ratingSpecId));
+						}
+						trrc.evaluations[trrc.evaluations.length-1] = defaultEvaluation;
+						defaultEvaluation = null;
+						keys.clear();
+						if (sourceRatingIdsByPos != null) {
+							keys.addAll(sourceRatingIdsByPos.keySet());
+							trrc.sourceRatingIds = new String[keys.size()];
+							it = keys.iterator();
+							for (int i = 0; it.hasNext(); ++i) {
+								if (it.next() != (i+1)) {
+									throw new RatingRuntimeException("No position "+(i+1)+" in source ratings.");
+								}
+								trrc.sourceRatingIds[i] = sourceRatingIdsByPos.get((i+1));
+							}
+							sourceRatingIdsByPos.clear();
+						}
+						arcs.add(trrc.clone());
+						arc = trrc;
+						trrc = null;
 					}
-					arcs.add(trrc.clone());
-					arc = trrc;
-					trrc = null;
 				}				
 				String specId = arc.toString();
 				SortedSet<AbstractRatingContainer> arcSet = arcsById.get(specId);

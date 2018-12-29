@@ -149,41 +149,45 @@ public class RatingTemplateContainer {
 	@Override
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode()
-				+ (officeId == null ? 3 : officeId.hashCode())
-				+ (templateId == null ? 7 : templateId.hashCode())
-				+ (parametersId == null ? 11 : parametersId.hashCode())
-				+ (depParam == null ? 13 : depParam.hashCode())
-				+ (templateVersion == null ? 17 : templateVersion.hashCode());
+				+  3 * (officeId == null ? 1 : officeId.hashCode())
+				+  5 * (templateId == null ? 1 : templateId.hashCode())
+				+  7 * (parametersId == null ? 1 : parametersId.hashCode())
+				+ 11 * (depParam == null ? 1 : depParam.hashCode())
+				+ 13 * (templateVersion == null ? 1 : templateVersion.hashCode());
 		if (indParams == null) {
 			hashCode += 19;
 		}
 		else {
+			hashCode += 23 * indParams.length;
 			for (int i = 0; i < indParams.length; ++i) {
-				hashCode += indParams[i] == null ? i+1 : indParams[i].hashCode();
+				hashCode += 27 * (indParams[i] == null ? i+1 : indParams[i].hashCode());
 			}
 		}
 		if (inRangeMethods == null) {
-			hashCode += 23;
-		}
-		else {
-			for (int i = 0; i < inRangeMethods.length; ++i) {
-				hashCode += inRangeMethods[i] == null ? 3*(i+1) : inRangeMethods[i].hashCode();
-			}
-		}
-		if (outRangeLowMethods == null) {
-			hashCode += 29;
-		}
-		else {
-			for (int i = 0; i < outRangeLowMethods.length; ++i) {
-				hashCode += outRangeLowMethods[i] == null ? 7*(i+1) : outRangeLowMethods[i].hashCode();
-			}
-		}
-		if (outRangeHighMethods == null) {
 			hashCode += 31;
 		}
 		else {
+			hashCode += 37 * inRangeMethods.length;
+			for (int i = 0; i < inRangeMethods.length; ++i) {
+				hashCode += 41 * (inRangeMethods[i] == null ? i+1 : inRangeMethods[i].hashCode());
+			}
+		}
+		if (outRangeLowMethods == null) {
+			hashCode += 43;
+		}
+		else {
+			hashCode = 47 * outRangeLowMethods.length;
+			for (int i = 0; i < outRangeLowMethods.length; ++i) {
+				hashCode += 53 * (outRangeLowMethods[i] == null ? i+1 : outRangeLowMethods[i].hashCode());
+			}
+		}
+		if (outRangeHighMethods == null) {
+			hashCode += 59;
+		}
+		else {
+			hashCode += 61 * outRangeHighMethods.length;
 			for (int i = 0; i < outRangeHighMethods.length; ++i) {
-				hashCode += outRangeHighMethods[i] == null ? 11*(i+1) : outRangeHighMethods[i].hashCode();
+				hashCode += 67 * (outRangeHighMethods[i] == null ? i+1 : outRangeHighMethods[i].hashCode());
 			}
 		}
 		return hashCode;
@@ -205,12 +209,23 @@ public class RatingTemplateContainer {
 		other.templateDescription = templateDescription;
 	}
 	/**
-	 * Constructs a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
+	 * Public empty constructor
+	 */
+	public RatingTemplateContainer() {}
+	/**
+	 * Public constructor from an XML snippet
+	 * @param xmlStr
+	 * @throws RatingObjectDoesNotExistException
+	 */
+	public RatingTemplateContainer(String xmlStr) throws RatingObjectDoesNotExistException {
+		populateFromXml(xmlStr);
+	}
+	/**
+	 * Populates a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
 	 */
-	public static RatingTemplateContainer fromXml(String xmlStr) throws RatingObjectDoesNotExistException {
-		RatingTemplateContainer rtc = new RatingTemplateContainer();
+	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		final String elementName = "rating-template";
 		try {
 			Document doc = new SAXBuilder().build(new StringReader(xmlStr));
@@ -229,46 +244,45 @@ public class RatingTemplateContainer {
 				Element elem = null;
 				@SuppressWarnings("rawtypes")
 				List elems = null;
-				rtc.officeId = root.getAttributeValue("office-id");
+				officeId = root.getAttributeValue("office-id");
 				elem = root.getChild("version");
-				if (elem != null) rtc.templateVersion = elem.getTextTrim();
+				if (elem != null) templateVersion = elem.getTextTrim();
 				elem = root.getChild("ind-parameter-specs");
 				if (elem != null) {
 					elems = elem.getChildren("ind-parameter-spec");
-					rtc.indParams = new String[elems.size()];
-					rtc.inRangeMethods = new String[elems.size()];
-					rtc.outRangeLowMethods = new String[elems.size()];
-					rtc.outRangeHighMethods = new String[elems.size()];
+					indParams = new String[elems.size()];
+					inRangeMethods = new String[elems.size()];
+					outRangeLowMethods = new String[elems.size()];
+					outRangeHighMethods = new String[elems.size()];
 					for (Object obj : elems) {
 						elem = (Element)obj;
 						try {
 							int i = Integer.parseInt(elem.getAttributeValue("position")) - 1;
 							if (i >= 0 && i < elems.size()) {
-								rtc.indParams[i] = elem.getChildTextTrim("parameter");
-								rtc.inRangeMethods[i] = elem.getChildTextTrim("in-range-method");
-								rtc.outRangeLowMethods[i] = elem.getChildTextTrim("out-range-low-method");
-								rtc.outRangeHighMethods[i] = elem.getChildTextTrim("out-range-high-method");
+								indParams[i] = elem.getChildTextTrim("parameter");
+								inRangeMethods[i] = elem.getChildTextTrim("in-range-method");
+								outRangeLowMethods[i] = elem.getChildTextTrim("out-range-low-method");
+								outRangeHighMethods[i] = elem.getChildTextTrim("out-range-high-method");
 							}
 						}
 						catch (Throwable t) {}
 					}
 				}
 				elem = root.getChild("dep-parameter");
-				if (elem != null) rtc.depParam = elem.getTextTrim();
+				if (elem != null) depParam = elem.getTextTrim();
 				elem = root.getChild("description");
-				if (elem != null) rtc.templateDescription = elem.getTextTrim();
+				if (elem != null) templateDescription = elem.getTextTrim();
 			}
-			if (rtc.indParams != null && rtc.indParams.length > 0 && rtc.depParam != null) {
-				rtc.parametersId = String.format("%s%s%s", TextUtil.join(SEPARATOR3, rtc.indParams), SEPARATOR2, rtc.depParam);
+			if (indParams != null && indParams.length > 0 && depParam != null) {
+				parametersId = String.format("%s%s%s", TextUtil.join(SEPARATOR3, indParams), SEPARATOR2, depParam);
 			}
-			if (rtc.parametersId != null && rtc.templateVersion != null) {
-				rtc.templateId = String.format("%s.%s", rtc.parametersId, rtc.templateVersion);
+			if (parametersId != null && templateVersion != null) {
+				templateId = String.format("%s.%s", parametersId, templateVersion);
 			}
 		}
 		catch (JDOMException | IOException e) {
 			AbstractRating.getLogger().severe(e.getMessage());
 		}
-		return rtc;
 	}
 	/**
 	 * Generates a template XML string from this object
