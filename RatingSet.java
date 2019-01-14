@@ -257,6 +257,28 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		RatingSet.alwaysWarnUnsafe = alwaysWarnUnsafe;
 	}
 	/**
+	 * Generates a new RatingSet object from an XML instance.
+	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored. The XML instance may be compressed (gzip+base64).
+	 * @return A new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromXml(String xmlText) throws RatingException {
+		try {
+			return new RatingSet(xmlText, false);
+		}
+		catch (RatingException e1) {
+			try {
+				return new RatingSet(xmlText, true);
+			}
+			catch (RatingException e2) {
+				throw new RatingException("Text is not a valid compressed or uncompressed CWMS Ratings XML instance.");
+			}
+		}
+	}
+	/**
 	 * Stores the rating set to a CWMS database
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
@@ -1300,7 +1322,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Public Constructor from an uncompressed XML instance
 	 * @param xmlStr The XML instance to initialize from
-	 * @param isCompressed Flag specifying whether the string is a compressed XML string
 	 * @throws RatingException
 	 */
 	public RatingSet(String xmlStr) throws RatingException {
