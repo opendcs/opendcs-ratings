@@ -160,6 +160,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					+ 5 * userName.toLowerCase().hashCode() 
 					+ 7 * officeId.toLowerCase().hashCode();
 		}
+		@Override
 		public boolean equals(Object obj) {
 			return obj == this 
 					|| (obj instanceof DbInfo
@@ -5385,20 +5386,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				hashCode += 23 * i * it.next().hashCode();
 			}
 		}
-//		System.err.println(3 * (dbInfo == null ? 1 : dbInfo.hashCode()));
-//		System.err.println(5 * (conn == null ? 1 : 5));
-//		System.err.println(7 * (dbrating == null ? 1 : 7));
-//		System.err.println(11 * (allowUnsafe ? 1 : 11));
-//		System.err.println(13 * (warnUnsafe ? 1 : 13));
-//		System.err.println(17 * (int)defaultValueTime);
-//		System.err.println(19 * (int)ratingTime);
-//		System.err.println(getData().hashCode());
-//		if (activeRatings != null) {
-//			Iterator<AbstractRating> it = activeRatings.values().iterator();
-//			for (int i = 0; it.hasNext(); ++i) {
-//				System.err.println(String.format("%d : %d", i, 23 * i * it.next().hashCode()));
-//			}
-//		}
 		return hashCode;
 	}
 	
