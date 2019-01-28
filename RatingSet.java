@@ -257,6 +257,411 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		RatingSet.alwaysWarnUnsafe = alwaysWarnUnsafe;
 	}
 	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String ratingSpecId) 
+			throws RatingException {
+				
+		return new RatingSet(null, conn, null, ratingSpecId, null, null, false);
+				
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(null, conn, null, ratingSpecId, startTime, endTime, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId)
+			throws RatingException {
+		
+		return new RatingSet(null, conn, officeId, ratingSpecId, null, null, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabaseEffective(
+			Connection conn, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(null, conn, null, ratingSpecId, startTime, endTime, true);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(null, conn, officeId, ratingSpecId, startTime, endTime, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabaseEffective(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(null, conn, officeId, ratingSpecId, startTime, endTime, true);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
+	 * @param dataTimes Determines how startTime and endTime are interpreted.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>false</td>
+	 *            <td>The time window specifies the extent of when the ratings became effective</td>
+	 *            <td>true</td>
+	 *            <td>Time time window specifies the time extent of data rate</td>
+	 *          </tr>
+	 *        </table>
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime,
+			boolean dataTimes)
+			throws RatingException {
+		return new RatingSet(null, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String ratingSpecId) 
+			throws RatingException {
+				
+		return new RatingSet(loadMethod, conn, null, ratingSpecId, null, null, false);
+				
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(loadMethod, conn, null, ratingSpecId, startTime, endTime, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId)
+			throws RatingException {
+		
+		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, null, null, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabaseEffective(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(loadMethod, null, null, ratingSpecId, startTime, endTime, true);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		
+		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, false);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabaseEffective(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime)
+			throws RatingException {
+		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, true);
+	}
+	/**
+	 * Generates a new RatingSet object from a CWMS database connection
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
+	 * @param dataTimes Determines how startTime and endTime are interpreted.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>false</td>
+	 *            <td>The time window specifies the extent of when the ratings became effective</td>
+	 *            <td>true</td>
+	 *            <td>Time time window specifies the time extent of data rate</td>
+	 *          </tr>
+	 *        </table>
+	 * @return The new RatingSet object
+	 * @throws RatingException
+	 */
+	public static RatingSet fromDatabase(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime,
+			boolean dataTimes)
+			throws RatingException {
+		
+		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
+	}
+	/**
 	 * Generates a new RatingSet object from an XML instance.
 	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
@@ -276,6 +681,255 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			catch (RatingException e2) {
 				throw new RatingException("Text is not a valid compressed or uncompressed CWMS Ratings XML instance.");
 			}
+		}
+	}
+	/**
+	 * Returns the XML required to generate a new RatingSet object based on specified criteria
+	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
+	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+	 *        are null (or if an invalid value is specified) the Lazy method will be used.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value (case insensitive)</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>Eager</td>
+	 *            <td>Ratings for all effective times are loaded initially</td>
+	 *            <td>Lazy</td>
+	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
+	 *            <td>Reference</td>
+	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
+	 *          </tr>
+	 *        </table>
+	 * @param conn The connection to a CWMS database
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param ratingSpecId The rating specification identifier
+	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
+	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
+	 * @param dataTimes Determines how startTime and endTime are interpreted.
+	 *        <table border>
+	 *          <tr>
+	 *            <th>Value</th>
+	 *            <th>Interpretation</th>
+	 *          </tr>
+	 *          <tr>
+	 *            <td>false</td>
+	 *            <td>The time window specifies the extent of when the ratings became effective</td>
+	 *            <td>true</td>
+	 *            <td>Time time window specifies the time extent of data rate</td>
+	 *          </tr>
+	 *        </table>
+	 * @return The XML instance
+	 * @throws RatingException
+	 */
+	public static String getXmlFromDatabase(
+			DatabaseLoadMethod loadMethod,
+			Connection conn, 
+			String officeId, 
+			String ratingSpecId, 
+			Long startTime, 
+			Long endTime,
+			boolean dataTimes)
+			throws RatingException {
+		
+		CallableStatement cstmt = null;
+		String specifiedLoadMethod = null;
+		String databaseLoadMethod = null;
+		String xmlText = null;
+		synchronized (conn) {
+			try {
+				specifiedLoadMethod = (loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toLowerCase();
+				databaseLoadMethod = specifiedLoadMethod.toLowerCase();
+				String sql = null;
+				switch (databaseLoadMethod) {
+				case "eager" :
+				case "lazy" : 
+				case "reference" :
+					break;
+				default :
+						logger.log(
+								Level.WARNING,
+								"Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: "
+								+ specifiedLoadMethod
+								+ "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"");
+					databaseLoadMethod = "lazy";
+				}
+				Clob clob = null;
+				switch (databaseLoadMethod) {
+				case "eager" :
+					//------------------------------------//
+					// Load all rating data from database //
+					//------------------------------------//
+					if (dataTimes) 
+						sql =
+							"declare " +
+							   "l_millis_start integer := :1;" +
+							   "l_millis_end   integer := :2;" +
+							   "l_date_start   date;" +
+							   "l_date_end     date;" +
+							"begin " +
+							   "if l_millis_start is not null then " +
+							      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+							   "end if;" +
+							   "if l_millis_end is not null then "   +
+							      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+							   "end if;" +
+							   "cwms_rating.retrieve_eff_ratings_xml3("  +
+							      "p_ratings        => :3,"    +
+							      "p_spec_id_mask   => :4,"    +
+							      "p_start_date     => l_date_start," +
+							      "p_end_date       => l_date_end,"   +
+							      "p_time_zone      => 'UTC'," +
+							      "p_office_id_mask => :5);"   +
+							"end;";
+					else
+						sql = 
+							"declare " +
+							   "l_millis_start         integer := :1;" +
+							   "l_millis_end           integer := :2;" +
+							   "l_effective_date_start date;" +
+							   "l_effective_date_end   date;" +
+							"begin " +
+							   "if l_millis_start is not null then " +
+							      "l_effective_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+							   "end if;" +
+							   "if l_millis_end is not null then "   +
+							      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+							   "end if;" +
+							   "cwms_rating.retrieve_ratings_xml3("  +
+							      "p_ratings              => :3,"    +
+							      "p_spec_id_mask         => :4,"    +
+							      "p_effective_date_start => l_effective_date_start," +
+							      "p_effective_date_end   => l_effective_date_end,"   +
+							      "p_time_zone            => 'UTC'," +
+							      "p_office_id_mask       => :5);"   +
+							"end;";
+					cstmt = conn.prepareCall(sql);
+					try {
+						cstmt.registerOutParameter(3, Types.CLOB);
+						cstmt.setString(4, ratingSpecId);
+						if (startTime == null) {
+							cstmt.setNull(1, Types.INTEGER);
+						}
+						else {
+							cstmt.setLong(1, startTime);
+						}
+						if (endTime == null) {
+							cstmt.setNull(2, Types.INTEGER);
+						}
+						else {
+							cstmt.setLong(2, endTime);
+						}
+						if (officeId == null) {
+							cstmt.setNull(5, Types.VARCHAR);
+						}
+						else {
+							cstmt.setString(5, officeId);
+						}
+						cstmt.execute();
+						clob = cstmt.getClob(3);
+						try {
+							if (clob.length() > Integer.MAX_VALUE) {
+								throw new RatingException("CLOB too long.");
+							}
+							xmlText = clob.getSubString(1, (int)clob.length());
+						}
+						finally {
+							freeClob(clob);
+						}
+					}
+					finally {
+						cstmt.close();
+					}
+				break;
+				case "lazy" :
+					//-----------------------------------------------//
+					// load only spec and rating times from database //
+					//-----------------------------------------------//
+					sql =
+					"declare " +
+					   "l_millis_start integer := :1;" +
+					   "l_millis_end   integer := :2;" +
+					   "l_date_start   date;" +
+					   "l_date_end     date;" +
+					"begin " +
+					   "if l_millis_start is not null then " +
+					      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
+					   "end if;" +
+					   "if l_millis_end is not null then "   +
+					      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
+					   "end if;" +
+					   ":3 := cwms_rating.retrieve_ratings_xml_data(" +
+					      "p_effective_tw         => :4," + 
+					      "p_spec_id_mask         => :5," +
+					      "p_start_date           => l_date_start," +
+					      "p_end_date             => l_date_end," + 
+					      "p_time_zone            => 'UTC'," +
+					      "p_include_points       => 'F'," + 
+					      "p_office_id_mask       => :6);" +
+					"end;";
+					cstmt = conn.prepareCall(sql);
+					try {
+						cstmt.registerOutParameter(3, Types.CLOB);
+						cstmt.setString(4, dataTimes ? "T" : "F");
+						cstmt.setString(5, ratingSpecId);
+						if (startTime == null) {
+							cstmt.setNull(1, Types.INTEGER);
+						}
+						else {
+							cstmt.setLong(1, startTime);
+						}
+						if (endTime == null) {
+							cstmt.setNull(2, Types.INTEGER);
+						}
+						else {
+							cstmt.setLong(2, endTime);
+						}
+						if (officeId == null) {
+							cstmt.setNull(6, Types.VARCHAR);
+						}
+						else {
+							cstmt.setString(6, officeId);
+						}
+						cstmt.execute();
+						clob = cstmt.getClob(3);
+						try {
+							if (clob.length() > Integer.MAX_VALUE) {
+								throw new RatingException("CLOB too long.");
+							}
+							xmlText = clob.getSubString(1, (int)clob.length());
+						}
+						finally {
+							freeClob(clob);
+						}
+					}
+					finally {
+						cstmt.close();
+					}
+				break;
+				case "reference" :
+					//----------------------------------------//
+					// Load only /template+spec from database //
+					//----------------------------------------//
+					String specXmlText = RatingSpec.getXmlfromDatabase(conn, officeId, ratingSpecId);
+					String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
+					String ratingTemplateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+					String templateXmlText = RatingTemplate.getXmlfromDatabase(conn, officeId, ratingTemplateId);
+					StringBuilder sb = new StringBuilder();
+					sb.append(templateXmlText.substring(0, templateXmlText.indexOf("</ratings>")));
+					sb.append("  ");
+					sb.append(specXmlText.substring(specXmlText.indexOf("<rating-spec")));
+					xmlText = sb.toString();
+					break;
+				}
+			}
+			catch (Throwable t) {
+				if (t instanceof RatingException) throw (RatingException)t;
+				throw new RatingException(t);
+			}
+			logger.log(Level.FINE,"Retrieved XML:\n"+xmlText);
+			return xmlText;
 		}
 	}
 	/**
@@ -651,255 +1305,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			Long endTime)
 			throws RatingException {
 		this(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, false);
-	}
-	/**
-	 * Returns the XML required to generate a new RatingSet object based on specified criteria
-	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
-	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
-	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
-	 *          <tr>
-	 *            <th>Value (case insensitive)</th>
-	 *            <th>Interpretation</th>
-	 *          </tr>
-	 *          <tr>
-	 *            <td>Eager</td>
-	 *            <td>Ratings for all effective times are loaded initially</td>
-	 *            <td>Lazy</td>
-	 *            <td>No ratings are loaded initially - each rating is only loaded when it is needed</td>
-	 *            <td>Reference</td>
-	 *            <td>No ratings are loaded ever - values are passed to database to be rated</td>
-	 *          </tr>
-	 *        </table>
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
-	 * @param ratingSpecId The rating specification identifier
-	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
-	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
-	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
-	 *          <tr>
-	 *            <th>Value</th>
-	 *            <th>Interpretation</th>
-	 *          </tr>
-	 *          <tr>
-	 *            <td>false</td>
-	 *            <td>The time window specifies the extent of when the ratings became effective</td>
-	 *            <td>true</td>
-	 *            <td>Time time window specifies the time extent of data rate</td>
-	 *          </tr>
-	 *        </table>
-	 * @return The XML instance
-	 * @throws RatingException
-	 */
-	public static String getXmlFromDatabase(
-			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
-			Long endTime,
-			boolean dataTimes)
-			throws RatingException {
-		
-		CallableStatement cstmt = null;
-		String specifiedLoadMethod = null;
-		String databaseLoadMethod = null;
-		String xmlText = null;
-		synchronized (conn) {
-			try {
-				specifiedLoadMethod = (loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toLowerCase();
-				databaseLoadMethod = specifiedLoadMethod.toLowerCase();
-				String sql = null;
-				switch (databaseLoadMethod) {
-				case "eager" :
-				case "lazy" : 
-				case "reference" :
-					break;
-				default :
-						logger.log(
-								Level.WARNING,
-								"Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: "
-								+ specifiedLoadMethod
-								+ "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"");
-					databaseLoadMethod = "lazy";
-				}
-				Clob clob = null;
-				switch (databaseLoadMethod) {
-				case "eager" :
-					//------------------------------------//
-					// Load all rating data from database //
-					//------------------------------------//
-					if (dataTimes) 
-						sql =
-							"declare " +
-							   "l_millis_start integer := :1;" +
-							   "l_millis_end   integer := :2;" +
-							   "l_date_start   date;" +
-							   "l_date_end     date;" +
-							"begin " +
-							   "if l_millis_start is not null then " +
-							      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
-							   "end if;" +
-							   "if l_millis_end is not null then "   +
-							      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-							   "end if;" +
-							   "cwms_rating.retrieve_eff_ratings_xml3("  +
-							      "p_ratings        => :3,"    +
-							      "p_spec_id_mask   => :4,"    +
-							      "p_start_date     => l_date_start," +
-							      "p_end_date       => l_date_end,"   +
-							      "p_time_zone      => 'UTC'," +
-							      "p_office_id_mask => :5);"   +
-							"end;";
-					else
-						sql = 
-							"declare " +
-							   "l_millis_start         integer := :1;" +
-							   "l_millis_end           integer := :2;" +
-							   "l_effective_date_start date;" +
-							   "l_effective_date_end   date;" +
-							"begin " +
-							   "if l_millis_start is not null then " +
-							      "l_effective_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
-							   "end if;" +
-							   "if l_millis_end is not null then "   +
-							      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-							   "end if;" +
-							   "cwms_rating.retrieve_ratings_xml3("  +
-							      "p_ratings              => :3,"    +
-							      "p_spec_id_mask         => :4,"    +
-							      "p_effective_date_start => l_effective_date_start," +
-							      "p_effective_date_end   => l_effective_date_end,"   +
-							      "p_time_zone            => 'UTC'," +
-							      "p_office_id_mask       => :5);"   +
-							"end;";
-					cstmt = conn.prepareCall(sql);
-					try {
-						cstmt.registerOutParameter(3, Types.CLOB);
-						cstmt.setString(4, ratingSpecId);
-						if (startTime == null) {
-							cstmt.setNull(1, Types.INTEGER);
-						}
-						else {
-							cstmt.setLong(1, startTime);
-						}
-						if (endTime == null) {
-							cstmt.setNull(2, Types.INTEGER);
-						}
-						else {
-							cstmt.setLong(2, endTime);
-						}
-						if (officeId == null) {
-							cstmt.setNull(5, Types.VARCHAR);
-						}
-						else {
-							cstmt.setString(5, officeId);
-						}
-						cstmt.execute();
-						clob = cstmt.getClob(3);
-						try {
-							if (clob.length() > Integer.MAX_VALUE) {
-								throw new RatingException("CLOB too long.");
-							}
-							xmlText = clob.getSubString(1, (int)clob.length());
-						}
-						finally {
-							freeClob(clob);
-						}
-					}
-					finally {
-						cstmt.close();
-					}
-				break;
-				case "lazy" :
-					//-----------------------------------------------//
-					// load only spec and rating times from database //
-					//-----------------------------------------------//
-					sql =
-					"declare " +
-					   "l_millis_start integer := :1;" +
-					   "l_millis_end   integer := :2;" +
-					   "l_date_start   date;" +
-					   "l_date_end     date;" +
-					"begin " +
-					   "if l_millis_start is not null then " +
-					      "l_date_start := cast(cwms_util.to_timestamp(l_millis_start) as date);" +
-					   "end if;" +
-					   "if l_millis_end is not null then "   +
-					      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-					   "end if;" +
-					   ":3 := cwms_rating.retrieve_ratings_xml_data(" +
-					      "p_effective_tw         => :4," + 
-					      "p_spec_id_mask         => :5," +
-					      "p_start_date           => l_date_start," +
-					      "p_end_date             => l_date_end," + 
-					      "p_time_zone            => 'UTC'," +
-					      "p_include_points       => 'F'," + 
-					      "p_office_id_mask       => :6);" +
-					"end;";
-					cstmt = conn.prepareCall(sql);
-					try {
-						cstmt.registerOutParameter(3, Types.CLOB);
-						cstmt.setString(4, dataTimes ? "T" : "F");
-						cstmt.setString(5, ratingSpecId);
-						if (startTime == null) {
-							cstmt.setNull(1, Types.INTEGER);
-						}
-						else {
-							cstmt.setLong(1, startTime);
-						}
-						if (endTime == null) {
-							cstmt.setNull(2, Types.INTEGER);
-						}
-						else {
-							cstmt.setLong(2, endTime);
-						}
-						if (officeId == null) {
-							cstmt.setNull(6, Types.VARCHAR);
-						}
-						else {
-							cstmt.setString(6, officeId);
-						}
-						cstmt.execute();
-						clob = cstmt.getClob(3);
-						try {
-							if (clob.length() > Integer.MAX_VALUE) {
-								throw new RatingException("CLOB too long.");
-							}
-							xmlText = clob.getSubString(1, (int)clob.length());
-						}
-						finally {
-							freeClob(clob);
-						}
-					}
-					finally {
-						cstmt.close();
-					}
-				break;
-				case "reference" :
-					//----------------------------------------//
-					// Load only /template+spec from database //
-					//----------------------------------------//
-					String specXmlText = RatingSpec.getXmlfromDatabase(conn, officeId, ratingSpecId);
-					String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
-					String ratingTemplateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
-					String templateXmlText = RatingTemplate.getXmlfromDatabase(conn, officeId, ratingTemplateId);
-					StringBuilder sb = new StringBuilder();
-					sb.append(templateXmlText.substring(0, templateXmlText.indexOf("</ratings>")));
-					sb.append("  ");
-					sb.append(specXmlText.substring(specXmlText.indexOf("<rating-spec")));
-					xmlText = sb.toString();
-					break;
-				}
-			}
-			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
-			}
-			logger.log(Level.FINE,"Retrieved XML:\n"+xmlText);
-			return xmlText;
-		}
 	}
 	/**
 	 * @return a the current database connection plus a flag specifying whether it was retrieved using the DbInfo
