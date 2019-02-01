@@ -893,15 +893,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						else {
 							cstmt.setString(6, officeId);
 						}
+						logger.log(Level.INFO, "Retrieving clob from database");
 						cstmt.execute();
 						clob = cstmt.getClob(3);
+						logger.log(Level.INFO, "Clob retrieved from database");
 						try {
+							logger.log(Level.INFO, "Clob length = " + clob.length());
 							if (clob.length() > Integer.MAX_VALUE) {
 								throw new RatingException("CLOB too long.");
 							}
 							xmlText = clob.getSubString(1, (int)clob.length());
+							logger.log(Level.INFO, "XML length = " + xmlText);
 						}
 						finally {
+							logger.log(Level.INFO, "Freeing clob");
 							freeClob(clob);
 						}
 					}
@@ -2258,7 +2263,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * be for a single independent parameter
 	 * 
 	 * @param values The values to rate
-	 * @param valueTime The time associated with the values, in Java milliseconds
+	 * @param valueTimes The times associated with the values, in Java milliseconds
 	 * @return the rated value
 	 * @throws RatingException
 	 */
