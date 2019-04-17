@@ -969,7 +969,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			try {
 				synchronized(conn) {
 					Class<?> ratingObjClass = Class.forName("cwmsdb.CwmsRatingJdbc");
-					Object cwmsRatingObj = ratingObjClass.getConstructor(Connection.class).newInstance(conn); 
+					Object cwmsRatingObj = ratingObjClass.getDeclaredConstructor(Connection.class).newInstance(conn); 
 					if (cwmsRatingObj == null) {
 						throw new RatingException("No database rating implemenation found");
 					}
