@@ -11,6 +11,8 @@ import static hec.lang.Const.UNDEFINED_TIME;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -666,12 +668,8 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			Connection conn = ci.getConnection();
 			try {
 				synchronized(conn) {
-					Class<?> ratingObjClass = Class.forName("cwmsdb.CwmsRatingJdbc");
-					Object cwmsRatingObj = ratingObjClass.getConstructor(Connection.class).newInstance(conn); 
-					if (cwmsRatingObj == null) {
-						throw new RatingException("No database rating implemenation found");
-					}
-					Method extentsMethod = ratingObjClass.getMethod(
+					Object cwmsRatingDao = getCwmsRatingDao(conn);
+					Method extentsMethod = getCwmsRatingClass().getMethod(
 							"getRatingExtents",
 							String.class,
 							String.class,
@@ -687,7 +685,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 					String[][] units = new String[][] {new String[paramCount]};
 					
 					extentsMethod.invoke(
-							cwmsRatingObj,
+							cwmsRatingDao,
 							ratingSpecId, 
 							officeId, 
 							true, 
@@ -968,12 +966,8 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			Connection conn = ci.getConnection();
 			try {
 				synchronized(conn) {
-					Class<?> ratingObjClass = Class.forName("cwmsdb.CwmsRatingJdbc");
-					Object cwmsRatingObj = ratingObjClass.getDeclaredConstructor(Connection.class).newInstance(conn); 
-					if (cwmsRatingObj == null) {
-						throw new RatingException("No database rating implemenation found");
-					}
-					Method rateMethod = ratingObjClass.getMethod(
+					Object cwmsRatingDao = getCwmsRatingDao(conn);
+					Method rateMethod = getCwmsRatingClass().getMethod(
 							"rate",
 							String.class,
 							String.class,
@@ -983,7 +977,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 							long.class);
 					
 					double[] results = (double[])rateMethod.invoke(
-							cwmsRatingObj,
+							cwmsRatingDao,
 							ratingSpecId, 
 							officeId, 
 							dataUnits == null ? ratingUnits : dataUnits, 
@@ -1101,9 +1095,8 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			Connection conn = ci.getConnection();
 			try {
 				synchronized(conn) {
-					Class<?> ratingObjClass = Class.forName("cwmsdb.CwmsRatingJdbc");
-					Object cwmsRatingObj = ratingObjClass.getConstructor(Connection.class).newInstance(conn); 
-					Method rateMethod = ratingObjClass.getMethod(
+					Object cwmsRatingDao = getCwmsRatingDao(conn);
+					Method rateMethod = getCwmsRatingClass().getMethod(
 							"reverseRate",
 							String.class,
 							String.class,
@@ -1113,7 +1106,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 							long.class);
 					
 					double[] results = (double[])rateMethod.invoke(
-							cwmsRatingObj,
+							cwmsRatingDao,
 							ratingSpecId, 
 							officeId, 
 							dataUnits == null ? ratingUnits : dataUnits, 
@@ -1172,4 +1165,30 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		if (vdc == null) throw new VerticalDatumException("Rating has no vertical datum information.");
 	}
 
+	private Object getCwmsRatingDao(Connection conn) throws RatingException
+	{
+		try
+		{
+			Class<?> cwmsRatingClass = getCwmsRatingClass();
+			Constructor<?> declaredConstructor = cwmsRatingClass.getDeclaredConstructor(Connection.class);
+			declaredConstructor.setAccessible(true);
+			return declaredConstructor.newInstance(conn);
+		}
+		catch(Exception ex)
+		{
+			throw new RatingException("No database rating implemenation found", ex);
+		}
+	}
+
+	private Class<?> getCwmsRatingClass() throws RatingException
+	{
+		try
+		{
+			return Class.forName("wcds.dbi.oracle.OracleRatingDaoImpl");
+		}
+		catch(Exception ex)
+		{
+			throw new RatingException("No database rating implemenation found", ex);
+		}
+	}
 }
