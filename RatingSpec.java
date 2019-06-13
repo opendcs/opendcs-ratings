@@ -4,6 +4,24 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.xml.xpath.XPathConstants;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
 import hec.data.DataSetException;
 import hec.data.DataSetIllegalArgumentException;
 import hec.data.Parameter;
@@ -16,20 +34,6 @@ import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
 import hec.util.TextUtil;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.Types;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.xpath.XPathConstants;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 /**
  * Implements the CWMS-style rating specification
  * 
@@ -756,7 +760,7 @@ public class RatingSpec extends RatingTemplate {
 				String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
 				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
 				String templateXml = RatingTemplate.getXmlfromDatabase(conn, officeId, templateId);
-				setData(specXml, templateXml); 
+				setData(templateXml, specXml); 
 			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;
@@ -770,12 +774,21 @@ public class RatingSpec extends RatingTemplate {
 	 * @param specXml The specification XML text
 	 * @throws RatingException
 	 */
-	public void setData(String templateXml , String specXml) throws RatingException {
-		if (specXml != null) {
-			setData(specXml);
+	public void setData(String templateXml, String specXml) throws RatingException {
+		if (templateXml == null) {
+			throw new RatingException("The rating template XML string is null");
 		}
-		if (templateXml != null) {
-			setData(new RatingTemplateContainer(templateXml));
+		if (specXml == null) {
+			throw new RatingException("The rating specification XML string is null");
+		}
+		try {
+			RatingConst.initXmlParsing();
+			Document templateDoc = RatingConst.builder.parse(new InputSource(new StringReader(templateXml))); 
+			Document specDoc = RatingConst.builder.parse(new InputSource(new StringReader(specXml)));
+			setData(templateDoc.getDocumentElement().getElementsByTagName("rating-template").item(0), specDoc.getDocumentElement().getElementsByTagName("rating-spec").item(0));
+		} 
+		catch (Exception e) {
+			throw new RatingException(e);
 		}
 	}
 	/**
@@ -786,9 +799,16 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	public void setData(Node templateNode, Node specNode) throws RatingException {
 		try {
+			if (templateNode == null) {
+				throw new RatingException("The rating template node string is null");
+			}
+			if (specNode == null) {
+				throw new RatingException("The rating specification node string is null");
+			}
 			//-------------------------//
 			// parse the template node //
 			//-------------------------//
+			RatingConst.initXmlParsing();
 			String parametersId = (String)RatingConst.parametersIdXpath.evaluate(templateNode, XPathConstants.STRING);
 			String officeId = (String)RatingConst.officeIdXpath.evaluate(templateNode, XPathConstants.STRING);
 			String[] paramIds = split(parametersId, SEPARATOR2, "L");
@@ -897,6 +917,7 @@ public class RatingSpec extends RatingTemplate {
 		} 
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
+			t.printStackTrace();
 			throw new RatingException(t);
 		}
 	}
