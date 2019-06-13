@@ -4798,6 +4798,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			boolean dataTimes)
 			throws RatingException {
 
+		if (loadMethod == null) {
+			String propval = System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "LAZY").toUpperCase();
+			try {
+				loadMethod = DatabaseLoadMethod.valueOf(propval);
+			}
+			catch (IllegalArgumentException e) {
+				throw new RatingException(
+						"Invalid value of hec.data.cwmsRating.RatingSet.databaseLoadMethod (\""
+						+ propval
+						+ "\"), must be \"EAGER\", \"LAZY\", \"REFERENCE\", or unset, which defaults to \"LAZY\"");
+			}
+		}
 		String xml = RatingSet.getXmlFromDatabase(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
 		setData(xml);
 		switch (loadMethod) {
