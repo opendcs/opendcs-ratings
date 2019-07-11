@@ -2132,7 +2132,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	protected Map.Entry<Long, AbstractRating> getConcreteRating(Entry<Long, AbstractRating> ratingEntry) throws RatingException {
 		synchronized(this) {
-			ConnectionInfo ci = getConnectionInfo();
+			ConnectionInfo ci = null;
 			Map.Entry<Long, AbstractRating> newEntry = ratingEntry;
 			try {
 				if (ratingEntry != null) {
@@ -2142,6 +2142,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						//----------------------------------------//
 						// rating not yet retrieved from database //
 						//----------------------------------------//
+						if (ci == null) {
+							ci = getConnectionInfo();
+						}
 						conn = ci.getConnection();
 						if (logger.isLoggable(Level.INFO)) {
 							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
