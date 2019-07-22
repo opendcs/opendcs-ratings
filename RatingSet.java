@@ -61,6 +61,7 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import java.util.Objects;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -136,10 +137,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Class for use in LAZY and REFERENCE ratings to be able to release and re-retrieve connections from the connection pool
 	 */
-	protected class DbInfo {
-		private String url = null;
-		private String userName = null;
-		private String officeId = null;
+	public final class DbInfo {
+		private final String url;
+		private final String userName;
+		private final String officeId;
 		
 		public DbInfo(String url, String userName, String officeId) throws RatingException {
 			if (url      == null) throw new RatingException("DbInfo.url cannot be null");
@@ -893,20 +894,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						else {
 							cstmt.setString(6, officeId);
 						}
-						logger.log(Level.INFO, "Retrieving clob from database");
+						logger.log(Level.FINE, "Retrieving clob from database");
 						cstmt.execute();
 						clob = cstmt.getClob(3);
-						logger.log(Level.INFO, "Clob retrieved from database");
+						logger.log(Level.FINE, "Clob retrieved from database");
 						try {
-							logger.log(Level.INFO, "Clob length = " + clob.length());
+							logger.log(Level.FINE, "Clob length = " + clob.length());
 							if (clob.length() > Integer.MAX_VALUE) {
 								throw new RatingException("CLOB too long.");
 							}
 							xmlText = clob.getSubString(1, (int)clob.length());
-							logger.log(Level.INFO, "XML length = " + xmlText);
+							logger.log(Level.FINE, "XML length = " + xmlText);
 						}
 						finally {
-							logger.log(Level.INFO, "Freeing clob");
+							logger.log(Level.FINE, "Freeing clob");
 							freeClob(clob);
 						}
 					}
@@ -2109,6 +2110,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
+	
+	public void getConcreteRatings(long date) throws RatingException
+	{
+		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
+			if (Objects.equals(entry.getKey(), date))
+			{
+				getConcreteRating(entry);
+				break;
+			}
+		}
+	}
+	
 	/**
 	 * Loads all rating values from table ratings that haven't already been loaded.
 	 * @throws RatingException
@@ -2146,10 +2159,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							ci = getConnectionInfo();
 						}
 						conn = ci.getConnection();
-						if (logger.isLoggable(Level.INFO)) {
+						if (logger.isLoggable(Level.FINE)) {
 							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 							sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-							logger.info(String.format(
+							logger.fine(String.format(
 									"Retrieving rating from %s: %s @ %s UTC", 
 									conn.getMetaData().getURL(),
 									getName(),
