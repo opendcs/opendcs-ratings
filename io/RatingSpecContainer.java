@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.jdom.Document;
 import org.jdom.Element;
@@ -388,7 +389,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		if (level == 0) {
 			sb.append("</ratings>\n");
 		}
-		return sb.toString();
+		return sb.toString().replaceAll("<(.+?)></\\1>", "<$1/>");
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
