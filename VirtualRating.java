@@ -208,6 +208,12 @@ public class VirtualRating extends AbstractRating {
 			re_added.append(",").append(sb);
 			sb = re_added;
 		}
+		if (sb.length() == 0) {
+			//---------------------------------------------//
+			// special case - don't allow null connections //
+			//---------------------------------------------//
+			sb.append("R1I1=I1");
+		}
 		return sb.toString();
 	}
 	/**
@@ -546,9 +552,9 @@ public class VirtualRating extends AbstractRating {
 			//------------------------------------------------//
 			String newConnections = VirtualRating.getConnectionsNormalized(newConnectionsMap, newDepParamConn);
 			setSourceRatings(newSourceRatings);
+			setConnections(newConnections);
 			connectionsMap = newConnectionsMap;
 			depParamConn = newDepParamConn;
-			setConnections(newConnections);
 			isNormalized = true;
 		}
 	}
