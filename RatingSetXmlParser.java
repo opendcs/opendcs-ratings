@@ -2,6 +2,7 @@ package hec.data.cwmsRating;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
 import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
@@ -858,9 +859,50 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			//------------------------------------//
 			// populate the rating spec container //
 			//------------------------------------//
-			rspc = rspcsById.get(topLevelSpecId).clone();
-			String[] parts = TextUtil.split(topLevelSpecId, SEPARATOR1);
+			String[] parts = TextUtil.split(topLevelSpecId, "/");
+			String officeId = parts[0];
+			String specId = parts[1];
+			parts = TextUtil.split(specId, SEPARATOR1);
 			String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+			if (rspcsById.get(topLevelSpecId) == null) {
+				//----------------------------------------------------------------------------------//
+				// top level rating spec not in XML, so create a dummy one from the topLevelSpecId  //
+				//                                                                                  //
+				// this happens when the parser gets called from the populateFromXml(String) method //
+				// of the VirtualRatingContainer or TransitionalRatingContainer classes             //
+				//----------------------------------------------------------------------------------//
+				rspc = new RatingSpecContainer();
+				rspc.officeId = rspc.specOfficeId = officeId;
+				rspc.specId = specId;
+				rspc.templateId = templateId;
+				rspc.locationId = parts[0];
+				rspc.parametersId = parts[1];
+				rspc.templateVersion = parts[2];
+				rspc.specVersion = parts[3];
+				rspc.indParams = TextUtil.split(TextUtil.split(rspc.parametersId, SEPARATOR2)[0], SEPARATOR3);
+				rspc.depParam = TextUtil.split(rspc.parametersId, SEPARATOR2)[1];
+				rspc.inRangeMethods = new String[rspc.indParams.length];
+				rspc.outRangeLowMethods = new String[rspc.indParams.length];
+				rspc.outRangeHighMethods = new String[rspc.indParams.length];
+				rspc.indRoundingSpecs = new String[rspc.indParams.length];
+				for (int i = 0; i < rspc.indParams.length; ++i) {
+					rspc.inRangeMethods[i] = "LINEAR";
+					rspc.outRangeLowMethods[i] = "ERROR";
+					rspc.outRangeHighMethods[i] = "ERROR";
+					rspc.indRoundingSpecs[i] = "4444444444";
+				}
+				rspc.active = true;
+				rspc.autoUpdate = false;
+				rspc.autoActivate = false;
+				rspc.autoMigrateExtensions = false;
+				rspc.depRoundingSpec = "4444444444";
+				rspc.inRangeMethod = "LINEAR";
+				rspc.outRangeLowMethod = "NEAREST";
+				rspc.outRangeHighMethod = "NEAREST";
+			}
+			else {
+				rspc = rspcsById.get(topLevelSpecId).clone();
+			}
 			rtcsById.get(templateId).clone(rspc);
 			//-----------------------------------//
 			// populate the rating set container //
@@ -902,7 +944,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			}
 			Set<String> usedIds = new TreeSet<String>();
 			for (AbstractRatingContainer _arc : containersUsed) {
-				String specId = String.format("%s/%s", _arc.officeId, _arc.ratingSpecId);
+				specId = String.format("%s/%s", _arc.officeId, _arc.ratingSpecId);
 				parts = TextUtil.split(_arc.ratingSpecId, SEPARATOR1);
 				templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
 				usedIds.add(specId);
@@ -911,7 +953,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			StringBuilder sb1 = new StringBuilder();
 			StringBuilder sb2 = new StringBuilder();
 			for (Iterator<String> it = rspcsById.keySet().iterator(); it.hasNext();) {
-				String specId = it.next();
+				specId = it.next();
 				if (!usedIds.contains(specId)) {
 					sb2.append("\n\tspecification: ").append(specId);
 				}
