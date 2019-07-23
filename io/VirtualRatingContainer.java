@@ -26,6 +26,7 @@ import hec.data.RatingException;
 import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.VirtualRating;
 import hec.util.TextUtil;
@@ -89,9 +90,9 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * @throws RatingException
 	 */
 	public void populateFromXml(String xmlText) throws RatingException {
-		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
-		if (arc instanceof VirtualRatingContainer) {
-			arc.clone(this);
+		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText);
+		if (rsc.abstractRatingContainers.length == 1 && rsc.abstractRatingContainers[0] instanceof VirtualRatingContainer) {
+			rsc.abstractRatingContainers[0].clone(this);
 		}
 		else {
 			throw new RatingException("XML text does not specify an VirtualRating object.");
