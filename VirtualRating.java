@@ -608,8 +608,9 @@ public class VirtualRating extends AbstractRating {
 	/**
 	 * Set the source ratings array
 	 * @param sources
+	 * @throws RatingException 
 	 */
-	public void setSourceRatings(SourceRating[] sources) {
+	public void setSourceRatings(SourceRating[] sources) throws RatingException {
 		synchronized(this) {
 			sourceRatings = sources == null ? null : Arrays.copyOf(sources, sources.length);
 			if (sourceRatings == null) {
@@ -632,6 +633,7 @@ public class VirtualRating extends AbstractRating {
 					sourceRatings[i].addObserver(this);
 				}
 			}
+			findCycles();
 			isNormalized = false;
 		}
 	}
@@ -717,7 +719,40 @@ public class VirtualRating extends AbstractRating {
 			return endingPoint;
 		}
 	}
-	
+	/**
+	 * Finds cyclical rating references in source ratings
+	 * @throws RatingException if cyclic reference is found
+	 */
+	public void findCycles() throws RatingException {
+		ArrayList<String> specIds = new ArrayList<String>();
+		findCycles(specIds);
+	}
+	/**
+	 * Finds cyclical rating references in source ratings
+	 * @throws RatingException if cyclic reference is found
+	 */
+	protected void findCycles(ArrayList<String> specIds) throws RatingException {
+		String specId = getOfficeId()+"/"+getRatingSpecId();
+		if (specIds.contains(specId)) {
+			StringBuilder sb = new StringBuilder("Cycle detected in source ratings. Cycle path is:");
+			for (String pathSpecId : specIds) {
+				sb.append(pathSpecId.equals(specId) ? "\n -->" : "\n    ").append(pathSpecId);
+			}
+			sb.append("\n -->").append(specId);
+			throw new RatingException(sb.toString());
+		}
+		specIds.add(specId);
+		for (SourceRating sr : sourceRatings) {
+			for (AbstractRating ar : sr.getRatingSet().getRatings()) {
+				if (ar instanceof VirtualRating) {
+					((VirtualRating)ar).findCycles((ArrayList<String>)specIds.clone());
+				}
+				if (ar instanceof TransitionalRating) {
+					((TransitionalRating)ar).findCycles((ArrayList<String>)specIds.clone());
+				}
+			}
+		}
+	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.ICwmsRating#toXmlString(java.lang.CharSequence, int)
 	 */
@@ -1007,6 +1042,7 @@ public class VirtualRating extends AbstractRating {
 				setSourceRatings(sourceRatings);
 			}
 			setConnections(vrc.connections);
+			findCycles();
 		}
 	}
 
