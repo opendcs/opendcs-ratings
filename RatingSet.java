@@ -40,6 +40,7 @@ import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
+import hec.data.RatingRuntimeException;
 import hec.data.RoundingException;
 import hec.data.Units;
 import hec.data.VerticalDatumException;
@@ -47,6 +48,7 @@ import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.RatingSetContainer;
+import hec.data.cwmsRating.io.RatingSetStateContainer;
 import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.cwmsRating.io.ReferenceRatingContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
@@ -4681,20 +4683,44 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
+	 * @return a container of the object state
+	 */
+	public RatingSetStateContainer getState() {
+		synchronized(this) {
+			RatingSetStateContainer rssc = new RatingSetStateContainer();
+			try {
+				ConnectionInfo ci = getConnectionInfo();
+				rssc.conn = ci.getConnection();
+				rssc.wasRetrieved = ci.wasRetrieved();
+			} catch (RatingException e) {
+				throw new RatingRuntimeException(e);
+			}
+			if (dbInfo != null) {
+				rssc.dbUrl = dbInfo.getUrl();
+				rssc.dbUserName = dbInfo.getUserName();
+				rssc.dbOfficeId = dbInfo.getOfficeId();
+			}
+			rssc.dataUnits = getDataUnits();
+			rssc.defaultValueTime = defaultValueTime;
+			rssc.ratingTime = ratingTime;
+			return rssc;
+		}
+	}
+	/**
 	 * Retrieves a RatingSetContainer containing the data of this object. 
 	 * @return The RatingSetContainer
 	 */
 	public RatingSetContainer getData() {
 		synchronized(this) {
+			RatingSetContainer rsc = null;
 			if (dbrating != null) {
-				ReferenceRatingContainer rrc = new ReferenceRatingContainer();
+				rsc = new ReferenceRatingContainer();
 				if (ratingSpec != null) {
-					rrc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
+					rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
 				}
-				return rrc;
 			}
 			else {
-				RatingSetContainer rsc = new RatingSetContainer();
+				rsc = new RatingSetContainer();
 				if (ratingSpec != null) {
 					rsc.ratingSpecContainer = (RatingSpecContainer)ratingSpec.getData();
 				}
@@ -4705,8 +4731,30 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						rsc.abstractRatingContainers[i] = it.next().getData(); 
 					}
 				}
-				return rsc;
 			}
+			rsc.state = getState();
+			return rsc;
+		}
+	}
+	/**
+	 * Sets the state of this object from a container
+	 * @param rssc the state container
+	 * @throws RatingException 
+	 */
+	public void setState(RatingSetStateContainer rssc) throws RatingException {
+		synchronized(this) {
+			if (rssc.conn != null && !rssc.wasRetrieved) {
+				setDatabaseConnection(rssc.conn);
+			}
+			if (rssc.dbUrl != null || rssc.dbUserName != null || rssc.dbOfficeId != null) {
+				dbInfo = new DbInfo(rssc.dbUrl, rssc.dbUserName, rssc.dbOfficeId);
+			}
+			else {
+				dbInfo = null;
+			}
+			setDataUnits(rssc.dataUnits);
+			defaultValueTime = rssc.defaultValueTime;
+			ratingTime = rssc.ratingTime;
 		}
 	}
 	/**
@@ -4718,6 +4766,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		boolean isLazy = false;
 		synchronized(this) {
 			try {
+				dbInfo = null;
 				removeAllRatings();
 				if (rsc.ratingSpecContainer == null) {
 					ratingSpec = null;
@@ -4744,6 +4793,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						}
 					}
 					if (isLazy) setLazy();
+				}
+				if (rsc.state != null) {
+					setState(rsc.state);
 				}
 				if (observationTarget != null) {
 					observationTarget.setChanged();
