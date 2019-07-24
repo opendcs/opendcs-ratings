@@ -4688,14 +4688,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public RatingSetStateContainer getState() {
 		synchronized(this) {
 			RatingSetStateContainer rssc = new RatingSetStateContainer();
-			try {
-				ConnectionInfo ci = getConnectionInfo();
-				rssc.conn = ci.getConnection();
-				rssc.wasRetrieved = ci.wasRetrieved();
-			} catch (RatingException e) {
-				throw new RatingRuntimeException(e);
-			}
 			if (dbInfo != null) {
+				try {
+					ConnectionInfo ci = getConnectionInfo();
+					rssc.conn = ci.getConnection();
+					rssc.wasRetrieved = ci.wasRetrieved();
+				} catch (RatingException e) {
+					throw new RatingRuntimeException(e);
+				}
 				rssc.dbUrl = dbInfo.getUrl();
 				rssc.dbUserName = dbInfo.getUserName();
 				rssc.dbOfficeId = dbInfo.getOfficeId();
