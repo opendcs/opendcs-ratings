@@ -3,6 +3,7 @@
  */
 package hec.data.cwmsRating.io;
 
+import java.sql.Connection;
 import java.util.Arrays;
 
 import hec.lang.Const;
@@ -13,6 +14,11 @@ import hec.lang.Const;
  * Holds the state of a RatingSet object. This is used to replicate state via getData()/setData().
  */
 public class RatingSetStateContainer {
+	public Connection conn = null;
+	/**
+	 * Flag specifying whether the connection is stored in the rating object (false) or was retrieved and should be released when done (true)
+	 */
+	public boolean wasRetrieved = false;
 	/**
 	 * URL of database connection
 	 */
@@ -42,10 +48,12 @@ public class RatingSetStateContainer {
 	@Override
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode();
-		if (dbUrl      != null) hashCode +=  3 * dbUrl.hashCode();
-		if (dbUserName != null) hashCode +=  5 * dbUserName.hashCode();
-		if (dbOfficeId != null) hashCode +=  7 * dbOfficeId.hashCode();
-		if (dataUnits  != null) hashCode += 11 * dataUnits.hashCode();
+		if (conn       != null) hashCode +=  3 * conn.hashCode();
+		if (wasRetrieved      ) hashCode +=  5;
+		if (dbUrl      != null) hashCode +=  7 * dbUrl.hashCode();
+		if (dbUserName != null) hashCode += 11 * dbUserName.hashCode();
+		if (dbOfficeId != null) hashCode += 13 * dbOfficeId.hashCode();
+		if (dataUnits  != null) hashCode += 17 * dataUnits.hashCode();
 		hashCode += 19 * defaultValueTime;
 		hashCode += 23 * ratingTime;
 		return hashCode;
@@ -57,6 +65,8 @@ public class RatingSetStateContainer {
 			RatingSetStateContainer rssc = (RatingSetStateContainer)obj;
 			test:
 			do {
+				if ((rssc.conn == null) != (conn == null) || (rssc.conn != null && !rssc.conn.equals(conn))) break; 
+				if (rssc.wasRetrieved != wasRetrieved) break;
 				if ((rssc.dbUrl == null) != (dbUrl == null) || (rssc.dbUrl != null && !rssc.dbUrl.equals(dbUrl))) break;
 				if ((rssc.dbUserName == null) != (dbUserName == null) || (rssc.dbUserName != null && !rssc.dbUserName.equals(dbUserName))) break;
 				if ((rssc.dbOfficeId == null) != (dbOfficeId == null) || (rssc.dbOfficeId != null && !rssc.dbOfficeId.equals(dbOfficeId))) break;
@@ -78,6 +88,8 @@ public class RatingSetStateContainer {
 	@Override
 	protected Object clone() {
 		RatingSetStateContainer rssc = new RatingSetStateContainer();
+		rssc.conn = conn;
+		rssc.wasRetrieved = wasRetrieved;
 		rssc.dbUrl = dbUrl;
 		rssc.dbUserName = dbUserName;
 		rssc.dbOfficeId = dbOfficeId;

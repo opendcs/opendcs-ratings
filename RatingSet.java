@@ -40,6 +40,7 @@ import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
+import hec.data.RatingRuntimeException;
 import hec.data.RoundingException;
 import hec.data.Units;
 import hec.data.VerticalDatumException;
@@ -4688,6 +4689,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		synchronized(this) {
 			RatingSetStateContainer rssc = new RatingSetStateContainer();
 			if (dbInfo != null) {
+				try {
+					ConnectionInfo ci = getConnectionInfo();
+					rssc.conn = ci.getConnection();
+					rssc.wasRetrieved = ci.wasRetrieved();
+				} catch (RatingException e) {
+					throw new RatingRuntimeException(e);
+				}
 				rssc.dbUrl = dbInfo.getUrl();
 				rssc.dbUserName = dbInfo.getUserName();
 				rssc.dbOfficeId = dbInfo.getOfficeId();
@@ -4735,6 +4743,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public void setState(RatingSetStateContainer rssc) throws RatingException {
 		synchronized(this) {
+			if (rssc.conn != null && !rssc.wasRetrieved) {
+				setDatabaseConnection(rssc.conn);
+			}
 			if (rssc.dbUrl != null || rssc.dbUserName != null || rssc.dbOfficeId != null) {
 				dbInfo = new DbInfo(rssc.dbUrl, rssc.dbUserName, rssc.dbOfficeId);
 			}
