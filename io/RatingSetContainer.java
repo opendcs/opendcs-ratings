@@ -9,7 +9,6 @@ import org.jdom.Element;
 
 import hec.data.IVerticalDatum;
 import hec.data.RatingException;
-import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingUtil;
@@ -83,15 +82,9 @@ public class RatingSetContainer implements IVerticalDatum {
 	 */
 	public RatingSetContainer clone() {
 		RatingSetContainer rsc  = abstractRatingContainers == null ? new ReferenceRatingContainer() : new RatingSetContainer();
-		if (state != null)
-			try {
-				rsc.state = (RatingSetStateContainer)state.clone();
-			} catch (CloneNotSupportedException e) {
-				//--------------------------------------//
-				// formality only - clone doesn't throw //
-				//--------------------------------------//
-				throw new RatingRuntimeException(e);
-			}
+		if (state != null) {
+			rsc.state = (RatingSetStateContainer)state.clone();
+		}
 		rsc.ratingSpecContainer = ratingSpecContainer == null ? null : ratingSpecContainer.clone();
 		if (abstractRatingContainers != null) {
 			rsc.abstractRatingContainers = new AbstractRatingContainer[abstractRatingContainers.length];
