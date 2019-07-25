@@ -4689,12 +4689,20 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		synchronized(this) {
 			RatingSetStateContainer rssc = new RatingSetStateContainer();
 			if (dbInfo != null) {
+				ConnectionInfo ci = null;
 				try {
-					ConnectionInfo ci = getConnectionInfo();
+					ci = getConnectionInfo();
 					rssc.conn = ci.getConnection();
 					rssc.wasRetrieved = ci.wasRetrieved();
 				} catch (RatingException e) {
 					throw new RatingRuntimeException(e);
+				}
+				finally {
+					try {
+						releaseConnection(ci);
+					} catch (RatingException e) {
+						logger.log(Level.WARNING, "Unable to release database connection: " + e.getMessage());
+					}
 				}
 				rssc.dbUrl = dbInfo.getUrl();
 				rssc.dbUserName = dbInfo.getUserName();
