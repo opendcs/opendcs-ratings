@@ -14,6 +14,9 @@ import hec.lang.Const;
  * Holds the state of a RatingSet object. This is used to replicate state via getData()/setData().
  */
 public class RatingSetStateContainer {
+	/**
+	 * The database connection object
+	 */
 	public Connection conn = null;
 	/**
 	 * Flag specifying whether the connection is stored in the rating object (false) or was retrieved and should be released when done (true)
