@@ -256,13 +256,13 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			@SuppressWarnings("rawtypes")
 			List pointElems = elem.getChildren("point");
 			if (pointElems.size() > 0) {
-				values = new RatingValueContainer[pointElems.size()];
+				extensionValues = new RatingValueContainer[pointElems.size()];
 				for (int i = 0; i < pointElems.size(); ++i) {
-					values[i] = new RatingValueContainer();
+					extensionValues[i] = new RatingValueContainer();
 					elem = (Element)pointElems.get(i);
-					values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-					values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-					values[i].note = elem.getChildTextTrim("note");
+					extensionValues[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
+					extensionValues[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
+					extensionValues[i].note = elem.getChildTextTrim("note");
 				}
 			}
 		}
