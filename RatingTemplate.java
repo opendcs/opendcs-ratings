@@ -130,6 +130,11 @@ public class RatingTemplate implements Modifiable
 			}
 		}
 	}
+	
+	public static RatingTemplate fromDatabase(Connection conn, String officeId, String templateId) throws RatingException
+	{
+		return new RatingTemplate(conn, officeId, templateId);
+	}
 
 	/**
 	 * Disabled public zero-arg constructor

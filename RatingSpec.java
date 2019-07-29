@@ -184,6 +184,12 @@ public class RatingSpec extends RatingTemplate {
 			}
 		}
 	}
+
+	public static RatingSpec fromDatabase(Connection conn, String officeId, String ratingSpecId) throws RatingException
+	{
+		return new RatingSpec(conn, officeId, ratingSpecId);
+	}
+
 	/**
 	 * Public Constructor
 	 * @param officeId The office that owns the rating specification
