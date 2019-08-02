@@ -453,6 +453,11 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 			hectime.set(data);
 			arc.createDateMillis = hectime.getTimeInMillis();
 		}
+		data = ratingElement.getChildTextTrim("transition-start-date");
+		if (data != null) {
+			hectime.set(data);
+			arc.transitionStartDateMillis = hectime.getTimeInMillis();
+		}
 		arc.active = Boolean.parseBoolean(ratingElement.getChildTextTrim("active"));
 		arc.description = ratingElement.getChildTextTrim("description");
 	}
