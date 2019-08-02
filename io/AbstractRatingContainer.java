@@ -347,8 +347,12 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
-		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
-		vdc.setVerticalDatumInfo(xmlStr);
+		if (vdc == null) {
+			vdc = new VerticalDatumContainer(xmlStr);
+		}
+		else {
+			vdc.setVerticalDatumInfo(xmlStr);
+		}
 	}
 	/**
 	 * Intended to be overridden to allow sub-classes to return empty instances for cloning.

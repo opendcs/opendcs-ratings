@@ -1070,8 +1070,15 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
-		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
-		vdc.setVerticalDatumInfo(xmlStr);
+		if (vdc == null && xmlStr != null) {
+			vdc = new VerticalDatumContainer(xmlStr);
+		}
+		else if (xmlStr == null || xmlStr.trim().length() == 0) {
+			vdc = null;
+		}
+		else {
+			vdc.setVerticalDatumInfo(xmlStr);
+		}
 	}
 	/**
 	 * Fills a AbstractRatingContainer object with info from this rating.

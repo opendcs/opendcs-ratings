@@ -39,6 +39,14 @@ public class RatingSetStateContainer {
 	 */
 	public String[] dataUnits = null;
 	/**
+	 * Flag specifying whether this rating set allows "risky" behavior such as using mismatched units, unknown parameters, etc.
+	 */
+	public boolean allowUnsafe = true;
+	/**
+	 * Flag specifying whether this rating set outputs messges about "risky" behavior such as using mismatched units, unknown parameters, etc.
+	 */
+	public boolean warnUnsafe = true;
+	/**
 	 * A time to associate with all values that don't specify their own times.  This time, along with the rating
 	 * effective dates, is used to determine which ratings to use to rate values.
 	 */
@@ -48,6 +56,7 @@ public class RatingSetStateContainer {
 	 * with a creation date after this time will be used to rate values.
 	 */
 	public long ratingTime = Long.MAX_VALUE;
+
 	@Override
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode();
@@ -57,36 +66,34 @@ public class RatingSetStateContainer {
 		if (dbUserName != null) hashCode += 11 * dbUserName.hashCode();
 		if (dbOfficeId != null) hashCode += 13 * dbOfficeId.hashCode();
 		if (dataUnits  != null) hashCode += 17 * dataUnits.hashCode();
-		hashCode += 19 * defaultValueTime;
-		hashCode += 23 * ratingTime;
+		if (allowUnsafe       ) hashCode += 19;
+		if (warnUnsafe        ) hashCode += 23;
+		hashCode += 29 * defaultValueTime;
+		hashCode += 31 * ratingTime;
 		return hashCode;
 	}
 	@Override
 	public boolean equals(Object obj) {
-		boolean result = obj == this;
-		if (!result) {
-			RatingSetStateContainer rssc = (RatingSetStateContainer)obj;
-			test:
-			do {
-				if ((rssc.conn == null) != (conn == null) || (rssc.conn != null && !rssc.conn.equals(conn))) break; 
-				if (rssc.wasRetrieved != wasRetrieved) break;
-				if ((rssc.dbUrl == null) != (dbUrl == null) || (rssc.dbUrl != null && !rssc.dbUrl.equals(dbUrl))) break;
-				if ((rssc.dbUserName == null) != (dbUserName == null) || (rssc.dbUserName != null && !rssc.dbUserName.equals(dbUserName))) break;
-				if ((rssc.dbOfficeId == null) != (dbOfficeId == null) || (rssc.dbOfficeId != null && !rssc.dbOfficeId.equals(dbOfficeId))) break;
-				if (rssc.dataUnits != null) {
-					if (dataUnits == null) break;
-					if (rssc.dataUnits.length != dataUnits.length) break;
-					for (int i = 0; i < dataUnits.length; ++i) {
-						if (!rssc.dataUnits[i].equals(dataUnits[i])) break test;
-					}
-				}
-				else if (dataUnits != null) break;
-				if (rssc.defaultValueTime != defaultValueTime) break;
-				if (rssc.ratingTime != ratingTime) break;
-				result = true;
-			} while (false);
+		if (obj == this) return true;
+		RatingSetStateContainer rssc = (RatingSetStateContainer)obj;
+		if ((rssc.conn == null) != (conn == null) || (rssc.conn != null && !rssc.conn.equals(conn))) return false; 
+		if (rssc.wasRetrieved != wasRetrieved) return false;
+		if ((rssc.dbUrl == null) != (dbUrl == null) || (rssc.dbUrl != null && !rssc.dbUrl.equals(dbUrl))) return false;
+		if ((rssc.dbUserName == null) != (dbUserName == null) || (rssc.dbUserName != null && !rssc.dbUserName.equals(dbUserName))) return false;
+		if ((rssc.dbOfficeId == null) != (dbOfficeId == null) || (rssc.dbOfficeId != null && !rssc.dbOfficeId.equals(dbOfficeId))) return false;
+		if (rssc.dataUnits != null) {
+			if (dataUnits == null) return false;
+			if (rssc.dataUnits.length != dataUnits.length) return false;
+			for (int i = 0; i < dataUnits.length; ++i) {
+				if (!rssc.dataUnits[i].equals(dataUnits[i])) return false;
+			}
 		}
-		return result;
+		else if (dataUnits != null) return false;
+		if (rssc.allowUnsafe != allowUnsafe) return false;
+		if (rssc.warnUnsafe != warnUnsafe) return false;
+		if (rssc.defaultValueTime != defaultValueTime) return false;
+		if (rssc.ratingTime != ratingTime) return false;
+		return true;
 	}
 	@Override
 	protected Object clone() {
@@ -97,6 +104,8 @@ public class RatingSetStateContainer {
 		rssc.dbUserName = dbUserName;
 		rssc.dbOfficeId = dbOfficeId;
 		if (dataUnits != null) rssc.dataUnits = Arrays.copyOf(dataUnits, dataUnits.length);
+		rssc.allowUnsafe = allowUnsafe;
+		rssc.warnUnsafe = warnUnsafe;
 		rssc.defaultValueTime = defaultValueTime;
 		rssc.ratingTime = ratingTime;
 		return rssc;

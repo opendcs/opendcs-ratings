@@ -1966,7 +1966,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				else {
 					this.ratings.put(rating.getEffectiveDate(), rating);
 				}
-				this.ratings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
+				AbstractRating ar = this.ratings.get(rating.getEffectiveDate()); 
+				ar.ratingSpec = ratingSpec;
+				ar.setDefaultValueTime(getDefaultValueTime());
+				ar.setRatingTime(getRatingTime());
+				ar.setDataUnits(getDataUnits());
+				try {
+					ar.setVerticalDatumInfo(getVerticalDatumInfo());
+				} 
+				catch (VerticalDatumException e) {
+				}
+				ar.setAllowUnsafe(doesAllowUnsafe());
+				ar.setWarnUnsafe(doesWarnUnsafe());
 				if (rating.isActive() && rating.createDate <= ratingTime) {
 					activeRatings.put(rating.getEffectiveDate(), rating);
 					activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
@@ -2217,12 +2228,25 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							}
 							else throw new RatingException("Unexpected rating type: \n" + xmlText);
 							newRating.ratingSpec = ratingSpec;
+							newRating.setDataUnits(getDataUnits());
+							newRating.setDefaultValueTime(getDefaultValuetime());
+							newRating.setRatingTime(getRatingTime());
+							newRating.setName(getName());
+							newRating.setAllowUnsafe(doesAllowUnsafe());
+							newRating.setWarnUnsafe(doesWarnUnsafe());
+							for (AbstractRating r : ratings.values()) {
+								if (r.vdc != null) {
+									newRating.setVerticalDatumInfo(r.getVerticalDatumInfo());
+									break;
+								}
+							}
+							ratings.put(key, newRating);
+							newEntry = ratings.floorEntry(key);
+							if (!newEntry.getKey().equals(key)) {
+								throw new RatingException("Could not retrieve concrete rating from database.");
+							}
 							if (newRating.active) {
 								activeRatings.put(key, newRating);
-								newEntry = activeRatings.floorEntry(key);
-								if (!newEntry.getKey().equals(key)) {
-									throw new RatingException("Could not retrieve concrete rating from database.");
-								}
 							}
 							else {
 								ratings.get(key).setActive(false);
@@ -3145,12 +3169,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public int getActiveRatingCount() {
 		synchronized(this) {
-			int count =  0;
-			if (ratings != null) {
-				count = ratings.size();
-				for (Iterator<AbstractRating> it = ratings.values().iterator(); it.hasNext();) {
-					if (!it.next().active) --count;			
-				}
+			int count = ratings.size();
+			for (Iterator<AbstractRating> it = ratings.values().iterator(); it.hasNext();) {
+				if (!it.next().active) --count;			
 			}
 			return count;
 		}
@@ -3189,10 +3210,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void setRatingTime(long ratingTime) {
 		synchronized(this) {
 			this.ratingTime = ratingTime;
-			if (ratings != null) {
-				for (AbstractRating rating : ratings.values()) {
-					rating.setRatingTime(ratingTime);
-				}
+			for (AbstractRating rating : ratings.values()) {
+				rating.setRatingTime(ratingTime);
 			}
 			refreshRatings();
 		}
@@ -3204,11 +3223,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void resetRatingTime() {
 		synchronized(this) {
 			ratingTime = Long.MAX_VALUE;
-			if (ratings != null) {
-				Long[] effectiveDates = ratings.keySet().toArray(new Long[0]);
-				for (Long effectiveDate : effectiveDates) {
-					ratings.get(effectiveDate).resetRatingTime();
-				}
+			Long[] effectiveDates = ratings.keySet().toArray(new Long[0]);
+			for (Long effectiveDate : effectiveDates) {
+				ratings.get(effectiveDate).resetRatingTime();
 			}
 			refreshRatings();
 		}
@@ -3229,6 +3246,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void setAllowUnsafe(boolean allowUnsafe) {
 		synchronized(this) {
 			this.allowUnsafe = allowUnsafe;
+			for (AbstractRating ar : ratings.values()) {
+				ar.setAllowUnsafe(allowUnsafe);
+			}
 		}
 	}
 	/**
@@ -3247,6 +3267,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void setWarnUnsafe(boolean warnUnsafe) {
 		synchronized(this) {
 			this.warnUnsafe = warnUnsafe;
+			for (AbstractRating ar : ratings.values()) {
+				ar.setWarnUnsafe(allowUnsafe);
+			}
 		}
 	}
 	/**
@@ -3351,7 +3374,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public void setDataUnits(String[] units) throws RatingException {
 		synchronized(this) {
 			if (dbrating == null) {
-				for (ICwmsRating rating : ratings.values()) {
+				for (AbstractRating rating : ratings.values()) {
 					rating.setDataUnits(units);
 				}
 			}
@@ -4709,6 +4732,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				rssc.dbOfficeId = dbInfo.getOfficeId();
 			}
 			rssc.dataUnits = getDataUnits();
+			rssc.allowUnsafe = doesAllowUnsafe();
+			rssc.warnUnsafe = doesWarnUnsafe();
 			rssc.defaultValueTime = defaultValueTime;
 			rssc.ratingTime = ratingTime;
 			return rssc;
@@ -4761,6 +4786,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				dbInfo = null;
 			}
 			setDataUnits(rssc.dataUnits);
+			setAllowUnsafe(rssc.allowUnsafe);
+			setWarnUnsafe(rssc.warnUnsafe);
 			defaultValueTime = rssc.defaultValueTime;
 			ratingTime = rssc.ratingTime;
 		}
@@ -5418,13 +5445,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
 		if (dbrating == null) {
-			RatingSetContainer rsc = getData();
-			rsc.setVerticalDatumInfo(xmlStr);
-			try {
-				setData(rsc);
-			}
-			catch (RatingException e) {
-				throw new VerticalDatumException(e);
+			for (AbstractRating ar : ratings.values()) {
+				ar.setVerticalDatumInfo(xmlStr);
 			}
 		}
 		else {
