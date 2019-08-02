@@ -897,6 +897,7 @@ public class RatingSpec extends RatingTemplate {
 				indRoundingSpecs[i] = indParamNode.getFirstChild().getNodeValue().trim();
 			}
 			String depRoundingSpec = (String)RatingConst.depRoundingXpath.evaluate(specNode, XPathConstants.STRING);
+			String specDescription = (String)RatingConst.descriptionXpath.evaluate(specNode, XPathConstants.STRING);
 			setOfficeId(officeId);
 			parts = split(ratingSpecId, SEPARATOR1, "L");
 			if (parts.length != 4) throw new RatingException("Invalid rating specification: " + ratingSpecId);
@@ -905,7 +906,7 @@ public class RatingSpec extends RatingTemplate {
 			super.setVersion(parts[2]);
 			setVersion(parts[3]);
 			setSourceAgencyId(sourceAgencyId);
-			setDescription(description);
+			setDescription(specDescription);
 			setInRangeMethod(RatingMethod.fromString(inRangeMethod));
 			setOutRangeLowMethod(RatingMethod.fromString(outRangeLowMethod));
 			setOutRangeHighMethod(RatingMethod.fromString(outRangeHighMethod));
