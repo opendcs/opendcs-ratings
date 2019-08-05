@@ -63,7 +63,6 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
-import java.util.Objects;
 /**
  * Implements CWMS-style ratings (time series of ratings)
  *  
@@ -2126,12 +2125,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	
 	public void getConcreteRatings(long date) throws RatingException
 	{
-		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
-			if (Objects.equals(entry.getKey(), date))
-			{
-				getConcreteRating(entry);
-				break;
-			}
+		if (activeRatings.containsKey(date))
+		{
+			Entry<Long, AbstractRating> entry = activeRatings.floorEntry(date);
+			getConcreteRating(entry);
 		}
 	}
 	
@@ -2141,7 +2138,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public void getConcreteRatings(Connection conn) throws RatingException {
 		setDatabaseConnection(conn);
-		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
+		long[] effectiveDates = getEffectiveDates();
+		for (long effectiveDate : effectiveDates)
+		{
+			Entry<Long, AbstractRating> entry = activeRatings.floorEntry(effectiveDate);
 			getConcreteRating(entry);
 		}
 		clearDatabaseConnection();
@@ -2152,7 +2152,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public void getConcreteRatings() throws RatingException {
-		for (Map.Entry<Long, AbstractRating> entry : activeRatings.entrySet()) {
+		long[] effectiveDates = getEffectiveDates();
+		for (long effectiveDate : effectiveDates)
+		{
+			Entry<Long, AbstractRating> entry = activeRatings.floorEntry(effectiveDate);
 			getConcreteRating(entry);
 		}
 	}
