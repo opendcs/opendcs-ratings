@@ -257,7 +257,12 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		String pointsPrefix = prefix + indent;
 		if (values != null) {
 			boolean multiParam = values[0].depTable != null;
-			if (!multiParam) {
+			if (multiParam) {
+				for (int i = 0; i < values.length; ++i) {
+					values[i].toXml(pointsPrefix, indent, sb);
+				}
+			}
+			else {
 				if (values == null) {
 					sb.append(prefix).append(indent).append("<rating-points/>\n");
 				}
