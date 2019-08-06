@@ -760,7 +760,10 @@ public class TableRating extends AbstractRating {
 			try {
 				super._setData(rc);
 				TableRatingContainer trc = (TableRatingContainer)rc;
-				for (RatingValue value : values) value.deleteObserver(this);
+				if (values != null)
+				{
+					for (RatingValue value : values) value.deleteObserver(this);
+				}
 				if(extensionValues != null)
 				{
 					for (RatingValue value : extensionValues) value.deleteObserver(this);
