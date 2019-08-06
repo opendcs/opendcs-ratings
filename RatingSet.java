@@ -4724,10 +4724,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					throw new RatingRuntimeException(e);
 				}
 				finally {
-					try {
-						releaseConnection(ci);
-					} catch (RatingException e) {
-						logger.log(Level.WARNING, "Unable to release database connection: " + e.getMessage());
+					//This can be null if an exception occurs in getConnectionInfo
+					if (ci != null) {
+						try {
+							releaseConnection(ci);
+						} catch (RatingException e) {
+							logger.log(Level.WARNING, "Unable to release database connection: " + e.getMessage());
+						}
 					}
 				}
 				rssc.dbUrl = dbInfo.getUrl();
