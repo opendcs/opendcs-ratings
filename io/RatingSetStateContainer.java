@@ -14,17 +14,6 @@ import hec.lang.Const;
  * Holds the state of a RatingSet object. This is used to replicate state via getData()/setData().
  */
 public class RatingSetStateContainer {
-	/**
-	 * The database connection object
-	 */
-	public Connection conn = null;
-	/**
-	 * Flag specifying whether the connection is stored in the rating object (false) or was retrieved and should be released when done (true)
-	 */
-	public boolean wasRetrieved = false;
-	/**
-	 * URL of database connection
-	 */
 	public String dbUrl = null;
 	/**
 	 * User name of database connection
@@ -60,8 +49,6 @@ public class RatingSetStateContainer {
 	@Override
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode();
-		if (conn       != null) hashCode +=  3 * conn.hashCode();
-		if (wasRetrieved      ) hashCode +=  5;
 		if (dbUrl      != null) hashCode +=  7 * dbUrl.hashCode();
 		if (dbUserName != null) hashCode += 11 * dbUserName.hashCode();
 		if (dbOfficeId != null) hashCode += 13 * dbOfficeId.hashCode();
@@ -76,8 +63,6 @@ public class RatingSetStateContainer {
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
 		RatingSetStateContainer rssc = (RatingSetStateContainer)obj;
-		if ((rssc.conn == null) != (conn == null) || (rssc.conn != null && !rssc.conn.equals(conn))) return false; 
-		if (rssc.wasRetrieved != wasRetrieved) return false;
 		if ((rssc.dbUrl == null) != (dbUrl == null) || (rssc.dbUrl != null && !rssc.dbUrl.equals(dbUrl))) return false;
 		if ((rssc.dbUserName == null) != (dbUserName == null) || (rssc.dbUserName != null && !rssc.dbUserName.equals(dbUserName))) return false;
 		if ((rssc.dbOfficeId == null) != (dbOfficeId == null) || (rssc.dbOfficeId != null && !rssc.dbOfficeId.equals(dbOfficeId))) return false;
@@ -98,8 +83,6 @@ public class RatingSetStateContainer {
 	@Override
 	protected Object clone() {
 		RatingSetStateContainer rssc = new RatingSetStateContainer();
-		rssc.conn = conn;
-		rssc.wasRetrieved = wasRetrieved;
 		rssc.dbUrl = dbUrl;
 		rssc.dbUserName = dbUserName;
 		rssc.dbOfficeId = dbOfficeId;
