@@ -1679,7 +1679,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				}				
 				else if (localName.equals(TRANSITIONAL_RATING_STR)) {
 					if (trrc != null) {
-						SortedSet<Integer> keys = new TreeSet<Integer>(conditions.keySet());
+						SortedSet<Integer> keys = new TreeSet<>();
+						if (conditions != null)
+						{
+							keys.addAll(conditions.keySet());
+						}
 						trrc.conditions = new String[keys.size()];
 						Iterator<Integer> it = keys.iterator();
 						for (int i = 0; it.hasNext(); ++i) {
@@ -1688,9 +1692,18 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							}
 							trrc.conditions[i] = conditions.get((i+1));
 						}
-						conditions.clear();
+						
+						if (conditions != null)
+						{
+							conditions.clear();
+						}
+						
 						keys.clear();
-						keys.addAll(evaluations.keySet());
+						if (evaluations != null)
+						{
+							keys.addAll(evaluations.keySet());
+						}
+						
 						if (keys.size() != trrc.conditions.length) {
 							throw new RatingRuntimeException(String.format("Transitional rating %s has inconsitent numbers of conditions and evaluations", trrc.ratingSpecId));
 						}
@@ -1702,7 +1715,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							}
 							trrc.evaluations[i] = evaluations.get((i+1));
 						}
-						evaluations.clear();
+						if (evaluations != null)
+						{
+							evaluations.clear();
+						}
+						
 						if (defaultEvaluation == null) {
 							throw new RatingRuntimeException(String.format("Transitional rating %s doesn't specify a default evaluation", trrc.ratingSpecId));
 						}
