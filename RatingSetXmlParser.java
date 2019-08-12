@@ -1586,63 +1586,57 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 								urc.offsets.outRangeLowMethod = "NEXT";
 								urc.offsets.outRangeHighMethod = "PREVIOUS";
 							}
-							if (shiftPointSetCount > 0) {
-								urc.shifts = new RatingSetContainer();
-								urc.shifts.ratingSpecContainer = new RatingSpecContainer();
-								urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
-								urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
-								urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
-								urc.shifts.ratingSpecContainer.indParams = new String[1];
-								urc.shifts.ratingSpecContainer.indParams[0] = indParam;
-								urc.shifts.ratingSpecContainer.depParam = String.format("%s-%s", indParam, USGS_SHIFTS_SUBPARAM);
-								urc.shifts.ratingSpecContainer.locationId = location;
-								urc.shifts.ratingSpecContainer.parametersId = String.format("%s%s%s", urc.shifts.ratingSpecContainer.indParams[0], SEPARATOR2, urc.shifts.ratingSpecContainer.depParam);
-								urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
-								urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
-								urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
-								urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1, 
+						}
+						else if (shiftPointSetCount > 0) {
+							urc.shifts = new RatingSetContainer();
+							urc.shifts.ratingSpecContainer = new RatingSpecContainer();
+							urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
+							urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
+							urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
+							urc.shifts.ratingSpecContainer.indParams = new String[1];
+							urc.shifts.ratingSpecContainer.indParams[0] = indParam;
+							urc.shifts.ratingSpecContainer.depParam = String.format("%s-%s", indParam, USGS_SHIFTS_SUBPARAM);
+							urc.shifts.ratingSpecContainer.locationId = location;
+							urc.shifts.ratingSpecContainer.parametersId = String.format("%s%s%s", urc.shifts.ratingSpecContainer.indParams[0], SEPARATOR2, urc.shifts.ratingSpecContainer.depParam);
+							urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
+							urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
+							urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
+							urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1, 
+									urc.shifts.ratingSpecContainer.locationId, 
+									urc.shifts.ratingSpecContainer.templateId, 
+									urc.shifts.ratingSpecContainer.specVersion);
+							urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
+							urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
+							urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
+							urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
+							urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
+							urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
+							urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
+							urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
+							urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
+							urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount];
+							for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
+								RatingPoints pointSet = shiftPoints.get(i);
+								int shiftCount = pointSet.getPointCount();
+								urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
 										urc.shifts.ratingSpecContainer.locationId, 
 										urc.shifts.ratingSpecContainer.templateId, 
 										urc.shifts.ratingSpecContainer.specVersion);
-								urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
-								urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
-								urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
-								urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
-								urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
-								urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
-								urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
-								urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
-								urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
-								int emptyCount = 0;
-								for (int i = 0; i < shiftPointSetCount; ++i) {
-									if (shiftPoints.get(i).getPointCount() == 0) ++emptyCount;
-								}
-								urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount-emptyCount];
-								for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
-									RatingPoints pointSet = shiftPoints.get(i);
-									int shiftCount = pointSet.getPointCount();
-									if (shiftCount > 0) {
-										urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
-												urc.shifts.ratingSpecContainer.locationId, 
-												urc.shifts.ratingSpecContainer.templateId, 
-												urc.shifts.ratingSpecContainer.specVersion);
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate;
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).active = shiftInfo.get(i).active;
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
-										((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
-										for (int k = 0; k < shiftCount; ++k) {
-											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
-											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
-											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
-											((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
-										}
-									}
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).createDateMillis = shiftInfo.get(i).createDate;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).active = shiftInfo.get(i).active;
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
+								for (int k = 0; k < shiftCount; ++k) {
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
+									((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
 								}
 							}
 						}
