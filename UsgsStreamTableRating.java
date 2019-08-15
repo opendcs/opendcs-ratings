@@ -844,7 +844,13 @@ public class UsgsStreamTableRating extends TableRating {
 		synchronized(this) {
 			if (!(rc instanceof UsgsStreamTableRatingContainer)) throw new RatingException("setData() requires a UsgsStreamTableRatingContainer object.");
 			UsgsStreamTableRatingContainer ustrc = (UsgsStreamTableRatingContainer)rc;
-			for (RatingValue value : values) value.deleteObserver(this);
+			if(values != null)
+			{
+				for (RatingValue value : values)
+				{
+					value.deleteObserver(this);
+				}
+			}
 			if(extensionValues != null)
 			{
 				for (RatingValue value : extensionValues) value.deleteObserver(this);

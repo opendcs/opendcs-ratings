@@ -187,6 +187,11 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 					hectime.set(data);
 					trc.createDateMillis = hectime.getTimeInMillis();
 				}
+				data = elem.getChildTextTrim("transition-start-date");
+				if (data != null) {
+					hectime.set(data);
+					trc.transitionStartDateMillis = hectime.getTimeInMillis();
+				}
 				trc.active = Boolean.parseBoolean(elem.getChildTextTrim("active"));
 				trc.description = elem.getChildTextTrim("description");
 				trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
