@@ -6,7 +6,6 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
 
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.CallableStatement;
 import java.sql.Clob;
@@ -20,7 +19,6 @@ import javax.xml.xpath.XPathConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import hec.data.DataSetException;
 import hec.data.DataSetIllegalArgumentException;
@@ -789,8 +787,8 @@ public class RatingSpec extends RatingTemplate {
 		}
 		try {
 			RatingConst.initXmlParsing();
-			Document templateDoc = RatingConst.builder.parse(new InputSource(new StringReader(templateXml))); 
-			Document specDoc = RatingConst.builder.parse(new InputSource(new StringReader(specXml)));
+			Document templateDoc = RatingConst.readXmlAsDocument(templateXml);
+			Document specDoc = RatingConst.readXmlAsDocument(specXml);
 			setData(templateDoc.getDocumentElement().getElementsByTagName("rating-template").item(0), specDoc.getDocumentElement().getElementsByTagName("rating-spec").item(0));
 		} 
 		catch (Exception e) {

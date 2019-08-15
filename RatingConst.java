@@ -1,6 +1,5 @@
 package hec.data.cwmsRating;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
@@ -9,6 +8,12 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import hec.data.RatingException;
+import java.io.IOException;
+import java.io.StringReader;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Various constants for CWMS Ratings 
@@ -56,7 +61,7 @@ public class RatingConst {
 	static final String specNodeXpathStr = "/ratings/rating-spec[@office-id='%s' and normalize-space(rating-spec-id)='%s']";
 	static final String templateNodeXpathStr = "/ratings/rating-template[@office-id='%s' and normalize-space(parameters-id)='%s' and normalize-space(version)='%s']";
 	static boolean xmlParsingInitialized                    = false;
-	static DocumentBuilder builder                          = null;
+	private static DocumentBuilder builder					= null;
 	static XPath xpath                                      = null;
 	static XPathExpression officeIdXpath                    = null;
 	static XPathExpression parametersIdXpath                = null;
@@ -146,6 +151,11 @@ public class RatingConst {
 			offsetNodeXpath               = xpath.compile("./height-offsets");
 			xmlParsingInitialized         = true;
 		}
+	}
+
+	static synchronized Document readXmlAsDocument(String xml) throws IOException, SAXException
+	{
+		return builder.parse(new InputSource(new StringReader(xml)));
 	}
 	
 	/**
