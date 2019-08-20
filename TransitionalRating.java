@@ -210,13 +210,23 @@ public class TransitionalRating extends AbstractRating {
 			throw new RatingException(sb.toString());
 		}
 		specIds.add(specId);
-		for (SourceRating sr : sourceRatings) {
-			for (AbstractRating ar : sr.getRatingSet().getRatings()) {
-				if (ar instanceof VirtualRating) {
-					((VirtualRating)ar).findCycles((ArrayList<String>)specIds.clone());
-				}
-				if (ar instanceof TransitionalRating) {
-					((TransitionalRating)ar).findCycles((ArrayList<String>)specIds.clone());
+		if (sourceRatings != null) {
+			for (SourceRating sr : sourceRatings) {
+				if (sr != null) {
+					RatingSet rs = sr.getRatingSet();
+					if (rs != null) {
+						AbstractRating[] ratings = rs.getRatings();
+						if (ratings != null) {
+							for (AbstractRating ar : ratings) {
+								if (ar instanceof VirtualRating) {
+									((VirtualRating)ar).findCycles((ArrayList<String>)specIds.clone());
+								}
+								if (ar instanceof TransitionalRating) {
+									((TransitionalRating)ar).findCycles((ArrayList<String>)specIds.clone());
+								}
+							}
+						}
+					}
 				}
 			}
 		}
