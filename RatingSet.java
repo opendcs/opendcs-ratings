@@ -2175,9 +2175,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							ci = getConnectionInfo();
 						}
 						conn = ci.getConnection();
+						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 						if (logger.isLoggable(Level.FINE)) {
-							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 							logger.fine(String.format(
 									"Retrieving rating from %s: %s @ %s UTC", 
 									conn.getMetaData().getURL(),
@@ -2210,49 +2210,68 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 								freeClob(clob);
 							}
 							logger.log(Level.FINE,"Retrieve XML:\n"+xmlText);
-							if (xmlText.indexOf("<simple-rating ") > 0) {
-								if (xmlText.indexOf("<formula>") > 0) {
-									newRating = ExpressionRating.fromXml(xmlText);
+							int pos = xmlText.indexOf("<ratings ");
+							if (pos == -1 || xmlText.indexOf('<', pos+1) == -1) {
+								logger.log(
+										Level.WARNING, 
+										"Cannot get concrete rating for "
+										+ rating.ratingSpecId
+										+ " for effective date "
+										+ sdf.format(rating.effectiveDate)
+										+ " UTC. Removing effective date from rating set");
+								ratings.remove(rating.effectiveDate);
+								if (activeRatings.containsKey(rating.effectiveDate)) {
+									activeRatings.remove(rating.effectiveDate);
 								}
-								else {
-									newRating = TableRating.fromXml(xmlText);
-									((TableRating)newRating).setBehaviors(ratingSpec);
-								}
-							}
-							else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
-								newRating = UsgsStreamTableRating.fromXml(xmlText);
-								((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
-							}
-							else if (xmlText.indexOf("<virtual-rating ") > 0) {
-								newRating = VirtualRating.fromXml(xmlText);
-							}
-							else if (xmlText.indexOf("<transitional-rating ") > 0) {
-								newRating = TransitionalRating.fromXml(xmlText);
-							}
-							else throw new RatingException("Unexpected rating type: \n" + xmlText);
-							newRating.ratingSpec = ratingSpec;
-							newRating.setDataUnits(getDataUnits());
-							newRating.setDefaultValueTime(getDefaultValuetime());
-							newRating.setRatingTime(getRatingTime());
-							newRating.setName(getName());
-							newRating.setAllowUnsafe(doesAllowUnsafe());
-							newRating.setWarnUnsafe(doesWarnUnsafe());
-							for (AbstractRating r : ratings.values()) {
-								if (r.vdc != null) {
-									newRating.setVerticalDatumInfo(r.getVerticalDatumInfo());
-									break;
-								}
-							}
-							ratings.put(key, newRating);
-							newEntry = ratings.floorEntry(key);
-							if (!newEntry.getKey().equals(key)) {
-								throw new RatingException("Could not retrieve concrete rating from database.");
-							}
-							if (newRating.active) {
-								activeRatings.put(key, newRating);
 							}
 							else {
-								ratings.get(key).setActive(false);
+								if (xmlText.indexOf("<simple-rating ") > 0) {
+									if (xmlText.indexOf("<formula>") > 0) {
+										newRating = ExpressionRating.fromXml(xmlText);
+									}
+									else {
+										newRating = TableRating.fromXml(xmlText);
+										((TableRating)newRating).setBehaviors(ratingSpec);
+									}
+								}
+								else if (xmlText.indexOf("<usgs-stream-rating ") > 0) {
+									newRating = UsgsStreamTableRating.fromXml(xmlText);
+									((UsgsStreamTableRating)newRating).setBehaviors(ratingSpec);
+								}
+								else if (xmlText.indexOf("<virtual-rating ") > 0) {
+									newRating = VirtualRating.fromXml(xmlText);
+								}
+								else if (xmlText.indexOf("<transitional-rating ") > 0) {
+									newRating = TransitionalRating.fromXml(xmlText);
+								}
+								else {
+									System.out.println(xmlText);
+									throw new RatingException("Unexpected rating type: \n" + xmlText);
+								}
+								newRating.ratingSpec = ratingSpec;
+								newRating.setDataUnits(getDataUnits());
+								newRating.setDefaultValueTime(getDefaultValuetime());
+								newRating.setRatingTime(getRatingTime());
+								newRating.setName(getName());
+								newRating.setAllowUnsafe(doesAllowUnsafe());
+								newRating.setWarnUnsafe(doesWarnUnsafe());
+								for (AbstractRating r : ratings.values()) {
+									if (r.vdc != null) {
+										newRating.setVerticalDatumInfo(r.getVerticalDatumInfo());
+										break;
+									}
+								}
+								ratings.put(key, newRating);
+								newEntry = ratings.floorEntry(key);
+								if (!newEntry.getKey().equals(key)) {
+									throw new RatingException("Could not retrieve concrete rating from database.");
+								}
+								if (newRating.active) {
+									activeRatings.put(key, newRating);
+								}
+								else {
+									ratings.get(key).setActive(false);
+								}
 							}
 							refreshRatings();
 						}
