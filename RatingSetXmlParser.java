@@ -1587,7 +1587,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 								urc.offsets.outRangeHighMethod = "PREVIOUS";
 							}
 						}
-						else if (shiftPointSetCount > 0) {
+						if (shiftPointSetCount > 0) {
 							urc.shifts = new RatingSetContainer();
 							urc.shifts.ratingSpecContainer = new RatingSpecContainer();
 							urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
