@@ -2245,7 +2245,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 									newRating = TransitionalRating.fromXml(xmlText);
 								}
 								else {
-									System.out.println(xmlText);
 									throw new RatingException("Unexpected rating type: \n" + xmlText);
 								}
 								newRating.ratingSpec = ratingSpec;
