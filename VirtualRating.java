@@ -21,7 +21,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import hec.data.RatingException;
-import hec.data.RatingRuntimeException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -612,28 +611,35 @@ public class VirtualRating extends AbstractRating {
 	 */
 	public void setSourceRatings(SourceRating[] sources) throws RatingException {
 		synchronized(this) {
-			sourceRatings = sources == null ? null : Arrays.copyOf(sources, sources.length);
-			if (sourceRatings == null) {
+			if (sources == null) {
 				inputs = null;
 				outputs = null;
+				sourceRatings = null;
 			}else {
-				inputs = new String[sourceRatings.length][];
-				outputs = new String[sourceRatings.length];
-				for (int i = 0; i < sourceRatings.length; ++i) {
-					try {
-						inputs[i] = new String[sourceRatings[i].getIndParamCount()];
-						outputs[i] = "R"+(i+1)+"D";
-						for (int j = 0; j < sourceRatings[i].getIndParamCount(); ++j) {
-							inputs[i][j] = "R"+(i+1)+"I"+(j+1);
-						}
+				SourceRating[] clonedSources = Arrays.copyOf(sources, sources.length);
+				String[][] newInputs = new String[clonedSources.length][];
+				String[] newOutputs = new String[clonedSources.length];
+				
+				//Validate source ratings before updating field variables.
+				findCycles(clonedSources, new ArrayList<>());
+				for (int i = 0; i < clonedSources.length; ++i) {
+					newInputs[i] = new String[clonedSources[i].getIndParamCount()];
+					newOutputs[i] = "R"+(i+1)+"D";
+					for (int j = 0; j < clonedSources[i].getIndParamCount(); ++j) {
+						newInputs[i][j] = "R"+(i+1)+"I"+(j+1);
 					}
-					catch (RatingException e) {
-						throw new RatingRuntimeException(e);
-					}
-					sourceRatings[i].addObserver(this);
 				}
+				
+				//add observers once we know everything is acceptable.
+				for (SourceRating source : clonedSources)
+				{
+					source.addObserver(this);
+				}
+				
+				inputs = newInputs;
+				outputs = newOutputs;
+				sourceRatings = clonedSources;
 			}
-			findCycles();
 			isNormalized = false;
 		}
 	}
@@ -724,14 +730,25 @@ public class VirtualRating extends AbstractRating {
 	 * @throws RatingException if cyclic reference is found
 	 */
 	public void findCycles() throws RatingException {
-		ArrayList<String> specIds = new ArrayList<String>();
-		findCycles(specIds);
+		findCycles(new ArrayList<>());
 	}
+	
 	/**
 	 * Finds cyclical rating references in source ratings
+	 * @param specIds
 	 * @throws RatingException if cyclic reference is found
 	 */
-	protected void findCycles(ArrayList<String> specIds) throws RatingException {
+	protected void findCycles(List<String> specIds) throws RatingException {
+		findCycles(sourceRatings, specIds);
+	}
+	
+	/**
+	 * Finds cyclical rating references in source ratings
+	 * @param sources
+	 * @param specIds
+	 * @throws RatingException 
+	 */
+	protected void findCycles(SourceRating[] sources, List<String> specIds) throws RatingException {
 		String specId = getOfficeId()+"/"+getRatingSpecId();
 		if (specIds.contains(specId)) {
 			StringBuilder sb = new StringBuilder("Cycle detected in source ratings. Cycle path is:");
@@ -742,8 +759,8 @@ public class VirtualRating extends AbstractRating {
 			throw new RatingException(sb.toString());
 		}
 		specIds.add(specId);
-		if (sourceRatings != null) {
-			for (SourceRating sr : sourceRatings) {
+		if (sources != null) {
+			for (SourceRating sr : sources) {
 				if (sr != null) {
 					RatingSet rs = sr.getRatingSet();
 					if (rs != null) {
@@ -751,10 +768,10 @@ public class VirtualRating extends AbstractRating {
 						if (ratings != null) {
 							for (AbstractRating ar : ratings) {
 								if (ar instanceof VirtualRating) {
-									((VirtualRating)ar).findCycles((ArrayList<String>)specIds.clone());
+									((VirtualRating)ar).findCycles(new ArrayList<>(specIds));
 								}
 								if (ar instanceof TransitionalRating) {
-									((TransitionalRating)ar).findCycles((ArrayList<String>)specIds.clone());
+									((TransitionalRating)ar).findCycles(new ArrayList<>(specIds));
 								}
 							}
 						}

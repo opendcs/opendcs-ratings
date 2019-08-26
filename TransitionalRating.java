@@ -17,6 +17,7 @@ import hec.hecmath.computation.Condition;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
+import java.util.List;
 
 /**
  * Rating that selects among multiple possible ratings depending on input parameter values.
@@ -180,26 +181,33 @@ public class TransitionalRating extends AbstractRating {
 	 */
 	public void setSourceRatings(SourceRating[] sources) throws RatingException {
 		synchronized(this) {
+			findCycles(sources, new ArrayList<>());
 			sourceRatings = Arrays.copyOf(sources, sources.length);
 			for (SourceRating sr : sources) {
 				sr.addObserver(this);
 			}
-			findCycles();
 		}
 	}
+	
 	/**
 	 * Finds cyclical rating references in source ratings
 	 * @throws RatingException if cyclic reference is found
 	 */
 	public void findCycles() throws RatingException {
-		ArrayList<String> specIds = new ArrayList<String>();
-		findCycles(specIds);
+		findCycles(new ArrayList<>());
 	}
+	
+	protected void findCycles(List<String> specIds) throws RatingException {
+		findCycles(sourceRatings, specIds);
+	}
+	
 	/**
 	 * Finds cyclical rating references in source ratings
+	 * @param sources
+	 * @param specIds
 	 * @throws RatingException if cyclic reference is found
 	 */
-	protected void findCycles(ArrayList<String> specIds) throws RatingException {
+	protected void findCycles(SourceRating[] sources, List<String> specIds) throws RatingException {
 		String specId = getOfficeId()+"/"+getRatingSpecId();
 		if (specIds.contains(specId)) {
 			StringBuilder sb = new StringBuilder("Cycle detected in source ratings. Cycle path is:");
@@ -210,8 +218,8 @@ public class TransitionalRating extends AbstractRating {
 			throw new RatingException(sb.toString());
 		}
 		specIds.add(specId);
-		if (sourceRatings != null) {
-			for (SourceRating sr : sourceRatings) {
+		if (sources != null) {
+			for (SourceRating sr : sources) {
 				if (sr != null) {
 					RatingSet rs = sr.getRatingSet();
 					if (rs != null) {
@@ -219,10 +227,10 @@ public class TransitionalRating extends AbstractRating {
 						if (ratings != null) {
 							for (AbstractRating ar : ratings) {
 								if (ar instanceof VirtualRating) {
-									((VirtualRating)ar).findCycles((ArrayList<String>)specIds.clone());
+									((VirtualRating)ar).findCycles(new ArrayList<>(specIds));
 								}
 								if (ar instanceof TransitionalRating) {
-									((TransitionalRating)ar).findCycles((ArrayList<String>)specIds.clone());
+									((TransitionalRating)ar).findCycles(new ArrayList<>(specIds));
 								}
 							}
 						}
