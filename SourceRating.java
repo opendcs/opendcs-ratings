@@ -5,6 +5,7 @@ package hec.data.cwmsRating;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import hec.io.VerticalDatumContainer;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_INT;
 import static hec.lang.Const.UNDEFINED_TIME;
@@ -1192,4 +1193,19 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 				observationTarget.deleteObserver(o);
 			}
 		}
+
+	@Override
+	public VerticalDatumContainer getVerticalDatumContainer() {
+		return null;
+	}
+
+	/**
+	 *
+	 * @param vdc
+	 */
+	@Override
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
+	{
+		//NON-OP
+	}
 }

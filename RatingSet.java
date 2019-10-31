@@ -3,6 +3,7 @@ package hec.data.cwmsRating;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import hec.io.VerticalDatumContainer;
 import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.replaceAll;
@@ -5613,5 +5614,28 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				throw new RatingException(t);
 			}
 		}
+	}
+
+	/**
+	 * This method is not supported by this class. But is required by IVerticalDatum
+	 * Will always return null.
+	 * @return NULL
+	 * @deprecated
+	 */
+	@Override
+	public VerticalDatumContainer getVerticalDatumContainer()
+	{
+		return null;
+	}
+
+	/**
+	 * This method is not supported by this class. But is required by IVerticalDatum
+	 * @param vdc
+	 * @deprecated
+	 */
+	@Override
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
+	{
+		//NON-OP
 	}
 }

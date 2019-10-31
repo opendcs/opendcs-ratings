@@ -154,8 +154,8 @@ public class TableRating extends AbstractRating {
 				trc.createDateMillis,
 				trc.active,
 				trc.description);
-		if (trc.vdc != null) {
-			vdc = trc.vdc.clone();
+		if (trc.getVerticalDatumContainer() != null) {
+			vdc = trc.getVerticalDatumContainer().clone();
 		}
 	}
 	/**

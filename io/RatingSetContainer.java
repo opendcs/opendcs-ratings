@@ -527,4 +527,27 @@ public class RatingSetContainer implements IVerticalDatum {
 		if (state != null) hashCode += state.hashCode();
 		return hashCode;
 	}
+
+	/**
+	 * This method is not supported by this class. But is required by IVerticalDatum
+	 * Will always return null.
+	 * @return NULL
+	 * @deprecated
+	 */
+	@Override
+	public VerticalDatumContainer getVerticalDatumContainer()
+	{
+		return null;
+	}
+
+	/**
+	 * This method is not supported by this class. But is required by IVerticalDatum
+	 * @param vdc
+	 * @deprecated
+	 */
+	@Override
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
+	{
+		//NON-OP
+	}
 }

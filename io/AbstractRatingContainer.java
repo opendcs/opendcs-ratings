@@ -57,7 +57,7 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 	/**
 	 * Vertical datum info if this rating has any.
 	 */
-	public VerticalDatumContainer vdc = null;
+	protected VerticalDatumContainer vdc = null;
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -578,5 +578,23 @@ public class AbstractRatingContainer implements IVerticalDatum, Comparable<Abstr
 			result = (int)(Math.signum(effectiveDateMillis - o.effectiveDateMillis));
 		}
 		return result;
+	}
+
+	/**
+	 * Returns the VerticalDatumContainer
+	 * @return
+	 */
+	@Override
+	public VerticalDatumContainer getVerticalDatumContainer() {
+		return vdc;
+	}
+
+	/**
+	 * Sets the VerticalDatumContainer
+	 * @param vdc
+	 */
+	@Override
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
+		this.vdc = vdc;
 	}
 }

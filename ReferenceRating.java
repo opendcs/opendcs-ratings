@@ -1191,4 +1191,16 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 			throw new RatingException("No database rating implemenation found", ex);
 		}
 	}
+
+	@Override
+	public VerticalDatumContainer getVerticalDatumContainer()
+	{
+		return vdc;
+	}
+
+	@Override
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
+	{
+		this.vdc = vdc;
+	}
 }

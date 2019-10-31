@@ -757,7 +757,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				}
 			}
 				for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
-					it.next().vdc = vdcs.get(0).clone();
+					it.next().setVerticalDatumContainer(vdcs.get(0).clone());
 			}
 			vdcs = null;
 		}

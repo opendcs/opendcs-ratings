@@ -1095,7 +1095,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 			arc.active = active;
 			arc.description = description;
 			if (vdc != null) {
-				arc.vdc = vdc.clone();
+				arc.setVerticalDatumContainer(vdc.clone());
 			}
 		}
 	}
@@ -1113,8 +1113,8 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 			createDate = arc.createDateMillis;
 			active = arc.active;
 			description = arc.description;
-			if (arc.vdc != null) {
-				vdc = arc.vdc.clone();
+			if (arc.getVerticalDatumContainer() != null) {
+				vdc = arc.getVerticalDatumContainer().clone();
 			}
 		}
 	}
@@ -1231,4 +1231,24 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 
 	@Override
 	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
+
+	/**
+	 * Returns the VerticalDatumContainer
+	 * @return
+	 */
+	@Override
+	public VerticalDatumContainer getVerticalDatumContainer()
+	{
+		return vdc;
+	}
+
+	/**
+	 * Sets the VerticalDatumContainer
+	 * @param vdc
+	 */
+	@Override
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
+	{
+		this.vdc = vdc;
+	}
 }
