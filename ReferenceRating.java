@@ -1192,12 +1192,20 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		}
 	}
 
+	/**
+	 * Returns the VerticalDatumContainer
+	 * @return
+	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer()
 	{
 		return vdc;
 	}
 
+	/**
+	 * Sets the VerticalDatumContainer
+	 * @param vdc
+	 */
 	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
 	{

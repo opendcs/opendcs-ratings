@@ -529,25 +529,26 @@ public class RatingSetContainer implements IVerticalDatum {
 	}
 
 	/**
-	 * This method is not supported by this class. But is required by IVerticalDatum
-	 * Will always return null.
-	 * @return NULL
-	 * @deprecated
+	 * Returns the VerticalDatumContainer from the first RatingContainer
 	 */
 	@Override
-	public VerticalDatumContainer getVerticalDatumContainer()
-	{
-		return null;
+	public VerticalDatumContainer getVerticalDatumContainer() {
+		VerticalDatumContainer retval = null;
+		if (abstractRatingContainers != null && abstractRatingContainers.length >= 1) {
+			retval = abstractRatingContainers[0].getVerticalDatumContainer();
+		}
+		return retval;
 	}
 
 	/**
-	 * This method is not supported by this class. But is required by IVerticalDatum
+	 * Sets the VerticalDatumContainer on the first RatingContainer
 	 * @param vdc
 	 * @deprecated
 	 */
 	@Override
-	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
-	{
-		//NON-OP
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
+		if (abstractRatingContainers != null && abstractRatingContainers.length >= 1) {
+			abstractRatingContainers[0].setVerticalDatumContainer(vdc);
+		}
 	}
 }
