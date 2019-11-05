@@ -5616,46 +5616,48 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 
 	/**
-	 * This method returns
+	 * If dbrating == null, this method returns the first VerticalDatumContainer found in the AbstractRatings.
+	 * Otherwise it returns the vertical datum container from the dbrating.
 	 * @return NULL
-	 * @deprecated
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer()
 	{
-		return getFirstRatingVerticalDatumContainer();
-	}
-
-	private VerticalDatumContainer getFirstRatingVerticalDatumContainer()
-	{
 		VerticalDatumContainer retval = null;
-		if(ratings.size()>0)
-		{
-			Entry<Long, AbstractRating> ratingEntry = ratings.firstEntry();
-			AbstractRating rating = ratingEntry.getValue();
-			retval = rating.getVerticalDatumContainer();
+		if (dbrating == null) {
+			for (AbstractRating ar : ratings.values()) {
+				if(ar.hasVerticalDatum())
+				{
+					retval = ar.getVerticalDatumContainer();
+					break;
+				}
+			}
 		}
+		else {
+			retval = dbrating.getVerticalDatumContainer();
+		}
+
 		return retval;
 	}
 
 	/**
-	 * This method is not supported by this class. But is required by IVerticalDatum
+	 *
+	 * If dbrating == null, this method sets the VerticalDatumContainer on all AbstractRatings.
+	 * Otherwise it sets the vertical datum container from the dbrating.
 	 * @param vdc
-	 * @deprecated
+	 *
 	 */
 	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
 	{
-		setFirstRatingVerticalDatumContainer(vdc);
-	}
-
-	private void setFirstRatingVerticalDatumContainer(VerticalDatumContainer vdc)
-	{
-		if(ratings.size()>0)
-		{
-			Entry<Long, AbstractRating> ratingEntry = ratings.firstEntry();
-			AbstractRating rating = ratingEntry.getValue();
-			rating.setVerticalDatumContainer(vdc);
+		if (dbrating == null) {
+			for (AbstractRating ar : ratings.values()) {
+				ar.setVerticalDatumContainer(vdc);
+			}
+		}
+		else {
+			dbrating.setVerticalDatumContainer(vdc);
 		}
 	}
+
 }

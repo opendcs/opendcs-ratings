@@ -1,5 +1,6 @@
 package hec.data.cwmsRating.io;
 
+import hec.data.cwmsRating.AbstractRating;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -529,34 +530,40 @@ public class RatingSetContainer implements IVerticalDatum {
 	}
 
 	/**
-	 * Returns the VerticalDatumContainer from the first RatingContainer
+	 * Returns the first vertical datum container found in the array of abstract rating containers.
+	 *
+	 * @return NULL*
 	 */
 	@Override
-	public VerticalDatumContainer getVerticalDatumContainer() {
-		return getFirstVerticalDatumContainer();
-	}
-
-	private VerticalDatumContainer getFirstVerticalDatumContainer() {
+	public VerticalDatumContainer getVerticalDatumContainer()
+	{
 		VerticalDatumContainer retval = null;
-		if (abstractRatingContainers != null && abstractRatingContainers.length >= 1) {
-			retval = abstractRatingContainers[0].getVerticalDatumContainer();
+		for(AbstractRatingContainer ratingContainer : abstractRatingContainers)
+		{
+			if(ratingContainer.hasVerticalDatum())
+			{
+				retval = ratingContainer.getVerticalDatumContainer();
+				break;
+			}
 		}
+
 		return retval;
 	}
 
 	/**
-	 * Sets the VerticalDatumContainer on the first RatingContainer
+	 * Sets the Vertical Datum Container on all abstract rating containers.
+	 *
 	 * @param vdc
-	 * @deprecated
 	 */
 	@Override
-	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
-		setFirstVerticalDatumContainer(vdc);
-	}
-
-	private void setFirstVerticalDatumContainer(VerticalDatumContainer vdc) {
-		if (abstractRatingContainers != null && abstractRatingContainers.length >= 1) {
-			abstractRatingContainers[0].setVerticalDatumContainer(vdc);
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc) throws VerticalDatumException
+	{
+		normalizeVerticalDatumInfo();
+		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
+			throw new VerticalDatumException("Object does not have vertical datum information");
+		}
+		for (int i = 0; i < abstractRatingContainers.length; ++i) {
+			abstractRatingContainers[i].setVerticalDatumContainer(vdc);
 		}
 	}
 }
