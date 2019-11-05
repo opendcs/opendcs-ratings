@@ -41,7 +41,6 @@ import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
-import hec.data.RatingRuntimeException;
 import hec.data.RoundingException;
 import hec.data.Units;
 import hec.data.VerticalDatumException;
@@ -5617,15 +5616,26 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 
 	/**
-	 * This method is not supported by this class. But is required by IVerticalDatum
-	 * Will always return null.
+	 * This method returns
 	 * @return NULL
 	 * @deprecated
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer()
 	{
-		return null;
+		return getFirstRatingVerticalDatumContainer();
+	}
+
+	private VerticalDatumContainer getFirstRatingVerticalDatumContainer()
+	{
+		VerticalDatumContainer retval = null;
+		if(ratings.size()>0)
+		{
+			Entry<Long, AbstractRating> ratingEntry = ratings.firstEntry();
+			AbstractRating rating = ratingEntry.getValue();
+			retval = rating.getVerticalDatumContainer();
+		}
+		return retval;
 	}
 
 	/**
@@ -5636,6 +5646,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
 	{
-		//NON-OP
+		setFirstRatingVerticalDatumContainer(vdc);
+	}
+
+	private void setFirstRatingVerticalDatumContainer(VerticalDatumContainer vdc)
+	{
+		if(ratings.size()>0)
+		{
+			Entry<Long, AbstractRating> ratingEntry = ratings.firstEntry();
+			AbstractRating rating = ratingEntry.getValue();
+			rating.setVerticalDatumContainer(vdc);
+		}
 	}
 }

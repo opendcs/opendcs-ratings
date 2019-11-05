@@ -533,6 +533,10 @@ public class RatingSetContainer implements IVerticalDatum {
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer() {
+		return getFirstVerticalDatumContainer();
+	}
+
+	private VerticalDatumContainer getFirstVerticalDatumContainer() {
 		VerticalDatumContainer retval = null;
 		if (abstractRatingContainers != null && abstractRatingContainers.length >= 1) {
 			retval = abstractRatingContainers[0].getVerticalDatumContainer();
@@ -547,6 +551,10 @@ public class RatingSetContainer implements IVerticalDatum {
 	 */
 	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
+		setFirstVerticalDatumContainer(vdc);
+	}
+
+	private void setFirstVerticalDatumContainer(VerticalDatumContainer vdc) {
 		if (abstractRatingContainers != null && abstractRatingContainers.length >= 1) {
 			abstractRatingContainers[0].setVerticalDatumContainer(vdc);
 		}
