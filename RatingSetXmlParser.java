@@ -756,9 +756,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					throw new RatingRuntimeException("XML contains inconsistent vertical datum information");
 				}
 			}
-				for (Iterator<AbstractRatingContainer> it = arcs.iterator(); it.hasNext();) {
-					it.next().setVerticalDatumContainer(vdcs.get(0).clone());
+			for(AbstractRatingContainer abstractRatingContainer : arcs)
+			{
+				abstractRatingContainer.setVerticalDatumContainer(vdcs.get(0).clone());
 			}
+
 			vdcs = null;
 		}
 		if (vrcCount + trcCount > 0) {

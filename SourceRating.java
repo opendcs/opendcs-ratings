@@ -1194,18 +1194,23 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			}
 		}
 
+	/**
+	 * Returns the vertical datum container from the ratings.
+	 * @return
+	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer() {
-		return null;
+		return ratings.getVerticalDatumContainer();
 	}
 
 	/**
+	 * Sets the vertical datum container on the ratings.
 	 *
 	 * @param vdc
 	 */
 	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
 	{
-		//NON-OP
+		ratings.setVerticalDatumContainer(vdc);
 	}
 }

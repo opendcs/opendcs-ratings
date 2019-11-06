@@ -1,6 +1,5 @@
 package hec.data.cwmsRating.io;
 
-import hec.data.cwmsRating.AbstractRating;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -229,9 +228,10 @@ public class RatingSetContainer implements IVerticalDatum {
 	 * Ensures that every rating has the same vertical datum info (possibly none)
 	 * @throws VerticalDatumException if multiple vertical datums are encountered
 	 */
-	public void normalizeVerticalDatumInfo() throws VerticalDatumException {
+	public VerticalDatumContainer normalizeVerticalDatumInfo() throws VerticalDatumException {
+		VerticalDatumContainer vdc = null;
 		if (abstractRatingContainers != null && abstractRatingContainers.length > 1) {
-			VerticalDatumContainer vdc = null;
+
 			for (int i = 0; i < abstractRatingContainers.length; ++i) {
 				if (abstractRatingContainers[i].vdc != null) {
 					if (vdc == null) {
@@ -249,6 +249,7 @@ public class RatingSetContainer implements IVerticalDatum {
 				}
 			}
 		}
+		return vdc;
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
@@ -472,7 +473,6 @@ public class RatingSetContainer implements IVerticalDatum {
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
-		normalizeVerticalDatumInfo();
 		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
@@ -558,7 +558,6 @@ public class RatingSetContainer implements IVerticalDatum {
 	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) throws VerticalDatumException
 	{
-		normalizeVerticalDatumInfo();
 		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
