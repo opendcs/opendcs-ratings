@@ -228,8 +228,8 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			this.ratings = ratings;
 			if (this.ratings != null) {
 				this.ratings.addObserver(this);
+				setRatingUnits(ratings.getRatingUnits());
 			}
-			setRatingUnits(ratings.getRatingUnits());
 			mathExpression = null;
 		}
 		/**
@@ -1195,22 +1195,27 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		}
 
 	/**
-	 * Returns the vertical datum container from the ratings.
+	 * Returns the vertical datum container from the ratings if the ratings is not null.
 	 * @return
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer() {
-		return ratings.getVerticalDatumContainer();
+		VerticalDatumContainer retval = null;
+		if(ratings != null) {
+			retval = ratings.getVerticalDatumContainer();
+		}
+		return retval;
 	}
 
 	/**
-	 * Sets the vertical datum container on the ratings.
+	 * Sets the vertical datum container on the ratings if the ratings is not null.
 	 *
 	 * @param vdc
 	 */
 	@Override
-	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
-	{
-		ratings.setVerticalDatumContainer(vdc);
+	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
+		if(ratings != null) {
+			ratings.setVerticalDatumContainer(vdc);
+		}
 	}
 }
