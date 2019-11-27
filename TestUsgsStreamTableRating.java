@@ -14,11 +14,13 @@ import java.util.logging.Logger;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestUsgsStreamTableRating
 {
 
+    @Ignore
 	@Test
 	public final void testStreamRatingLessThanMinExtent() throws Exception
 	{
@@ -57,6 +59,7 @@ public class TestUsgsStreamTableRating
 		}
 	}
 
+    @Ignore
 	@Test
 	public final void testStreamRatingGreaterThanMaxExtent() throws Exception
 	{
@@ -95,6 +98,7 @@ public class TestUsgsStreamTableRating
 		}
 	}
 
+    @Ignore
 	@Test
 	public final void testStreamRatingOnMinExtent() throws Exception
 	{
@@ -125,6 +129,7 @@ public class TestUsgsStreamTableRating
 		Assert.assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
 
+    @Ignore
 	@Test
 	public final void testStreamRatingOnMaxExtent() throws Exception
 	{
@@ -155,6 +160,7 @@ public class TestUsgsStreamTableRating
 		Assert.assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
 
+    @Ignore
 	@Test
 	public final void testStreamRatingInMiddleOfExtents() throws Exception
 	{
@@ -191,6 +197,7 @@ public class TestUsgsStreamTableRating
 
 	}
 
+    @Ignore
 	@Test
 	public final void testCreatingShifts() throws Exception
 	{
@@ -245,6 +252,7 @@ public class TestUsgsStreamTableRating
 		
 	}
 
+    @Ignore
 	@Test
 	public final void testRateOneManyShifts() throws Exception
 	{
@@ -297,6 +305,7 @@ public class TestUsgsStreamTableRating
 		logger.info(streamTableRating.toXmlString("  ", 1));
 	}
 
+    @Ignore
 	@Test
 	public final void testStreamRatingNonMonotonicallyIncreasing() throws Exception
 	{
