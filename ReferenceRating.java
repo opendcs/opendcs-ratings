@@ -666,10 +666,11 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		synchronized(this) {
 			ConnectionInfo ci = getConnection();
 			Connection conn = ci.getConnection();
+			Method extentsMethod = null;
 			try {
 				synchronized(conn) {
 					Object cwmsRatingDao = getCwmsRatingDao(conn);
-					Method extentsMethod = getCwmsRatingClass().getMethod(
+					extentsMethod = getCwmsRatingClass().getMethod(
 							"getRatingExtents",
 							String.class,
 							String.class,
@@ -698,8 +699,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			catch(InvocationTargetException e){
-				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling \"getRatingExtents\" with inputs " +
-						"String.class, String.class, boolean.class, long.class, double[][][].class String[][].class String[][].class", e);
+				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling " + extentsMethod, e);
 				Throwable targetException = e.getCause();
 				if (targetException instanceof RatingException) throw (RatingException)targetException;
 				throw new RatingException(targetException);
@@ -973,10 +973,11 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		synchronized(this) {
 			ConnectionInfo ci = getConnection();
 			Connection conn = ci.getConnection();
+			Method rateMethod = null;
 			try {
 				synchronized(conn) {
 					Object cwmsRatingDao = getCwmsRatingDao(conn);
-					Method rateMethod = getCwmsRatingClass().getMethod(
+					rateMethod = getCwmsRatingClass().getMethod(
 							"rate",
 							String.class,
 							String.class,
@@ -998,8 +999,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			catch(InvocationTargetException e){
-				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling \"rate\" with inputs " +
-						"String.class, String.class, String[].class, double[][].class, long[].class, long.class", e);
+				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling " + rateMethod, e);
 				Throwable targetException = e.getCause();
 				if (targetException instanceof RatingException) throw (RatingException)targetException;
 				throw new RatingException(targetException);
@@ -1111,10 +1111,11 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		synchronized(this) {
 			ConnectionInfo ci = getConnection();
 			Connection conn = ci.getConnection();
+			Method rateMethod = null;
 			try {
 				synchronized(conn) {
 					Object cwmsRatingDao = getCwmsRatingDao(conn);
-					Method rateMethod = getCwmsRatingClass().getMethod(
+					rateMethod = getCwmsRatingClass().getMethod(
 							"reverseRate",
 							String.class,
 							String.class,
@@ -1136,8 +1137,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 				}
 			}
 			catch(InvocationTargetException e){
-				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling \"reverseRate\" with inputs " +
-						"String.class, String.class, String[].class, double[][].class, long[].class, long.class", e);
+				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling " + rateMethod, e);
 				Throwable targetException = e.getCause();
 				if (targetException instanceof RatingException) throw (RatingException)targetException;
 				throw new RatingException(targetException);
@@ -1194,16 +1194,21 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 
 	private Object getCwmsRatingDao(Connection conn) throws RatingException
 	{
-		try
-		{
+		Constructor<?> declaredConstructor = null;
+		try{
 			Class<?> cwmsRatingClass = getCwmsRatingClass();
-			Constructor<?> declaredConstructor = cwmsRatingClass.getDeclaredConstructor(Connection.class);
+			declaredConstructor = cwmsRatingClass.getDeclaredConstructor(Connection.class);
 			declaredConstructor.setAccessible(true);
 			return declaredConstructor.newInstance(conn);
 		}
-		catch(Exception ex)
-		{
-			throw new RatingException("No database rating implementation found", ex);
+		catch(InvocationTargetException ex){
+			logger.log(Level.FINE, "Error thrown by ctor instantiation: " + getCwmsRatingClass() + " " + declaredConstructor, ex);
+			Throwable targetException = ex.getCause();
+			if (targetException instanceof RatingException) throw (RatingException)targetException;
+			throw new RatingException(targetException);
+		}
+		catch(Exception ex){
+			throw new RatingException("No database rating implementation found for class: " + getCwmsRatingClass(), ex);
 		}
 	}
 
