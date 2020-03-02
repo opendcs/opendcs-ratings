@@ -697,8 +697,17 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 					return extents[0];
 				}
 			}
+			catch(InvocationTargetException e){
+				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling \"getRatingExtents\" with inputs " +
+						"String.class, String.class, boolean.class, long.class, double[][][].class String[][].class String[][].class", e);
+				Throwable targetException = e.getCause();
+				if (targetException instanceof RatingException) throw (RatingException)targetException;
+				throw new RatingException(targetException);
+			}
+			catch(RatingException e){
+				throw e;
+			}
 			catch (Exception e) {
-				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
 			}
 			finally {
@@ -988,8 +997,17 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 					return results;
 				}
 			}
+			catch(InvocationTargetException e){
+				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling \"rate\" with inputs " +
+						"String.class, String.class, String[].class, double[][].class, long[].class, long.class", e);
+				Throwable targetException = e.getCause();
+				if (targetException instanceof RatingException) throw (RatingException)targetException;
+				throw new RatingException(targetException);
+			}
+			catch(RatingException e){
+				throw e;
+			}
 			catch (Exception e) {
-				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
 			}
 			finally {
@@ -1117,8 +1135,17 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 					return results;
 				}
 			}
+			catch(InvocationTargetException e){
+				logger.log(Level.FINE, "Error thrown by reflection class: " + getCwmsRatingClass() + " calling \"reverseRate\" with inputs " +
+						"String.class, String.class, String[].class, double[][].class, long[].class, long.class", e);
+				Throwable targetException = e.getCause();
+				if (targetException instanceof RatingException) throw (RatingException)targetException;
+				throw new RatingException(targetException);
+			}
+			catch(RatingException e){
+				throw e;
+			}
 			catch (Exception e) {
-				if (e instanceof RatingException) throw (RatingException)e;
 				throw new RatingException(e);
 			}
 			finally {
@@ -1176,7 +1203,7 @@ public class ReferenceRating implements IRating, IVerticalDatum {
 		}
 		catch(Exception ex)
 		{
-			throw new RatingException("No database rating implemenation found", ex);
+			throw new RatingException("No database rating implementation found", ex);
 		}
 	}
 
