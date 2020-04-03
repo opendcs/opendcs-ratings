@@ -791,10 +791,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , IVertica
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
+		if (tsRater == null) {
+			tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+		}
 		synchronized(tsRater) {
-			if (tsRater == null) {
-				tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
-			}
 			return tsRater.rate(tscs);
 		}
 	}

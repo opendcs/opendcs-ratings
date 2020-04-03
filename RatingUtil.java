@@ -91,7 +91,12 @@ public class RatingUtil {
 				}
 			}
 			ivc.valTimes = valTimes;
-			ivc.indVals = indVals.toArray(new double[indVals.size()][]);
+			ivc.indVals = new double[tscs.length][valTimes.length];
+			for (int i = 0; i < ivc.indVals.length; ++i) {
+				for (int j = 0; j < ivc.indVals[0].length; ++j) {
+					ivc.indVals[i][j] = indVals.get(j)[i];
+				}
+			}
 			return ivc;
 		}
 		catch (Throwable t) {
