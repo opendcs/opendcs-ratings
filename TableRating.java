@@ -609,8 +609,8 @@ public class TableRating extends AbstractRating {
 				//---------------------------//
 				// interpolate / extrapolate //
 				//---------------------------//
-				boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
-				boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
+				boolean ind_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LOG_LIN;
+				boolean dep_log = method == RatingMethod.LOGARITHMIC || method == RatingMethod.LIN_LOG;
 				double x  = ind_val;
 				double x1 = lo_ind_val;
 				double x2 = hi_ind_val;
