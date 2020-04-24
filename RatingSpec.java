@@ -664,7 +664,7 @@ public class RatingSpec extends RatingTemplate {
 	 * @return The rating specification identifier
 	 */
 	public String getRatingSpecId() {
-		return String.format("%s.%s.%s", locationId, getTemplateId(), version);
+		return locationId + "." + getTemplateId() + "." + version;
 	}
 	/**
 	 * Retrieves the standard HEC-DSS pathname for this rating specification
@@ -690,7 +690,7 @@ public class RatingSpec extends RatingTemplate {
 		if (getTemplate) super.getData(rsc);
 		rsc.officeId = officeId;
 		rsc.templateId = getTemplateId();
-		rsc.specId = String.format("%s.%s.%s", locationId, rsc.templateId, version);
+		rsc.specId = locationId + "." + rsc.templateId + "." + version;
 		rsc.locationId = locationId;
 		rsc.specVersion = version;
 		rsc.sourceAgencyId = sourceAgencyId;
