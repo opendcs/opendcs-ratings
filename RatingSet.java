@@ -65,13 +65,13 @@ import hec.lang.Observable;
 import hec.util.TextUtil;
 /**
  * Implements CWMS-style ratings (time series of ratings)
- *  
+ *
  * @author Mike Perryman
  */
 public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
-	
+
 	/**
 	 * Rating object for rating by reference
 	 */
@@ -106,7 +106,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	protected TreeMap<Long, AbstractRating> ratings = new TreeMap<Long, AbstractRating>();
 	/**
 	 * The time series of active ratings in this set.  A rating may be inactive by being explicitly marked as such
-	 * or by having a creation date later than the current value of the "ratingTime" field. 
+	 * or by having a creation date later than the current value of the "ratingTime" field.
 	 */
 	protected TreeMap<Long, AbstractRating> activeRatings = new TreeMap<Long, AbstractRating>();
 	/**
@@ -142,7 +142,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		private final String url;
 		private final String userName;
 		private final String officeId;
-		
+
 		public DbInfo(String url, String userName, String officeId) throws RatingException {
 			if (url      == null) throw new RatingException("DbInfo.url cannot be null");
 			if (userName == null) throw new RatingException("DbInfo.userName cannot be null");
@@ -151,36 +151,36 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			this.url = url;
 			this.officeId = officeId;
 		}
-		
+
 		public String getUserName() { return userName; }
 		public String getUrl()      { return url;      }
 		public String getOfficeId() { return officeId; }
 		@Override
-		public int hashCode() { 
-			return getClass().getName().hashCode() 
-					+ 3 * url.toLowerCase().hashCode() 
-					+ 5 * userName.toLowerCase().hashCode() 
+		public int hashCode() {
+			return getClass().getName().hashCode()
+					+ 3 * url.toLowerCase().hashCode()
+					+ 5 * userName.toLowerCase().hashCode()
 					+ 7 * officeId.toLowerCase().hashCode();
 		}
 		@Override
 		public boolean equals(Object obj) {
-			return obj == this 
+			return obj == this
 					|| (obj instanceof DbInfo
 							&& ((DbInfo)obj).url.equalsIgnoreCase(url)
 							&& ((DbInfo)obj).userName.equalsIgnoreCase(userName)
 							&& ((DbInfo)obj).officeId.equalsIgnoreCase(officeId));
 		}
 	}
-	
+
 	protected class ConnectionInfo {
 		private Connection conn = null;
 		private boolean wasRetrieved = false;
-		
+
 		public ConnectionInfo(Connection conn, boolean wasRetrieved) {
 			this.conn = conn;
 			this.wasRetrieved = wasRetrieved;
 		}
-		
+
 		public Connection getConnection() { return conn; }
 		public boolean wasRetrieved() { return wasRetrieved; }
 		@Override
@@ -210,7 +210,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Enumeration for specifying the method used to load a RatingSet object from a CWMS database 
+	 * Enumeration for specifying the method used to load a RatingSet object from a CWMS database
 	 * <table border>
 	 *   <tr>
 	 *     <th>Value</th>
@@ -267,12 +267,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabase(
-			Connection conn, 
-			String ratingSpecId) 
+			Connection conn,
+			String ratingSpecId)
 			throws RatingException {
-				
+
 		return new RatingSet(null, conn, null, ratingSpecId, null, null, false);
-				
+
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
@@ -284,28 +284,28 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabase(
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(null, conn, null, ratingSpecId, startTime, endTime, false);
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabase(
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
-		
+
 		return new RatingSet(null, conn, officeId, ratingSpecId, null, null, false);
 	}
 	/**
@@ -318,18 +318,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabaseEffective(
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(null, conn, null, ratingSpecId, startTime, endTime, true);
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
@@ -337,19 +337,19 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabase(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(null, conn, officeId, ratingSpecId, startTime, endTime, false);
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
@@ -357,18 +357,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabaseEffective(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(null, conn, officeId, ratingSpecId, startTime, endTime, true);
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
@@ -389,10 +389,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabase(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
@@ -424,12 +424,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static RatingSet fromDatabase(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String ratingSpecId) 
+			Connection conn,
+			String ratingSpecId)
 			throws RatingException {
-				
+
 		return new RatingSet(loadMethod, conn, null, ratingSpecId, null, null, false);
-				
+
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
@@ -459,12 +459,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static RatingSet fromDatabase(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(loadMethod, conn, null, ratingSpecId, startTime, endTime, false);
 	}
 	/**
@@ -487,18 +487,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public static RatingSet fromDatabase(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
-		
+
 		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, null, null, false);
 	}
 	/**
@@ -529,12 +529,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static RatingSet fromDatabaseEffective(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(loadMethod, null, null, ratingSpecId, startTime, endTime, true);
 	}
 	/**
@@ -557,7 +557,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
@@ -566,13 +566,13 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static RatingSet fromDatabase(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, false);
 	}
 	/**
@@ -595,7 +595,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
@@ -604,10 +604,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static RatingSet fromDatabaseEffective(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
 		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, true);
@@ -632,7 +632,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
@@ -654,14 +654,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static RatingSet fromDatabase(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
-		
+
 		return new RatingSet(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, dataTimes);
 	}
 	/**
@@ -706,7 +706,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
@@ -728,14 +728,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public static String getXmlFromDatabase(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
-		
+
 		CallableStatement cstmt = null;
 		String specifiedLoadMethod = null;
 		String databaseLoadMethod = null;
@@ -747,7 +747,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				String sql = null;
 				switch (databaseLoadMethod) {
 				case "eager" :
-				case "lazy" : 
+				case "lazy" :
 				case "reference" :
 					break;
 				default :
@@ -764,7 +764,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					//------------------------------------//
 					// Load all rating data from database //
 					//------------------------------------//
-					if (dataTimes) 
+					if (dataTimes)
 						sql =
 							"declare " +
 							   "l_millis_start integer := :1;" +
@@ -787,7 +787,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							      "p_office_id_mask => :5);"   +
 							"end;";
 					else
-						sql = 
+						sql =
 							"declare " +
 							   "l_millis_start         integer := :1;" +
 							   "l_millis_end           integer := :2;" +
@@ -864,12 +864,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					      "l_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
 					   "end if;" +
 					   ":3 := cwms_rating.retrieve_ratings_xml_data(" +
-					      "p_effective_tw         => :4," + 
+					      "p_effective_tw         => :4," +
 					      "p_spec_id_mask         => :5," +
 					      "p_start_date           => l_date_start," +
-					      "p_end_date             => l_date_end," + 
+					      "p_end_date             => l_date_end," +
 					      "p_time_zone            => 'UTC'," +
-					      "p_include_points       => 'F'," + 
+					      "p_include_points       => 'F'," +
 					      "p_office_id_mask       => :6);" +
 					"end;";
 					cstmt = conn.prepareCall(sql);
@@ -958,12 +958,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @param replaceBase Flag specifying whether to replace the base curves of USGS-style stream ratings (false = only store shifts)
 	 * @throws RatingException
 	 */
-	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) 
+	static void storeToDatabase(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase)
 			throws RatingException {
 		synchronized (conn) {
 			try {
 				try {
-					CallableStatement stmt = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2, :3, :4); end;");
+					CallableStatement stmt = conn.prepareCall("begin " +
+						                                + "   cwms_rating.store_ratings_xml("
+						                                + "      p_errors         =>:1,"
+						                                + "      p_xml            =>:2,"
+						                                + "      p_fail_if_exists =>:3,"
+						                                + "      p_replace_base   =>:4);"
+						                                + "end;");
 					stmt.registerOutParameter(1, Types.CLOB);
 					stmt.setString(2, xml);
 					stmt.setString(3, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
@@ -1007,7 +1013,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 * @deprecated Should not be needed after database schema 18.1.1 is fully distributed
 	 */
-	static void storeToDatabaseOld(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) 
+	static void storeToDatabaseOld(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase)
 			throws RatingException {
 		CallableStatement[] stmts = new CallableStatement[3];
 		synchronized (conn) {
@@ -1016,9 +1022,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				stmts[0].registerOutParameter(1, Types.VARCHAR);
 				stmts[0].execute();
 				String lowerMessageBound = stmts[0].getString(1);
-				
+
 				// first try newer schema with 3 parameters on CWMS_RATING.STORE_RATINGS_XML()
-				stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2, :3); end;");
+				stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(p_xml=>:1, p_fail_if_exists=>:2, p_replace_base=>:3); end;");
 				stmts[1].setString(1, xml);
 				stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
 				stmts[1].setString(3, replaceBase ? "T" : "F");
@@ -1030,12 +1036,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						throw e;
 					}
 					// allow for older schema with only 2 parameters on CWMS_RATING.STORE_RATINGS_XML()
-					stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(:1, :2); end;");
+					stmts[1] = conn.prepareCall("begin cwms_rating.store_ratings_xml(p_xml=>:1, p_fail_if_exists=>:2); end;");
 					stmts[1].setString(1, xml);
 					stmts[1].setString(2, overwriteExisting ? "F" : "T"); // db api parameter is p_fail_if_exists = opposite of overwrite
 					stmts[1].execute();
 				}
-				
+
 				stmts[0].execute();
 				String upperMessageBound = stmts[0].getString(1);
 
@@ -1046,7 +1052,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					"   and msg_level = 'Basic' " +
 					"   and properties like 'procedure = cwms\\_rating.store\\_%' escape '\\' " +
 					"   and msg_text like 'ORA-%' " +
-					" order by msg_id"); 
+					" order by msg_id");
 				stmts[2].setString(1, lowerMessageBound);
 				stmts[2].setString(2, upperMessageBound);
 				ResultSet rs = stmts[2].executeQuery();
@@ -1055,12 +1061,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					errors.add(rs.getString(1));
 				}
 				rs.close();
-				
+
 				for (int i = 0; i < stmts.length; ++i) {
 					stmts[i].close();
 					stmts[i] = null;
 				}
-				
+
 				if (errors.size() > 0) {
 					throw new RatingException(join("\n", errors.toArray(new String[errors.size()])));
 				}
@@ -1082,12 +1088,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public RatingSet(
-			Connection conn, 
-			String ratingSpecId) 
+			Connection conn,
+			String ratingSpecId)
 			throws RatingException {
-				
+
 		this(null, conn, null, ratingSpecId, null, null);
-				
+
 	}
 	/**
 	 * Public constructor from a CWMS database connection
@@ -1099,34 +1105,34 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public RatingSet(
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		this(null, conn, null, ratingSpecId, startTime, endTime);
 	}
 	/**
 	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
-		
+
 		this(null, conn, officeId, ratingSpecId, null, null);
 	}
 	/**
 	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
@@ -1134,17 +1140,17 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public RatingSet(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
 		this(null, conn, officeId, ratingSpecId, startTime, endTime, false);
 	}
 	/**
 	 * Generates a new RatingSet object from a CWMS database connection
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
@@ -1165,10 +1171,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 */
 	public RatingSet(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
@@ -1200,12 +1206,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public RatingSet(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String ratingSpecId) 
+			Connection conn,
+			String ratingSpecId)
 			throws RatingException {
-				
+
 		this(loadMethod, conn, null, ratingSpecId, null, null);
-				
+
 	}
 	/**
 	 * Public constructor from a CWMS database connection
@@ -1235,12 +1241,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public RatingSet(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
-		
+
 		this(loadMethod, conn, null, ratingSpecId, startTime, endTime);
 	}
 	/**
@@ -1263,18 +1269,18 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
-		
+
 		this(loadMethod, conn, officeId, ratingSpecId, null, null);
 	}
 	/**
@@ -1297,7 +1303,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
@@ -1306,10 +1312,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public RatingSet(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime)
 			throws RatingException {
 		this(loadMethod, conn, officeId, ratingSpecId, startTime, endTime, false);
@@ -1327,7 +1333,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				if (dbInfo == null) {
 					String msg = String.format(
 							"Rating set %s - %s is not currently connected to a database.\n"
-							+ "Call setConnection(Connection) first or use a method with a Connection parameter.", 
+							+ "Call setConnection(Connection) first or use a method with a Connection parameter.",
 							getRatingSpec().getRatingSpecId(),
 							System.identityHashCode(this));
 					throw new RatingException(msg);
@@ -1337,30 +1343,30 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						conn = (Connection)Class.forName(
 								"wcds.dbi.client.JdbcConnection"
 								).getMethod(
-										"retrieveConnection", 
-										String.class, 
-										String.class, 
+										"retrieveConnection",
+										String.class,
+										String.class,
 										String.class
 										).invoke(
-												null, 
+												null,
 												dbInfo.getUrl(),
 												dbInfo.getUserName(),
 												dbInfo.getOfficeId()
 												);
 					} catch (Exception e) {
 						throw new RatingException(e);
-					} 
+					}
 					if (conn == null) {
 						String msg = String.format(
 								"Rating set %s could not retrieve connection with current database information.\n"
-								+ "Call setConnection(Connection) first or use a method with a Connection parameter.", 
+								+ "Call setConnection(Connection) first or use a method with a Connection parameter.",
 								getRatingSpec().getRatingSpecId());
 						throw new RatingException(msg);
 					}
 					setDatabaseConnection(conn);
 					return new ConnectionInfo(conn, true);
 				}
-			}			
+			}
 		}
 	}
 	/**
@@ -1375,9 +1381,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				Class.forName(
 						"wcds.dbi.client.JdbcConnection"
 						).getMethod(
-								"closeConnection", 
+								"closeConnection",
 								Connection.class).invoke(
-										null, 
+										null,
 										ci.getConnection()
 										);
 			} catch (Exception e) {
@@ -1571,7 +1577,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @param active Specifies whether to utilize any ratings using this specification
 	 * @param autoUpdate Specifies whether ratings using this specification should be automatically loaded when new ratings are available
 	 * @param autoActivate Specifies whether ratings using this specification should be automatically activated when new ratings are available
-	 * @param autoMigrateExtensions Specifies whether existing should be automatically applied to ratings using this specification when new ratings are loaded  
+	 * @param autoMigrateExtensions Specifies whether existing should be automatically applied to ratings using this specification when new ratings are loaded
 	 * @param indRoundingSpecs The USGS-style rounding specifications for each independent parameter
 	 * @param depRoundingSpec The USGS-style rounding specifications for the dependent parameter
 	 * @param description The description of this rating specification
@@ -1635,7 +1641,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
@@ -1657,31 +1663,31 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public RatingSet(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
-		
+
 		setData(
 			loadMethod,
-			conn, 
-			officeId, 
-			ratingSpecId, 
-			startTime, 
+			conn,
+			officeId,
+			ratingSpecId,
+			startTime,
 			endTime,
 			dataTimes);
-		
+
 		observationTarget = new Observable();
 		validate();
-		
+
 	}
 	/**
 	 * Public Constructor - sets rating specification only
 	 * @param ratingSpec The rating specification
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public RatingSet(RatingSpec ratingSpec) throws RatingException {
 		this.ratingSpec = ratingSpec;
@@ -1748,7 +1754,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public RatingSet(String xmlStr, boolean isCompressed) throws RatingException {
 		try {
-			setData(new RatingSetContainer(isCompressed ? TextUtil.uncompress(xmlStr, "base64") : xmlStr).clone()); // clone might return a ReferenceRatingContainer 
+			setData(new RatingSetContainer(isCompressed ? TextUtil.uncompress(xmlStr, "base64") : xmlStr).clone()); // clone might return a ReferenceRatingContainer
 		} catch (Exception e) {
 			if (e instanceof RatingException) throw (RatingException)e;
 			throw new RatingException(e);
@@ -1790,7 +1796,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public RatingSet(TextMath tm) throws RatingException {
 		try {
 			setData((TextContainer)tm.getData());
-		} 
+		}
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
@@ -1804,15 +1810,15 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * Retrieves a map of all included rating specifications, keyed by their rating spec ids
 	 * @param specMap a non-null map to add to
 	 * @param ratings the ratings to evaluate
-	 * @throws RatingException if the same spec id maps to two non-equal rating specs 
+	 * @throws RatingException if the same spec id maps to two non-equal rating specs
 	 */
-	protected static void getAllRatingSpecs(HashMap<String, Object[]> specMap, Iterable<AbstractRating> ratings, String path) 
+	protected static void getAllRatingSpecs(HashMap<String, Object[]> specMap, Iterable<AbstractRating> ratings, String path)
 			throws RatingException {
 		if (specMap == null) {
 			throw new RatingException("Cannot use a null specMap parameter");
 		}
 		for (AbstractRating r : ratings) {
-			String thisPath = path + "/" + r.getRatingSpecId(); 
+			String thisPath = path + "/" + r.getRatingSpecId();
 			if (r instanceof VirtualRating) {
 				VirtualRating vr = (VirtualRating)r;
 				for (SourceRating sr : vr.getSourceRatings()) {
@@ -1965,14 +1971,14 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				else {
 					this.ratings.put(rating.getEffectiveDate(), rating);
 				}
-				AbstractRating ar = this.ratings.get(rating.getEffectiveDate()); 
+				AbstractRating ar = this.ratings.get(rating.getEffectiveDate());
 				ar.ratingSpec = ratingSpec;
 				ar.setDefaultValueTime(getDefaultValueTime());
 				ar.setRatingTime(getRatingTime());
 				ar.setDataUnits(getDataUnits());
 				try {
 					ar.setVerticalDatumInfo(getVerticalDatumInfo());
-				} 
+				}
 				catch (VerticalDatumException e) {
 				}
 				ar.setAllowUnsafe(doesAllowUnsafe());
@@ -2122,7 +2128,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	public void getConcreteRatings(long date) throws RatingException
 	{
 		if (activeRatings.containsKey(date))
@@ -2131,7 +2137,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			getConcreteRating(entry);
 		}
 	}
-	
+
 	/**
 	 * Loads all rating values from table ratings that haven't already been loaded.
 	 * @throws RatingException
@@ -2179,7 +2185,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 						if (logger.isLoggable(Level.FINE)) {
 							logger.fine(String.format(
-									"Retrieving rating from %s: %s @ %s UTC", 
+									"Retrieving rating from %s: %s @ %s UTC",
 									conn.getMetaData().getURL(),
 									getName(),
 									sdf.format(key)));
@@ -2213,7 +2219,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 							int pos = xmlText.indexOf("<ratings ");
 							if (pos == -1 || xmlText.indexOf('<', pos+1) == -1) {
 								logger.log(
-										Level.WARNING, 
+										Level.WARNING,
 										"Cannot get concrete rating for "
 										+ rating.ratingSpecId
 										+ " for effective date "
@@ -2297,7 +2303,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Retrieves a rated value for a specified single input value and time. The rating set must
 	 * be for a single independent parameter
-	 * 
+	 *
 	 * @param value The value to rate
 	 * @param valueTime The time associated with the value, in Java milliseconds
 	 * @return the rated value
@@ -2310,7 +2316,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Retrieves rated values for specified multiple input values at a single time. The rating set must
 	 * be for a single independent parameter
-	 * 
+	 *
 	 * @param values The values to rate
 	 * @param valueTime The time associated with the values, in Java milliseconds
 	 * @return the rated value
@@ -2324,7 +2330,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Retrieves rated values for specified multiple input values and times. The rating set must
 	 * be for a single independent parameter
-	 * 
+	 *
 	 * @param values The values to rate
 	 * @param valueTimes The times associated with the values, in Java milliseconds
 	 * @return the rated value
@@ -2338,7 +2344,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Retrieves a single rated value for specified input value set at a single time. The rating set must
 	 * be for as many independent parameters as the length of the value set.
-	 * 
+	 *
 	 * @param valueSet The value set to rate
 	 * @param valueTime The time associated with the values, in Java milliseconds
 	 * @return the rated value
@@ -2352,7 +2358,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Retrieves rated values for specified multiple input value Sets and times. The rating set must
 	 * be for as many independent parameter as each value set
-	 * 
+	 *
 	 * @param valueSets The value sets to rate
 	 * @param valueTimes The times associated with the values, in Java milliseconds
 	 * @return the rated value
@@ -2391,7 +2397,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						entry2 = ratings.higherEntry(entry1.getKey());
 					}
 				}
-				
+
 				Map.Entry<Long, AbstractRating> lowerRating = null;
 				Map.Entry<Long, AbstractRating> upperRating = null;
 				IRating lastUsedRating = null;
@@ -2423,7 +2429,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 								if (isLazy) {
 									getConcreteRating(activeRatings.firstEntry());
 								}
-								lastUsedRating = activeRatings.firstEntry().getValue(); 
+								lastUsedRating = activeRatings.firstEntry().getValue();
 								Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
 								continue;
 							default:
@@ -2583,8 +2589,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Rates the values in a TimeSeriesContainer and returns the results in a new TimeSeriesContainer. 
-	 * The rating must be for a single independent parameter. 
+	 * Rates the values in a TimeSeriesContainer and returns the results in a new TimeSeriesContainer.
+	 * The rating must be for a single independent parameter.
 	 * @param tsc The TimeSeriesContainer to rate
 	 * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of dependent parameter of the rating.
 	 * @throws RatingException
@@ -2594,8 +2600,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return rate(tsc, null);
 	}
 	/**
-	 * Rates the values in a TimeSeriesContainer and returns the results in a new TimeSeriesContainer with the specified unit. 
-	 * The rating must be for a single independent parameter. 
+	 * Rates the values in a TimeSeriesContainer and returns the results in a new TimeSeriesContainer with the specified unit.
+	 * The rating must be for a single independent parameter.
 	 * @param tsc The TimeSeriesContainer to rate
 	 * @param ratedUnitStr The unit to return the rated values in.
 	 * @return A TimeSeriesContainer of the rated values. The rated unit is the specified unit.
@@ -2661,12 +2667,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				}
 				if (tscParam != null) {
 					if (!Units.canConvertBetweenUnits(tsc.units, tscParam.getUnitsString())) {
-						
+
 						String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tsc.units, tscParam.getParameter());
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg);
 					}
-				} 
+				}
 				if (tscUnit != null) {
 					if (!tsc.units.equals(units[0])) {
 						if(Units.canConvertBetweenUnits(tsc.units, units[0])) {
@@ -2757,11 +2763,11 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Rates the values in a set of TimeSeriesContainers and returns the results in a new TimeSeriesContainer. 
+	 * Rates the values in a set of TimeSeriesContainers and returns the results in a new TimeSeriesContainer.
 	 * The rating must be for as many independent parameters as the number of TimeSeriesContainers.
 	 * If all the TimeSeriesContainers have the same interval the rated TimeSeriesContainer will have the same interval, otherwise
 	 * the rated TimeSeriesContainer will have an interval of 0 (irregular).  The rated TimeSeriesContainer will have values
-	 * only at times that are common to all the input TimeSeriesContainers. 
+	 * only at times that are common to all the input TimeSeriesContainers.
 	 * @param tscs The TimeSeriesContainers to rate, in order of the independent parameters of the rating.
 	 * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of the dependent parameter of the rating.
 	 * @throws RatingException
@@ -2772,10 +2778,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	/**
 	 * Rates the values in a set of TimeSeriesContainers and returns the results in a new TimeSeriesContainer with the specified unit.
-	 * The rating must be for as many independent parameters as the number of TimeSeriesContainers. 
+	 * The rating must be for as many independent parameters as the number of TimeSeriesContainers.
 	 * If all the TimeSeriesContainers have the same interval the rated TimeSeriesContainer will have the same interval, otherwise
 	 * the rated TimeSeriesContainer will have an interval of 0 (irregular).  The rated TimeSeriesContainer will have values
-	 * only at times that are common to all the input TimeSeriesContainers. 
+	 * only at times that are common to all the input TimeSeriesContainers.
 	 * @param tscs The TimeSeriesContainers to rate, in order of the independent parameters of the rating.
 	 * @param ratedUnitStr The unit to return the rated values in.
 	 * @return A TimeSeriesContainer of the rated values. The rated unit is the specified unit.
@@ -2853,7 +2859,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					}
 					if (tscParam[i] != null) {
 						String[] parts = TextUtil.split(params[i], "-", 2);
-						if (!tscParam[i].getBaseParameter().equals(parts[0]) || 
+						if (!tscParam[i].getBaseParameter().equals(parts[0]) ||
 								(parts.length == 2 && !tscParam[i].getSubParameter().equals(parts[1]))) {
 							String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam[i].getParameter(), params[i]);
 							if (!allowUnsafe) throw new RatingException(msg);
@@ -2869,12 +2875,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					}
 					if (tscParam[i] != null) {
 						if (!Units.canConvertBetweenUnits(tscs[i].units, tscParam[i].getUnitsString())) {
-							
+
 							String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tscs[i].units, tscParam[i].getParameter());
 							if (!allowUnsafe) throw new RatingException(msg);
 							if (warnUnsafe) logger.warning(msg);
 						}
-					} 
+					}
 					if (tscUnit != null) {
 						if (!tscs[i].units.equals(units[i])) {
 							if(Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
@@ -2976,8 +2982,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return rate(tsm, null);
 	}
 	/**
-	 * Rates the values in a TimeSeriesMath and returns the results in a new TimeSeriesMath with the specified unit. 
-	 * The rating must be for a single independent parameter. 
+	 * Rates the values in a TimeSeriesMath and returns the results in a new TimeSeriesMath with the specified unit.
+	 * The rating must be for a single independent parameter.
 	 * @param tsm The TimeSeriesMath to rate
 	 * @param ratedUnitStr The unit to return the rated values in.
 	 * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
@@ -3001,10 +3007,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	/**
 	 * Rates the values in a set of TimeSeriesMaths and returns the results in a new TimeSeriesMath with the specified unit.
-	 * The rating must be for as many independent parameters as the number of TimeSeriesMaths. 
+	 * The rating must be for as many independent parameters as the number of TimeSeriesMaths.
 	 * If all the TimeSeriesMaths have the same interval the rated TimeSeriesMath will have the same interval, otherwise
 	 * the rated TimeSeriesMath will have an interval of 0 (irregular).  The rated TimeSeriesMath will have values
-	 * only at times that are common to all the input TimeSeriesMaths. 
+	 * only at times that are common to all the input TimeSeriesMaths.
 	 * @param tsms The TimeSeriesMaths to rate, in order of the independent parameters of the rating.
 	 * @param ratedUnitStr The unit to return the rated values in.
 	 * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
@@ -3023,7 +3029,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			throw new RatingException(t);
 		}
 	}
-	
+
 	/**
 	 * Retrieves the rating specification including all meta data.
 	 * @return The rating specification
@@ -3033,11 +3039,11 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return ratingSpec;
 		}
 	}
-		
-		
+
+
 	/**
 	 * Returns the unique identifying parts for the rating specification.
-	 * 
+	 *
 	 * @return
 	 * @throws DataSetException
 	 */
@@ -3048,7 +3054,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return ratingSpecification;
 		}
 	}
-	
+
 	/**
 	 * Returns the unique identifying parts for the rating template.
 	 * @return
@@ -3061,7 +3067,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return ratingTemplate;
 		}
 	}
-	
+
 	/**
 	 * Sets the rating specification.
 	 * @param ratingSpec The rating specification
@@ -3121,7 +3127,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return ratings.values().toArray(new AbstractRating[ratings.size()]);
 		}
 	}
-	
+
 	@Override
 	public TreeMap<Long, AbstractRating> getRatingsMap()
 	{
@@ -3129,7 +3135,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return ratings;
 		}
 	}
-	
+
 	@Override
 	public AbstractRating getRating(Long effectiveDate)
 	{
@@ -3142,7 +3148,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return retval;
 		}
 	}
-	
+
 	public AbstractRating getFloorRating(Long effectiveDate)
 	{
 		synchronized(this) {
@@ -3158,16 +3164,16 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return retval;
 		}
 	}
-	
+
 //	public AbstractRating getTemporalInterpolatedRating(Long effectiveDate)
 //	{
-//		
+//
 //	}
-	
+
 	/**
 	 * Sets the times series of ratings, replacing any existing ratings.
 	 * @param ratings The time series of ratings
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public void setRatings(AbstractRating[] ratings) throws RatingException {
 		synchronized(this) {
@@ -3192,7 +3198,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		synchronized(this) {
 			int count = ratings.size();
 			for (Iterator<AbstractRating> it = ratings.values().iterator(); it.hasNext();) {
-				if (!it.next().active) --count;			
+				if (!it.next().active) --count;
 			}
 			return count;
 		}
@@ -3417,7 +3423,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 	/**
 	 * Retrieves the rating extents for a specified time
-	 * @param ratingTime The time for which to retrieve the rating extents 
+	 * @param ratingTime The time for which to retrieve the rating extents
 	 * @param conn The database connection to use if the rating was lazily loaded
 	 * @return The rating extents
 	 * @throws RatingException
@@ -3426,11 +3432,11 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	public double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {
 		synchronized(this) {
 			setDatabaseConnection(conn);
-			try { 
-				return getRatingExtents(ratingTime); 
+			try {
+				return getRatingExtents(ratingTime);
 			}
-			finally { 
-				clearDatabaseConnection(); 
+			finally {
+				clearDatabaseConnection();
 			}
 		}
 	}
@@ -3445,7 +3451,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					throw new RatingException("No active ratings.");
 				}
 				Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
-		        
+
 		        if (rating == null)
 		        {
 		            rating = activeRatings.ceilingEntry(ratingTime);
@@ -3469,7 +3475,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			long[] effectiveDates = null;
 			if (dbrating == null) {
 				effectiveDates = new long[activeRatings.size()];
-				Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+				Iterator<AbstractRating> it = activeRatings.values().iterator();
 				for (int i = 0; i < effectiveDates.length; ++i) {
 					effectiveDates[i] = it.next().effectiveDate;
 				}
@@ -3489,7 +3495,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			long[] createDates = null;
 			if (dbrating == null) {
 				createDates = new long[activeRatings.size()];
-				Iterator<AbstractRating> it = activeRatings.values().iterator(); 
+				Iterator<AbstractRating> it = activeRatings.values().iterator();
 				for (int i = 0; i < createDates.length; ++i) {
 					createDates[i] = it.next().createDate;
 				}
@@ -3730,7 +3736,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 								if (isLazy) {
 									getConcreteRating(activeRatings.firstEntry());
 								}
-								lastUsedRating = activeRatings.firstEntry().getValue(); 
+								lastUsedRating = activeRatings.firstEntry().getValue();
 								Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
 								continue;
 							default:
@@ -3868,8 +3874,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 						x  = Math.log10(x);
 						x1 = Math.log10(x1);
 						x2 = Math.log10(x2);
-						if (Double.isNaN(x) || Double.isInfinite(x)   
-								|| Double.isNaN(x1) || Double.isInfinite(x1) 
+						if (Double.isNaN(x) || Double.isInfinite(x)
+								|| Double.isNaN(x1) || Double.isInfinite(x1)
 								|| Double.isNaN(x2) || Double.isInfinite(x2))  {
 							//-------------------------------------------------//
 							// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
@@ -3947,7 +3953,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			return ratedTsc;
 		}
 	}
-		
+
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
 	 */
@@ -3971,8 +3977,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Retrieves the data ratingUnits. These are the ratingUnits expected for independent parameters and the unit produced 
-	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit 
+	 * Retrieves the data ratingUnits. These are the ratingUnits expected for independent parameters and the unit produced
+	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit
 	 * conversions.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @return The ratingUnits identifier, one unit for each parameter
@@ -3994,8 +4000,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	}
 
 	/**
-	 * Sets the data ratingUnits. These are  the ratingUnits expected for independent parameters and the unit produced 
-	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit 
+	 * Sets the data ratingUnits. These are  the ratingUnits expected for independent parameters and the unit produced
+	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit
 	 * conversions.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param ratingUnits The ratingUnits, one unit for each parameter
@@ -4039,7 +4045,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Retrieves the min and max value for each parameter of the rating, in the current ratingUnits.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4064,7 +4070,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Retrieves the effective dates of the rating in milliseconds, one for each contained rating
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4084,7 +4090,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Retrieves the creation dates of the rating in milliseconds, one for each contained rating
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4390,7 +4396,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Rates the values in the specified TimeSeriesContainer to generate a resulting TimeSeriesContainer. The rating must be for a single independent parameter.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4413,7 +4419,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Rates the values in the specified TimeSeriesContainer objects to generate a resulting TimeSeriesContainer. The rating must be for as many independent parameters as the length of tscs.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4436,7 +4442,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Rates the values in the specified TimeSeriesMath to generate a resulting TimeSeriesMath. The rating must be for a single independent parameter.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4459,7 +4465,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			}
 		}
 	}
-	
+
 	/**
 	 * Rates the values in the specified TimeSeriesMath objects to generate a resulting TimeSeriesMath. The rating must be for as many independent parameters as the length of tscs.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
@@ -4748,7 +4754,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Retrieves a RatingSetContainer containing the data of this object. 
+	 * Retrieves a RatingSetContainer containing the data of this object.
 	 * @return The RatingSetContainer
 	 */
 	public RatingSetContainer getData() {
@@ -4769,7 +4775,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 					rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];
 					Iterator<AbstractRating> it = ratings.values().iterator();
 					for (int i = 0; it.hasNext(); ++i) {
-						rsc.abstractRatingContainers[i] = it.next().getData(); 
+						rsc.abstractRatingContainers[i] = it.next().getData();
 					}
 				}
 			}
@@ -4780,7 +4786,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	/**
 	 * Sets the state of this object from a container
 	 * @param rssc the state container
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public void setState(RatingSetStateContainer rssc) throws RatingException {
 		synchronized(this) {
@@ -4879,7 +4885,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 *          </tr>
 	 *        </table>
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
@@ -4901,10 +4907,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	public void setData(
 			DatabaseLoadMethod loadMethod,
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long startTime, 
+			Connection conn,
+			String officeId,
+			String ratingSpecId,
+			Long startTime,
 			Long endTime,
 			boolean dataTimes)
 			throws RatingException {
@@ -5041,7 +5047,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * Sets the database info required to retrieve a database connection
 	 * @param url the database URL
 	 * @param userName the database user name
-	 * @param officeId the database office 
+	 * @param officeId the database office
 	 * @throws RatingException
 	 */
 	public synchronized void setDbInfo(String url, String userName, String officeId) throws RatingException {
@@ -5079,9 +5085,9 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/**
-	 * Retrieves a TextContainer containing the data of this object, suitable for storing to DSS. 
+	 * Retrieves a TextContainer containing the data of this object, suitable for storing to DSS.
 	 * @return The TextContainer
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public TextContainer getDssData() throws RatingException {
 		synchronized(this) {
@@ -5093,7 +5099,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				tc.fullName = getDssPathname();
 				tc.text = String.format("%s\n%s", this.getClass().getName(), toCompressedXmlString());
 				return tc;
-			}		
+			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;
 				throw new RatingException(t);
@@ -5466,8 +5472,8 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		boolean same =  obj == this 
-				|| (obj instanceof RatingSet 
+		boolean same =  obj == this
+				|| (obj instanceof RatingSet
 						&& (((RatingSet)obj).dbInfo == null) == (dbInfo == null)
 						&& (((RatingSet)obj).conn == null) == (conn == null)
 						&& (((RatingSet)obj).dbrating == null) == (dbrating == null)
@@ -5511,7 +5517,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 		return hashCode;
 	}
-	
+
 	private void refreshRatings() {
 		synchronized(this) {
 			if (dbrating == null) {
