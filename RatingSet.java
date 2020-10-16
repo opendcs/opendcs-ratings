@@ -963,7 +963,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		synchronized (conn) {
 			try {
 				try {
-					CallableStatement stmt = conn.prepareCall("begin " +
+					CallableStatement stmt = conn.prepareCall("begin "
 						                                + "   cwms_rating.store_ratings_xml("
 						                                + "      p_errors         =>:1,"
 						                                + "      p_xml            =>:2,"
