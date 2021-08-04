@@ -1013,6 +1013,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @throws RatingException
 	 * @deprecated Should not be needed after database schema 18.1.1 is fully distributed
 	 */
+	@Deprecated
 	static void storeToDatabaseOld(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase)
 			throws RatingException {
 		CallableStatement[] stmts = new CallableStatement[3];
@@ -2157,6 +2158,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @deprecated
 	 * @throws RatingException
 	 */
+	@Deprecated
 	public void getConcreteRatings() throws RatingException {
 		long[] effectiveDates = getEffectiveDates();
 		for (long effectiveDate : effectiveDates)
