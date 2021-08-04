@@ -58,8 +58,7 @@ import static hec.data.Parameter.PARAMID_TIMING_PERIOD;
 import static hec.data.Parameter.PARAMID_TRAVEL;
 import static hec.data.Parameter.PARAMID_VOLUME;
 import static hec.data.Parameter.PARAMID_WIDTH;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -70,10 +69,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.junit.jupiter.api.Test;
+
 import java.util.Set;
 
-import org.junit.Assert;
-import org.junit.Test;
+
 
 public class RatingSetTest
 {
@@ -81,7 +82,7 @@ public class RatingSetTest
 			"<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">"+
 	  "<rating-template office-id=\"SWT\">  <parameters-id>Elev;Area</parameters-id>"+
 	    "<version>Linear</version>"+
-	
+
 	    "<ind-parameter-specs>"+
 	      "<ind-parameter-spec position=\"1\">"+
 	        "<parameter>Elev</parameter>"+
@@ -213,14 +214,14 @@ public class RatingSetTest
 	    "</rating-points>"+
 	  "</rating>"+
 	"</ratings>";
-	
+
 	@Test
 	public void testRatingSetFromXml() throws Exception
 	{
 			RatingSet.fromXml(_xmlText);
 			RatingSet ratingSet = RatingSet.fromXml(_xmlText1);
 			AbstractRating[] absRatings = ratingSet.getRatings();
-			
+
 			int iCount = absRatings[0].getIndParamCount();
 			RatingValue[] tRating = ((TableRating)absRatings[0]).values;
 			// this should not be null because we have 4 ind parameters. There should be a dep Table

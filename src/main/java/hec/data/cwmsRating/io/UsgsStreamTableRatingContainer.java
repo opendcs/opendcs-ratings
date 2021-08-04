@@ -107,12 +107,12 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		ustrc.shifts = shifts == null ? null : shifts.clone();
 		ustrc.offsets = offsets == null ? null : (TableRatingContainer)offsets.clone();
 	}
-	
+
 	@Override
 	public AbstractRatingContainer getInstance() {
 		return new UsgsStreamTableRatingContainer();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.TableRatingContainer#newRating()
 	 */
@@ -156,12 +156,12 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			rsc.indParams = new String[] {parts[0]};
 			rsc.depParam = String.format("%s-%s", parts[0], USGS_SHIFTS_SUBPARAM);
 			rsc.parametersId = TextUtil.join(
-					SEPARATOR2, 
-					rsc.indParams[0], 
+					SEPARATOR2,
+					rsc.indParams[0],
 					rsc.depParam);
 			rsc.templateId = TextUtil.join(
-					SEPARATOR1, 
-					rsc.parametersId, 
+					SEPARATOR1,
+					rsc.parametersId,
 					rsc.templateVersion);
 			rsc.specId = TextUtil.join(
 					SEPARATOR1,
@@ -170,7 +170,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 					rsc.specVersion);
 			rsc.indRoundingSpecs = new String[] {"4444444449"};
 			rsc.depRoundingSpec = "4444444449";
-			
+
 			shifts.abstractRatingContainers = new TableRatingContainer[elems.size()];
 			for (int i = 0; i < elems.size(); ++i) {
 				shifts.abstractRatingContainers[i] = new TableRatingContainer();
@@ -219,10 +219,10 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			parts = TextUtil.split(ratingSpecId, SEPARATOR1);
 			String indParamId = TextUtil.split(parts[1], SEPARATOR2)[0];
 			trc.ratingSpecId = TextUtil.join(
-					SEPARATOR1, 
-					parts[0], 
-					TextUtil.join(SEPARATOR2, indParamId, indParamId+"-"+USGS_OFFSETS_SUBPARAM), 
-					USGS_OFFSETS_TEMPLATE_VERSION, 
+					SEPARATOR1,
+					parts[0],
+					TextUtil.join(SEPARATOR2, indParamId, indParamId+"-"+USGS_OFFSETS_SUBPARAM),
+					USGS_OFFSETS_TEMPLATE_VERSION,
 					USGS_OFFSETS_SPEC_VERSION);
 			trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
 			trc.inRangeMethod      = RatingMethodId.Previous.name();
@@ -407,7 +407,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	public String toXml(CharSequence indent, int level) {
 		boolean hasValues = values != null;
 		boolean hasShifts = shifts != null && shifts.abstractRatingContainers != null;
-		boolean hasOffsets = offsets != null && offsets.values != null; 
+		boolean hasOffsets = offsets != null && offsets.values != null;
 		if (hasValues && !hasShifts && !hasOffsets) {
 			//-----------------------------//
 			// serialize as a table rating //

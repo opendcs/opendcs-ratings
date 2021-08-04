@@ -3,6 +3,8 @@ package hec.data.cwmsRating;
 import hec.data.RatingException;
 import hec.data.cwmsRating.io.RatingValueContainer;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,15 +14,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import junit.framework.Assert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Ignore;
-import org.junit.Test;
 
 public class TestUsgsStreamTableRating
 {
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testStreamRatingLessThanMinExtent() throws Exception
 	{
@@ -48,18 +50,13 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[0];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		logger.info("rating at: " + (ratingExtent[0] - 10.0));
-		try
-		{
+		Assertions.assertThrows(RatingException.class, () -> { // out of range - low
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] - 10.0);
-			Assert.fail("should have failed with out of range low.");
-		}
-		catch (RatingException e)
-		{
-			Assert.assertEquals("Value is out of range low.", e.getMessage());
-		}
+		});
+
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testStreamRatingGreaterThanMaxExtent() throws Exception
 	{
@@ -87,18 +84,13 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		logger.info("rating at: " + (ratingExtent[0] + 10.0));
-		try
-		{
+		Assertions.assertThrows( RatingException.class, () ->{ // out of range - high
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] + 10.0);
-			Assert.fail("should have failed with out of range high.");
-		}
-		catch (RatingException e)
-		{
-			Assert.assertEquals("Value is out of range high.", e.getMessage());
-		}
+		});
+
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testStreamRatingOnMinExtent() throws Exception
 	{
@@ -126,10 +118,10 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[0];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
-		Assert.assertEquals(ratingExtent[1], rateOne, 0.001);
+		assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testStreamRatingOnMaxExtent() throws Exception
 	{
@@ -157,10 +149,10 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
-		Assert.assertEquals(ratingExtent[1], rateOne, 0.001);
+		assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testStreamRatingInMiddleOfExtents() throws Exception
 	{
@@ -193,11 +185,11 @@ public class TestUsgsStreamTableRating
 		double rateOne = testRatingSet.rateOne(time, midIndep);
 		UsgsStreamTableRating streamTableRating = (UsgsStreamTableRating) rating;
 		RatingSet shifts = streamTableRating.getShifts();
-		
+
 
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testCreatingShifts() throws Exception
 	{
@@ -218,7 +210,7 @@ public class TestUsgsStreamTableRating
 		AbstractRating rating = ratings[0];
 		UsgsStreamTableRating streamTableRating = (UsgsStreamTableRating) rating;
 		RatingSet shifts = streamTableRating.getShifts();
-		Assert.assertNull(shifts);
+		assertNull(shifts);
 		Calendar calendar = Calendar.getInstance();
 		calendar.clear();
 		calendar.set(2014, 9, 1);
@@ -236,23 +228,23 @@ public class TestUsgsStreamTableRating
 
 		boolean shiftActive = true;
 		TableRating newShift = streamTableRating.addShift(shiftDate, stageShiftValues, shiftActive);
-		Assert.assertNotNull(newShift);
+		assertNotNull(newShift);
 
 		calendar.add(Calendar.MONTH, 1);
 		shiftDate = calendar.getTime();
 
 		shiftActive = false;
 		TableRating newShift2 = streamTableRating.addShift(shiftDate, stageShiftValues, shiftActive);
-		Assert.assertNotNull(newShift2);
-		
+		assertNotNull(newShift2);
+
 		RatingSet shiftsRatingSet = streamTableRating.getShifts();
-		Assert.assertTrue(!shiftsRatingSet.activeRatings.isEmpty());
-		
+		assertTrue(!shiftsRatingSet.activeRatings.isEmpty());
+
 		double rateOne = streamTableRating.rateOne(System.currentTimeMillis(),16.0);
-		
+
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testRateOneManyShifts() throws Exception
 	{
@@ -278,7 +270,7 @@ public class TestUsgsStreamTableRating
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
 		logger.info(streamTableRating.toXmlString("  ", 1));
-		
+
 		//add a shift and rate again.
 		Calendar calendar = Calendar.getInstance();
 		calendar.clear();
@@ -297,7 +289,7 @@ public class TestUsgsStreamTableRating
 
 		boolean shiftActive = true;
 		TableRating newShift = streamTableRating.addShift(shiftDate, stageShiftValues, shiftActive);
-		
+
 		ratingExtents = rating.getRatingExtents(shiftDate.getTime());
 		ratingExtent = ratingExtents[0];
 		logger.info(ratingExtent[0] + "  " + ratingExtents[1][0]);
@@ -305,7 +297,7 @@ public class TestUsgsStreamTableRating
 		logger.info(streamTableRating.toXmlString("  ", 1));
 	}
 
-    @Ignore
+    @Disabled
 	@Test
 	public final void testStreamRatingNonMonotonicallyIncreasing() throws Exception
 	{
@@ -333,15 +325,10 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		logger.info("rating at: " + (ratingExtent[0] + 10.0));
-		try
-		{
+		Assertions.assertThrows( RatingException.class, () -> { // out of range - high
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] + 10.0);
-			Assert.fail("should have failed with out of range high.");
-		}
-		catch (RatingException e)
-		{
-			Assert.assertEquals("Value is out of range high.", e.getMessage());
-		}
+		});
+
 	}
 
 }

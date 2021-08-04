@@ -8,17 +8,17 @@
 
 package hec.data.cwmsRating;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.TimeZone;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import hec.data.RatingException;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.heclib.util.HecTimeArray;
 import hec.io.TimeSeriesContainer;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  *
