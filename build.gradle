@@ -37,6 +37,8 @@ test {
     useJUnitPlatform()
 }
 
+test.finalizedBy jacocoTestReport
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
