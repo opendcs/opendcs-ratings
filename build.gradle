@@ -50,7 +50,7 @@ jacocoTestReport{
 
 task reportCoverage(){
     doLast{
-        println "##teamcity[jacocoReport dataPath='build/jacoco/test.exec' classpath='+:build/classes/main/**' ]"
+        println "##teamcity[jacocoReport dataPath='build/jacoco/test.exec' classpath='+:hec/**' ]"
     }
 }
 
