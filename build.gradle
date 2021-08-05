@@ -50,7 +50,7 @@ jacocoTestReport{
 
 task reportCoverage(){
     doLast{
-        println "##teamcity[jacocoReport dataPath='build/jacoco/test.exec']"
+        println "##teamcity[jacocoReport dataPath='$buildDir/jacoco/test.exec']"
     }
 }
 
