@@ -1,0 +1,1 @@
+NOTE: this is currently an expirement in extracting something from javadev, if you can setup to use it please do, but contact Mike Neilson with problems herein, not someone else. I haven't done any coordination yet.
