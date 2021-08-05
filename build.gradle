@@ -48,6 +48,12 @@ jacocoTestReport{
         }
 }
 
+task reportCoverage(){
+    doLast{
+        println "##teamcity[jacocoReport dataPath='build/jacoco/test.exec' classpath='+:build/classes/main/**' ]"
+    }
+}
+
 sonarqube {
         properties {
             property "sonar.sources", "src"
