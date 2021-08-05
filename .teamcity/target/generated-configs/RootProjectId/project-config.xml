@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="RootParentProjectId" uuid="" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2020.1/project-config.xsd">
+  <name>RootProjectName</name>
+  <parameters>
+    <param name="teamcity.ui.settings.readOnly" value="true" />
+  </parameters>
+  <project-extensions>
+    <extension id="PROJECT_EXT_1" type="versionedSettings">
+      <parameters>
+        <param name="enabled" value="true" />
+        <param name="format" value="kotlin" />
+      </parameters>
+    </extension>
+  </project-extensions>
+  <cleanup />
+</project>
+
