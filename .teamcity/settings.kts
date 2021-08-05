@@ -76,6 +76,13 @@ object Build : BuildType({
             tasks = ":test"
             name = "test Project"
         }
+        script {
+            name = "read in coverage"
+            scriptContent = """
+                # the *Test.* is there in addition to *Test as the teamcity reading is also reading in the callbacks that were made for the unit tests.
+                echo "##teamcity[jacocoReport dataPath='build/jacoco/test.exec']"
+            """.trimIndent()
+        }
         gradle {
             tasks = ":sonarqube"
             name = "SonarQube Analysis"
