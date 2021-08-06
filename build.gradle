@@ -41,32 +41,6 @@ test {
 
 test.finalizedBy jacocoTestReport
 
-jacocoTestReport{
-        reports {
-           xml.enabled true
-           html.enabled true
-        }
-}
-
-task reportCoverage(){
-    doLast{
-        println "##teamcity[jacocoReport dataPath='$buildDir/jacoco/test.exec']"
-    }
-}
-
-sonarqube {
-        properties {
-            property "sonar.sources", "src"
-            property "sonar.tests", "src"
-            property "sonar.test.inclusions", "**/test/**"
-            property "sonar.exclusions", "**/test/**"
-            property "sonar.java.coveragePlugin", "jacoco"
-            property "sonar.tests", "src/test"
-            property "sonar.java.test.binaries", "build/classes/java/test"
-            property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
-        }
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

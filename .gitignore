@@ -4,4 +4,3 @@ build
 .settings
 .classpath
 bin
-.teamcity/target

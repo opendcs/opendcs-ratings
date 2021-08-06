@@ -76,11 +76,6 @@ object Build : BuildType({
             tasks = ":test"
             name = "test Project"
         }
-
-        gradle {
-            name = "read in coverage"
-            tasks = ":reportCoverage"
-        }
         gradle {
             tasks = ":sonarqube"
             name = "SonarQube Analysis"
