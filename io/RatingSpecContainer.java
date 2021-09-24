@@ -5,8 +5,6 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
-
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
