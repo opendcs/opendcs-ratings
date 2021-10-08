@@ -1,11 +1,19 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating;
-
-import static hec.lang.Const.*;
-
-import hec.data.RatingException;
 
 import java.util.Arrays;
 import java.util.Map.Entry;
+
+import hec.data.RatingException;
+
+import static hec.lang.Const.UNDEFINED_LONG;
 
 /**
  * RatingSet type used specifically for shifts to UsgsStreamTableRating objects

@@ -1,14 +1,20 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 /**
  * 
  */
 package hec.data.cwmsRating;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import hec.io.VerticalDatumContainer;
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_INT;
-import static hec.lang.Const.UNDEFINED_TIME;
+import java.util.Arrays;
+import java.util.Observer;
+import java.util.TimeZone;
+
 import hec.data.DataSetIllegalArgumentException;
 import hec.data.IRating;
 import hec.data.IVerticalDatum;
@@ -27,13 +33,16 @@ import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
+import hec.io.VerticalDatumContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
-import java.util.Arrays;
-import java.util.Observer;
-import java.util.TimeZone;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.lang.Const.UNDEFINED_INT;
+import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
  * Holds a source rating of a virtual or transitional rating.

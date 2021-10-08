@@ -1,7 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_TIME;
+package hec.data.cwmsRating;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -24,6 +29,9 @@ import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import hec.data.location.LocationTemplate;
 import hec.data.rating.IRatingSpecification;
 import hec.util.TextUtil;
+
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
  * TableRating sub-type for USGS-style stream ratings, which may include dated shifts and log interpolation offsets

@@ -1,16 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.join;
-import static hec.util.TextUtil.split;
-import hec.data.DataSetException;
-import hec.data.RatingException;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
-import hec.data.rating.IRatingTemplate;
-import hec.data.rating.JDomRatingTemplate;
+package hec.data.cwmsRating;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,7 +18,19 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hec.data.DataSetException;
+import hec.data.RatingException;
+import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.io.RatingTemplateContainer;
+import hec.data.rating.IRatingTemplate;
+import hec.data.rating.JDomRatingTemplate;
 import rma.lang.Modifiable;
+
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.split;
 
 /**
  * Implements CWMS-style rating template.  Holds information about parameters of rating objects.

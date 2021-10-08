@@ -1,11 +1,15 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 /**
  * 
  */
 package hec.data.cwmsRating.io;
-
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,8 +24,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdom.Element;
-
 import hec.data.RatingException;
 import hec.data.RatingRuntimeException;
 import hec.data.VerticalDatumException;
@@ -30,6 +32,11 @@ import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.VirtualRating;
 import hec.util.TextUtil;
+
+import org.jdom.Element;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 /**
  *

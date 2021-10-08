@@ -1,4 +1,12 @@
 /*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -7,10 +15,10 @@ package hec.data.cwmsRating.geom;
 
 import java.awt.geom.PathIterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hec.data.RatingException;
-import java.util.logging.Level;
 
 /**
  *

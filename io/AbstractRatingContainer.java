@@ -1,8 +1,12 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating.io;
-
-import static hec.lang.Const.UNDEFINED_TIME;
-
-import org.jdom.Element;
 
 import hec.data.IVerticalDatum;
 import hec.data.RatingException;
@@ -14,6 +18,9 @@ import hec.data.cwmsRating.RatingUtil;
 import hec.heclib.util.HecTime;
 import hec.io.VerticalDatumContainer;
 import hec.util.TextUtil;
+
+import org.jdom.Element;
+import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
  * Container for AbstractRating data

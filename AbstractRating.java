@@ -1,11 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.lang.Const.UNDEFINED_TIME;
-import static hec.util.TextUtil.replaceAll;
-import static hec.util.TextUtil.split;
+package hec.data.cwmsRating;
 
 import java.sql.CallableStatement;
 import java.sql.Clob;
@@ -35,6 +36,13 @@ import hec.io.VerticalDatumContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 import rma.lang.Modifiable;
+
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_TIME;
+import static hec.util.TextUtil.replaceAll;
+import static hec.util.TextUtil.split;
 
 /**
  * Base class for all cwmsRating implementations
