@@ -1,7 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import hec.data.RatingException;
-import hec.data.cwmsRating.io.RatingValueContainer;
+package hec.data.cwmsRating;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,8 +17,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import junit.framework.Assert;
+import hec.data.RatingException;
+import hec.data.cwmsRating.io.RatingValueContainer;
 
+import junit.framework.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 

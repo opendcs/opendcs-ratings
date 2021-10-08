@@ -1,79 +1,15 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating;
 
-import static hec.data.Parameter.PARAMID_AREA;
-import static hec.data.Parameter.PARAMID_AREABASIN;
-import static hec.data.Parameter.PARAMID_AREAIMPACTED;
-import static hec.data.Parameter.PARAMID_AREAKA;
-import static hec.data.Parameter.PARAMID_AREARESERVOIR;
-import static hec.data.Parameter.PARAMID_AREASURFACE;
-import static hec.data.Parameter.PARAMID_ATI;
-import static hec.data.Parameter.PARAMID_BOTTOM_LENGTH;
-import static hec.data.Parameter.PARAMID_COLDRATE;
-import static hec.data.Parameter.PARAMID_CONC;
-import static hec.data.Parameter.PARAMID_COSTKAF;
-import static hec.data.Parameter.PARAMID_COUNT;
-import static hec.data.Parameter.PARAMID_CURENCY;
-import static hec.data.Parameter.PARAMID_DENSITY;
-import static hec.data.Parameter.PARAMID_DEPOSITION;
-import static hec.data.Parameter.PARAMID_DEPTH;
-import static hec.data.Parameter.PARAMID_DISTANCE;
-import static hec.data.Parameter.PARAMID_ELEV;
-import static hec.data.Parameter.PARAMID_ENERGY;
-import static hec.data.Parameter.PARAMID_EVAP;
-import static hec.data.Parameter.PARAMID_EVAPRATE;
-import static hec.data.Parameter.PARAMID_EXTINCTION;
-import static hec.data.Parameter.PARAMID_FLOW;
-import static hec.data.Parameter.PARAMID_FLOWKAF;
-import static hec.data.Parameter.PARAMID_FLOWPERAREA;
-import static hec.data.Parameter.PARAMID_GROWTH_RATE;
-import static hec.data.Parameter.PARAMID_LENGTH;
-import static hec.data.Parameter.PARAMID_LOSSDEFICIT;
-import static hec.data.Parameter.PARAMID_LOSSRATE;
-import static hec.data.Parameter.PARAMID_MELTRATE;
-import static hec.data.Parameter.PARAMID_OPENING;
-import static hec.data.Parameter.PARAMID_PENALTY;
-import static hec.data.Parameter.PARAMID_PERC;
-import static hec.data.Parameter.PARAMID_PERCENT;
-import static hec.data.Parameter.PARAMID_PERCRATE;
-import static hec.data.Parameter.PARAMID_POWER;
-import static hec.data.Parameter.PARAMID_PRECIP;
-import static hec.data.Parameter.PARAMID_PRESSURE;
-import static hec.data.Parameter.PARAMID_RATE_OF_RISE;
-import static hec.data.Parameter.PARAMID_SALINITY;
-import static hec.data.Parameter.PARAMID_SEDIMENT_DISCHARGE;
-import static hec.data.Parameter.PARAMID_SED_LOAD;
-import static hec.data.Parameter.PARAMID_SED_SIZE;
-import static hec.data.Parameter.PARAMID_SHADE_FRAC;
-import static hec.data.Parameter.PARAMID_SPEED;
-import static hec.data.Parameter.PARAMID_SPINRATE;
-import static hec.data.Parameter.PARAMID_STAGE;
-import static hec.data.Parameter.PARAMID_STOR;
-import static hec.data.Parameter.PARAMID_STORKAF;
-import static hec.data.Parameter.PARAMID_SUSP_SOLIDS;
-import static hec.data.Parameter.PARAMID_TEMP;
-import static hec.data.Parameter.PARAMID_THICKNESS;
-import static hec.data.Parameter.PARAMID_TIMING;
-import static hec.data.Parameter.PARAMID_TIMING_OFFSET;
-import static hec.data.Parameter.PARAMID_TIMING_PERIOD;
-import static hec.data.Parameter.PARAMID_TRAVEL;
-import static hec.data.Parameter.PARAMID_VOLUME;
-import static hec.data.Parameter.PARAMID_WIDTH;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
 
 public class RatingSetTest
 {
