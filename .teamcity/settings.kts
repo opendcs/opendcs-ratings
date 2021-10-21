@@ -145,7 +145,7 @@ object Deploy : BuildType({
             buildType = "${Build.id}"
             successfulOnly = true
             branchFilter = """
-                +:main
+                +:<default>
             """.trimIndent()
 
         }
