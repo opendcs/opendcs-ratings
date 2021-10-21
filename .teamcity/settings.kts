@@ -71,15 +71,18 @@ object Build : BuildType({
         gradle {
             tasks = ":build"
             name = "build Project"
+            jdkHome = "%env.JDK_1_8_x64%"
         }
         gradle {
             tasks = ":test"
             name = "test Project"
+            jdkHome = "%env.JDK_1_8_x64%"
         }
         gradle {
             tasks = ":sonarqube"
             name = "SonarQube Analysis"
             gradleParams = "-Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
+            jdkHome = "%env.JDK_1_8_x64%"
         }
     }
 
@@ -135,6 +138,7 @@ object Deploy : BuildType({
         gradle {
             tasks = ":publish"
             gradleParams = "-DmavenUser=%env.NEXUS_USER% -DmavenPassword=%env.NEXUS_PASSWORD%"
+            jdkHome = "%env.JDK_1_8_x64%"
         }
     }
 
