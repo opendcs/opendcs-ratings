@@ -36,13 +36,11 @@ import java.util.logging.Logger;
 import hec.data.DataSetException;
 import hec.data.IRating;
 import hec.data.IRatingSet;
-import hec.data.IVerticalDatum;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.RoundingException;
 import hec.data.Units;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
@@ -59,10 +57,12 @@ import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
 import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
-import hec.io.VerticalDatumContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatum;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
@@ -76,7 +76,7 @@ import static hec.util.TextUtil.split;
  *
  * @author Mike Perryman
  */
-public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum {
+public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
@@ -1987,7 +1987,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 				try {
 					ar.setVerticalDatumInfo(getVerticalDatumInfo());
 				}
-				catch (VerticalDatumException e) {
+				catch (Exception e) {
 				}
 				ar.setAllowUnsafe(doesAllowUnsafe());
 				ar.setWarnUnsafe(doesWarnUnsafe());
@@ -5154,7 +5154,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 			try {
 				return getNativeVerticalDatum() != null;
 			}
-			catch (VerticalDatumException e) {
+			catch (Exception e) {
 				logger.warning(e.getMessage());
 				return false;
 			}
@@ -5213,7 +5213,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
+	 * @see hec.data.VerticalDatum#getNativeVerticalDatum()
 	 */
 	@Override
 	public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -5249,21 +5249,21 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return getData().getNativeVerticalDatum();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getCurrentVerticalDatum()
+	 * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
 	 */
 	@Override
 	public String getCurrentVerticalDatum() throws VerticalDatumException {
 		return getData().getCurrentVerticalDatum();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#isCurrentVerticalDatumEstimated()
+	 * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
 	 */
 	@Override
 	public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
 		return getData().isCurrentVerticalDatumEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toNativeVerticalDatum()
+	 * @see hec.data.VerticalDatum#toNativeVerticalDatum()
 	 */
 	@Override
 	public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -5280,7 +5280,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toNGVD29()
+	 * @see hec.data.VerticalDatum#toNGVD29()
 	 */
 	@Override
 	public boolean toNGVD29() throws VerticalDatumException {
@@ -5297,7 +5297,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toNAVD88()
+	 * @see hec.data.VerticalDatum#toNAVD88()
 	 */
 	@Override
 	public boolean toNAVD88() throws VerticalDatumException {
@@ -5314,7 +5314,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toVerticalDatum(java.lang.String)
+	 * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -5331,7 +5331,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+	 * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -5354,7 +5354,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getCurrentOffset()
+	 * @see hec.data.VerticalDatum#getCurrentOffset()
 	 */
 	@Override
 	public double getCurrentOffset() throws VerticalDatumException {
@@ -5366,7 +5366,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
+	 * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
 	 */
 	@Override
 	public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -5378,7 +5378,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNGVD29Offset()
+	 * @see hec.data.VerticalDatum#getNGVD29Offset()
 	 */
 	@Override
 	public double getNGVD29Offset() throws VerticalDatumException {
@@ -5390,7 +5390,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
+	 * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
 	 */
 	@Override
 	public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -5402,7 +5402,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNAVD88Offset()
+	 * @see hec.data.VerticalDatum#getNAVD88Offset()
 	 */
 	@Override
 	public double getNAVD88Offset() throws VerticalDatumException {
@@ -5414,7 +5414,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
+	 * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
 	 */
 	@Override
 	public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -5426,7 +5426,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
+	 * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
 	 */
 	@Override
 	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -5438,7 +5438,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
+	 * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
 	 */
 	@Override
 	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -5450,7 +5450,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
+	 * @see hec.data.VerticalDatum#getVerticalDatumInfo()
 	 */
 	@Override
 	public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -5462,7 +5462,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
+	 * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
@@ -5661,7 +5661,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, IVerticalDatum 
 	 * @param vdc
 	 *
 	 */
-	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
 	{
 		if (dbrating == null) {

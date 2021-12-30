@@ -13,10 +13,10 @@ package hec.data.cwmsRating.io;
 
 import hec.data.RatingException;
 import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.ExpressionRating;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import org.jdom.Element;
 

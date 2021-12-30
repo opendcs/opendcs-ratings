@@ -26,12 +26,12 @@ import java.util.regex.Pattern;
 
 import hec.data.RatingException;
 import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.VirtualRating;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import org.jdom.Element;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;

@@ -12,10 +12,10 @@ import java.io.StringReader;
 
 import hec.data.RatingException;
 import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.TableRating;
+import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import org.jdom.Document;
 import org.jdom.Element;
