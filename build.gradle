@@ -6,7 +6,7 @@ apply plugin: 'jacoco'
 apply plugin: 'maven-publish'
 apply plugin: 'org.sonarqube'
 
-version = "0.0.1-SNAPSHOT"
+version = "0.0.2-SNAPSHOT"
 group = "mil.army.usace.hec"
 
 // In this section you declare where to find the dependencies of your project
@@ -36,6 +36,13 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
+
+java{
+        sourceCompatibility = JavaVersion.VERSION_1_8;
+        targetCompatibility = JavaVersion.VERSION_1_8;
+        withJavadocJar()
+        withSourcesJar()
+    }
 
 test {
     useJUnitPlatform()
