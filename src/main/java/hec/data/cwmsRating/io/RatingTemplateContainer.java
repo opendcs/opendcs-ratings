@@ -1,10 +1,12 @@
-package hec.data.cwmsRating.io;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.util.TextUtil;
+package hec.data.cwmsRating.io;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -12,11 +14,17 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import hec.data.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.util.TextUtil;
+
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.filter.ElementFilter;
 import org.jdom.input.SAXBuilder;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 /**
  * Container class for RatingTemplate objects

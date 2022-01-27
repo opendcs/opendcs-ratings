@@ -1,5 +1,26 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating.io;
 
+import java.util.List;
+
+import hec.data.RatingException;
+import hec.data.RatingRuntimeException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.RatingMethodId;
+import hec.data.cwmsRating.UsgsStreamTableRating;
+import hec.heclib.util.HecTime;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import org.jdom.Element;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
@@ -9,20 +30,6 @@ import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
 import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
 import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.lang.Const.UNDEFINED_TIME;
-
-import java.util.List;
-
-import org.jdom.Element;
-
-import hec.data.RatingException;
-import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingMethodId;
-import hec.data.cwmsRating.UsgsStreamTableRating;
-import hec.heclib.util.HecTime;
-import hec.io.VerticalDatumContainer;
-import hec.util.TextUtil;
 /**
  * Data container class for UsgsStreamTableRating data
  * @author Mike Perryman

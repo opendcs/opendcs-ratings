@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating.io;
 
 import java.util.ArrayList;
@@ -5,20 +13,20 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.jdom.Element;
-
-import hec.data.IVerticalDatum;
 import hec.data.RatingException;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingUtil;
-import hec.io.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatum;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import org.jdom.Element;
 
 /**
  * Data container class for RatingSet
  * @author Mike Perryman
  */
-public class RatingSetContainer implements IVerticalDatum {
+public class RatingSetContainer implements VerticalDatum {
 	/**
 	 * Contains the rating specification
 	 */
@@ -252,7 +260,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return vdc;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
+	 * @see hec.data.VerticalDatum#getNativeVerticalDatum()
 	 */
 	@Override
 	public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -263,7 +271,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getNativeVerticalDatum();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getCurrentVerticalDatum()
+	 * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
 	 */
 	@Override
 	public String getCurrentVerticalDatum() throws VerticalDatumException {
@@ -274,7 +282,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getCurrentVerticalDatum();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#isCurrentVerticalDatumEstimated()
+	 * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
 	 */
 	@Override
 	public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -285,7 +293,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].isCurrentVerticalDatumEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toNativeVerticalDatum()
+	 * @see hec.data.VerticalDatum#toNativeVerticalDatum()
 	 */
 	@Override
 	public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -302,7 +310,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toNGVD29()
+	 * @see hec.data.VerticalDatum#toNGVD29()
 	 */
 	@Override
 	public boolean toNGVD29() throws VerticalDatumException {
@@ -319,7 +327,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toNAVD88()
+	 * @see hec.data.VerticalDatum#toNAVD88()
 	 */
 	@Override
 	public boolean toNAVD88() throws VerticalDatumException {
@@ -336,7 +344,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#toVerticalDatum(java.lang.String)
+	 * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -353,7 +361,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+	 * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -370,7 +378,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getCurrentOffset()
+	 * @see hec.data.VerticalDatum#getCurrentOffset()
 	 */
 	@Override
 	public double getCurrentOffset() throws VerticalDatumException {
@@ -381,7 +389,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getCurrentOffset();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
+	 * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
 	 */
 	@Override
 	public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -392,7 +400,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getCurrentOffset(unit);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNGVD29Offset()
+	 * @see hec.data.VerticalDatum#getNGVD29Offset()
 	 */
 	@Override
 	public double getNGVD29Offset() throws VerticalDatumException {
@@ -403,7 +411,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getNGVD29Offset();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
+	 * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
 	 */
 	@Override
 	public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -414,7 +422,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getNGVD29Offset(unit);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNAVD88Offset()
+	 * @see hec.data.VerticalDatum#getNAVD88Offset()
 	 */
 	@Override
 	public double getNAVD88Offset() throws VerticalDatumException {
@@ -425,7 +433,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getNAVD88Offset();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
+	 * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
 	 */
 	@Override
 	public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -436,7 +444,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getNAVD88Offset(unit);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
+	 * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
 	 */
 	@Override
 	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -447,7 +455,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].isNGVD29OffsetEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
+	 * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
 	 */
 	@Override
 	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -458,7 +466,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].isNAVD88OffsetEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
+	 * @see hec.data.VerticalDatum#getVerticalDatumInfo()
 	 */
 	@Override
 	public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -469,7 +477,7 @@ public class RatingSetContainer implements IVerticalDatum {
 		return abstractRatingContainers[0].getVerticalDatumInfo();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
+	 * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
@@ -555,7 +563,6 @@ public class RatingSetContainer implements IVerticalDatum {
 	 *
 	 * @param vdc
 	 */
-	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) throws VerticalDatumException
 	{
 		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {

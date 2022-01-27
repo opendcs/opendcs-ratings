@@ -1,21 +1,17 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_LONG;
-import static hec.util.TextUtil.join;
-import static hec.util.TextUtil.split;
+package hec.data.cwmsRating;
 
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
-
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
 
 import hec.data.NotMonotonicRatingException;
 import hec.data.RatingException;
@@ -27,6 +23,17 @@ import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.lang.Const.UNDEFINED_LONG;
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.split;
 /**
  * Table-based (lookup) rating implementation.
  * 

@@ -1,9 +1,17 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating;
+
+import java.util.Observer;
 
 import hec.data.IRating;
 import hec.data.RatingException;
-
-import java.util.Observer;
 
 /**
  * Interface to be implemented by all CWMS-style rating objects

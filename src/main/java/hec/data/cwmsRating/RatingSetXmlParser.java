@@ -1,33 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
-import hec.data.RatingException;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.TransitionalRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
-import hec.heclib.util.HecTime;
-import hec.io.VerticalDatumContainer;
-import hec.lang.Const;
-import hec.util.TextUtil;
+package hec.data.cwmsRating;
 
 import java.io.File;
 import java.io.FileReader;
@@ -42,6 +21,26 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import hec.data.RatingException;
+import hec.data.RatingObjectDoesNotExistException;
+import hec.data.RatingRuntimeException;
+import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.ExpressionRatingContainer;
+import hec.data.cwmsRating.io.RatingSetContainer;
+import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.RatingTemplateContainer;
+import hec.data.cwmsRating.io.RatingValueContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.cwmsRating.io.TransitionalRatingContainer;
+import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import hec.data.cwmsRating.io.VirtualRatingContainer;
+import hec.heclib.util.HecTime;
+import hec.lang.Const;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Parser;
@@ -49,6 +48,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.ParserAdapter;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 
 @SuppressWarnings("deprecation")
 /**

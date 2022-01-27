@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 /**
  * 
  */
@@ -10,10 +18,6 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.Vector;
 
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
-
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
@@ -21,6 +25,10 @@ import hec.heclib.util.HecTime;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.io.TimeSeriesContainerAligner;
+
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
 
 /**
  * @author Q0hecmdp

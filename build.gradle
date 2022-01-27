@@ -21,10 +21,11 @@ repositories {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    implementation 'mil.army.usace.hec:hec-core:6.0-20210210.230316-12'
-    implementation 'mil.army.usace.hec:hec-data:6.0-20210210.230324-12'
-    implementation 'mil.army.usace.hec:hec-lib:6.0-20210216.232048-13'
-    implementation 'mil.army.usace.hec:hec-rma:6.0-20210210.230339-10'
+    implementation ('mil.army.usace.hec:hec-monolith:0.0.3-SNAPSHOT') {
+        exclude group: "codebase", module: "*"
+        exclude group: "com.sun.media", module: "*"
+        exclude group: "javax.media", module: "*"
+    }
     implementation 'org.jdom:jdom:1.1'
 /*
     implementation 'javax.xml.bind:jaxb-api:2.2.12'

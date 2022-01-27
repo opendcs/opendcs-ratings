@@ -1,7 +1,15 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating;
 
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.util.TextUtil.replaceAll;
+import java.util.Arrays;
+
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -12,7 +20,8 @@ import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
-import java.util.Arrays;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.util.TextUtil.replaceAll;
 
 /**
  * Class for using mathematical expressions for ratings

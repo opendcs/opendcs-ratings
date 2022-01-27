@@ -1,16 +1,24 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 /**
  * 
  */
 package hec.data.cwmsRating.io;
 
-import org.jdom.Element;
-
 import hec.data.RatingException;
 import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.ExpressionRating;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import org.jdom.Element;
 
 /**
  * Container for ExpressionRating data

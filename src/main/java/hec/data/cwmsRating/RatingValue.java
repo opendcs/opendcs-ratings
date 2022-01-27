@@ -1,12 +1,21 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating;
 
-import static hec.lang.Const.UNDEFINED_DOUBLE;
+import java.util.Observer;
+
 import hec.data.RatingException;
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.lang.Observable;
 
-import java.util.Observer;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
 
 /**
  * Implements rating values for TableRating objects
