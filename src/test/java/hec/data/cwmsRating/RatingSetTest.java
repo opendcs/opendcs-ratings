@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 package hec.data.cwmsRating;
 
 import static hec.data.Parameter.PARAMID_AREA;
@@ -70,11 +77,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.jupiter.api.Test;
+
 
 import java.util.Set;
 
+import org.junit.jupiter.api.Test;
 
+import static org.junit.Assert.assertNotNull;
 
 public class RatingSetTest
 {
@@ -225,7 +234,7 @@ public class RatingSetTest
 			int iCount = absRatings[0].getIndParamCount();
 			RatingValue[] tRating = ((TableRating)absRatings[0]).values;
 			// this should not be null because we have 4 ind parameters. There should be a dep Table
-			assertNotNull(tRating[0].depTable);
+			assertNotNull(tRating[0].depTable,"Table not read");
 			return;
 	}
 

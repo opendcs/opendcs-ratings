@@ -1,7 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import hec.data.RatingException;
-import hec.data.cwmsRating.io.RatingValueContainer;
+package hec.data.cwmsRating;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,6 +22,9 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import hec.data.RatingException;
+import hec.data.cwmsRating.io.RatingValueContainer;
 
 
 public class TestUsgsStreamTableRating
@@ -84,7 +92,7 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		logger.info("rating at: " + (ratingExtent[0] + 10.0));
-		Assertions.assertThrows( RatingException.class, () ->{ // out of range - high
+		assertThrows( RatingException.class, () ->{ // out of range - high
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] + 10.0);
 		});
 
