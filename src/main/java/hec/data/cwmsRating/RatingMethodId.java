@@ -71,7 +71,7 @@ public enum RatingMethodId
 	}
 
 	/**
-	 * @param rangeIdenifierIdx
+	 * @param rangeIdentifierIdx
 	 * @return a subset of the rating method ids that are valid for the given
 	 *         rangeIdentifierIdx (e.g. SPECLO, TEMPLATEHI etc...)
 	 */

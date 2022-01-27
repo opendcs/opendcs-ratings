@@ -35,7 +35,7 @@ public class RatingSetContainer implements VerticalDatum {
 	 * Contains the individual ratings
 	 */
 	public AbstractRatingContainer[] abstractRatingContainers = null;
-	
+
 	public RatingSetStateContainer state = null;
 	/**
 	 * Public empty Constructor
@@ -45,7 +45,7 @@ public class RatingSetContainer implements VerticalDatum {
 	 * Public constructor from a JDOM Element.
 	 * @param ratingElement The JDOM Element. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
 	 */
 	public RatingSetContainer(Element ratingElement) throws RatingException {
@@ -55,7 +55,7 @@ public class RatingSetContainer implements VerticalDatum {
 	 * Public constructor from an XML instance.
 	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
 	 * @throws RatingException
 	 */
@@ -66,7 +66,7 @@ public class RatingSetContainer implements VerticalDatum {
 	 * Populates this RatingSetContainer object from a JDOM Element.
 	 * @param ratingElement The JDOM Element. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
 	 */
 	public void populateFromXml(Element ratingElement) throws RatingException {
@@ -76,7 +76,7 @@ public class RatingSetContainer implements VerticalDatum {
 	 * Populates this RatingSetContainer object from an XML instance.
 	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate <rating-template> and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
 	 * @throws RatingException
 	 */
@@ -111,7 +111,7 @@ public class RatingSetContainer implements VerticalDatum {
 			return String.format(
 					"%s - %d ratings",
 					ratingSpecContainer == null ? "<NULL>" : ratingSpecContainer.toString(),
-					abstractRatingContainers == null ? 0 : abstractRatingContainers.length);	
+					abstractRatingContainers == null ? 0 : abstractRatingContainers.length);
 		}
 		catch (Throwable t) {
 			return ((Object)this).toString();
@@ -210,7 +210,7 @@ public class RatingSetContainer implements VerticalDatum {
 	 * Returns whether any included vertical datum info is consistent
 	 * @return true if there are zero or one vertical datum containers, or if multiple vertical
 	 * datum container specify the same information and false if there are multiple vertical datum
-	 * containers with different information 
+	 * containers with different information
 	 */
 	public boolean isVerticalDatumInfoConsistent() {
 		boolean isConsistent = true;

@@ -7,7 +7,7 @@
  */
 
 /**
- * 
+ *
  */
 package hec.data.cwmsRating.io;
 
@@ -22,7 +22,7 @@ import org.jdom.Element;
 
 /**
  * Container for ExpressionRating data
- * 
+ *
  * @author Mike Perryman
  */
 public class ExpressionRatingContainer extends AbstractRatingContainer
@@ -67,7 +67,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	}
 	/**
 	 * Populates data from an XML snippet
-	 * @param ratingElement
+	 * @param xmlText
 	 * @throws RatingException
 	 */
 	public void populateFromXml(String xmlText) throws RatingException {
@@ -79,7 +79,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 			throw new RatingException("XML text does not specify an ExpressionRating object.");
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
 	 */
@@ -111,7 +111,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * hec.data.cwmsRating.io.AbstractRatingContainer#clone(hec.data.cwmsRating
 	 * .io.AbstractRatingContainer)
@@ -133,7 +133,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	{
 		return new ExpressionRatingContainer();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#newRating()
 	 */
@@ -184,5 +184,5 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 		}
 		return sb.toString();
 	}
-	
+
 }

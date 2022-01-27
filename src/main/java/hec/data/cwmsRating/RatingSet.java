@@ -219,7 +219,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	}
 	/**
 	 * Enumeration for specifying the method used to load a RatingSet object from a CWMS database
-	 * <table border>
+	 * <table border="1">
 	 *   <tr>
 	 *     <th>Value</th>
 	 *     <th>Interpretation</th>
@@ -381,7 +381,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -411,7 +411,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -444,7 +444,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -480,7 +480,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -514,7 +514,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -550,7 +550,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -588,7 +588,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -625,7 +625,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -645,7 +645,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -699,7 +699,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -719,7 +719,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -1093,7 +1093,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
 	 * @param ratingSpecId The rating specification identifier
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1110,7 +1109,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1127,7 +1125,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1145,7 +1142,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1164,7 +1160,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -1176,7 +1172,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *            <td>Time time window specifies the time extent of data rate</td>
 	 *          </tr>
 	 *        </table>
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1194,7 +1189,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1210,7 +1205,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        </table>
 	 * @param conn The connection to a CWMS database
 	 * @param ratingSpecId The rating specification identifier
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1227,7 +1221,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1245,7 +1239,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1263,7 +1256,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1280,7 +1273,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1297,7 +1289,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1316,7 +1308,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param ratingSpecId The rating specification identifier
 	 * @param startTime The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1635,7 +1626,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1655,7 +1646,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -1667,7 +1658,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *            <td>Time time window specifies the time extent of data rate</td>
 	 *          </tr>
 	 *        </table>
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public RatingSet(
@@ -1722,7 +1712,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Public Constructor - sets rating specification and a time series of ratings
 	 * @param ratingSpec The rating specification
-	 * @param rating The time series of ratings
+	 * @param ratings The time series of ratings
 	 * @throws RatingException
 	 */
 	public RatingSet(RatingSpec ratingSpec, AbstractRating[] ratings) throws RatingException {
@@ -1736,7 +1726,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Public Constructor - sets rating specification and a time series of ratings
 	 * @param ratingSpec The rating specification
-	 * @param rating The time series of ratings
+	 * @param ratings The time series of ratings
 	 * @throws RatingException
 	 */
 	public RatingSet(RatingSpec ratingSpec, Iterable<AbstractRating> ratings) throws RatingException {
@@ -4014,7 +4004,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * for the dependent parameter.  If the underlying rating uses different ratingUnits, the rating must perform unit
 	 * conversions.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
-	 * @param ratingUnits The ratingUnits, one unit for each parameter
+	 * @param units The ratingUnits, one unit for each parameter
 	 */
 	public void setDataUnits(Connection conn, String[] units) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4698,7 +4688,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * Stores the rating set to a CWMS database
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @param inlcludeTemplate Flag specifying whether to include the rating template in the XML
+	 * @param includeTemplate Flag specifying whether to include the rating template in the XML
 	 * @throws RatingException
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
@@ -4869,7 +4859,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	}
 	/**
 	 * Sets the data from this object from an XML instance
-	 * @param rsc The RatingSetContainer with the data
+	 * @param xmlText The RatingSetContainer xml string with the data
 	 * @throws RatingException
 	 */
 	public void setData(String xmlText) throws RatingException {
@@ -4880,7 +4870,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param loadMethod The method used to load the object from the database. If null, the value of the property
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -4900,7 +4890,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param startTime The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
-	 *        <table border>
+	 *        <table border="1">
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -4912,7 +4902,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *            <td>Time time window specifies the time extent of data rate</td>
 	 *          </tr>
 	 *        </table>
-	 * @return The new RatingSet object
 	 * @throws RatingException
 	 */
 	public void setData(
@@ -5065,7 +5054,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	}
 	/**
 	 * Clears the database connection for this RatingSet and any constituent RatingSet objects
-	 * @param conn the connection
 	 */
 	public synchronized void clearDatabaseConnection() {
 		if (dbrating == null) {

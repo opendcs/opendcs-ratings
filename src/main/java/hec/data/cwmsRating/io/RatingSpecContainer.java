@@ -83,12 +83,12 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	public boolean autoMigrateExtensions = false;
 	/**
 	 * Usgs-style rounding specifications, one for each independent parameter.
-	 * @see hecjavadev.hec.data.UsgsRounder.java
+	 * @see "hec.data.UsgsRounder.java in hec-monolith"
 	 */
 	public String[] indRoundingSpecs = null;
 	/**
 	 * Usgs-style rounding specification for the independent parameter.
-	 * @see hecjavadev.hec.data.UsgsRounder.java
+	 * @see "hec.data.UsgsRounder.java in hec-monolith"
 	 */
 	public String depRoundingSpec = null;
 	/**
@@ -231,7 +231,6 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	/**
 	 * Populates the RatingSpecContainer from the first &lt;rating-spec&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
-	 * @return The RatingTemplateContainer object
 	 */
 	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		final String elementName = "rating-spec";
@@ -364,7 +363,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
 		sb.delete(0, sb.length());
-		
+
 		if (level == 0) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");

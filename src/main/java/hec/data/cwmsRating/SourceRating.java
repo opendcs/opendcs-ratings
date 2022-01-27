@@ -7,7 +7,7 @@
  */
 
 /**
- * 
+ *
  */
 package hec.data.cwmsRating;
 
@@ -46,7 +46,7 @@ import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
  * Holds a source rating of a virtual or transitional rating.
- * 
+ *
  * @author Mike Perryman
  */
 public class SourceRating implements IRating, VerticalDatum, Observer {
@@ -84,7 +84,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Public constructor from SourceRatingContainer object
 		 * @param src The SourceRatingContainer object to construct from
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(SourceRatingContainer src) throws RatingException {
 			this.observationTarget = new Observable();
@@ -94,7 +94,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 * Public constructor from a RatingSet object and units
 		 * @param ratingSet the RatingSet object to use
 		 * @param ratingUnits the rating units to use
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(RatingSet ratingSet, String[] ratingUnits) throws RatingException {
 			this.observationTarget = new Observable();
@@ -104,7 +104,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 * Public constructor from a RatingSet object and units
 		 * @param ratingSet the RatingSet object to use
 		 * @param ratingUnitsId the rating units to use
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(RatingSet ratingSet, String ratingUnitsId) throws RatingException {
 			this.observationTarget = new Observable();
@@ -113,7 +113,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Public constructor from a RatingSet object and default units
 		 * @param ratingSet the RatingSet object to use
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(RatingSet ratingSet) throws RatingException {
 			this.observationTarget = new Observable();
@@ -122,7 +122,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Initialize the object from a SourceRatingContainer object
 		 * @param src The SourceRatingContainer object to initialize from
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		void setData(SourceRatingContainer src) throws RatingException {
 			try {
@@ -160,7 +160,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		}
 		/**
 		 * @return the mathExpression
-		 * @throws ComputationException 
+		 * @throws ComputationException
 		 */
 		public String getMathExpression() {
 			String mathExpressionString = null;
@@ -178,7 +178,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param mathExpression the mathExpression to set
 		 * @param units the units as a string array
-		 * @throws ComputationException 
+		 * @throws ComputationException
 		 */
 		public void setMathExpression(String mathExpression, String[] units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
@@ -189,7 +189,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param mathExpression the mathExpression to set
 		 * @param units the units as a string
-		 * @throws ComputationException 
+		 * @throws ComputationException
 		 */
 		public void setMathExpression(String mathExpression, String units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
@@ -206,7 +206,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string array
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public void setRatingSet(RatingSet ratings, String[] units) throws RatingException {
 			this.ratings = ratings;
@@ -219,7 +219,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public void setRatingSet(RatingSet ratings, String units) throws RatingException {
 			this.ratings = ratings;
@@ -231,7 +231,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		}
 		/**
 		 * @param ratings the ratings to set, using the RatingUnits of the set
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public void setRatingSet(RatingSet ratings) throws RatingException {
 			this.ratings = ratings;
@@ -256,8 +256,8 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		}
 		/**
 		 * Sets the ratingUnits array from a string array
-		 * @param ratingUnits The string array to set the ratingUnits array from
-		 * @throws RatingException 
+		 * @param units The string array to set the ratingUnits array from
+		 * @throws RatingException
 		 */
 		protected void setRatingUnits(String[] units) throws RatingException {
 			if (ratings != null) {
@@ -276,8 +276,8 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		}
 		/**
 		 * Sets the ratingUnits array from a string
-		 * @param ratingUnits The string to set the ratingUnits array from
-		 * @throws RatingException 
+		 * @param units The string to set the ratingUnits array from
+		 * @throws RatingException
 		 */
 		protected void setRatingUnits(String units) throws RatingException {
 			if (units == null) {

@@ -44,6 +44,10 @@ java{
         withSourcesJar()
     }
 
+javadoc {
+    failOnError = true
+}
+
 test {
     useJUnitPlatform()
     doLast {

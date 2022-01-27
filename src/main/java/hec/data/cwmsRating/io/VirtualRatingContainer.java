@@ -7,7 +7,7 @@
  */
 
 /**
- * 
+ *
  */
 package hec.data.cwmsRating.io;
 
@@ -49,7 +49,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * Contains rating to connect together to form virtual rating
 	 */
 	public SourceRatingContainer[] sourceRatings = null;
-	
+
 	/**
 	 * String specifying how ratings are connected.
 	 */
@@ -61,7 +61,6 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Public constructor from a JDOM Element. The connections and sourceRatings fields will be null
 	 * @param ratingElement The JDOM Element
-	 * @return
 	 * @throws RatingException
 	 */
 	public VirtualRatingContainer(Element ratingElement) throws RatingException {
@@ -70,8 +69,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Public constructor from an XML snippet. The connections and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
-	 * @return
-	 * @throws RatingException
+	 * @throws RatingException any issues with processing the XML data.
 	 */
 	public VirtualRatingContainer(String xmlText) throws RatingException {
 		populateFromXml(xmlText);
@@ -79,8 +77,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Populates the VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
 	 * @param ratingElement The JDOM Element
-	 * @return
-	 * @throws RatingException
+	 * @throws RatingException any issues with processing the XML data.
 	 */
 	public void populateFromXml(Element ratingElement) throws RatingException {
 		try {
@@ -93,7 +90,6 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Populates the VirtualRatingContainer from an XML snippet. The connections and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
-	 * @return
 	 * @throws RatingException
 	 */
 	public void populateFromXml(String xmlText) throws RatingException {
@@ -107,17 +103,17 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
-	 * 
+	 *
 	 * @param ratings A collection of ratings that includes the necessary source ratings
 	 * @param specs A collection of rating specifications for the source ratings
-	 * @param temlates A collection of rating templates for the source ratings.
-	 * @throws RatingException 
+	 * @param templates A collection of rating templates for the source ratings.
+	 * @throws RatingException
 	 */
 	public void populateSourceRatings(
-			Map<String, SortedSet<AbstractRatingContainer>> ratings, 
-			Map<String, RatingSpecContainer> specs, 
+			Map<String, SortedSet<AbstractRatingContainer>> ratings,
+			Map<String, RatingSpecContainer> specs,
 			Map<String, RatingTemplateContainer> templates) throws RatingException {
-		
+
 		List<SourceRatingContainer> srList = new ArrayList<SourceRatingContainer>();
 		List<String> specsToUse = new ArrayList<String>();
 		Map<String, String>unitsBySpecId = new HashMap<String, String>();
@@ -163,7 +159,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		int indParamCount = TextUtil.split(ratingSpecId, SEPARATOR3).length;
 		String[] units = new String[indParamCount+1];
 		Arrays.fill(units, null);
-		//                                  groups   1 2       3     4 5 
+		//                                  groups   1 2       3     4 5
 		Pattern connectionPattern = Pattern.compile("(I(\\d+)|R(\\d+)(I(\\d+)|D)|D)");
 		Matcher[] m = new Matcher[2];
 		HashSet<String> connected = new HashSet<String>();
@@ -192,7 +188,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 				if (m[connectedIdx].group(1).charAt(0) != 'R') {
 					throw new RatingException("Invalid connection string: "+connections);
 				}
-				int ratingIdx = Integer.parseInt(m[connectedIdx].group(3)); 
+				int ratingIdx = Integer.parseInt(m[connectedIdx].group(3));
 				switch (m[connectedIdx].group(4).charAt(0)) {
 				case 'I' :
 					int ratingInput = Integer.parseInt(m[connectedIdx].group(5));
@@ -215,7 +211,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 					if (m[connectedIdx].group(1).charAt(0) != 'R') {
 						throw new RatingException("Invalid connection string: "+connections);
 					}
-					int ratingIdx = Integer.parseInt(m[connectedIdx].group(3)); 
+					int ratingIdx = Integer.parseInt(m[connectedIdx].group(3));
 					switch (m[connectedIdx].group(4).charAt(0)) {
 					case 'I' :
 						int ratingInput = Integer.parseInt(m[connectedIdx].group(5));
@@ -551,7 +547,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		}
 		return sb.toString();
 	}
-	
+
 	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
 		if (sourceRatings != null) {
 			for (SourceRatingContainer src : sourceRatings) {

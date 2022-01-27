@@ -34,14 +34,14 @@ import static hec.util.TextUtil.split;
 
 /**
  * Implements CWMS-style rating template.  Holds information about parameters of rating objects.
- * 
+ *
  * @author Mike Perryman
  */
 public class RatingTemplate implements Modifiable
 {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
-	
+
 	/**
 	 * The templateVersion text of the rating template
 	 */
@@ -80,19 +80,19 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Generates a new RatingTemplate object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
 	 * @throws RatingException
 	 */
 	public static String getXmlfromDatabase(
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String templateId)
 			throws RatingException {
 		String xmlText = null;
 		synchronized(conn) {
 			try {
-				String sql = 
+				String sql =
 						"begin "                                  +
 						   "cwms_rating.retrieve_templates_xml("   +
 						      "p_templates        => :1,"         +
@@ -138,7 +138,7 @@ public class RatingTemplate implements Modifiable
 			}
 		}
 	}
-	
+
 	public static RatingTemplate fromDatabase(Connection conn, String officeId, String templateId) throws RatingException
 	{
 		return new RatingTemplate(conn, officeId, templateId);
@@ -152,11 +152,11 @@ public class RatingTemplate implements Modifiable
 	 * Package Constructor
 	 * @param officeId The office that owns the template
 	 * @param templateId The CWMS rating template identifier
-	 * @param inRangeMethods The specified rating behavior for when the value to rate 
-	 *        is in the range of independent values, one for each independent parameter 
-	 * @param outRangeLowMethods The specified rating behavior for when the value to rate 
+	 * @param inRangeMethods The specified rating behavior for when the value to rate
+	 *        is in the range of independent values, one for each independent parameter
+	 * @param outRangeLowMethods The specified rating behavior for when the value to rate
 	 *        is less than the smallest independent value, one for each independent parameter
-	 * @param outRangeHighMethods The specified rating behavior for when the value to rate 
+	 * @param outRangeHighMethods The specified rating behavior for when the value to rate
 	 *        is greater than the largest independent value, one for each independent parameter
 	 * @param description The description of the template
 	 * @throws RatingException
@@ -176,7 +176,7 @@ public class RatingTemplate implements Modifiable
 		this.description = description;
 	}
 	/**
-	 * Public constructor from RatingTemplateContainer 
+	 * Public constructor from RatingTemplateContainer
 	 * @param rtc The RatingTemplateContainer to initialize from
 	 * @throws RatingException
 	 */
@@ -186,13 +186,13 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Public constructor from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
 	 * @throws RatingException
 	 */
 	public RatingTemplate(
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String templateId)
 			throws RatingException {
 		setData(conn, officeId, templateId);
@@ -202,7 +202,7 @@ public class RatingTemplate implements Modifiable
 	 * @return The parameters identifier portion
 	 */
 	public String getParametersId() {
-		
+
 		StringBuilder sb = new StringBuilder(indParameters[0]);
 		for (int i = 1; i < indParameters.length; ++i) sb.append(SEPARATOR3).append(indParameters[i]);
 		sb.append(SEPARATOR2).append(depParameter);
@@ -214,7 +214,7 @@ public class RatingTemplate implements Modifiable
 	 * @throws RatingException
 	 */
 	public void setParametersId(String parametersId) throws RatingException {
-		String[]  parts = split(parametersId, SEPARATOR2, "L"); 
+		String[]  parts = split(parametersId, SEPARATOR2, "L");
 		if (parts.length != 2) throw new RatingException("Invalid parameters identifier: " + parametersId);
 		depParameter = parts[1];
 		indParameters = split(parts[0], SEPARATOR3, "L");
@@ -350,8 +350,8 @@ public class RatingTemplate implements Modifiable
 	 * Sets the templateVersion portion of the rating template identifier
 	 * @param templateVersion The templateVersion portion of the rating template identifier
 	 */
-	public void setVersion(String version) {
-		this.templateVersion = version;
+	public void setVersion(String templateVersion) {
+		this.templateVersion = templateVersion;
 	}
 	/**
 	 * Retrieves an array of the independent parameters for ratings using this template
@@ -397,7 +397,7 @@ public class RatingTemplate implements Modifiable
 		this.description = description;
 	}
 	/**
-	 * Retrieves a RatingTemplateContainer containing the data of this object. 
+	 * Retrieves a RatingTemplateContainer containing the data of this object.
 	 * @return The RatingTemplateContainer
 	 */
 	public RatingTemplateContainer getData() {
@@ -408,13 +408,13 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the data for this object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
 	 * @throws RatingException
 	 */
 	public void setData (
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String templateId)
 			throws RatingException {
 		synchronized(conn) {
@@ -523,7 +523,7 @@ public class RatingTemplate implements Modifiable
 		rtc.templateDescription = description;
 	}
 	/**
-	 * Generates an XML document fragment from this rating specification. 
+	 * Generates an XML document fragment from this rating specification.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
@@ -531,7 +531,7 @@ public class RatingTemplate implements Modifiable
 	public String toXmlString(CharSequence indent, int level) {
 		return getData().toTemplateXml(indent, level);
 	}
-	
+
 	/**
 	 * A flag to indicate that this rating curve has been modified.
 	 */
@@ -540,7 +540,7 @@ public class RatingTemplate implements Modifiable
 	 * The identifier of the office that owns the rating specification
 	 */
 	protected String officeId = null;
-	
+
 	/**
 	 * Returns the modified state of this rating curve.
 	 */
@@ -568,8 +568,8 @@ public class RatingTemplate implements Modifiable
 	 * Sets the templateVersion portion of the rating template used by this specification
 	 * @param templateVersion The templateVersion portion of the rating template used by this specification
 	 */
-	public void setTemplateVersion(String version) {
-		templateVersion = version;
+	public void setTemplateVersion(String templateVersion) {
+		this.templateVersion = templateVersion;
 	}
 	/**
 	 * Retrieves the description portion of the rating template used by this specification

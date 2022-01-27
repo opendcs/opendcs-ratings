@@ -7,7 +7,7 @@
  */
 
 /**
- * 
+ *
  */
 package hec.data.cwmsRating.io;
 
@@ -36,7 +36,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
  * @author Mike Perryman
  */
 public class TransitionalRatingContainer extends AbstractRatingContainer {
-	
+
 	public transient String[] sourceRatingIds = null;
 	/**
 	 * Contains the conditions to match
@@ -99,17 +99,17 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
-	 * 
+	 *
 	 * @param ratings A collection of ratings that includes the necessary source ratings
 	 * @param specs A collection of rating specifications for the source ratings
-	 * @param temlates A collection of rating templates for the source ratings.
-	 * @throws RatingException 
+	 * @param templates A collection of rating templates for the source ratings.
+	 * @throws RatingException
 	 */
 	public void populateSourceRatings(
-			Map<String, SortedSet<AbstractRatingContainer>> ratings, 
-			Map<String, RatingSpecContainer> specs, 
+			Map<String, SortedSet<AbstractRatingContainer>> ratings,
+			Map<String, RatingSpecContainer> specs,
 			Map<String, RatingTemplateContainer> templates) throws RatingException {
-		
+
 		if (sourceRatingIds != null) {
 			List<SourceRatingContainer> srList = new ArrayList<SourceRatingContainer>();
 			for (String specId : sourceRatingIds) {
@@ -468,7 +468,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		}
 		return sb.toString();
 	}
-	
+
 	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
 		if (sourceRatings != null) {
 			for (SourceRatingContainer src : sourceRatings) {

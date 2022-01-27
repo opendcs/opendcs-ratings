@@ -40,20 +40,20 @@ public class ExpressionRating extends AbstractRating {
 	 * The variables for the "expression" field - one variable for each independent parameter
 	 */
 	protected Variable[] variables = null;
-	
+
 	/**
 	 * Public Constructor
 	 * @param expr The Mathematical expression for the rating. Independent parameters are specified by ARG1 - ARG9
-	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or 
-	 *        S-Expression (lisp) notation. Note that this constructor does't set the transition start date. 
+	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or
+	 *        S-Expression (lisp) notation. Note that this constructor does't set the transition start date.
 	 * @param officeId The identifier of the office that owns this rating
 	 * @param ratingSpecId The rating specification identifier
 	 * @param ratingUnitsId The units identifier
 	 * @param effectiveDate The effective date of the rating. The effective date is the earliest date/time for which the rating should be applied.
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
-	 *        This may be later than the effective date 
+	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
-	 * @param desription The description of the rating        
+	 * @param description The description of the rating
 	 * @throws RatingException
 	 */
 	public ExpressionRating(
@@ -167,7 +167,7 @@ public class ExpressionRating extends AbstractRating {
 	 * @see hec.data.cwmsRating.AbstractRating#rateOne(double[])
 	 */
 	@Override
-	public double[] rate(double[] pIndVals) throws RatingException 
+	public double[] rate(double[] pIndVals) throws RatingException
 	{
 		synchronized(this) {
 			if (variables.length != 1) {
@@ -382,16 +382,16 @@ public class ExpressionRating extends AbstractRating {
 	/**
 	 * Initialization helper for constructors and generators
 	 * @param expr The Mathematical expression for the rating. Independent parameters are specified by ARG1 - ARG9
-	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or 
+	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or
 	 *        S-Expression (lisp) notation.
 	 * @param officeId The identifier of the office that owns this rating
 	 * @param ratingSpecId The rating specification identifier
 	 * @param ratingUnitsId The units identifier
 	 * @param effectiveDate The effective date of the rating. The effective date is the earliest date/time for which the rating should be applied.
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
-	 *        This may be later than the effective date 
+	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
-	 * @param desription The description of the rating        
+	 * @param description The description of the rating
 	 * @throws RatingException
 	 */
 	protected void init(
@@ -421,7 +421,7 @@ public class ExpressionRating extends AbstractRating {
 	{
 		return null; //TODO: Implement me;
 	}
-	
+
 	@Override
 	public ExpressionRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException
 	{

@@ -231,7 +231,6 @@ public class RatingTemplateContainer {
 	/**
 	 * Populates a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
-	 * @return The RatingTemplateContainer object
 	 */
 	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		final String elementName = "rating-template";
@@ -311,7 +310,7 @@ public class RatingTemplateContainer {
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
 		sb.delete(0, sb.length());
-		
+
 		if (level == 0) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
