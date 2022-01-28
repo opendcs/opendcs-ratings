@@ -220,6 +220,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Enumeration for specifying the method used to load a RatingSet object from a CWMS database
 	 * <table border="1">
+	 *   <caption>Loading Methods</caption>
 	 *   <tr>
 	 *     <th>Value</th>
 	 *     <th>Interpretation</th>
@@ -382,6 +383,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
 	 *        <table border="1">
+	 * 			<caption>Start/End Time values</caption>
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -412,6 +414,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Method</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -445,6 +448,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Method</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -481,6 +485,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Method</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -515,6 +520,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Method</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -551,6 +557,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -589,6 +596,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -626,6 +634,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -646,6 +655,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
 	 *        <table border="1">
+	 * 			<caption>Start/End Time values</caption>
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -700,6 +710,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -720,6 +731,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
 	 *        <table border="1">
+	 * 			<caption>Start/End Time values</caption>
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -1161,6 +1173,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
 	 *        <table border="1">
+	 * 			<caption>Start/End Time values</caption>
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -1190,6 +1203,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1222,6 +1236,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1257,6 +1272,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1290,6 +1306,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1627,6 +1644,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Loading Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -1647,6 +1665,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
 	 *        <table border="1">
+	 * 			<caption>Start/End Time values</caption>
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -1809,6 +1828,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * Retrieves a map of all included rating specifications, keyed by their rating spec ids
 	 * @param specMap a non-null map to add to
 	 * @param ratings the ratings to evaluate
+	 * @param path //TODO: needs description
 	 * @throws RatingException if the same spec id maps to two non-equal rating specs
 	 */
 	protected static void getAllRatingSpecs(HashMap<String, Object[]> specMap, Iterable<AbstractRating> ratings, String path)
@@ -1851,7 +1871,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Adds a single rating to the existing ratings.
 	 * @param rating The rating to add
-	 * @throws RatingException
+	 * @throws RatingException @see #addRatings(Iterable)
 	 */
 	@Override
 	public void addRating(AbstractRating rating) throws RatingException {
@@ -1860,7 +1880,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Adds multiple ratings to the existing ratings.
 	 * @param ratings The ratings to add
-	 * @throws RatingException
+	 * @throws RatingException @see #addRatings(Iterable)
 	 */
 	@Override
 	public void addRatings(AbstractRating[] ratings) throws RatingException {
@@ -1869,7 +1889,10 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Adds multiple ratings to the existing ratings.
 	 * @param ratings The ratings to add
-	 * @throws RatingException
+	 * @throws RatingException various errors with the input such a undefined effective dates,
+	 *     effective date already exists, number of independent parameters not consistent,
+	 *     rating specs not consistent, units incompatible, templates not consistent
+	 *
 	 */
 	public void addRatings(Iterable<AbstractRating> ratings) throws RatingException {
 		synchronized(this) {
@@ -3426,7 +3449,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param ratingTime The time for which to retrieve the rating extents
 	 * @param conn The database connection to use if the rating was lazily loaded
 	 * @return The rating extents
-	 * @throws RatingException
+	 * @throws RatingException any errors calcualting the value
 	 * @see hec.data.IRating#getRatingExtents(long)
 	 */
 	public double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {
@@ -4005,6 +4028,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * conversions.
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param units The ratingUnits, one unit for each parameter
+	 * @throws RatingException any errors calcualting the value
 	 */
 	public void setDataUnits(Connection conn, String[] units) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4029,6 +4053,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *         min values and the second containing max values. The inner (Connection conn, second) dimension will be the number of independent
 	 *         parameters for the rating plus one. The first value will be the extent for the first independent parameter, and
 	 *         the last value will be the extent for the dependent parameter.
+	 * @throws RatingException any errors getting the table information
 	 */
 	public double[][] getRatingExtents(Connection conn) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4054,6 +4079,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *         min values and the second containing max values. The inner (Connection conn, second) dimension will be the number of independent
 	 *         parameters for the rating plus one. The first value will be the extent for the first independent parameter, and
 	 *         the last value will be the extent for the dependent parameter.
+	 * @throws RatingException any issues getting the table data
 	 */
 	public double[][] getRatingExtents(Connection conn, long ratingTime) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4074,6 +4100,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Retrieves the effective dates of the rating in milliseconds, one for each contained rating
 	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @return simple array of longs
 	 */
 	public long[] getEffectiveDates(Connection conn) {
 		Connection oldConn = this.conn;
@@ -4094,6 +4121,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Retrieves the creation dates of the rating in milliseconds, one for each contained rating
 	 * @param conn The database connection to use for lazy ratings and reference ratings
+	 * @return simple array of start dates
 	 */
 	public long[] getCreateDates(Connection conn) {
 		Connection oldConn = this.conn;
@@ -4116,7 +4144,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param indVal The independent value to rate.
 	 * @return The dependent value
-	 * @throws RatingException
+	 * @throws RatingException any errors calcualting the value
 	 */
 	public double rate(Connection conn, double indVal) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4139,7 +4167,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param indVals The independent parameters to rate
 	 * @return The dependent value
-	 * @throws RatingException
+	 * @throws RatingException any errors retrieving or calculating a value.
 	 */
 	public double rateOne(Connection conn, double... indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4162,7 +4190,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param indVals The independent parameters to rate
 	 * @return The dependent value
-	 * @throws RatingException
+	 * @throws RatingException any issues calculating the value
 	 */
 	public double rateOne2(Connection conn, double[] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4185,7 +4213,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param indVals The independent values to rate
 	 * @return The dependent values
-	 * @throws RatingException
+	 * @throws RatingException any issues calculating the value
 	 */
 	public double[] rate(Connection conn, double[] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4209,7 +4237,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param indVals The independent values to rate. Each set of independent values must be the same length.
 	 * @return The dependent values
-	 * @throws RatingException
+	 * @throws RatingException any issues calculating the values
 	 */
 	public double[] rate(Connection conn, double[][] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4233,7 +4261,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the value to rate, in Java milliseconds
 	 * @param indVal The independent value to rate
 	 * @return The dependent value
-	 * @throws RatingException
+	 * @throws RatingException any errors calcualting the value
 	 */
 	public double rate(Connection conn, long valTime, double indVal) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4257,7 +4285,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the set of value to rate, in Java milliseconds
 	 * @param indVals The independent parameters to rate
 	 * @return The dependent value
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public double rateOne(Connection conn, long valTime, double... indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4281,7 +4309,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the set of value to rate, in Java milliseconds
 	 * @param indVals The independent parameters to rate
 	 * @return The dependent value
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public double rateOne2(Connection conn, long valTime, double[] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4305,7 +4333,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the values to rate, in Java milliseconds
 	 * @param indVals The independent values to rate
 	 * @return The dependent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public double[] rate(Connection conn, long valTime, double[] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4329,7 +4357,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTimes The times associated with the values to rate, in Java milliseconds
 	 * @param indVals The independent values to rate
 	 * @return The dependent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public double[] rate(Connection conn, long[] valTimes, double[] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4354,7 +4382,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the values to rate, in Java milliseconds
 	 * @param indVals The independent values to rate. Each set of independent values must be the same length.
 	 * @return The dependent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public double[] rate(Connection conn, long valTime, double[][] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4379,7 +4407,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTimes The time associated with the values to rate, in Java milliseconds
 	 * @param indVals The independent values to rate. Each set of independent values must be the same length.
 	 * @return The dependent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public double[] rate(Connection conn, long[] valTimes, double[][] indVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4402,7 +4430,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param tsc The TimeSeriesContainer of independent values.
 	 * @return The TimeSeriesContainer of dependent values.
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public TimeSeriesContainer rate(Connection conn, TimeSeriesContainer tsc) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4425,7 +4453,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param tscs The TimeSeriesContainers of independent values, one for each independent parameter.
 	 * @return The TimeSeriesContainer of dependent values.
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public TimeSeriesContainer rate(Connection conn, TimeSeriesContainer[] tscs) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4448,7 +4476,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param tsm The TimeSeriesMath of independent values.
 	 * @return The TimeSeriesMath of dependent values.
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public TimeSeriesMath rate(Connection conn, TimeSeriesMath tsm) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4471,7 +4499,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param tsms The TimeSeriesMaths of independent values, one for each independent parameter.
 	 * @return The TimeSeriesMath of dependent values.
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public TimeSeriesMath rate(Connection conn, TimeSeriesMath[] tsms) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4494,7 +4522,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param depVal The dependent value to rate.
 	 * @return The independent value
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public double reverseRate(Connection conn, double depVal) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4517,7 +4545,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param depVals The dependent values to rate
 	 * @return The independent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public double[] reverseRate(Connection conn, double[] depVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4541,7 +4569,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the value to rate, in Java milliseconds
 	 * @param depVal The dependent value to rate
 	 * @return The independent value
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public double reverseRate(Connection conn, long valTime, double depVal) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4565,7 +4593,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTime The time associated with the values to rate, in Java milliseconds
 	 * @param depVals The dependent values to rate
 	 * @return The independent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the values
 	 */
 	public double[] reverseRate(Connection conn, long valTime, double[] depVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4589,7 +4617,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param valTimes The times associated with the values to rate, in Java milliseconds
 	 * @param depVals The dependent values to rate
 	 * @return The independent values
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public double[] reverseRate(Connection conn, long[] valTimes, double[] depVals) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4612,7 +4640,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param tsc The TimeSeriesContainer of dependent values.
 	 * @return The TimeSeriesContainer of independent values.
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public TimeSeriesContainer reverseRate(Connection conn, TimeSeriesContainer tsc) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4635,7 +4663,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The database connection to use for lazy ratings and reference ratings
 	 * @param tsm The TimeSeriesMath of dependent values.
 	 * @return The TimeSeriesMath of independent values.
-	 * @throws RatingException
+	 * @throws RatingException any errors calculating the value
 	 */
 	public TimeSeriesMath reverseRate(Connection conn, TimeSeriesMath tsm) throws RatingException {
 		Connection oldConn = this.conn;
@@ -4656,7 +4684,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * Outputs the rating set as an XML instance
 	 * @param indent the text use for indentation
 	 * @return the XML text
-	 * @throws RatingException
+	 * @throws RatingException any errors rendering to XML
 	 */
 	public String toXmlString(CharSequence indent) throws RatingException {
 		return getData().toXml(indent, 0, true);
@@ -4664,7 +4692,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Outputs the rating set in a compress XML instance suitable for storing in DSS
 	 * @return The compressed XML text
-	 * @throws RatingException
+	 * @throws RatingException any error shrinking the data
 	 */
 	public String toCompressedXmlString() throws RatingException {
  		try {
@@ -4679,7 +4707,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * Stores the rating set to a CWMS database
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException
+	 * @throws RatingException any issues processing the table into the database.
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
 		storeToDatabase(conn, overwriteExisting, true);
@@ -4689,7 +4717,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
 	 * @param includeTemplate Flag specifying whether to include the rating template in the XML
-	 * @throws RatingException
+	 * @throws RatingException any errors storing to the database
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean includeTemplate) throws RatingException {
 		if (dbrating != null) {
@@ -4786,7 +4814,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Sets the state of this object from a container
 	 * @param rssc the state container
-	 * @throws RatingException
+	 * @throws RatingException any errors transferring data
 	 */
 	public void setState(RatingSetStateContainer rssc) throws RatingException {
 		synchronized(this) {
@@ -4809,7 +4837,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Sets the data from this object from a RatingSetContainer
 	 * @param rsc The RatingSetContainer with the data
-	 * @throws RatingException
+	 * @throws RatingException any errors transferring the data
 	 */
 	public void setData(RatingSetContainer rsc) throws RatingException {
 		boolean isLazy = false;
@@ -4860,7 +4888,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Sets the data from this object from an XML instance
 	 * @param xmlText The RatingSetContainer xml string with the data
-	 * @throws RatingException
+	 * @throws RatingException any errors processing the xml data
 	 */
 	public void setData(String xmlText) throws RatingException {
 		setData(new RatingSetContainer(xmlText).clone()); // clone might return a ReferenceRatingContainer
@@ -4871,6 +4899,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *        "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
 	 *        are null (or if an invalid value is specified) the Lazy method will be used.
 	 *        <table border="1">
+	 * 			<caption>Load Methods</caption>
 	 *          <tr>
 	 *            <th>Value (case insensitive)</th>
 	 *            <th>Interpretation</th>
@@ -4891,6 +4920,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param endTime The latest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no latest limit is set.
 	 * @param dataTimes Determines how startTime and endTime are interpreted.
 	 *        <table border="1">
+	 * 			<caption>Start/End Time</caption>
 	 *          <tr>
 	 *            <th>Value</th>
 	 *            <th>Interpretation</th>
@@ -4902,7 +4932,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *            <td>Time time window specifies the time extent of data rate</td>
 	 *          </tr>
 	 *        </table>
-	 * @throws RatingException
+	 * @throws RatingException any errors with data retrieval or processing
 	 */
 	public void setData(
 			DatabaseLoadMethod loadMethod,
@@ -4982,7 +5012,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Retrieves the database info required to retrieve a database connection
 	 * @return the database info required to retrieve a database connection
-	 * @throws RatingException
+	 * @throws RatingException any errors retreiving the database information
 	 */
 	public synchronized DbInfo getDbInfo() throws RatingException {
 		if (dbInfo == null) return null;
@@ -4991,7 +5021,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Sets the database info required to retrieve a database connection
 	 * @param dbInfo the database info required to retrieve a database connection
-	 * @throws RatingException
+	 * @throws RatingException any errors
 	 */
 	public synchronized void setDbInfo(DbInfo dbInfo) throws RatingException {
 		this.dbInfo = dbInfo;
@@ -5047,7 +5077,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param url the database URL
 	 * @param userName the database user name
 	 * @param officeId the database office
-	 * @throws RatingException
+	 * @throws RatingException any errors
 	 */
 	public synchronized void setDbInfo(String url, String userName, String officeId) throws RatingException {
 		setDbInfo(new DbInfo(url, userName, officeId));
@@ -5085,7 +5115,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Retrieves a TextContainer containing the data of this object, suitable for storing to DSS.
 	 * @return The TextContainer
-	 * @throws RatingException
+	 * @throws RatingException any errors reading from dss or processing the data
 	 */
 	public TextContainer getDssData() throws RatingException {
 		synchronized(this) {
@@ -5107,7 +5137,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	/**
 	 * Sets the data from this object from a TextContainer (as read from DSS)
 	 * @param tc The TextContainer with the data
-	 * @throws RatingException
+	 * @throws RatingException any errors processing the data.
 	 */
 	public void setData(TextContainer tc) throws RatingException {
 		synchronized(this) {
@@ -5648,7 +5678,7 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 *
 	 * If dbrating == null, this method sets the VerticalDatumContainer on all AbstractRatings.
 	 * Otherwise it sets the vertical datum container from the dbrating.
-	 * @param vdc
+	 * @param vdc vertical datum data
 	 *
 	 */
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)

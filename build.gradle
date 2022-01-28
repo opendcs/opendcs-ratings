@@ -46,6 +46,8 @@ java{
 
 javadoc {
     failOnError = true
+    options.addBooleanOption("Xdoclint:all",true)
+    options.addBooleanOption("html5",true)
 }
 
 test {

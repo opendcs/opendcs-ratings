@@ -82,7 +82,8 @@ public class RatingTemplate implements Modifiable
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
-	 * @throws RatingException
+	 * @throws RatingException any issues retrieving the data or processing what's returned
+	 * @return the rating template in XML form
 	 */
 	public static String getXmlfromDatabase(
 			Connection conn,
@@ -159,7 +160,7 @@ public class RatingTemplate implements Modifiable
 	 * @param outRangeHighMethods The specified rating behavior for when the value to rate
 	 *        is greater than the largest independent value, one for each independent parameter
 	 * @param description The description of the template
-	 * @throws RatingException
+	 * @throws RatingException any issues using the provided data
 	 */
 	public RatingTemplate(
 			String officeId,
@@ -178,7 +179,7 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Public constructor from RatingTemplateContainer
 	 * @param rtc The RatingTemplateContainer to initialize from
-	 * @throws RatingException
+	 * @throws RatingException any issues with retrieving the data
 	 */
 	public RatingTemplate(RatingTemplateContainer rtc) throws RatingException {
 		setData(rtc);
@@ -188,7 +189,7 @@ public class RatingTemplate implements Modifiable
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
-	 * @throws RatingException
+	 * @throws RatingException any issues with retrieving the data.
 	 */
 	public RatingTemplate(
 			Connection conn,
@@ -211,7 +212,8 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the parameters identifier portion of the rating template
 	 * @param parametersId The parameters identifier portion of the rating template
-	 * @throws RatingException
+	 * @throws RatingException errors setting the parameter parts. such as
+	 *    if there aren't exactly 2 parts
 	 */
 	public void setParametersId(String parametersId) throws RatingException {
 		String[]  parts = split(parametersId, SEPARATOR2, "L");
@@ -248,6 +250,8 @@ public class RatingTemplate implements Modifiable
 	 * Retrieves the rating behaviors for when the value to be rated is in the range of the independent values of the rating.
 	 * Not used for ExpressionRating objects. One method for each independent parameter.
 	 * @param inRangeMethods the in-range rating behaviors
+	 * @throws RatingException any errors with the input. such as the number of elements not being that same as
+	 *    the independent parameter count.
 	 */
 	public void setInRangeMethods(RatingMethod[] inRangeMethods) throws RatingException {
 		if (inRangeMethods.length != indParamCount) {
@@ -275,6 +279,8 @@ public class RatingTemplate implements Modifiable
 	 * Sets the rating behaviors for when the value to be rated sorts to a position before the first independent values of the rating.
 	 * Not used for ExpressionRating objects. One method for each independent parameter.
 	 * @param outRangeLowMethods the out-of-range-low rating behaviors
+	 * @throws RatingException any errors with the input. such as the number of elements not being that same as
+	 *    the independent parameter count.
 	 */
 	public void setOutRangeLowMethods(RatingMethod[] outRangeLowMethods) throws RatingException {
 		if (outRangeLowMethods.length != indParamCount) {
@@ -303,6 +309,8 @@ public class RatingTemplate implements Modifiable
 	 * Sets the rating behaviors for when the value to be rated sorts to a position after the last independent values of the rating.
 	 * Not used for ExpressionRating objects. One method for each independent parameter.
 	 * @param outRangeHighMethods the out-of-range-high rating behaviors
+	 * @throws RatingException if the number of elements is not the same as the number or independent Parameters
+	 *     or the METHOD is not HIGHER or NEXT
 	 */
 	public void setOutRangeHighMethods(
 			RatingMethod[] outRangeHighMethods) throws RatingException {
@@ -331,7 +339,7 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the rating template identifier
 	 * @param templateId The rating template identifier
-	 * @throws RatingException
+	 * @throws RatingException if the template doesn't contain two elements separated by {@value hec.data.cwmsRating.RatingConst#SEPARATOR1}
 	 */
 	public void setTemplateId(String templateId) throws RatingException {
 		String[] parts = split(templateId, SEPARATOR1, "L");
@@ -410,7 +418,7 @@ public class RatingTemplate implements Modifiable
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
-	 * @throws RatingException
+	 * @throws RatingException any issues retrieving or using the specified data.
 	 */
 	public void setData (
 			Connection conn,
@@ -430,7 +438,7 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the data from this object from an XML instance
 	 * @param xmlText The XML instance
-	 * @throws RatingException
+	 * @throws RatingException any errors processing the XML data.
 	 */
 	public void setData(String xmlText) throws RatingException {
 		setData(new RatingTemplateContainer(xmlText));
@@ -438,7 +446,7 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the data from this object from a RatingTemplateContainer
 	 * @param rtc The RatingTemplateContainer with the data
-	 * @throws RatingException
+	 * @throws RatingException any issues transferring the data
 	 */
 	public void setData(RatingTemplateContainer rtc) throws RatingException {
 		setData(rtc, false);
@@ -446,7 +454,8 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the data from this object from a RatingTemplateContainer
 	 * @param rtc The RatingTemplateContainer with the data
-	 * @throws RatingException
+	 * @param allowNulls whether elements can take on a default.
+	 * @throws RatingException any errors transfering the data. Ex. allowsNulls is full and certain elements aren't set.
 	 */
 	public void setData(RatingTemplateContainer rtc, boolean allowNulls) throws RatingException {
 		int indParamCount = 0;
@@ -589,7 +598,7 @@ public class RatingTemplate implements Modifiable
 	 * Stores the rating template to a CWMS database
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException
+	 * @throws RatingException any issues storing this to the database
 	 */
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
 		RatingSet.storeToDatabase(conn, getData().toTemplateXml(""), overwriteExisting);

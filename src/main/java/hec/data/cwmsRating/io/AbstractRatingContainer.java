@@ -368,16 +368,16 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	public AbstractRatingContainer getInstance() {
 		return new AbstractRatingContainer();
 	}
-	
+
 	public AbstractRating newRating() throws RatingException {
 		throw new RatingException("Cannot call newRating() on AbstractRatingContainer class");
 	}
-	
+
 	/**
 	 * Constructs an AbstractRatingContainer from the first &lt;rating&gt; or &lt;usgs-stream-rating&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public static AbstractRatingContainer buildFromXml(String xmlStr) throws RatingException {
 		AbstractRatingContainer arc = null;
@@ -437,8 +437,8 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	}
 	/**
 	 * Common code called from subclasses
-	 * @throws VerticalDatumException 
-	 * @throws RatingException 
+	 * @throws VerticalDatumException
+
 	 */
 	protected static void populateCommonDataFromXml(Element ratingElement, AbstractRatingContainer arc) throws VerticalDatumException {
 		HecTime hectime = new HecTime();
@@ -516,15 +516,15 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 		String parametersId = TextUtil.split(ratingSpecId, RatingConst.SEPARATOR1)[1];
 		paramsAndUnits[0] = TextUtil.split(
 				TextUtil.replaceAll(
-					parametersId, 
-					RatingConst.SEPARATOR2, 
-					RatingConst.SEPARATOR3), 
+					parametersId,
+					RatingConst.SEPARATOR2,
+					RatingConst.SEPARATOR3),
 				RatingConst.SEPARATOR3);
 		paramsAndUnits[1] = TextUtil.split(
 				TextUtil.replaceAll(
-					unitsId, 
-					RatingConst.SEPARATOR2, 
-					RatingConst.SEPARATOR3), 
+					unitsId,
+					RatingConst.SEPARATOR2,
+					RatingConst.SEPARATOR3),
 				RatingConst.SEPARATOR3);
 		return paramsAndUnits;
 	}
@@ -573,7 +573,7 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 		}
 		return sb.toString();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

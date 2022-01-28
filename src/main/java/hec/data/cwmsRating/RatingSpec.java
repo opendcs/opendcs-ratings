@@ -132,7 +132,8 @@ public class RatingSpec extends RatingTemplate {
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException
+	 * @throws RatingException Any SQL errors retreiving the data
+	 * @return XML string from the database
 	 */
 	public static String getXmlfromDatabase(
 			Connection conn,

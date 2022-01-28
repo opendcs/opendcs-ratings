@@ -160,7 +160,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		}
 		/**
 		 * @return the mathExpression
-		 * @throws ComputationException
 		 */
 		public String getMathExpression() {
 			String mathExpressionString = null;
