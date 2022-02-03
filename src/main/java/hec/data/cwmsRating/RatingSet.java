@@ -35,7 +35,6 @@ import java.util.logging.Logger;
 
 import hec.data.DataSetException;
 import hec.data.IRating;
-import hec.data.IRatingSet;
 import hec.data.Parameter;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
@@ -76,7 +75,7 @@ import static hec.util.TextUtil.split;
  *
  * @author Mike Perryman
  */
-public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
+public class RatingSet implements IRating, Observer, VerticalDatum {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
@@ -1873,7 +1872,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param rating The rating to add
 	 * @throws RatingException @see #addRatings(Iterable)
 	 */
-	@Override
 	public void addRating(AbstractRating rating) throws RatingException {
 		addRatings(Arrays.asList(new AbstractRating[] {rating}));
 	}
@@ -1882,7 +1880,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * @param ratings The ratings to add
 	 * @throws RatingException @see #addRatings(Iterable)
 	 */
-	@Override
 	public void addRatings(AbstractRating[] ratings) throws RatingException {
 		addRatings(Arrays.asList(ratings));
 	}
@@ -3144,14 +3141,12 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 	 * Retrieves the times series of ratings.
 	 * @return The times series of ratings.
 	 */
-	@Override
 	public AbstractRating[] getRatings() {
 		synchronized(this) {
 			return ratings.values().toArray(new AbstractRating[ratings.size()]);
 		}
 	}
 
-	@Override
 	public TreeMap<Long, AbstractRating> getRatingsMap()
 	{
 		synchronized(this) {
@@ -3159,7 +3154,6 @@ public class RatingSet implements IRating, IRatingSet, Observer, VerticalDatum {
 		}
 	}
 
-	@Override
 	public AbstractRating getRating(Long effectiveDate)
 	{
 		synchronized(this) {

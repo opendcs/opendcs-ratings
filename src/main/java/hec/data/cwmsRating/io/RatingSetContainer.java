@@ -14,8 +14,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import hec.data.RatingException;
+import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingUtil;
+import hec.io.DataContainer;
+import hec.io.DataContainerTransformer;
+import hec.io.HecIoException;
+
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
@@ -26,7 +31,8 @@ import org.jdom.Element;
  * Data container class for RatingSet
  * @author Mike Perryman
  */
-public class RatingSetContainer implements VerticalDatum {
+public class RatingSetContainer implements VerticalDatum, DataContainerTransformer
+{
 	/**
 	 * Contains the rating specification
 	 */
@@ -570,6 +576,18 @@ public class RatingSetContainer implements VerticalDatum {
 		}
 		for (int i = 0; i < abstractRatingContainers.length; ++i) {
 			abstractRatingContainers[i].setVerticalDatumContainer(vdc);
+		}
+	}
+
+
+	@Override
+	public DataContainer toDataContainer() throws HecIoException
+	{
+		try {
+			return new RatingSet(this).getDssData();
+		}
+		catch(RatingException e) {
+			throw new HecIoException(e);
 		}
 	}
 }
