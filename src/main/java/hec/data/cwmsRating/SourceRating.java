@@ -1,22 +1,26 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 /**
- * 
+ *
  */
 package hec.data.cwmsRating;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import hec.io.VerticalDatumContainer;
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_INT;
-import static hec.lang.Const.UNDEFINED_TIME;
+import java.util.Arrays;
+import java.util.Observer;
+import java.util.TimeZone;
+
 import hec.data.DataSetIllegalArgumentException;
 import hec.data.IRating;
-import hec.data.IVerticalDatum;
 import hec.data.Interval;
 import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
-import hec.data.VerticalDatumException;
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.data.cwmsRating.io.SourceRatingContainer;
 import hec.hecmath.HecMathException;
@@ -30,17 +34,22 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatum;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
 
-import java.util.Arrays;
-import java.util.Observer;
-import java.util.TimeZone;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.lang.Const.UNDEFINED_INT;
+import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
  * Holds a source rating of a virtual or transitional rating.
- * 
+ *
  * @author Mike Perryman
  */
-public class SourceRating implements IRating, IVerticalDatum, Observer {
+public class SourceRating implements IRating, VerticalDatum, Observer {
 
 		/**
 		 * A math expression to be evaluated instead of using the rating set.
@@ -75,7 +84,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * Public constructor from SourceRatingContainer object
 		 * @param src The SourceRatingContainer object to construct from
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(SourceRatingContainer src) throws RatingException {
 			this.observationTarget = new Observable();
@@ -85,7 +94,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		 * Public constructor from a RatingSet object and units
 		 * @param ratingSet the RatingSet object to use
 		 * @param ratingUnits the rating units to use
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(RatingSet ratingSet, String[] ratingUnits) throws RatingException {
 			this.observationTarget = new Observable();
@@ -95,7 +104,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		 * Public constructor from a RatingSet object and units
 		 * @param ratingSet the RatingSet object to use
 		 * @param ratingUnitsId the rating units to use
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(RatingSet ratingSet, String ratingUnitsId) throws RatingException {
 			this.observationTarget = new Observable();
@@ -104,7 +113,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * Public constructor from a RatingSet object and default units
 		 * @param ratingSet the RatingSet object to use
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public SourceRating(RatingSet ratingSet) throws RatingException {
 			this.observationTarget = new Observable();
@@ -113,7 +122,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * Initialize the object from a SourceRatingContainer object
 		 * @param src The SourceRatingContainer object to initialize from
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		void setData(SourceRatingContainer src) throws RatingException {
 			try {
@@ -151,7 +160,6 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		}
 		/**
 		 * @return the mathExpression
-		 * @throws ComputationException 
 		 */
 		public String getMathExpression() {
 			String mathExpressionString = null;
@@ -169,7 +177,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * @param mathExpression the mathExpression to set
 		 * @param units the units as a string array
-		 * @throws ComputationException 
+		 * @throws ComputationException
 		 */
 		public void setMathExpression(String mathExpression, String[] units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
@@ -180,7 +188,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * @param mathExpression the mathExpression to set
 		 * @param units the units as a string
-		 * @throws ComputationException 
+		 * @throws ComputationException
 		 */
 		public void setMathExpression(String mathExpression, String units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
@@ -197,7 +205,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string array
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public void setRatingSet(RatingSet ratings, String[] units) throws RatingException {
 			this.ratings = ratings;
@@ -210,7 +218,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public void setRatingSet(RatingSet ratings, String units) throws RatingException {
 			this.ratings = ratings;
@@ -222,7 +230,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		}
 		/**
 		 * @param ratings the ratings to set, using the RatingUnits of the set
-		 * @throws RatingException 
+		 * @throws RatingException
 		 */
 		public void setRatingSet(RatingSet ratings) throws RatingException {
 			this.ratings = ratings;
@@ -247,8 +255,8 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		}
 		/**
 		 * Sets the ratingUnits array from a string array
-		 * @param ratingUnits The string array to set the ratingUnits array from
-		 * @throws RatingException 
+		 * @param units The string array to set the ratingUnits array from
+		 * @throws RatingException
 		 */
 		protected void setRatingUnits(String[] units) throws RatingException {
 			if (ratings != null) {
@@ -267,8 +275,8 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 		}
 		/**
 		 * Sets the ratingUnits array from a string
-		 * @param ratingUnits The string to set the ratingUnits array from
-		 * @throws RatingException 
+		 * @param units The string to set the ratingUnits array from
+		 * @throws RatingException
 		 */
 		protected void setRatingUnits(String units) throws RatingException {
 			if (units == null) {
@@ -279,21 +287,21 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			}
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getNativeVerticalDatum()
+		 * @see hec.data.VerticalDatum#getNativeVerticalDatum()
 		 */
 		@Override
 		public String getNativeVerticalDatum() throws VerticalDatumException {
 			return (ratings == null) ? null : ratings.getNativeVerticalDatum();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getCurrentVerticalDatum()
+		 * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
 		 */
 		@Override
 		public String getCurrentVerticalDatum() throws VerticalDatumException {
 			return (ratings == null) ? null : ratings.getCurrentVerticalDatum();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#isCurrentVerticalDatumEstimated()
+		 * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
 		 */
 		@Override
 		public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -303,7 +311,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.isCurrentVerticalDatumEstimated();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#toNativeVerticalDatum()
+		 * @see hec.data.VerticalDatum#toNativeVerticalDatum()
 		 */
 		@Override
 		public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -313,7 +321,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.toNativeVerticalDatum();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#toNGVD29()
+		 * @see hec.data.VerticalDatum#toNGVD29()
 		 */
 		@Override
 		public boolean toNGVD29() throws VerticalDatumException {
@@ -323,7 +331,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.toNGVD29();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#toNAVD88()
+		 * @see hec.data.VerticalDatum#toNAVD88()
 		 */
 		@Override
 		public boolean toNAVD88() throws VerticalDatumException {
@@ -333,7 +341,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.toNAVD88();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#toVerticalDatum(java.lang.String)
+		 * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
 		 */
 		@Override
 		public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -343,7 +351,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.toVerticalDatum(datum);
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#forceVerticalDatum(java.lang.String)
+		 * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
 		 */
 		@Override
 		public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -353,7 +361,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.forceVerticalDatum(datum);
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getCurrentOffset()
+		 * @see hec.data.VerticalDatum#getCurrentOffset()
 		 */
 		@Override
 		public double getCurrentOffset() throws VerticalDatumException {
@@ -363,7 +371,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.getCurrentOffset();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getCurrentOffset(java.lang.String)
+		 * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
 		 */
 		@Override
 		public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -373,7 +381,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.getCurrentOffset();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getNGVD29Offset()
+		 * @see hec.data.VerticalDatum#getNGVD29Offset()
 		 */
 		@Override
 		public double getNGVD29Offset() throws VerticalDatumException {
@@ -383,7 +391,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.getNGVD29Offset();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getNGVD29Offset(java.lang.String)
+		 * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
 		 */
 		@Override
 		public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -393,7 +401,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.getNGVD29Offset(unit);
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getNAVD88Offset()
+		 * @see hec.data.VerticalDatum#getNAVD88Offset()
 		 */
 		@Override
 		public double getNAVD88Offset() throws VerticalDatumException {
@@ -403,7 +411,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.getNAVD88Offset();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getNAVD88Offset(java.lang.String)
+		 * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
 		 */
 		@Override
 		public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -413,7 +421,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.getNAVD88Offset(unit);
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#isNGVD29OffsetEstimated()
+		 * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
 		 */
 		@Override
 		public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -423,7 +431,7 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.isNGVD29OffsetEstimated();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#isNAVD88OffsetEstimated()
+		 * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
 		 */
 		@Override
 		public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -433,14 +441,14 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 			return ratings.isNAVD88OffsetEstimated();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#getVerticalDatumInfo()
+		 * @see hec.data.VerticalDatum#getVerticalDatumInfo()
 		 */
 		@Override
 		public String getVerticalDatumInfo() throws VerticalDatumException {
 			return ratings == null ? null : ratings.getVerticalDatumInfo();
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.IVerticalDatum#setVerticalDatumInfo(java.lang.String)
+		 * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
 		 */
 		@Override
 		public void setVerticalDatumInfo(String initStr) throws VerticalDatumException {
@@ -1212,7 +1220,6 @@ public class SourceRating implements IRating, IVerticalDatum, Observer {
 	 *
 	 * @param vdc
 	 */
-	@Override
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
 		if(ratings != null) {
 			ratings.setVerticalDatumContainer(vdc);

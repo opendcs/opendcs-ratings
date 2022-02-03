@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating.io;
 
-import hec.io.DataContainer;
-
 import java.io.Serializable;
+
+import hec.io.DataContainer;
 
 public class AbstractRatingContainerWrapper  extends DataContainer implements Serializable{
 	private AbstractRatingContainer _abstractRatingContainer;

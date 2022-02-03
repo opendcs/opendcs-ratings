@@ -1,21 +1,17 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_LONG;
-import static hec.util.TextUtil.join;
-import static hec.util.TextUtil.split;
+package hec.data.cwmsRating;
 
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
-
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
 
 import hec.data.NotMonotonicRatingException;
 import hec.data.RatingException;
@@ -27,9 +23,20 @@ import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
+import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.lang.Const.UNDEFINED_LONG;
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.split;
 /**
  * Table-based (lookup) rating implementation.
- * 
+ *
  * @author Mike Perryman
  */
 public class TableRating extends AbstractRating {
@@ -67,14 +74,14 @@ public class TableRating extends AbstractRating {
 	protected SequenceProperties props = null;
 
 	protected TableRating() {}
-	
+
 	static void setBehaviors(
-			TableRatingContainer trc, 
+			TableRatingContainer trc,
 			RatingMethod[] inRangeMethods,
 			RatingMethod[] outRangeLowMethods,
 			RatingMethod[] outRangeHighMethods,
 			int offset) {
-	
+
 		trc.inRangeMethod = inRangeMethods[offset].name();
 		trc.outRangeLowMethod = outRangeLowMethods[offset].name();
 		trc.outRangeHighMethod = outRangeHighMethods[offset].name();
@@ -84,7 +91,7 @@ public class TableRating extends AbstractRating {
 			}
 		}
 	}
-	
+
 	void setBehaviors(RatingTemplate template) throws RatingException {
 		synchronized(this) {
 			TableRatingContainer trc = (TableRatingContainer) getData();
@@ -92,9 +99,9 @@ public class TableRating extends AbstractRating {
 			setData(trc);
 		}
 	}
-	
+
 	/**
-	 * Protected Constructor for nested rating tables 
+	 * Protected Constructor for nested rating tables
 	 * @param values The table of values that comprise the rating.
 	 * @param extensionValues The rating extension values
 	 * @param inRangeMethod The prescribed behavior for when the value to rate falls within the range of independent values in the rating table
@@ -167,7 +174,7 @@ public class TableRating extends AbstractRating {
 		setData(new TableRatingContainer(xmlText));
 	}
 	/**
-	 * Public Constructor 
+	 * Public Constructor
 	 * @param values The table of values that comprise the rating.
 	 * @param extensionValues The rating extension values
 	 * @param inRangeMethod The prescribed behavior for when the value to rate falls within the range of independent values in the rating table
@@ -178,9 +185,9 @@ public class TableRating extends AbstractRating {
 	 * @param unitsId The units identifier
 	 * @param effectiveDate The effective date of the rating. The effective date is the earliest date/time for which the rating should be applied.
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
-	 *        This may be later than the effective date 
+	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
-	 * @param description The description of the rating        
+	 * @param description The description of the rating
 	 * @throws RatingException
 	 */
 	public TableRating(
@@ -211,7 +218,7 @@ public class TableRating extends AbstractRating {
 				description);
 	}
 	/**
-	 * Public Constructor 
+	 * Public Constructor
 	 * @param values The table of values that comprise the rating.
 	 * @param extensionValues The rating extension values
 	 * @param inRangeMethod The prescribed behavior for when the value to rate falls within the range of independent values in the rating table
@@ -223,9 +230,9 @@ public class TableRating extends AbstractRating {
 	 * @param effectiveDate The effective date of the rating. The effective date is the earliest date/time for which the rating should be applied.
 	 * @param transitionStartDate The date to start the transition (interpolation) from the previous rating
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
-	 *        This may be later than the effective date 
+	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
-	 * @param description The description of the rating        
+	 * @param description The description of the rating
 	 * @throws RatingException
 	 */
 	public TableRating(
@@ -304,7 +311,7 @@ public class TableRating extends AbstractRating {
 	 */
 	@Override
 	public double[] rate(double[] pIndVals) throws RatingException {
-		
+
 		double rated[] = new double[pIndVals.length];
 		for (int i = 0; i < pIndVals.length; ++i) rated[i] = this.rate(pIndVals[i]);
 		return rated;
@@ -314,7 +321,7 @@ public class TableRating extends AbstractRating {
 	 */
 	@Override
 	public double[] rate(double[][] pIndVals) throws RatingException {
-		
+
 		for (int i = 1; i < pIndVals.length; ++i) {
 			if (pIndVals[i].length != pIndVals[0].length) {
 				throw new RatingException("Independent value sets have varying lengths.");
@@ -322,14 +329,14 @@ public class TableRating extends AbstractRating {
 		}
 		if (pIndVals[0].length != getIndParamCount()) {
 			throw new RatingException(String.format(
-					"Data has %d independent parameters; rating %s requires %d", 
+					"Data has %d independent parameters; rating %s requires %d",
 					pIndVals.length, ratingSpecId, getIndParamCount()));
 		}
 		double[] rated = new double[pIndVals.length];
 		for (int i = 0; i < pIndVals.length; ++i) rated[i] = this.rate(pIndVals[i], 0);
 		return rated;
 	}
-	
+
 	protected double rate(double[] pIndVals, int p_offset) throws RatingException {
 		String[] ratingUnits = getRatingUnits();
 		if (ratingUnits == null) {
@@ -355,7 +362,7 @@ public class TableRating extends AbstractRating {
 			return rate(pIndVals, dataUnits, ratingUnits, p_offset);
 		}
 	}
-	
+
 	protected double rate(double[] pIndVals, String[] dataUnits, String[] ratingUnits, int p_offset) throws RatingException {
 		synchronized(this) {
 			double ind_val = pIndVals[p_offset];
@@ -367,7 +374,7 @@ public class TableRating extends AbstractRating {
 			int hi = effectiveValues.length-1;
 			int mid;
 			double mid_ind_val;
-			RatingMethod extrap_method = null; 
+			RatingMethod extrap_method = null;
 			double dep_val = UNDEFINED_DOUBLE;
 			comps: do {
 				//--------------------------------------------------- //
@@ -620,8 +627,8 @@ public class TableRating extends AbstractRating {
 					x  = Math.log10(x);
 					x1 = Math.log10(x1);
 					x2 = Math.log10(x2);
-					if (Double.isNaN(x) || Double.isInfinite(x)   
-							|| Double.isNaN(x1) || Double.isInfinite(x1) 
+					if (Double.isNaN(x) || Double.isInfinite(x)
+							|| Double.isNaN(x1) || Double.isInfinite(x1)
 							|| Double.isNaN(x2) || Double.isInfinite(x2))  {
 						//-------------------------------------------------//
 						// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
@@ -654,7 +661,7 @@ public class TableRating extends AbstractRating {
 				break comps;
 			} while(false);
 			if (p_offset == 0 && dep_val != UNDEFINED_DOUBLE) {
-				dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]); 
+				dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]);
 			}
 			return dep_val;
 		}
@@ -740,7 +747,7 @@ public class TableRating extends AbstractRating {
 			return indVals;
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#getData()
 	 */
@@ -856,7 +863,7 @@ public class TableRating extends AbstractRating {
 			return ratingSpecId == null ? (values == null ? 0 : getIndParamCount(values)) : getRatingParameters().length - 1;
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#getRatingExtents(long)
 	 */
@@ -882,7 +889,7 @@ public class TableRating extends AbstractRating {
 			return extents;
 		}
 	}
-	
+
 	protected void getRatingExtents(double[][] extents, int level) throws RatingException {
 		synchronized(this) {
 			if (values == null || values.length == 0) {
@@ -920,7 +927,7 @@ public class TableRating extends AbstractRating {
 			}
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#setName(java.lang.String)
 	 */
@@ -1027,12 +1034,12 @@ public class TableRating extends AbstractRating {
 	 * @param outRangeHighMethod The prescribed behavior for when the value to rate would sort after the last independent value in the rating table
 	 * @param officeId The identifier of the office that owns this rating
 	 * @param ratingSpecId The rating specification identifier
-	 * @param unitsId The units identifier
+	 * @param ratingUnitsId The units identifier
 	 * @param effectiveDate The effective date of the rating. The effective date is the earliest date/time for which the rating should be applied.
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
-	 *        This may be later than the effective date 
+	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
-	 * @param desription The description of the rating        
+	 * @param description The description of the rating
 	 * @throws RatingException
 	 */
 	protected void init(
@@ -1196,9 +1203,9 @@ public class TableRating extends AbstractRating {
 	{
 		return getRatingValues();
 	}
-	
+
 	/**
-	 * @return The mixture of rating values and extension values used to perform lookups. 
+	 * @return The mixture of rating values and extension values used to perform lookups.
 	 */
 	public RatingValue[] getEffectiveValues()
 	{
@@ -1263,7 +1270,7 @@ public class TableRating extends AbstractRating {
 			setData(trc);
 		}
 	}
-	
+
 	@Override
 	public TableRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException
 	{

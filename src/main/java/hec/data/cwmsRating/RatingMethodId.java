@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating;
 
 import java.util.ArrayList;
@@ -63,7 +71,7 @@ public enum RatingMethodId
 	}
 
 	/**
-	 * @param rangeIdenifierIdx
+	 * @param rangeIdentifierIdx
 	 * @return a subset of the rating method ids that are valid for the given
 	 *         rangeIdentifierIdx (e.g. SPECLO, TEMPLATEHI etc...)
 	 */

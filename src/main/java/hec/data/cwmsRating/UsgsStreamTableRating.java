@@ -1,7 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_TIME;
+package hec.data.cwmsRating;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -25,6 +30,9 @@ import hec.data.location.LocationTemplate;
 import hec.data.rating.IRatingSpecification;
 import hec.util.TextUtil;
 
+import static hec.lang.Const.UNDEFINED_DOUBLE;
+import static hec.lang.Const.UNDEFINED_TIME;
+
 /**
  * TableRating sub-type for USGS-style stream ratings, which may include dated shifts and log interpolation offsets
  * @author Mike Perryman
@@ -44,7 +52,7 @@ public class UsgsStreamTableRating extends TableRating {
 	protected UsgsRounder shiftRounder = null;
 
 	/**
-	 * Public Constructor 
+	 * Public Constructor
 	 * @param values The table of values that comprise the rating.
 	 * @param in_range_method The prescribed behavior for when the value to rate falls within the range of independent values in the rating table
 	 * @param out_range_low_method The prescribed behavior for when the value to rate would sort before the first independent value in the rating table
@@ -53,9 +61,9 @@ public class UsgsStreamTableRating extends TableRating {
 	 * @param createDate The creation date of the rating. The creation date is the earliest date/time that the rating was loaded and usable in the system.
 	 *        This may be later than the effective date
 	 * @param shifts The rating shifts
-	 * @param offsets The logarithmic interpolation offsets 
+	 * @param offsets The logarithmic interpolation offsets
 	 * @param active Specifies whether the rating is currently active
-	 * @param desription The description of the rating        
+	 * @param description The description of the rating
 	 * @throws RatingException
 	 */
 	public UsgsStreamTableRating(
@@ -115,7 +123,7 @@ public class UsgsStreamTableRating extends TableRating {
 				urc.createDateMillis,
 				urc.active,
 				urc.description);
-		
+
 		if (urc.offsets != null) {
 			this.offsets = new TableRating(urc.offsets);
 			if (urc.unitsId != null && urc.unitsId.length() > 0) {
@@ -221,7 +229,7 @@ public class UsgsStreamTableRating extends TableRating {
 				throw new RatingException("Value times must be specified or default time must be set when shifts are present.");
 			}
 		}
-		long[] valTimes = new long[indVals.length]; 
+		long[] valTimes = new long[indVals.length];
 		Arrays.fill(valTimes, valTime);
 		return rate(valTimes, indVals);
 	}
@@ -265,7 +273,7 @@ public class UsgsStreamTableRating extends TableRating {
 						mid = (lo + hi) / 2;
 						mid_ind_val = effectiveValues[mid].getIndValue();
 						if (lt(ind_val, mid_ind_val)) {
-							hi = mid; 
+							hi = mid;
 						}
 						else {
 							lo = mid;
@@ -405,8 +413,8 @@ public class UsgsStreamTableRating extends TableRating {
 					x  = Math.log10(x - offset);
 					x1 = Math.log10(x1 - offset);
 					x2 = Math.log10(x2 - offset);
-					if (Double.isNaN(x) || Double.isInfinite(x)   
-							|| Double.isNaN(x1) || Double.isInfinite(x1) 
+					if (Double.isNaN(x) || Double.isInfinite(x)
+							|| Double.isNaN(x1) || Double.isInfinite(x1)
 							|| Double.isNaN(x2) || Double.isInfinite(x2))  {
 						//-------------------------------------------------//
 						// fall back from LOGARITHMIC or LOG_LIN to LINEAR //
@@ -451,7 +459,7 @@ public class UsgsStreamTableRating extends TableRating {
 				throw new RatingException("Value times must be specified or default time must be set when shifts are present.");
 			}
 		}
-		long[] valTimes = new long[indVals.length]; 
+		long[] valTimes = new long[indVals.length];
 		Arrays.fill(valTimes, valTime);
 		return rate(valTimes, indVals);
 	}
@@ -657,8 +665,8 @@ public class UsgsStreamTableRating extends TableRating {
 					y = Math.log10(y);
 					y1 = Math.log10(y1);
 					y2 = Math.log10(y2);
-					if (Double.isNaN(y)  || Double.isInfinite(y)  || 
-						Double.isNaN(y1) || Double.isInfinite(y1) || 
+					if (Double.isNaN(y)  || Double.isInfinite(y)  ||
+						Double.isNaN(y1) || Double.isInfinite(y1) ||
 						Double.isNaN(y2) || Double.isInfinite(y2))  {
 						//-------------------------------------------------//
 						// fall back from LOGARITHMIC or LIN_LOG to LINEAR //
@@ -682,7 +690,7 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Retrieves the current shifts, can return null
 	 * @return the shifts
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public RatingSet getShifts() throws RatingException {
 		synchronized(this) {
@@ -707,7 +715,7 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Sets the current shifts
 	 * @param shifts the shifts to set
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public void setShifts(RatingSet shifts) throws RatingException {
 		synchronized(this) {
@@ -773,7 +781,7 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 	}
 	/**
-	 * Returns the effective date used to rate a value at the specified time. This will either be the 
+	 * Returns the effective date used to rate a value at the specified time. This will either be the
 	 * effective date of the base rating or the effective date of the latest active shift on or before
 	 * the specified time.
 	 * @param valTime The time of the value to rate
@@ -880,10 +888,10 @@ public class UsgsStreamTableRating extends TableRating {
 					ustrc.createDateMillis,
 					ustrc.active,
 					ustrc.description);
-			
+
 			setShifts(ustrc.shifts == null ? null : new RatingSet(ustrc.shifts));
 			setOffsets(ustrc.offsets == null ? null : new TableRating(ustrc.offsets));
-			
+
 			observationTarget.setChanged();
 			observationTarget.notifyObservers();
 		}
@@ -906,7 +914,7 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Retrieves the stage shift for an unshifted stage at a specified time
 	 * @param valTime The time to get the shift for
-	 * @param height The unshifted stage to get the shift for 
+	 * @param height The unshifted stage to get the shift for
 	 * @return The stage shift
 	 * @throws RatingException
 	 */
@@ -939,7 +947,7 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Retrieves the stage shift for an shifted stage at a specified time
 	 * @param valTime The time to get the shift for
-	 * @param height The shifted stage to get the shift for 
+	 * @param height The shifted stage to get the shift for
 	 * @return The stage shift
 	 * @throws RatingException
 	 */
@@ -994,7 +1002,7 @@ public class UsgsStreamTableRating extends TableRating {
 			return offset;
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.AbstractRating#getRatingExtents()
 	 */
@@ -1030,10 +1038,10 @@ public class UsgsStreamTableRating extends TableRating {
 	{
 		synchronized(this) {
 			RatingSetContainer retvalShifts = new RatingSetContainer();
-			RatingSpecContainer ratingSpecContainer = new RatingSpecContainer(); 
+			RatingSpecContainer ratingSpecContainer = new RatingSpecContainer();
 			retvalShifts.ratingSpecContainer = ratingSpecContainer;
 			String locationRefId = null;
-			try 
+			try
 			{
 				IRatingSpecification ratingSpecification = this.getRatingSpecification();
 				LocationTemplate locationRef = ratingSpecification.getLocationRef();
@@ -1042,7 +1050,7 @@ public class UsgsStreamTableRating extends TableRating {
 					locationRefId = locationRef.getLocationId();
 				}
 			}
-			catch(DataSetException e) 
+			catch(DataSetException e)
 			{
 				throw new RatingException(e);
 			}
@@ -1066,13 +1074,13 @@ public class UsgsStreamTableRating extends TableRating {
 			ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
 			ratingSpecContainer.depRoundingSpec = "4444444449";
 			retvalShifts.abstractRatingContainers = new TableRatingContainer[1];
-			
+
 			String unitsId = this.getRatingUnitsId();
 			String shiftUnit = TextUtil.split(TextUtil.split(unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
-			
+
 			TableRatingContainer shiftTableRatingContainer = new TableRatingContainer();
 			retvalShifts.abstractRatingContainers[0] = shiftTableRatingContainer;
-			
+
 			shiftTableRatingContainer.ratingSpecId = String.format("%s.%s.%s", ratingSpecContainer.locationId, retvalShifts.ratingSpecContainer.templateId, "Production");
 			shiftTableRatingContainer.unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
 			shiftTableRatingContainer.effectiveDateMillis = shiftDate.getTime();
@@ -1093,7 +1101,7 @@ public class UsgsStreamTableRating extends TableRating {
 			String unitsId = this.getRatingUnitsId();
 			String shiftUnit = TextUtil.split(TextUtil.split(unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
 			String locationRefId = null;
-			try 
+			try
 			{
 				IRatingSpecification ratingSpecification = this.getRatingSpecification();
 				LocationTemplate locationRef = ratingSpecification.getLocationRef();
@@ -1102,14 +1110,14 @@ public class UsgsStreamTableRating extends TableRating {
 					locationRefId = locationRef.getLocationId();
 				}
 			}
-			catch(DataSetException e) 
+			catch(DataSetException e)
 			{
 				throw new RatingException(e);
 			}
 			String locationId = locationRefId;
 			RatingSpec ratingSpec = shiftsRef.getRatingSpec();
 			String templateId = ratingSpec.getTemplateId();
-			
+
 			TableRatingContainer shiftTableRatingContainer = new TableRatingContainer();
 			shiftTableRatingContainer.ratingSpecId = String.format("%s.%s.%s", locationId, templateId, "Production");
 			shiftTableRatingContainer.unitsId = String.format("%s;%s", shiftUnit, shiftUnit);
@@ -1141,11 +1149,11 @@ public class UsgsStreamTableRating extends TableRating {
 				StringBuilder sb = new StringBuilder();
 				DateFormat gmtDateFormat = new SimpleDateFormat("HHmm ddMMMyyyy z");
 				gmtDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				String strShiftDateTime =  gmtDateFormat.format(effectiveDate);			
-				sb.append(this.getRatingSpecId()).append(" already contains a shift at: ").append(strShiftDateTime);			
+				String strShiftDateTime =  gmtDateFormat.format(effectiveDate);
+				sb.append(this.getRatingSpecId()).append(" already contains a shift at: ").append(strShiftDateTime);
 				throw new RatingException(sb.toString());
 			}
-			
+
 			//does this rating have any shifts?
 			RatingSetContainer shiftsRatingSetContainer = null;
 			if (shiftsRef == null)
@@ -1193,5 +1201,5 @@ public class UsgsStreamTableRating extends TableRating {
 			super.setEffectiveDate(effectiveDate);
 		}
 	}
-	
+
 }

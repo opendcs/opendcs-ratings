@@ -1,33 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
-import hec.data.RatingException;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.RatingRuntimeException;
-import hec.data.VerticalDatumException;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.TransitionalRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
-import hec.heclib.util.HecTime;
-import hec.io.VerticalDatumContainer;
-import hec.lang.Const;
-import hec.util.TextUtil;
+package hec.data.cwmsRating;
 
 import java.io.File;
 import java.io.FileReader;
@@ -42,6 +21,26 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import hec.data.RatingException;
+import hec.data.RatingObjectDoesNotExistException;
+import hec.data.RatingRuntimeException;
+import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.ExpressionRatingContainer;
+import hec.data.cwmsRating.io.RatingSetContainer;
+import hec.data.cwmsRating.io.RatingSpecContainer;
+import hec.data.cwmsRating.io.RatingTemplateContainer;
+import hec.data.cwmsRating.io.RatingValueContainer;
+import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.cwmsRating.io.TransitionalRatingContainer;
+import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import hec.data.cwmsRating.io.VirtualRatingContainer;
+import hec.heclib.util.HecTime;
+import hec.lang.Const;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Parser;
@@ -49,6 +48,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.ParserAdapter;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 
 @SuppressWarnings("deprecation")
 /**
@@ -158,7 +166,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	private int offsetPointSetCount = 0;
 	private int shiftPointSetCount = 0;
 	private boolean requireRatingPoints = true;
-	
+
 	//----------------//
 	// helper classes //
 	//----------------//
@@ -167,7 +175,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		public double dep = Const.UNDEFINED_DOUBLE;
 		public String note = null;
 	}
-	
+
 	class RatingPoints {
 		private int otherIndCount = 0;
 		private int pointCount = 0;
@@ -181,7 +189,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		public void addIndValue(double value) {
 			if (points == null) points = new ArrayList<PointValue>();
 			points.add(new PointValue());
-			points.get(pointCount++).ind = value;			
+			points.get(pointCount++).ind = value;
 		}
 		public void addDepValue(double value) {
 			points.get(pointCount-1).dep = value;
@@ -208,23 +216,23 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			return points.get(i).note;
 		}
 	}
-	
+
 	class ShiftInfo {
 		public long effectiveDate = Const.UNDEFINED_TIME;
 		public long transitionStartDate = Const.UNDEFINED_TIME;
 		public long createDate = Const.UNDEFINED_TIME;
 		public boolean active = false;
 	}
-	
+
 	//--------------------------//
 	// public parsing interface //
 	//--------------------------//
-	
+
 	/**
 	 * Parses a RatingSetContainer XML instance from a string.
 	 * @param str The string containing the XML
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException any errors parsing the string
 	 */
 	public static RatingSetContainer parseString(String str) throws RatingException {
 		return parseString(str, false);
@@ -234,7 +242,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @param str The string containing the XML
 	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException any errors parsing the string
 	 */
 	public static RatingSetContainer parseString(String str, boolean requireRatingPoints) throws RatingException {
 		return parseReader(new StringReader(str), requireRatingPoints);
@@ -243,7 +251,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * Parses a RatingSetContainer XML instance from a File object.
 	 * @param file The File object containing the XML
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException any errors processing the input
 	 */
 	public static RatingSetContainer parseFile(File file) throws RatingException {
 		return parseFile(file, true);
@@ -253,12 +261,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @param file The File object containing the XML
 	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException any errors parsing the file
 	 */
 	public static RatingSetContainer parseFile(File file, boolean requireRatingPoints) throws RatingException {
 		try {
 			return parseReader(new FileReader(file), requireRatingPoints);
-		} 
+		}
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
@@ -268,7 +276,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * Parses a RatingSetContainer XML instance from a file.
 	 * @param filename The name of the file containing the XML
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseFile(String filename) throws RatingException {
 		return parseFile(filename, true);
@@ -278,12 +286,12 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @param filename The name of the file containing the XML
 	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseFile(String filename, boolean requireRatingPoints) throws RatingException {
 		try {
 			return parseReader(new FileReader(new File(filename)), requireRatingPoints);
-		} 
+		}
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
 			throw new RatingException(t);
@@ -293,7 +301,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * Parses a RatingSetContainer XML instance from a Reader object.
 	 * @param r The Reader object to get the XML from
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseReader(Reader r) throws RatingException {
 		return parseReader(r, true);
@@ -303,7 +311,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @param r The Reader object to get the XML from
 	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseReader(Reader r, boolean requireRatingPoints) throws RatingException {
 		return parseInputSource(new InputSource(r), requireRatingPoints);
@@ -312,7 +320,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * Parses a RatingSetContainer XML instance from a InputSource object.
 	 * @param is The InputSource object to get the XML from
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseInputSource(InputSource is) throws RatingException {
 		return parseInputSource(is, true);
@@ -322,7 +330,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @param is The InputSource object to get the XML from
 	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
 	 * @return The resulting RatingSetContainer object
-	 * @throws RatingException
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseInputSource(InputSource is, boolean requireRatingPoints) throws RatingException {
 		RatingSetXmlParser parser = null;
@@ -342,16 +350,16 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		return parser.getRatingSetContainer();
 	}
 
-	
+
 	/*
-	 * Private constructor 
+	 * Private constructor
 	 * @throws SAXException
 	 */
 	private RatingSetXmlParser() throws SAXException {
 		this(true);
 	}
 	/*
-	 * Private constructor 
+	 * Private constructor
 	 * @throws SAXException
 	 */
 	private RatingSetXmlParser(boolean requireRatingPoints) throws SAXException {
@@ -488,7 +496,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						}
 						else if (parts[2].equals(FORMULA_STR)) {
 							if (!(parts[1].equals(RATING_STR) || parts[1].equals(SIMPLE_RATING_STR))) {
-								elementError(); 
+								elementError();
 							}
 							erc = new ExpressionRatingContainer();
 							arc.clone(erc);
@@ -678,7 +686,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					else if (parts[1].equals(VIRTUAL_RATING_STR)) {
 						if (parts[2].equals(SOURCE_RATINGS_STR)) {
  							if (parts[3].equals(SOURCE_RATING_STR)) {
- 								if (parts[4].equals(RATING_SPEC_ID_STR) || 
+ 								if (parts[4].equals(RATING_SPEC_ID_STR) ||
  									parts[4].equals(RATING_EXPRESSION_STR)) {
  										sourceRatingIdsByPos.put(pos, arc.officeId+"/"+data);
  								}
@@ -715,7 +723,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		}
 	}
 	/*
-	 * SAX method - do some initialization 
+	 * SAX method - do some initialization
 	 */
 	@Override
 	public void startDocument() {
@@ -726,7 +734,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 */
 	@Override
 	public void endDocument() {
-		
+
 //		if (rtcsById == null || rtcsById.size() == 0) {
 //			throw new RatingRuntimeException("No rating templates in data");
 //		}
@@ -911,7 +919,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			//-----------------------------------//
 			rsc.ratingSpecContainer = rspc;
 			rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
-			
+
 			//----------------------------------------------//
 			// output info about unused specs and templates //
 			//----------------------------------------------//
@@ -1007,7 +1015,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
 			}
 		}
-		
+
 		partsLen = -1;
 		StringBuilder sb = new StringBuilder();
 		sb.append("\nRating Templates:\n");
@@ -1036,14 +1044,14 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					   append(" (").
 					   append(rc.getClass().getName()).
 					   append(")\n");
-					
+
 				}
 			}
 		}
 		AbstractRating.logger.fine(sb.toString());
 	}
 	/*
-	 * SAX method - validate structure and process attributes 
+	 * SAX method - validate structure and process attributes
 	 */
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attrs) {
@@ -1055,7 +1063,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				                 .append("=\"")
 				                 .append(attrs.getValue(i))
                                  .append("\"");
-                                 
+
 			}
 			verticalDatumInfo.append(">");
 		}
@@ -1115,7 +1123,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							++ratingPointSetCount;
 						}
 						else {
-							throw new RatingRuntimeException("Multiple independent paramters are not allowed on USGS-style stream ratings"); 
+							throw new RatingRuntimeException("Multiple independent paramters are not allowed on USGS-style stream ratings");
 						}
 					}
 				}
@@ -1149,7 +1157,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						}
 						shiftPoints.add(new RatingPoints());
 						shiftInfo.add(new ShiftInfo());
-						++shiftPointSetCount;					
+						++shiftPointSetCount;
 					}
 					else elementError();
 					}
@@ -1283,7 +1291,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				if (!(parts[2].equals(SOURCE_RATINGS_STR) && localName.equals(SOURCE_RATING_STR))) {
 						elementError();
 					}
-				pos = Integer.parseInt(attrs.getValue(POSITION_STR)); 
+				pos = Integer.parseInt(attrs.getValue(POSITION_STR));
 				if (pos < 1) {
 					throw new RatingRuntimeException("Virtual rating specifies invalid source rating postion: ("+pos+").");
 				}
@@ -1297,14 +1305,14 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			else if (parts[1].equals(TRANSITIONAL_RATING_STR)) {
 				if (parts[2].equals(SELECT_STR)) {
 					if (localName.equals(CASE_STR)) {
-						pos = Integer.parseInt(attrs.getValue(POSITION_STR)); 
+						pos = Integer.parseInt(attrs.getValue(POSITION_STR));
 				}
 					else if (localName.equals(DEFAULT_STR)) ;
 					else elementError();
 				}
 				else if (parts[2].equals(SOURCE_RATINGS_STR)) {
 					if (localName.equals(RATING_SPEC_ID_STR)) {
-						pos = Integer.parseInt(attrs.getValue(POSITION_STR)); 
+						pos = Integer.parseInt(attrs.getValue(POSITION_STR));
 					}
 					else elementError();
 				}
@@ -1313,7 +1321,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			else if (parts[1].equals(RATING_TEMPLATE_STR)) {
 				if (parts[2].equals(IND_PARAMETER_SPECS_STR)) {
 					if (localName.equals(IND_PARAMETER_SPEC_STR)) {
-						pos = Integer.parseInt(attrs.getValue(POSITION_STR)) - 1; 
+						pos = Integer.parseInt(attrs.getValue(POSITION_STR)) - 1;
 					}
 					else elementError();
 					}
@@ -1322,7 +1330,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			else if (parts[1].equals(RATING_SPEC_STR)) {
 				if (parts[2].equals(IND_ROUNDING_SPECS_STR)) {
 					if (localName.equals(IND_ROUNDING_SPEC_STR)) {
-						pos = Integer.parseInt(attrs.getValue(POSITION_STR)) - 1; 
+						pos = Integer.parseInt(attrs.getValue(POSITION_STR)) - 1;
 					}
 					else elementError();
 					}
@@ -1393,7 +1401,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				else elementError();
 			}
 			else elementError();
-			break;			
+			break;
 		default :
 			elementError();
 		}
@@ -1447,7 +1455,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				rspcsById.put(id, rspc);
 				rspc = null;
 			}
-			else if (localName.equals(RATING_STR             ) || 
+			else if (localName.equals(RATING_STR             ) ||
 					 localName.equals(SIMPLE_RATING_STR      ) ||
 					 localName.equals(USGS_STREAM_RATING_STR ) ||
 					 localName.equals(VIRTUAL_RATING_STR     ) ||
@@ -1482,7 +1490,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							else if (pointSet.getOtherIndCount() != width) {
 								throw new RatingRuntimeException("Inconsistent number of independent parameters");
 							}
-							depth += pointSet.getPointCount();							
+							depth += pointSet.getPointCount();
 						}
 						width += 2;
 						double[][] points = new double[depth][];
@@ -1510,8 +1518,8 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						}
 						else {
 							trc.values = RatingValueContainer.makeContainers(
-									points, 
-									notes, 
+									points,
+									notes,
 											thisRtc.inRangeMethods,
 											thisRtc.outRangeLowMethods,
 											thisRtc.outRangeHighMethods);
@@ -1579,7 +1587,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 									urc.offsets.values[i].note = pointSet.getNote(i);
 								}
 								urc.offsets.unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
-								urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1, 
+								urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1,
 										location,
 										String.format("%s%s%s-%s", indParam, SEPARATOR2, indParam, USGS_OFFSETS_SUBPARAM),
 										USGS_OFFSETS_TEMPLATE_VERSION,
@@ -1603,9 +1611,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
 							urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
 							urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
-							urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1, 
-									urc.shifts.ratingSpecContainer.locationId, 
-									urc.shifts.ratingSpecContainer.templateId, 
+							urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1,
+									urc.shifts.ratingSpecContainer.locationId,
+									urc.shifts.ratingSpecContainer.templateId,
 									urc.shifts.ratingSpecContainer.specVersion);
 							urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
 							urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
@@ -1621,9 +1629,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 								RatingPoints pointSet = shiftPoints.get(i);
 								int shiftCount = pointSet.getPointCount();
 								urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
-								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1, 
-										urc.shifts.ratingSpecContainer.locationId, 
-										urc.shifts.ratingSpecContainer.templateId, 
+								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).ratingSpecId = TextUtil.join(SEPARATOR1,
+										urc.shifts.ratingSpecContainer.locationId,
+										urc.shifts.ratingSpecContainer.templateId,
 										urc.shifts.ratingSpecContainer.specVersion);
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
 								((TableRatingContainer)urc.shifts.abstractRatingContainers[j]).effectiveDateMillis = shiftInfo.get(i).effectiveDate;
@@ -1672,7 +1680,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						arc = vrc;
 						vrc = null;
 					}
-				}				
+				}
 				else if (localName.equals(TRANSITIONAL_RATING_STR)) {
 					if (trrc != null) {
 						SortedSet<Integer> keys = new TreeSet<>();
@@ -1688,18 +1696,18 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 							}
 							trrc.conditions[i] = conditions.get((i+1));
 						}
-						
+
 						if (conditions != null)
 						{
 							conditions.clear();
 						}
-						
+
 						keys.clear();
 						if (evaluations != null)
 						{
 							keys.addAll(evaluations.keySet());
 						}
-						
+
 						if (keys.size() != trrc.conditions.length) {
 							throw new RatingRuntimeException(String.format("Transitional rating %s has inconsitent numbers of conditions and evaluations", trrc.ratingSpecId));
 						}
@@ -1715,7 +1723,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						{
 							evaluations.clear();
 						}
-						
+
 						if (defaultEvaluation == null) {
 							throw new RatingRuntimeException(String.format("Transitional rating %s doesn't specify a default evaluation", trrc.ratingSpecId));
 						}
@@ -1738,7 +1746,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 						arc = trrc;
 						trrc = null;
 					}
-				}				
+				}
 				String specId = arc.toString();
 				SortedSet<AbstractRatingContainer> arcSet = arcsById.get(specId);
 				if (arcSet == null) {
@@ -1776,7 +1784,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	public void characters(char[] ch, int start, int len) {
 		chars.append(ch, start, len);
 	}
-	
+
 //	public static void main(String[] args) throws Exception {
 //		String filename = "t:/rating.xml";
 //		RatingSet rs = null;
@@ -1785,6 +1793,6 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 //		long t2 = System.currentTimeMillis();
 //		System.out.println(rs.toXmlString("  "));
 //		System.out.println(t2-t1);
-//	}                              
-	
+//	}
+
 }

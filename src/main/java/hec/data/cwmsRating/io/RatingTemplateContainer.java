@@ -1,10 +1,12 @@
-package hec.data.cwmsRating.io;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.util.TextUtil;
+package hec.data.cwmsRating.io;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -12,11 +14,17 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import hec.data.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.util.TextUtil;
+
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.filter.ElementFilter;
 import org.jdom.input.SAXBuilder;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 /**
  * Container class for RatingTemplate objects
@@ -223,7 +231,6 @@ public class RatingTemplateContainer {
 	/**
 	 * Populates a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
-	 * @return The RatingTemplateContainer object
 	 */
 	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		final String elementName = "rating-template";
@@ -303,7 +310,7 @@ public class RatingTemplateContainer {
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
 		sb.delete(0, sb.length());
-		
+
 		if (level == 0) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");

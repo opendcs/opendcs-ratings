@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 /**
- * 
+ *
  */
 package hec.data.cwmsRating;
-
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -29,35 +34,38 @@ import hec.data.cwmsRating.io.VirtualRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+
 /**
- * Rating that is comprised of other ratings and math expressions connected 
+ * Rating that is comprised of other ratings and math expressions connected
  * in such a way to form a new rating
- * 
+ *
  * @author Mike Perryman
  */
 public class VirtualRating extends AbstractRating {
-	
+
 	/**
 	 * The string specifying how the inputs, source ratings, and output are connected
 	 */
 	protected String connectionsString = null;
-	
+
 	protected Map<String, Set<String>> connectionsMap = null;
-	
+
 	protected SourceRating[] sourceRatings = null;
-	
+
 	protected String[] dataUnits;
-	
+
 	protected String[] ratingUnits;
-	
+
 	protected String depParamConn = null;
-	
+
 	protected boolean isNormalized = false;
 
 	String[][]inputs = null;
 
 	String[] outputs = null;
-	
+
 	protected static void parseConnectionPoint(String connectionPoint, int[] results) {
 //		Matcher m = p.matcher(connectionPoint);
 //		if (m.matches()) {
@@ -69,7 +77,7 @@ public class VirtualRating extends AbstractRating {
 //			}
 //			try {
 //				results[1] = Integer.parseInt(m.group(4))-1;
-//			} 
+//			}
 //			catch (Throwable t) {
 //				results[1] = -1;
 //			}
@@ -158,7 +166,7 @@ public class VirtualRating extends AbstractRating {
 		boolean first = true;
 		for (String pair : TextUtil.split(completeConnections, ",")) {
 			String[] parts = TextUtil.split(pair, "=");
-			if (parts[1].charAt(0) == 'I') { 
+			if (parts[1].charAt(0) == 'I') {
 				if (!skipped.containsKey(parts[1])) {
 					skipped.put(parts[1], parts[0]);
 					continue;
@@ -391,7 +399,7 @@ public class VirtualRating extends AbstractRating {
 	}
 	/**
 	 * Arranges source ratings in deterministic order and removes unnecessary external connections
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public void normalize() throws RatingException {
 		synchronized(this) {
@@ -420,7 +428,7 @@ public class VirtualRating extends AbstractRating {
 				if (set != null) {
 					String[] conns = set.toArray(new String[set.size()]);
 					if (conns.length > 1) {
-						// this is an expensive sort, but assures the same order based on source rating names 
+						// this is an expensive sort, but assures the same order based on source rating names
 						Arrays.sort(conns, new Comparator<String>() {
 							@Override
 							public int compare(String arg0, String arg1) {
@@ -511,7 +519,7 @@ public class VirtualRating extends AbstractRating {
 				}
 			}
 			//
-			// now update the sets 
+			// now update the sets
 			//
 			for (int i = 0; i < newPos.length; ++i) {
 				String _old = "R"+(i+1);
@@ -558,7 +566,7 @@ public class VirtualRating extends AbstractRating {
 		}
 	}
 	/**
-	 * @returns whether this virtual rating has been normalized
+	 * @return whether this virtual rating has been normalized
 	 */
 	public boolean isNormalized() {
 		return isNormalized;
@@ -584,7 +592,7 @@ public class VirtualRating extends AbstractRating {
 		return VirtualRating.getConnectionsComplete(this.connectionsMap, this.depParamConn);
 	}
 	/**
-	 * @return a copy of the source ratings array 
+	 * @return a copy of the source ratings array
 	 */
 	public SourceRating[] getSourceRatings() {
 		synchronized(this) {
@@ -607,7 +615,7 @@ public class VirtualRating extends AbstractRating {
 	/**
 	 * Set the source ratings array
 	 * @param sources
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public void setSourceRatings(SourceRating[] sources) throws RatingException {
 		synchronized(this) {
@@ -619,7 +627,7 @@ public class VirtualRating extends AbstractRating {
 				SourceRating[] clonedSources = Arrays.copyOf(sources, sources.length);
 				String[][] newInputs = new String[clonedSources.length][];
 				String[] newOutputs = new String[clonedSources.length];
-				
+
 				//Validate source ratings before updating field variables.
 				findCycles(clonedSources, new ArrayList<>());
 				for (int i = 0; i < clonedSources.length; ++i) {
@@ -629,13 +637,13 @@ public class VirtualRating extends AbstractRating {
 						newInputs[i][j] = "R"+(i+1)+"I"+(j+1);
 					}
 				}
-				
+
 				//add observers once we know everything is acceptable.
 				for (SourceRating source : clonedSources)
 				{
 					source.addObserver(this);
 				}
-				
+
 				inputs = newInputs;
 				outputs = newOutputs;
 				sourceRatings = clonedSources;
@@ -732,7 +740,7 @@ public class VirtualRating extends AbstractRating {
 	public void findCycles() throws RatingException {
 		findCycles(new ArrayList<>());
 	}
-	
+
 	/**
 	 * Finds cyclical rating references in source ratings
 	 * @param specIds
@@ -741,12 +749,12 @@ public class VirtualRating extends AbstractRating {
 	protected void findCycles(List<String> specIds) throws RatingException {
 		findCycles(sourceRatings, specIds);
 	}
-	
+
 	/**
 	 * Finds cyclical rating references in source ratings
 	 * @param sources
 	 * @param specIds
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	protected void findCycles(SourceRating[] sources, List<String> specIds) throws RatingException {
 		String specId = getOfficeId()+"/"+getRatingSpecId();
@@ -959,7 +967,7 @@ public class VirtualRating extends AbstractRating {
 							cpValues.put(dest, cpValues.get(source));
 						}
 						else {
-							double[] srcVals = cpValues.get(source); 
+							double[] srcVals = cpValues.get(source);
 							double[] dstVals = Arrays.copyOf(srcVals, srcVals.length);
 							try {
 								Units.convertUnits(dstVals, srcUnit, dstUnit);
@@ -997,7 +1005,7 @@ public class VirtualRating extends AbstractRating {
 							_indVals[i] = new double[paramCount];
 							for (p = 0; p < paramCount; ++p) {
 								double[] vals = cpValues.get(inputs[r][p]);
-								_indVals[i][p] = vals[i]; 
+								_indVals[i][p] = vals[i];
 							}
 						}
 						double[] results = sourceRatings[r].rate(valTimes, _indVals);

@@ -1,9 +1,12 @@
-package hec.data.cwmsRating;
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.split;
+package hec.data.cwmsRating;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -13,12 +16,7 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.xml.xpath.XPathConstants;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import hec.data.DataSetException;
 import hec.data.DataSetIllegalArgumentException;
@@ -32,15 +30,23 @@ import hec.data.cwmsRating.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
 import hec.util.TextUtil;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.util.TextUtil.split;
 /**
  * Implements the CWMS-style rating specification
- * 
+ *
  * @author Mike Perryman
  */
 public class RatingSpec extends RatingTemplate {
 
 	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
-	
+
 	/**
 	 * The identifier of the location for the rating specification
 	 */
@@ -66,13 +72,13 @@ public class RatingSpec extends RatingTemplate {
 	 */
 	protected RatingMethod outRangeHighMethod = RatingMethod.PREVIOUS;
 	/**
-	 * A flag specifying whether ratings associated with this specification are considered to be active. If false, this 
+	 * A flag specifying whether ratings associated with this specification are considered to be active. If false, this
 	 * flag overrides the active flag of individual ratings associated with this specification
 	 */
 	protected boolean active = true;
 	/**
 	 * A flag specifying whether ratings associated with this specification should be automatically updated when a new
-	 * rating is available from the source agency 
+	 * rating is available from the source agency
 	 */
 	protected boolean autoUpdate = true;
 	/**
@@ -97,7 +103,7 @@ public class RatingSpec extends RatingTemplate {
 	protected String description = null;
 	/**
 	 * Tests a rating specification identifier for validity.
-	 * 
+	 *
 	 * @param ratingSpecId The rating specification identifier to test
 	 * @return Whether the supplied rating specification identifier is valid
 	 */
@@ -120,23 +126,24 @@ public class RatingSpec extends RatingTemplate {
 		} while (false);
 		return isValid;
 	}
-	
+
 	/**
 	 * Retrieves a RatingTemplate XML instance from a CWMS database connection
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException
+	 * @throws RatingException Any SQL errors retreiving the data
+	 * @return XML string from the database
 	 */
 	public static String getXmlfromDatabase(
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
 		String xmlText = null;
 		synchronized(conn) {
 			try {
-				String sql = 
+				String sql =
 						"begin "                              +
 						   "cwms_rating.retrieve_specs_xml("  +
 						      "p_specs          => :1,"       +
@@ -199,7 +206,7 @@ public class RatingSpec extends RatingTemplate {
 	 * @param active Specifies whether to utilize any ratings using this specification
 	 * @param autoUpdate Specifies whether ratings using this specification should be automatically loaded when new ratings are available
 	 * @param autoActivate Specifies whether ratings using this specification should be automatically activated when new ratings are available
-	 * @param autoMigrateExtensions Specifies whether existing should be automatically applied to ratings using this specification when new ratings are loaded  
+	 * @param autoMigrateExtensions Specifies whether existing should be automatically applied to ratings using this specification when new ratings are loaded
 	 * @param indRoundingSpecs The USGS-style rounding specifications for each independent parameter
 	 * @param depRoundingSpec The USGS-style rounding specifications for the dependent parameter
 	 * @param description The description of this rating specification
@@ -254,21 +261,21 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Public constructor from the CWMS database
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @throws RatingException
 	 */
 	public RatingSpec (
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
 		setData(conn, officeId, ratingSpecId);
 	}
 	/**
 	 * Public constructor from XML nodes
-	 * @param templateXml The template XML node 
-	 * @param specXml The specification XML node
+	 * @param templateNode The template XML node
+	 * @param specNode The specification XML node
 	 * @throws RatingException
 	 */
 	public RatingSpec(Node templateNode, Node specNode) throws RatingException {
@@ -321,7 +328,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/**
 	 * Sets the version portion of the rating specification identifier
-	 * @param The version portion of the rating specification identifier
+	 * @param version version portion of the rating specification identifier
 	 */
 	@Override
 	public void setVersion(String version) {
@@ -351,7 +358,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the prescribed behavior for when the time of the value to rate falls within the range of rating effective dates
 	 * @param inRangeMethod The prescribed behavior for when the time of the value to rate falls within the range of rating effective dates
-	 * @throws RatingException 
+	 * @throws RatingException
 	 */
 	public void setInRangeMethod(RatingMethod inRangeMethod) throws RatingException {
 		if (inRangeMethod == RatingMethod.NEAREST) {
@@ -368,7 +375,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/**
 	 * Sets the prescribed behavior for when the time of the value to rate falls before the earliest rating effective date
-	 * @param inRangeMethod The prescribed behavior for when the time of the value to rate falls before the earliest rating effective date
+	 * @param outRangeLowMethod The prescribed behavior for when the time of the value to rate falls before the earliest rating effective date
 	 */
 	public void setOutRangeLowMethod(RatingMethod outRangeLowMethod) throws RatingException {
 		switch (outRangeLowMethod) {
@@ -389,8 +396,8 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/**
 	 * Sets the prescribed behavior for when the time of the value to rate falls after the latest rating effective date
-	 * @param inRangeMethod The prescribed behavior for when the time of the value to rate falls after the latest rating effective date
-	 * @throws RatingException 
+	 * @param outRangeHighMethod The prescribed behavior for when the time of the value to rate falls after the latest rating effective date
+	 * @throws RatingException
 	 */
 	public void setOutRangeHighMethod(RatingMethod outRangeHighMethod) throws RatingException {
 		switch (outRangeHighMethod) {
@@ -411,7 +418,6 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/**
 	 * Sets whether to utilize any ratings using this specification
-	 * @return Whether to utilize any ratings using this specification
 	 */
 	public void setActive(boolean active) {
 		this.active = active;
@@ -461,7 +467,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Retrieves the rounding specifications for each of the independent parameters
 	 * @return The rounding specifications for each of the independent parameters
-	 * @throws RoundingException 
+	 * @throws RoundingException
 	 */
 	public UsgsRounder[] getIndRoundingSpecs() throws RoundingException {
 		UsgsRounder[] specs = new UsgsRounder[indRoundingSpecs.length];
@@ -498,7 +504,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Retrieves the rounding specification for the dependent parameter
 	 * @return The rounding specification for the dependent parameter
-	 * @throws RoundingException 
+	 * @throws RoundingException
 	 */
 	public UsgsRounder getDepRoundingSpec() throws RoundingException {
 		return new UsgsRounder(depRoundingSpec.getRoundingSpec());
@@ -674,15 +680,15 @@ public class RatingSpec extends RatingTemplate {
 		return String.format("/%s/%s/%s//%s/%s/", officeId, locationId, getParametersId(), getTemplateVersion(), getVersion());
 	}
 	/**
-	 * Retrieves a RatingSpecContainer containing the data of this object. 
+	 * Retrieves a RatingSpecContainer containing the data of this object.
 	 * @return The RatingSpecContainer
 	 */
 	@Override
 	public RatingTemplateContainer getData() {
-		return getData(true); 
+		return getData(true);
 	}
 	/**
-	 * Retrieves a RatingSpecContainer containing the data of this object. 
+	 * Retrieves a RatingSpecContainer containing the data of this object.
 	 * @return The RatingSpecContainer
 	 */
 	public RatingTemplateContainer getData(boolean getTemplate) {
@@ -711,7 +717,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/**
 	 * Sets the data from this object from a RatingSpecContainer
-	 * @param rtc The RatingSpecContainer with the data
+	 * @param rsc The RatingSpecContainer with the data
 	 * @throws RatingException
 	 */
 	public void setData(RatingSpecContainer rsc) throws RatingException {
@@ -749,13 +755,13 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the data from this object from a the database
 	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
+	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @throws RatingException
 	 */
 	public void setData (
-			Connection conn, 
-			String officeId, 
+			Connection conn,
+			String officeId,
 			String ratingSpecId)
 			throws RatingException {
 		synchronized(conn) {
@@ -764,7 +770,7 @@ public class RatingSpec extends RatingTemplate {
 				String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
 				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
 				String templateXml = RatingTemplate.getXmlfromDatabase(conn, officeId, templateId);
-				setData(templateXml, specXml); 
+				setData(templateXml, specXml);
 			}
 			catch (Throwable t) {
 				if (t instanceof RatingException) throw (RatingException)t;
@@ -790,15 +796,15 @@ public class RatingSpec extends RatingTemplate {
 			Document templateDoc = RatingConst.readXmlAsDocument(templateXml);
 			Document specDoc = RatingConst.readXmlAsDocument(specXml);
 			setData(templateDoc.getDocumentElement().getElementsByTagName("rating-template").item(0), specDoc.getDocumentElement().getElementsByTagName("rating-spec").item(0));
-		} 
+		}
 		catch (Exception e) {
 			throw new RatingException(e);
 		}
 	}
 	/**
 	 * Sets the data for this object from XML nodes
-	 * @param templateXml The template XML node 
-	 * @param specXml The specification XML node
+	 * @param templateNode The template XML node
+	 * @param specNode The specification XML node
 	 * @throws RatingException
 	 */
 	public void setData(Node templateNode, Node specNode) throws RatingException {
@@ -919,7 +925,7 @@ public class RatingSpec extends RatingTemplate {
 			setOutRangeHighMethods(outRangeHighMethods);
 			setTemplateId(templateId);
 			setTemplateDescription(templateDescription);
-		} 
+		}
 		catch (Throwable t) {
 			if (t instanceof RatingException) throw (RatingException)t;
 			t.printStackTrace();
@@ -968,7 +974,6 @@ public class RatingSpec extends RatingTemplate {
 	 * Generates an XML document from this rating specification containing both
 	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
 	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
 	 * @return The XML document
 	 */
 	public String toXml(CharSequence indent) {
@@ -1016,7 +1021,7 @@ public class RatingSpec extends RatingTemplate {
 
 	/**
 	 * Returns the unique identifying parts for the rating specification.
-	 * 
+	 *
 	 * @return
 	 * @throws DataSetException
 	 */
@@ -1027,7 +1032,7 @@ public class RatingSpec extends RatingTemplate {
 		JDomRatingSpecification specification = new JDomRatingSpecification(officeId, specificationId);
 		return specification;
 	}
-	
+
 	/**
 	 * Stores the rating specification (without template) to a CWMS database
 	 * @param conn The connection to the CWMS database
@@ -1039,7 +1044,7 @@ public class RatingSpec extends RatingTemplate {
 //		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(false)).toSpecXml(""), overwriteExisting);
 		storeToDatabase(conn,overwriteExisting,false);
 	}
-	
+
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean storeTemplate) throws RatingException {
 		if (storeTemplate)
 		{
@@ -1066,4 +1071,3 @@ public class RatingSpec extends RatingTemplate {
 		return getClass().getName().hashCode() + getData().hashCode();
 	}
 }
-

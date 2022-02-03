@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
+ * United States Army Corps of Engineers
+ * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Source may not be released without written approval from HEC
+ *
+ */
+
 package hec.data.cwmsRating.io;
 
 import java.io.IOException;
@@ -5,17 +13,16 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
+
+import hec.data.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.util.TextUtil;
 
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.filter.ElementFilter;
 import org.jdom.input.SAXBuilder;
-
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.util.TextUtil;
 
 /**
  * Container class for RatingSpec objects
@@ -76,12 +83,12 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	public boolean autoMigrateExtensions = false;
 	/**
 	 * Usgs-style rounding specifications, one for each independent parameter.
-	 * @see hecjavadev.hec.data.UsgsRounder.java
+	 * @see "hec.data.UsgsRounder.java in hec-monolith"
 	 */
 	public String[] indRoundingSpecs = null;
 	/**
 	 * Usgs-style rounding specification for the independent parameter.
-	 * @see hecjavadev.hec.data.UsgsRounder.java
+	 * @see "hec.data.UsgsRounder.java in hec-monolith"
 	 */
 	public String depRoundingSpec = null;
 	/**
@@ -224,7 +231,6 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	/**
 	 * Populates the RatingSpecContainer from the first &lt;rating-spec&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
-	 * @return The RatingTemplateContainer object
 	 */
 	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
 		final String elementName = "rating-spec";
@@ -357,7 +363,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		for (int i = 0; i < level; ++i) sb.append(indent);
 		String prefix = sb.toString();
 		sb.delete(0, sb.length());
-		
+
 		if (level == 0) {
 			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
