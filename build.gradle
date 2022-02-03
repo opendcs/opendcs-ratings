@@ -21,7 +21,7 @@ repositories {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    implementation ('mil.army.usace.hec:hec-monolith:0.0.3-SNAPSHOT') {
+    implementation ('mil.army.usace.hec:hec-monolith:0.0.4-SNAPSHOT') {
         exclude group: "codebase", module: "*"
         exclude group: "com.sun.media", module: "*"
         exclude group: "javax.media", module: "*"
