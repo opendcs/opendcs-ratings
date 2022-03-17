@@ -16,3 +16,5 @@ include 'services:webservice'
 */
 
 rootProject.name = 'hec-cwms-ratings'
+include 'hec-cwms-ratings'
+include 'hec-cwms-ratings-gfx'

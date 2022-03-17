@@ -1,0 +1,15 @@
+
+dependencies {
+    compileOnly project(":hec-cwms-ratings")
+
+    testImplementation project(":hec-cwms-ratings")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'hec-cwms-ratings-gfx'
+            from components.java
+        }
+    }
+}
