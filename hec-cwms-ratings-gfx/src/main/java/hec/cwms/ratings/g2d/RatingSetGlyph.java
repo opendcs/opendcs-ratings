@@ -11,7 +11,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package hec.data.cwmsRating.g2d;
+package hec.cwms.ratings.g2d;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 import hec.data.RatingException;
 import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.geom.RatingSetPathIterator;
+import hec.cwms.ratings.geom.RatingSetPathIterator;
 import hec.geometry.Axis;
 import hec.geometry.Scale;
 import hec.gfx2d.G2dGlyph;

@@ -1,92 +1,103 @@
 plugins {
-    id 'org.sonarqube' version '2.7'
-}
-apply plugin: 'java'
-apply plugin: 'jacoco'
-apply plugin: 'maven-publish'
-apply plugin: 'org.sonarqube'
-
-version = "0.0.2-SNAPSHOT"
-group = "mil.army.usace.hec"
-
-// In this section you declare where to find the dependencies of your project
-repositories {
-    // Use 'jcenter' for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    mavenCentral()
-    maven {
-            url = uri('https://www.hec.usace.army.mil/nexus/repository/maven-public')
-        }
+        id 'org.sonarqube' version '2.7'
 }
 
-// In this section you declare the dependencies for your production and test code
-dependencies {
-    implementation ('mil.army.usace.hec:hec-monolith:0.0.4-SNAPSHOT') {
-        exclude group: "codebase", module: "*"
-        exclude group: "com.sun.media", module: "*"
-        exclude group: "javax.media", module: "*"
-    }
-    implementation 'org.jdom:jdom:1.1'
-/*
-    implementation 'javax.xml.bind:jaxb-api:2.2.12'
-    implementation 'com.sun.xml.bind:jaxb-impl:2.2.11'
-    implementation 'com.sun.xml.bind:jaxb-core:2.2.11'
-    implementation 'javax.activation:activation:1.1.1'
-*/
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+// default property values to save some hassle.
+if ( !project.findProperty('mavenUser')) {
+    ext.mavenUser = ""
+}
+if ( !project.findProperty('mavenPassword')) {
+    ext.mavenPassword = ""
 }
 
-java{
-        sourceCompatibility = JavaVersion.VERSION_1_8;
-        targetCompatibility = JavaVersion.VERSION_1_8;
-        withJavadocJar()
-        withSourcesJar()
-    }
+allprojects {
 
-javadoc {
-    failOnError = true
-    options.addBooleanOption("Xdoclint:all",true)
-    options.addBooleanOption("html5",true)
-}
 
-test {
-    useJUnitPlatform()
-    doLast {
-        def dataPaths = test
-                .extensions*.findByType(JacocoTaskExtension)
-                .destinationFile.absolutePath
-        def rootProjectDirUri = rootProject.projectDir.toURI()
-        def classpaths = sourceSets.findAll { !it.name.toLowerCase().contains('test') }.flatten()
-                .java.outputDir.collect { it.toURI() }
-                .collect { rootProjectDirUri.relativize it }
-                .collect { "+:$it**" }
-        println "##teamcity[jacocoReport " +
-                "dataPath='${dataPaths.join ' '}' " +
-                "classpath='${classpaths.join ' '}']"
-    }
-}
 
-test.finalizedBy jacocoTestReport
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'hec-cwms-ratings-intesting'
-            from components.java
-        }
-    }
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+    apply plugin: 'maven-publish'
+    apply plugin: 'org.sonarqube'
+
+    version = "0.0.2-SNAPSHOT"
+    group = "mil.army.usace.hec"
+
+    // In this section you declare where to find the dependencies of your project
     repositories {
+        // Use 'jcenter' for resolving your dependencies.
+        // You can declare any Maven/Ivy/file repository here.
+        mavenCentral()
         maven {
-            credentials {
-                username = "$mavenUser"
-                password = "$mavenPassword"
+                url = uri('https://www.hec.usace.army.mil/nexus/repository/maven-public')
             }
-            def releasesRepoUrl = "https://www.hec.usace.army.mil/nexus/repository/maven-releases/"
-            def snapshotsRepoUrl = "https://www.hec.usace.army.mil/nexus/repository/maven-snapshots/"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+    }
+
+    // In this section you declare the dependencies for your production and test code
+    dependencies {
+        implementation ('mil.army.usace.hec:hec-monolith:0.0.4-SNAPSHOT') {
+            exclude group: "codebase", module: "*"
+            exclude group: "com.sun.media", module: "*"
+            exclude group: "javax.media", module: "*"
+        }
+        implementation 'org.jdom:jdom:1.1'
+    /*
+        implementation 'javax.xml.bind:jaxb-api:2.2.12'
+        implementation 'com.sun.xml.bind:jaxb-impl:2.2.11'
+        implementation 'com.sun.xml.bind:jaxb-core:2.2.11'
+        implementation 'javax.activation:activation:1.1.1'
+    */
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    }
+
+    java{
+            sourceCompatibility = JavaVersion.VERSION_1_8;
+            targetCompatibility = JavaVersion.VERSION_1_8;
+            withJavadocJar()
+            withSourcesJar()
+        }
+
+    javadoc {
+        failOnError = true
+        options.addBooleanOption("Xdoclint:all",true)
+        options.addBooleanOption("html5",true)
+    }
+
+    test {
+        useJUnitPlatform()
+        doLast {
+            def dataPaths = test
+                    .extensions*.findByType(JacocoTaskExtension)
+                    .destinationFile.absolutePath
+            def rootProjectDirUri = rootProject.projectDir.toURI()
+            def classpaths = sourceSets.findAll { !it.name.toLowerCase().contains('test') }.flatten()
+                    .java.outputDir.collect { it.toURI() }
+                    .collect { rootProjectDirUri.relativize it }
+                    .collect { "+:$it**" }
+            println "##teamcity[jacocoReport " +
+                    "dataPath='${dataPaths.join ' '}' " +
+                    "classpath='${classpaths.join ' '}']"
         }
     }
-}
+
+    test.finalizedBy jacocoTestReport
+
+    publishing {
+
+        repositories {
+            maven {
+                credentials {
+                    username = "$mavenUser"
+                    password = "$mavenPassword"
+                }
+                def releasesRepoUrl = "https://www.hec.usace.army.mil/nexus/repository/maven-releases/"
+                def snapshotsRepoUrl = "https://www.hec.usace.army.mil/nexus/repository/maven-snapshots/"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            }
+        }
+    }
 
 publish.dependsOn jar
+
+}

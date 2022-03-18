@@ -11,7 +11,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package hec.data.cwmsRating.geom;
+package hec.cwms.ratings.geom;
 
 import java.awt.geom.PathIterator;
 import java.util.List;
@@ -40,12 +40,11 @@ public class RatingSetPathIterator implements PathIterator
 
     /**
      * Iterator that iterates over a list of ranges at a given resolution. i.e.
-     * for minValue -> maxValue += resolution Each range in the list will be
+     * for minValue -&gt; maxValue += resolution Each range in the list will be
      * treated as a list as its own path the number of points between
      *
-     * @param path
-     * @param ratingSet
-     * @param date
+     * @param rangeValues
+     * @param ratingProvider
      * @param resolution
      * @param independantVariable defines if the rating provider will put the rated in the x or y position.
      *          if IndependentVariable equals Y, then the point returned will be   (RatingProvider.rateOne(Y), Y) and the Y value will be determined from the currently iterated RangeValue.
@@ -107,7 +106,7 @@ public class RatingSetPathIterator implements PathIterator
                 coords[0] = (float) rateOne;
                 coords[1] = (float) currentRangeValue;
             }
-            
+
             return mRangeValues.get(mRangeIndex).getMinValue() == currentRangeValue ? SEG_MOVETO : SEG_LINETO;
         }
         catch (RatingException ex)

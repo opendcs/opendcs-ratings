@@ -1,0 +1,8 @@
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'hec-cwms-ratings-core'
+            from components.java
+        }
+    }
+}
