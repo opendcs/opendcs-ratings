@@ -1,5 +1,6 @@
 plugins {
         id 'org.sonarqube' version '2.7'
+        id 'me.qoomon.git-versioning' version '5.1.1'
 }
 
 // default property values to save some hassle.
@@ -9,6 +10,22 @@ if ( !project.findProperty('mavenUser')) {
 if ( !project.findProperty('mavenPassword')) {
     ext.mavenPassword = ""
 }
+
+version = "local-SNAPSHOT"   
+    gitVersioning.apply {
+        refs {
+            branch("(?<version>^[a-zA-Z].+)") {
+                version = '${ref.version}-SNAPSHOT'
+            }
+            tag("(?<version>\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9]*)?)") {
+                version = '${ref.version}'
+            }
+        }
+        rev {
+            version = '${commit}'
+        }
+    }
+group = "mil.army.usace.hec"
 
 allprojects {
 
@@ -20,8 +37,7 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'org.sonarqube'
 
-    version = "0.0.2-SNAPSHOT"
-    group = "mil.army.usace.hec"
+    
 
     // In this section you declare where to find the dependencies of your project
     repositories {
