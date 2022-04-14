@@ -25,7 +25,7 @@ version = "local-SNAPSHOT"
             version = '${commit}'
         }
     }
-group = "mil.army.usace.hec"
+
 
 allprojects {
 
@@ -37,7 +37,7 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'org.sonarqube'
 
-    
+    group = "mil.army.usace.hec"
 
     // In this section you declare where to find the dependencies of your project
     repositories {
