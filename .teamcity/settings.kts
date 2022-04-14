@@ -7,6 +7,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailu
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.failOnMetricChange
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.finishBuildTrigger
+import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 import java.io.BufferedReader;
 import java.io.File;
 
@@ -34,6 +35,20 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 
 version = "2021.1"
 
+object RatingsRepo : GitVcsRoot( {
+    name = "MonolithRepo"
+    url = "https://bitbucket.hecdev.net/scm/cwms/hec-cwms-ratings.git"
+    branch = "refs/heads/main"
+    branchSpec = """+:*
+-:refs/pull-requests/*
+    """.trim() // prevent PR/from builds until reporting to bitbucket works correctly.
+    useTagsAsBranches = true
+    authMethod = password {
+        userName = "builduser"
+        password = "credentialsJSON:stashPassword"
+    }
+})
+
 project {
 
     params {
@@ -42,19 +57,17 @@ project {
 
     sequential {
         buildType(Build)
-        // you could also have a parallel section if there is more to run
-        buildType(Deploy)
     }.buildTypes().forEach { buildType(it) }
-
+    vcsRoot(RatingsRepo)
 }
 
 
 object Build : BuildType({
-    name = "Build and Test"
+    name = "Build, Test, and Deploy"
 
     // artifacts rules place your generated output in a place it can be downloaded or sent to another Build configuration
     artifactRules = """
-        build/libs/*.jar => /
+        **/build/libs/*.jar => /
         build/sonar/report-task.txt =>
     """.trimIndent()
 
@@ -64,7 +77,7 @@ object Build : BuildType({
     }
 
     vcs {
-        root(DslContext.settingsRoot)
+        root(RatingsRepo)
     }
 
     steps {
@@ -84,6 +97,16 @@ object Build : BuildType({
             gradleParams = "-Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
             jdkHome = "%env.JDK_11_x64%"
         }
+        gradle {
+            tasks = ":publish"
+            name = "Publish Artifacts"
+            jdkHome = "%env.JDK_11_x64%"
+            gradleParams = "-DmavenUser=%env.NEXUS_USER% -DmavenPassword=%env.NEXUS_PASSWORD%"
+            conditions {
+                matches("teamcity.build.branch", "(refs/tags/.*|refs/heads/main)")
+            }
+        }
+            
     }
 
     triggers {
@@ -120,44 +143,4 @@ object Build : BuildType({
         // not needed for a simple java project, but left here as example
         //contains("docker.server.osType", "linux")
     }
-})
-
-
-object Deploy : BuildType({
-    name = "Deploy to Nexus"
-
-    artifactRules = """
-
-    """.trimIndent()
-
-    vcs {
-        root(DslContext.settingsRoot)
-    }
-
-    steps {
-        gradle {
-            tasks = ":publish"
-            gradleParams = "-DmavenUser=%env.NEXUS_USER% -DmavenPassword=%env.NEXUS_PASSWORD%"
-            jdkHome = "%env.JDK_11_x64%"
-        }
-    }
-
-    // for this example deployed releases will always from from master
-    // you could choose any other valid branch filter.
-    triggers {
-        finishBuildTrigger {
-            buildType = "${Build.id}"
-            successfulOnly = true
-            branchFilter = """
-                +:<default>
-            """.trimIndent()
-
-        }
-
-    }
-
-    requirements {
-    }
-
-
 })
