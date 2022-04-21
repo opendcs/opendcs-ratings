@@ -83,8 +83,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
-
 public class RatingSetTest
 {
 	String _xmlText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
