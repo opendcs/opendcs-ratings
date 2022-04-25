@@ -51,18 +51,14 @@ allprojects {
 
     // In this section you declare the dependencies for your production and test code
     dependencies {
-        implementation ('mil.army.usace.hec:hec-monolith:0.0.4-SNAPSHOT') {
+        implementation ('mil.army.usace.hec:hec-monolith:2.0.1') {
             exclude group: "codebase", module: "*"
             exclude group: "com.sun.media", module: "*"
             exclude group: "javax.media", module: "*"
         }
-        implementation 'org.jdom:jdom:1.1'
-    /*
-        implementation 'javax.xml.bind:jaxb-api:2.2.12'
-        implementation 'com.sun.xml.bind:jaxb-impl:2.2.11'
-        implementation 'com.sun.xml.bind:jaxb-core:2.2.11'
-        implementation 'javax.activation:activation:1.1.1'
-    */
+
+        implementation 'org.jdom:jdom:1.1.3'
+
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
     }
