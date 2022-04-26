@@ -87,11 +87,6 @@ object Build : BuildType({
             jdkHome = "%env.JDK_11_x64%"
         }
         gradle {
-            tasks = ":test"
-            name = "test Project"
-            jdkHome = "%env.JDK_11_x64%"
-        }
-        gradle {
             tasks = ":sonarqube"
             name = "SonarQube Analysis"
             gradleParams = "-Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
