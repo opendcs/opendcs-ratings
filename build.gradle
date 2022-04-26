@@ -27,7 +27,7 @@ version = "local-SNAPSHOT"
     }
 
 
-allprojects {
+subprojects {
 
 
 
