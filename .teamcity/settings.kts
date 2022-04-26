@@ -96,7 +96,7 @@ object Build : BuildType({
             tasks = "publish"
             name = "Publish Artifacts"
             jdkHome = "%env.JDK_11_x64%"
-            gradleParams = "-DmavenUser=%env.NEXUS_USER% -DmavenPassword=%env.NEXUS_PASSWORD%"
+            gradleParams = "-PmavenUser=%env.NEXUS_USER% -PmavenPassword=%env.NEXUS_PASSWORD%"
             conditions {
                 matches("teamcity.build.branch", "(refs/tags/.*|refs/heads/main)")
             }
