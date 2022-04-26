@@ -103,7 +103,7 @@ object Build : BuildType({
             jdkHome = "%env.JDK_11_x64%"
             gradleParams = "-DmavenUser=%env.NEXUS_USER% -DmavenPassword=%env.NEXUS_PASSWORD%"
             conditions {
-                matches("teamcity.build.branch", "(refs/tags/*|refs/heads/main)")
+                matches("teamcity.build.branch", "(refs/tags/.*|refs/heads/main)")
             }
         }
             
