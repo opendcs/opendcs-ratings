@@ -82,18 +82,18 @@ object Build : BuildType({
 
     steps {
         gradle {
-            tasks = ":build"
+            tasks = "build"
             name = "build Project"
             jdkHome = "%env.JDK_11_x64%"
         }
         gradle {
-            tasks = ":sonarqube"
+            tasks = "sonarqube"
             name = "SonarQube Analysis"
             gradleParams = "-Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
             jdkHome = "%env.JDK_11_x64%"
         }
         gradle {
-            tasks = ":publish"
+            tasks = "publish"
             name = "Publish Artifacts"
             jdkHome = "%env.JDK_11_x64%"
             gradleParams = "-DmavenUser=%env.NEXUS_USER% -DmavenPassword=%env.NEXUS_PASSWORD%"
