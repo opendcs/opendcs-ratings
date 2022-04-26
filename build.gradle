@@ -29,6 +29,7 @@ gitVersioning.apply {
 
 
 subprojects {
+    apply plugin: 'base'
     apply plugin: 'java'
     apply plugin: 'jacoco'
     apply plugin: 'maven-publish'
@@ -65,7 +66,7 @@ subprojects {
             targetCompatibility = JavaVersion.VERSION_1_8;
             withJavadocJar()
             withSourcesJar()
-        }
+    }
 
     javadoc {
         failOnError = true
