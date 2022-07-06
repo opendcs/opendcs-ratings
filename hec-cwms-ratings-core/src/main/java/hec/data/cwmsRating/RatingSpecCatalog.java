@@ -27,11 +27,11 @@ public class RatingSpecCatalog
 		locSpecMap = unmodifiableOf(buildLocSpecMap(specs));
 	}
 
-	Map<RatingTemplate, Set<RatingSpec>> getSpecifications(LocationTemplate locRef){
+	public Map<RatingTemplate, Set<RatingSpec>> getSpecifications(LocationTemplate locRef){
 		return Collections.unmodifiableMap(this.locSpecMap.getOrDefault(locRef, new LinkedHashMap<>()));
 	}
 
-	NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> getSpecifications(){
+	public NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> getSpecifications(){
 		return this.locSpecMap;
 	}
 
