@@ -20,7 +20,7 @@ class RatingSpecCatalogTest
 	void testCtorNoArg()
 	{
 		RatingSpecCatalog catalog = new RatingSpecCatalog();
-		assertNotNull(catalog);
+		assertNotNull(catalog.getSpecifications());
 		assertEquals(0, catalog.size());
 	}
 
@@ -48,14 +48,17 @@ class RatingSpecCatalogTest
 		spec1b.setLocationId("Location1");
 		spec1b.setTemplateId("Opening,Elev;Flow.Linear");
 		spec1b.setParametersId("Opening,Elev;Flow");
-		spec1b.setIndRoundingSpecs(new String[]{"2222233332","2222233332"});
+		spec1b.setIndRoundingSpecs(new String[]{"2222233332", "2222233332"});
 		spec1b.setDepRoundingSpec("2222233332");
 		spec1b.setInRangeMethod(RatingConst.RatingMethod.LINEAR);
 		spec1b.setOutRangeLowMethod(RatingConst.RatingMethod.NEAREST);
 		spec1b.setOutRangeHighMethod(RatingConst.RatingMethod.NEAREST);
-		spec1b.setInRangeMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR, RatingConst.RatingMethod.LINEAR});
-		spec1b.setOutRangeLowMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR, RatingConst.RatingMethod.LINEAR});
-		spec1b.setOutRangeHighMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR, RatingConst.RatingMethod.LINEAR});
+		spec1b.setInRangeMethods(
+				new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR, RatingConst.RatingMethod.LINEAR});
+		spec1b.setOutRangeLowMethods(
+				new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR, RatingConst.RatingMethod.LINEAR});
+		spec1b.setOutRangeHighMethods(
+				new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR, RatingConst.RatingMethod.LINEAR});
 
 		RatingSpec spec2 = new RatingSpec();
 		spec2.setOfficeId("SWT");
@@ -72,7 +75,6 @@ class RatingSpecCatalogTest
 		spec2.setOutRangeHighMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR});
 
 		RatingSpecCatalog catalog = new RatingSpecCatalog(Arrays.asList(spec1, spec1b, spec2));
-		assertNotNull(catalog);
 		assertEquals(3, catalog.size());
 
 		NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> specifications = catalog.getSpecifications();
@@ -114,6 +116,36 @@ class RatingSpecCatalogTest
 		RatingSpecCatalog catalog = builder.build();
 		assertNotNull(catalog);
 		assertEquals(10, catalog.size());
+	}
+
+	@Test
+	void testAddSameSpecMultipleTimes() throws RatingException, RoundingException
+	{
+		RatingSpecCatalog.Builder builder = new RatingSpecCatalog.Builder();
+
+		for(int i = 0; i < 7; i++)
+		{
+			RatingSpec spec = new RatingSpec();
+			spec.setOfficeId("SWT");
+			spec.setTemplateId("Stage;Flow.BASE");
+			spec.setLocationId("Location" );
+			spec.setParametersId("Stage;Flow");
+			spec.setIndRoundingSpecs(new String[]{"2222233332"});
+			spec.setDepRoundingSpec("2222233332");
+			spec.setInRangeMethod(RatingConst.RatingMethod.LINEAR);
+			spec.setOutRangeLowMethod(RatingConst.RatingMethod.NEAREST);
+			spec.setOutRangeHighMethod(RatingConst.RatingMethod.NEAREST);
+			spec.setInRangeMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR});
+			spec.setInRangeMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR});
+			spec.setOutRangeLowMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR});
+			spec.setOutRangeHighMethods(new RatingConst.RatingMethod[]{RatingConst.RatingMethod.LINEAR});
+
+			builder.addRatingSpec(spec);
+		}
+
+		RatingSpecCatalog catalog = builder.build();
+		assertNotNull(catalog);
+		assertEquals(1, catalog.size());
 	}
 
 }
