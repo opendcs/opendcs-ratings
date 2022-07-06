@@ -11,22 +11,21 @@ import hec.data.location.LocationTemplate;
 
 public class RatingSpecCatalog
 {
-	private final Map<LocationTemplate, NavigableMap<RatingTemplate, NavigableSet<RatingSpec>>>
-			_locSpecMap = new TreeMap<>(LocationTemplate.LocationComparator);
+	private final Map<LocationTemplate, NavigableMap<RatingTemplate, NavigableSet<RatingSpec>>> locSpecMap = new TreeMap<>(LocationTemplate.LocationComparator);
 
 	NavigableMap<RatingTemplate, NavigableSet<RatingSpec>> getSpecifications(LocationTemplate locRef){
-		return this._locSpecMap.getOrDefault(locRef, new TreeMap<>());
+		return this.locSpecMap.getOrDefault(locRef, new TreeMap<>());
 	}
 
 	Map<LocationTemplate, NavigableMap<RatingTemplate, NavigableSet<RatingSpec>>> getSpecifications(){
-		return this._locSpecMap;
+		return this.locSpecMap;
 	}
 
 	public void add(RatingSpec spec) {
 		LocationTemplate locationRef = new LocationTemplate(spec.getOfficeId(), spec.getLocationId());
 
 		NavigableMap<RatingTemplate, NavigableSet<RatingSpec>> templateSpecMap =
-				this._locSpecMap.computeIfAbsent(locationRef, k -> new TreeMap<>());
+				this.locSpecMap.computeIfAbsent(locationRef, k -> new TreeMap<>());
 
 		NavigableSet<RatingSpec> ratingSpecSet =
 				templateSpecMap.computeIfAbsent(spec, k -> new TreeSet<>());
@@ -35,7 +34,7 @@ public class RatingSpecCatalog
 
 	public int size() {
 		int size = 0;
-		Set<Map.Entry<LocationTemplate, NavigableMap<RatingTemplate, NavigableSet<RatingSpec>>>> entrySet = this._locSpecMap.entrySet();
+		Set<Map.Entry<LocationTemplate, NavigableMap<RatingTemplate, NavigableSet<RatingSpec>>>> entrySet = this.locSpecMap.entrySet();
 		for (Map.Entry<LocationTemplate, NavigableMap<RatingTemplate, NavigableSet<RatingSpec>>> entry : entrySet) {
 			NavigableMap<RatingTemplate, NavigableSet<RatingSpec>> templateSpecMap = entry.getValue();
 			size += templateSpecMap.size();
