@@ -28,7 +28,7 @@ public class RatingSpecCatalog
 	}
 
 	public Map<RatingTemplate, Set<RatingSpec>> getSpecifications(LocationTemplate locRef){
-		return Collections.unmodifiableMap(this.locSpecMap.getOrDefault(locRef, new LinkedHashMap<>()));
+		return this.locSpecMap.getOrDefault(locRef, Collections.emptyMap());
 	}
 
 	public NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> getSpecifications(){
@@ -57,7 +57,8 @@ public class RatingSpecCatalog
 	private static NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> unmodifiableOf(NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> input)
 			throws RatingException
 	{
-		NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> locSpecMap = new TreeMap<>(LocationTemplate.LocationComparator);
+		NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> locSpecMap
+				= new TreeMap<>(LocationTemplate.LocationComparator);
 
 		Set<Map.Entry<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>>> entries = input.entrySet();
 		for(final Map.Entry<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> entry : entries)
