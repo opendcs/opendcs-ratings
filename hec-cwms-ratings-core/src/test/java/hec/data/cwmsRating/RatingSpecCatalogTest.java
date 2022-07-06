@@ -13,20 +13,17 @@ import hec.data.location.LocationTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class RatingSpecCatalogTest
-{
+class RatingSpecCatalogTest {
 
 	@Test
-	void testCtorNoArg()
-	{
+	void testCtorNoArg() {
 		RatingSpecCatalog catalog = new RatingSpecCatalog();
 		assertNotNull(catalog.getSpecifications());
 		assertEquals(0, catalog.size());
 	}
 
 	@Test
-	void testCtor() throws RatingException, RoundingException
-	{
+	void testCtor() throws RatingException, RoundingException {
 		// Specs are hard to build manually.
 		RatingSpec spec1 = new RatingSpec();
 		spec1.setOfficeId("SWT");
@@ -89,12 +86,10 @@ class RatingSpecCatalogTest
 	}
 
 	@Test
-	void testBuilder() throws RatingException, RoundingException
-	{
+	void testBuilder() throws RatingException, RoundingException {
 		RatingSpecCatalog.Builder builder = new RatingSpecCatalog.Builder();
 
-		for(int i = 0; i < 10; i++)
-		{
+		for(int i = 0; i < 10; i++) {
 			RatingSpec spec = new RatingSpec();
 			spec.setOfficeId("SWT");
 			spec.setTemplateId("Stage;Flow.BASE");
@@ -119,16 +114,14 @@ class RatingSpecCatalogTest
 	}
 
 	@Test
-	void testAddSameSpecMultipleTimes() throws RatingException, RoundingException
-	{
+	void testAddSameSpecMultipleTimes() throws RatingException, RoundingException {
 		RatingSpecCatalog.Builder builder = new RatingSpecCatalog.Builder();
 
-		for(int i = 0; i < 7; i++)
-		{
+		for(int i = 0; i < 7; i++) {
 			RatingSpec spec = new RatingSpec();
 			spec.setOfficeId("SWT");
 			spec.setTemplateId("Stage;Flow.BASE");
-			spec.setLocationId("Location" );
+			spec.setLocationId("Location");
 			spec.setParametersId("Stage;Flow");
 			spec.setIndRoundingSpecs(new String[]{"2222233332"});
 			spec.setDepRoundingSpec("2222233332");
