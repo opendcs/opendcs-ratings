@@ -41,7 +41,21 @@ public class TestTransitionalRatingIO
             RatingSet ratingSet = RatingSet.fromXml(xml);
             assertNotNull(ratingSet);
             //Was previously stack overflowing
-            AbstractRating abstractRating = VirtualRating.fromXml(xml);
+            AbstractRating abstractRating = new TransitionalRating(xml);
+            assertNotNull(abstractRating);
+        } catch(Error error) {
+            throw new Exception(error);
+        }
+    }
+
+    @Test
+    public void testVirtualRatingXml() throws Exception {
+        String xml = readFile("hec/data/cwmsRating/virtual-rating.xml");
+        try {
+            RatingSet ratingSet = RatingSet.fromXml(xml);
+            assertNotNull(ratingSet);
+            //Was previously stack overflowing
+            AbstractRating abstractRating = new VirtualRating(xml);
             assertNotNull(abstractRating);
         } catch(Error error) {
             throw new Exception(error);
