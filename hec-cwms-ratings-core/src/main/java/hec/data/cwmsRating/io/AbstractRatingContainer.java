@@ -397,10 +397,10 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 			arc = new UsgsStreamTableRatingContainer(elem);
 		}
 		else if (elem.getName().equals("virtual-rating")) {
-			arc = new VirtualRatingContainer(xmlStr);
+			arc = new VirtualRatingContainer(elem);
 		}
 		else if (elem.getName().equals("transitional-rating")) {
-			arc = new TransitionalRatingContainer(xmlStr);
+			arc = new TransitionalRatingContainer(elem);
 		}
 		else {
 			//------------------------------------------//
@@ -423,10 +423,12 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 					break;
 				}
 				else if (elem.getName().equals("virtual-rating")) {
-					arc = new VirtualRatingContainer(xmlStr);
+					arc = new VirtualRatingContainer(elem);
+					break;
 				}
 				else if (elem.getName().equals("transitional-rating")) {
-					arc = new TransitionalRatingContainer(xmlStr);
+					arc = new TransitionalRatingContainer(elem);
+					break;
 				}
 			}
 			if (arc == null) {
