@@ -8,14 +8,13 @@
 
 package hec.data.cwmsRating.io;
 
-import java.io.StringReader;
-
 import hec.data.RatingException;
-import hec.data.RatingRuntimeException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.TableRating;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import java.io.StringReader;
 
 import org.jdom.Document;
 import org.jdom.Element;
@@ -58,7 +57,9 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * Public constructor from a jdom element
 	 * @param element the jdom element
 	 * @throws RatingException
+	 * @deprecated Use =mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(Element) instead
 	 */
+	@Deprecated
 	public TableRatingContainer(Element element) throws RatingException {
 		populateFromXml(element);
 	}
@@ -66,7 +67,9 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * Public constructor from an XML snippet
 	 * @param xmlText the XML snippet
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(String) instead
 	 */
+	@Deprecated
 	public TableRatingContainer(String xmlText) throws RatingException {
 		populateFromXml(xmlText);
 	}
@@ -74,34 +77,24 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * Populate this container from a jdom element
 	 * @param ratingElement The jdom element
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(Element) instead
 	 */
 	public void populateFromXml(Element ratingElement) throws RatingException {
-		try {
-			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingException(e);
-		}
-		if (ratingElement.getChildren("rating-points").size() > 0) {
-			values = RatingValueContainer.makeContainers(ratingElement, "rating-points");
-		}
-		if (ratingElement.getChildren("extension-points").size() > 0) {
-			extensionValues = RatingValueContainer.makeContainers(ratingElement, "extension-points");
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		TableRatingContainer tableRatingContainer = service.createTableRatingContainer(ratingElement);
+		tableRatingContainer.clone(this);
 	}
 	/**
 	 * Populate this container from an XML snippet
 	 * @param xmlText the XML snippet
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(String) instead
 	 */
+	@Deprecated
 	public void populateFromXml(String xmlText) throws RatingException {
-		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
-		if (arc instanceof TableRatingContainer) {
-			arc.clone(this);
-		}
-		else {
-			throw new RatingException("XML text does not specify an TableRating object.");
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		TableRatingContainer tableRatingContainer = service.createTableRatingContainer(xmlText);
+		tableRatingContainer.clone(this);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
@@ -228,81 +221,25 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		return rating;
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
+	/**
+	 *
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TableRatingContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXml(CharSequence indent) {
 		return toXml(indent, 0);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence, int)
+	/**
+	 *
+	 * @deprecated Use =mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TableRatingContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXml(CharSequence indent, int level) {
-		try {
-			if (vdc != null && vdc.getCurrentOffset() != 0.) {
-				TableRatingContainer _clone = new TableRatingContainer();
-				clone(_clone);
-				_clone.toNativeVerticalDatum();
-				return _clone.toXml(indent, level);
-			}
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingRuntimeException(e);
-		}
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		if (level == 0) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
-			prefix += indent;
-		}
-		sb.append(super.toXml(prefix, indent, "simple-rating"));
-		String pointsPrefix = prefix + indent;
-		if (values != null) {
-			boolean multiParam = values[0].depTable != null;
-			if (multiParam) {
-				for (int i = 0; i < values.length; ++i) {
-					values[i].toXml(pointsPrefix, indent, sb);
-				}
-			}
-			else {
-				if (values == null) {
-					sb.append(prefix).append(indent).append("<rating-points/>\n");
-				}
-				else {
-					sb.append(prefix).append(indent).append("<rating-points>\n");
-					for (int i = 0; i < values.length; ++i) {
-						values[i].toXml(pointsPrefix, indent, sb);
-					}
-					sb.append(prefix).append(indent).append("</rating-points>\n");
-				}
-			}
-		}
-		if (extensionValues != null) {
-			boolean multiParam = extensionValues[0].depTable != null;
-			if (multiParam) {
-				AbstractRating.getLogger().severe("Multiple independent parameter ratings cannot use extension values, ignoring");
-			}
-			else {
-				if (extensionValues != null) {
-					sb.append(prefix).append(indent).append("<extension-points>\n");
-					for (int i = 0; i < extensionValues.length; ++i) {
-						extensionValues[i].toXml(pointsPrefix, indent, sb);
-					}
-					sb.append(prefix).append(indent).append("</extension-points>\n");
-				}
-			}
-		}
-		sb.append(prefix).append("</simple-rating>\n");
-		if (level == 0) {
-			sb.append("</ratings>\n");
-		}
-		return sb.toString();
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level);
 	}
 	/**
 	 * @return an XML string containing the lookup behaviors inherited from the rating template

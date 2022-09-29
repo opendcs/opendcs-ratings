@@ -8,23 +8,8 @@
 
 package hec.data.cwmsRating.io;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
 import hec.data.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.util.TextUtil;
-
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.filter.ElementFilter;
-import org.jdom.input.SAXBuilder;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import java.util.Arrays;
 
 /**
  * Container class for RatingTemplate objects
@@ -224,78 +209,31 @@ public class RatingTemplateContainer {
 	 * Public constructor from an XML snippet
 	 * @param xmlStr
 	 * @throws RatingObjectDoesNotExistException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	public RatingTemplateContainer(String xmlStr) throws RatingObjectDoesNotExistException {
 		populateFromXml(xmlStr);
 	}
+
 	/**
 	 * Populates a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingTemplateContainer(String) instead
 	 */
+	@Deprecated
 	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
-		final String elementName = "rating-template";
-		try {
-			Document doc = new SAXBuilder().build(new StringReader(xmlStr));
-			Element root = doc.getRootElement();
-			if (!root.getName().equals(elementName)) {
-				@SuppressWarnings("rawtypes")
-				Iterator it = root.getDescendants(new ElementFilter(elementName));
-				if (it.hasNext()) {
-					root = (Element)it.next();
-				}
-			}
-			if (!root.getName().equals(elementName)) {
-				throw new RatingObjectDoesNotExistException(String.format("No <%s> element in XML.", elementName));
-			}
-			else {
-				Element elem = null;
-				@SuppressWarnings("rawtypes")
-				List elems = null;
-				officeId = root.getAttributeValue("office-id");
-				elem = root.getChild("version");
-				if (elem != null) templateVersion = elem.getTextTrim();
-				elem = root.getChild("ind-parameter-specs");
-				if (elem != null) {
-					elems = elem.getChildren("ind-parameter-spec");
-					indParams = new String[elems.size()];
-					inRangeMethods = new String[elems.size()];
-					outRangeLowMethods = new String[elems.size()];
-					outRangeHighMethods = new String[elems.size()];
-					for (Object obj : elems) {
-						elem = (Element)obj;
-						try {
-							int i = Integer.parseInt(elem.getAttributeValue("position")) - 1;
-							if (i >= 0 && i < elems.size()) {
-								indParams[i] = elem.getChildTextTrim("parameter");
-								inRangeMethods[i] = elem.getChildTextTrim("in-range-method");
-								outRangeLowMethods[i] = elem.getChildTextTrim("out-range-low-method");
-								outRangeHighMethods[i] = elem.getChildTextTrim("out-range-high-method");
-							}
-						}
-						catch (Throwable t) {}
-					}
-				}
-				elem = root.getChild("dep-parameter");
-				if (elem != null) depParam = elem.getTextTrim();
-				elem = root.getChild("description");
-				if (elem != null) templateDescription = elem.getTextTrim();
-			}
-			if (indParams != null && indParams.length > 0 && depParam != null) {
-				parametersId = String.format("%s%s%s", TextUtil.join(SEPARATOR3, indParams), SEPARATOR2, depParam);
-			}
-			if (parametersId != null && templateVersion != null) {
-				templateId = String.format("%s.%s", parametersId, templateVersion);
-			}
-		}
-		catch (JDOMException | IOException e) {
-			AbstractRating.getLogger().severe(e.getMessage());
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		RatingTemplateContainer ratingTemplateContainer = service.createRatingTemplateContainer(xmlStr);
+		ratingTemplateContainer.clone(this);
 	}
 	/**
 	 * Generates a template XML string from this object
 	 * @param indent The amount to indent each level (initial level = 0)
 	 * @return
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	public String toTemplateXml(CharSequence indent) {
 		return toTemplateXml(indent, 0);
 	}
@@ -304,44 +242,12 @@ public class RatingTemplateContainer {
 	 * @param indent The amount to indent each level
 	 * @param level The initial level of indentation
 	 * @return
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	public String toTemplateXml(CharSequence indent, int level) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-
-		if (level == 0) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
-			prefix += indent;
-		}
-		sb.append(prefix).append("<rating-template office-id=\"").append(officeId == null ? "" : officeId).append("\">\n");
-		sb.append(prefix).append(indent).append("<parameters-id>").append(parametersId == null ? "" : TextUtil.xmlEntityEncode(parametersId)).append("</parameters-id>\n");
-		sb.append(prefix).append(indent).append("<version>").append(templateVersion == null ? "" : TextUtil.xmlEntityEncode(templateVersion)).append("</version>\n");
-		sb.append(prefix).append(indent).append("<ind-parameter-specs>\n");
-		if (indParams != null) {
-			for (int i = 0; i < indParams.length; ++i) {
-				String indParam = i < indParams.length && indParams[i] != null ? indParams[i] : "";
-				String inRangeMethod = inRangeMethods != null && i < inRangeMethods.length && inRangeMethods[i] != null ? inRangeMethods[i] : "";
-				String outRangeLowMethod = outRangeLowMethods != null && i < outRangeLowMethods.length && outRangeLowMethods[i] != null ? outRangeLowMethods[i] : "";
-				String outRangeHighMethod = outRangeHighMethods != null && i < outRangeHighMethods.length && outRangeHighMethods[i] != null ? outRangeHighMethods[i] : "";
-				sb.append(prefix).append(indent).append(indent).append("<ind-parameter-spec position=\"").append(i+1).append("\">\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append("<parameter>").append(TextUtil.xmlEntityEncode(indParam)).append("</parameter>\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append("<in-range-method>").append(inRangeMethod).append("</in-range-method>\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append("<out-range-low-method>").append(outRangeLowMethod).append("</out-range-low-method>\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append("<out-range-high-method>").append(outRangeHighMethod).append("</out-range-high-method>\n");
-				sb.append(prefix).append(indent).append(indent).append("</ind-parameter-spec>\n");
-			}
-		}
-		sb.append(prefix).append(indent).append("</ind-parameter-specs>\n");
-		sb.append(prefix).append(indent).append("<dep-parameter>").append(depParam == null ? "" : TextUtil.xmlEntityEncode(depParam)).append("</dep-parameter>\n");
-		sb.append(prefix).append(indent).append("<description>").append(templateDescription == null ? "" : TextUtil.xmlEntityEncode(templateDescription)).append("</description>\n");
-		sb.append(prefix).append("</rating-template>\n");
-		if (level == 0) {
-			sb.append("</ratings>\n");
-		}
-		return sb.toString();
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

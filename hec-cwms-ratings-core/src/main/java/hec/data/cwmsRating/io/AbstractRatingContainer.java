@@ -9,17 +9,15 @@
 package hec.data.cwmsRating.io;
 
 import hec.data.RatingException;
-import hec.data.RatingObjectDoesNotExistException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst;
-import hec.data.cwmsRating.RatingUtil;
-import hec.heclib.util.HecTime;
+import hec.data.cwmsRating.VirtualRating;
 import hec.util.TextUtil;
+import java.util.Objects;
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 
-import org.jdom.Element;
 import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
@@ -65,58 +63,29 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	 * Vertical datum info if this rating has any.
 	 */
 	protected VerticalDatumContainer vdc = null;
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
+
 	@Override
-	public boolean equals(Object obj) {
-		boolean result = obj == this;
-		if (!result) {
-			do {
-				if (obj == null || obj.getClass() != getClass()) break;
-				AbstractRatingContainer other = (AbstractRatingContainer)obj;
-				if ((other.officeId == null) != (officeId == null)) break;
-				if (officeId != null) {
-					if (!other.officeId.equals(officeId)) break;
-				}
-				if ((other.ratingSpecId == null) != (ratingSpecId == null)) break;
-				if (ratingSpecId != null) {
-					if (!other.ratingSpecId.equals(ratingSpecId)) break;
-				}
-				if ((other.unitsId == null) != (unitsId == null)) break;
-				if (unitsId != null) {
-					if (!other.unitsId.equals(unitsId)) break;
-				}
-				if (other.active != active) break;
-				if (other.effectiveDateMillis != effectiveDateMillis) break;
-				if (other.transitionStartDateMillis != transitionStartDateMillis) break;
-				if (other.createDateMillis != createDateMillis) break;
-				if ((other.vdc == null) != (vdc == null)) break;
-				if (other.vdc != null) {
-					if (!other.vdc.equals(vdc)) break;
-				}
-				result = true;
-			} while (false);
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
 		}
-		return result;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		AbstractRatingContainer that = (AbstractRatingContainer) o;
+		return active == that.active && effectiveDateMillis == that.effectiveDateMillis &&
+			transitionStartDateMillis == that.transitionStartDateMillis &&
+			createDateMillis == that.createDateMillis && Objects.equals(officeId, that.officeId) &&
+			Objects.equals(ratingSpecId, that.ratingSpecId) && Objects.equals(unitsId, that.unitsId) &&
+			Objects.equals(description, that.description) && Objects.equals(vdc, that.vdc);
 	}
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+
 	@Override
 	public int hashCode() {
-		int hashCode = 0
-				+ getClass().getName().hashCode()
-				+  3 * (officeId == null ? 1 : officeId.hashCode())
-				+  5 * (ratingSpecId == null ? 1 : ratingSpecId.hashCode())
-				+  7 * (unitsId == null ? 1 : unitsId.hashCode())
-				+ 11 * (active ? 3 : 7)
-				+ 13 * (int)effectiveDateMillis
-				+ 17 * (int)transitionStartDateMillis
-				+ 19 * (int)createDateMillis
-				+ 23 * (vdc == null ? 1 : vdc.hashCode());
-		return hashCode;
+		return Objects.hash(officeId, ratingSpecId, unitsId, active, effectiveDateMillis, transitionStartDateMillis, createDateMillis, description,
+			vdc);
 	}
+
 	/**
 	 * Fills another AbstractRatingContainer object with information from this one
 	 * @param other The AbstractRatingContainer object to fill
@@ -124,7 +93,9 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	public void clone(AbstractRatingContainer other) {
 		other.officeId = officeId;
 		other.ratingSpecId = ratingSpecId;
-		other.unitsId = unitsId;
+		if(!(other instanceof VirtualRatingContainer)) {
+			other.unitsId = unitsId;
+		}
 		other.active = active;
 		other.effectiveDateMillis = effectiveDateMillis;
 		other.transitionStartDateMillis = transitionStartDateMillis;
@@ -378,103 +349,21 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
 	 * @throws RatingException
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(String) instead
 	 */
+	@Deprecated
 	public static AbstractRatingContainer buildFromXml(String xmlStr) throws RatingException {
-		AbstractRatingContainer arc = null;
-		//----------------------------//
-		// first try the root element //
-		//----------------------------//
-		Element elem = RatingUtil.textToJdomElement(xmlStr);
-		if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
-			if(elem.getChild("formula") != null) {
-				arc = new ExpressionRatingContainer(elem);
-			}
-			else {
-				arc = new TableRatingContainer(elem);
-			}
-		}
-		else if (elem.getName().equals("usgs-stream-rating")) {
-			arc = new UsgsStreamTableRatingContainer(elem);
-		}
-		else if (elem.getName().equals("virtual-rating")) {
-			arc = new VirtualRatingContainer(elem);
-		}
-		else if (elem.getName().equals("transitional-rating")) {
-			arc = new TransitionalRatingContainer(elem);
-		}
-		else {
-			//------------------------------------------//
-			// next try immediate descendants from root //
-			//------------------------------------------//
-			for (Object obj : elem.getChildren()) {
-				elem = (Element)obj;
-				if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
-					if(elem.getChild("formula") != null) {
-						arc = new ExpressionRatingContainer(elem);
-						break;
-					}
-					else {
-						arc = new TableRatingContainer(elem);
-						break;
-					}
-				}
-				else if (elem.getName().equals("usgs-stream-rating")) {
-					arc = new UsgsStreamTableRatingContainer(elem);
-					break;
-				}
-				else if (elem.getName().equals("virtual-rating")) {
-					arc = new VirtualRatingContainer(elem);
-					break;
-				}
-				else if (elem.getName().equals("transitional-rating")) {
-					arc = new TransitionalRatingContainer(elem);
-					break;
-				}
-			}
-			if (arc == null) {
-				throw new RatingObjectDoesNotExistException("No <rating>, <simple-rating>, <usgs-stream-rating>, <virtual-rating>, or <transitional-rating> element in XML.");
-			}
-		}
-		return arc;
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.createAbstractRatingContainer(xmlStr);
 	}
-	/**
-	 * Common code called from subclasses
-	 * @throws VerticalDatumException
 
-	 */
-	protected static void populateCommonDataFromXml(Element ratingElement, AbstractRatingContainer arc) throws VerticalDatumException {
-		HecTime hectime = new HecTime();
-		String data = null;
-		arc.officeId = ratingElement.getAttributeValue("office-id");
-		arc.ratingSpecId = ratingElement.getChildTextTrim("rating-spec-id");
-		arc.unitsId = ratingElement.getChildTextTrim("units-id");
-		Element verticalDatumElement = ratingElement.getChild("vertical-datum-info");
-		if (verticalDatumElement != null) {
-			arc.vdc = new VerticalDatumContainer(RatingUtil.jdomElementToText(verticalDatumElement));
-		}
-		data = ratingElement.getChildTextTrim("effective-date");
-		if (data != null) {
-			hectime.set(data);
-			arc.effectiveDateMillis = hectime.getTimeInMillis();
-		}
-		data = ratingElement.getChildTextTrim("create-date");
-		if (data != null) {
-			hectime.set(data);
-			arc.createDateMillis = hectime.getTimeInMillis();
-		}
-		data = ratingElement.getChildTextTrim("transition-start-date");
-		if (data != null) {
-			hectime.set(data);
-			arc.transitionStartDateMillis = hectime.getTimeInMillis();
-		}
-		arc.active = Boolean.parseBoolean(ratingElement.getChildTextTrim("active"));
-		arc.description = ratingElement.getChildTextTrim("description");
-	}
 	/**
 	 * Generates an XML string from this object. The subclass overrides should normally be called instead of this.
 	 * @param indent The amount to indent each level
 	 * @return the generated XML
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(AbstractRatingContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	public String toXml(CharSequence indent) {
 		return toXml(indent, 0);
 	}
@@ -483,22 +372,11 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	 * @param indent The amount to indent each level
 	 * @param level The initial level of indentation
 	 * @return the generated XML
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(AbstractRatingContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	public String toXml(CharSequence indent, int level) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		if (level == 0) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
-			prefix += indent;
-		}
-		sb.append(toXml(prefix, indent, "rating")).append(prefix).append("</rating>\n");
-		if (level == 0) {
-			sb.append("</ratings>\n");
-		}
-		return sb.toString();
+		return RatingContainerXmlCompatUtil.getInstance().toXml(this, indent, level);
 	}
 	/**
 	 * Add the specified offset to the values of the specified parameter.
@@ -529,51 +407,6 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 					RatingConst.SEPARATOR3),
 				RatingConst.SEPARATOR3);
 		return paramsAndUnits;
-	}
-	/**
-	 * Common code called from subclasses
-	 */
-	protected String toXml(CharSequence prefix, CharSequence indent, String elementName) {
-		HecTime hectime = new HecTime();
-		StringBuilder sb = new StringBuilder();
-		sb.append(prefix).append("<").append(elementName).append(" office-id=\"").append(officeId == null ? "" : TextUtil.xmlEntityEncode(officeId)).append("\">\n");
-		sb.append(prefix).append(indent).append("<rating-spec-id>").append(ratingSpecId == null ? "" : TextUtil.xmlEntityEncode(ratingSpecId)).append("</rating-spec-id>\n");
-		if (vdc != null) {
-			int level = indent.length() == 0 ? 0 : prefix.length() / indent.length();
-			sb.append(vdc.toXml(indent, level+1));
-		}
-		if (!(this instanceof VirtualRatingContainer)) {
-			sb.append(prefix).append(indent).append("<units-id>").append(unitsId == null ? "" : TextUtil.xmlEntityEncode(unitsId)).append("</units-id>\n");
-		}
-		if (effectiveDateMillis == UNDEFINED_TIME) {
-			sb.append(prefix).append(indent).append("<effective-date/>\n");
-		}
-		else {
-			hectime.setTimeInMillis(effectiveDateMillis);
-			sb.append(prefix).append(indent).append("<effective-date>").append(hectime.getXMLDateTime(0)).append("</effective-date>\n");
-		}
-		if (transitionStartDateMillis == UNDEFINED_TIME) {
-			sb.append(prefix).append(indent).append("<transition-start-date/>\n");
-		}
-		else {
-			hectime.setTimeInMillis(transitionStartDateMillis);
-			sb.append(prefix).append(indent).append("<transition-start-date>").append(hectime.getXMLDateTime(0)).append("</transition-start-date>\n");
-		}
-		if (createDateMillis == UNDEFINED_TIME) {
-			sb.append(prefix).append(indent).append("<create-date/>\n");
-		}
-		else {
-			hectime.setTimeInMillis(createDateMillis);
-			sb.append(prefix).append(indent).append("<create-date>").append(hectime.getXMLDateTime(0)).append("</create-date>\n");
-		}
-		sb.append(prefix).append(indent).append("<active>").append(active).append("</active>\n");
-		if (description == null || description.length() == 0) {
-			sb.append(prefix).append(indent).append("<description/>\n");
-		}
-		else{
-			sb.append(prefix).append(indent).append("<description>").append(TextUtil.xmlEntityEncode(description)).append("</description>\n");
-		}
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

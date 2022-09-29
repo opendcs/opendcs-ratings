@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.v2019_2.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.dockerSupport
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.ant
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.gradle
@@ -83,18 +84,14 @@ object Build : BuildType({
     steps {
         gradle {
             tasks = "build"
-            name = "build Project"
+            name = "build and test Project"
             jdkHome = "%env.JDK_11_x64%"
-        }
-        gradle {
-            tasks = "test"
-            name = "test Project"
-            jdkHome = "%env.JDK_11_x64%"
+            gradleParams = "-Pcwms.image=registry.hecdev.net/cwms_schema_installer:22.1.1-SNAPSHOT -Poracle.version=registry.hecdev.net/oracle/database:19.3.0-ee -Pteamcity.build.branch=%teamcity.build.branch%-%teamcity.agent.name%"
         }
         gradle {
             tasks = "sonarqube"
             name = "SonarQube Analysis"
-            gradleParams = "-Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
+            gradleParams = "-x test -Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
             jdkHome = "%env.JDK_11_x64%"
         }
         gradle {
@@ -115,7 +112,7 @@ object Build : BuildType({
     }
 
     failureConditions {
-        executionTimeoutMin = 15
+        executionTimeoutMin = 180
         failOnMetricChange {
             metric = BuildFailureOnMetric.MetricType.ARTIFACT_SIZE
             units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
@@ -137,10 +134,14 @@ object Build : BuildType({
         feature {
             type = "halfbaked-sonarqube-report-plugin"
         }
+        dockerSupport {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_11"
+            }
+        }
     }
 
     requirements {
-        // not needed for a simple java project, but left here as example
-        //contains("docker.server.osType", "linux")
+        contains("docker.server.osType", "linux")
     }
 })

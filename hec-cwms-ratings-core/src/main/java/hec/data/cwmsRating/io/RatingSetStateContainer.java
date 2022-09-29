@@ -25,7 +25,7 @@ public class RatingSetStateContainer {
 	/**
 	 * The database connection object
 	 */
-	public Connection conn = null;
+	public RatingConnectionInfo conn = null;
 	/**
 	 * URL of database connection
 	 */

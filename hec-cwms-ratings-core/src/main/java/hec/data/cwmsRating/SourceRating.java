@@ -130,7 +130,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 					setMathExpression(src.mathExpression, src.units);
 				}
 				else if (src.rsc != null) {
-					setRatingSet(new RatingSet(src.rsc), src.units);
+					setRatingSet(RatingSetFactory.ratingSet(src.rsc), src.units);
 				}
 				else {
 					throw new RatingException("RatingSetContainer contains no data.");

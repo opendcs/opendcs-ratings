@@ -245,7 +245,7 @@ public class TestUsgsStreamTableRating
 		TableRating newShift2 = streamTableRating.addShift(shiftDate, stageShiftValues, shiftActive);
 		assertNotNull(newShift2);
 
-		RatingSet shiftsRatingSet = streamTableRating.getShifts();
+		AbstractRatingSet shiftsRatingSet = (AbstractRatingSet) streamTableRating.getShifts();
 		assertTrue(!shiftsRatingSet.activeRatings.isEmpty());
 
 		double rateOne = streamTableRating.rateOne(System.currentTimeMillis(),16.0);

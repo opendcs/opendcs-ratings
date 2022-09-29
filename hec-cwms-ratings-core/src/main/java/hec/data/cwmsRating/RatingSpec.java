@@ -8,15 +8,11 @@
 
 package hec.data.cwmsRating;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.CallableStatement;
-import java.sql.Clob;
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.RatingJdbcCompatUtil;
+import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import java.sql.Connection;
-import java.sql.Types;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.xpath.XPathConstants;
 
 import hec.data.DataSetException;
 import hec.data.DataSetIllegalArgumentException;
@@ -31,9 +27,8 @@ import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
 import hec.util.TextUtil;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
@@ -134,65 +129,25 @@ public class RatingSpec extends RatingTemplate {
 	 * @param ratingSpecId The rating specification identifier
 	 * @throws RatingException Any SQL errors retreiving the data
 	 * @return XML string from the database
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#getRatingSpecXmlFromDatabase(Connection, String, String) instead
 	 */
+	@Deprecated
 	public static String getXmlfromDatabase(
 			Connection conn,
 			String officeId,
 			String ratingSpecId)
 			throws RatingException {
-		String xmlText = null;
-		synchronized(conn) {
-			try {
-				String sql =
-						"begin "                              +
-						   "cwms_rating.retrieve_specs_xml("  +
-						      "p_specs          => :1,"       +
-						      "p_spec_id_mask   => :2,"       +
-						      "p_office_id_mask => :3);"      +
-						"end;";
-				CallableStatement stmt = conn.prepareCall(sql);
-				stmt.registerOutParameter(1, Types.CLOB);
-				stmt.setString(2, ratingSpecId);
-				if (officeId == null) {
-					stmt.setNull(3, Types.VARCHAR);
-				}
-				else {
-					stmt.setString(3, officeId);
-				}
-				stmt.execute();
-				Clob clob = stmt.getClob(1);
-				stmt.close();
-				try {
-					if (clob.length() > Integer.MAX_VALUE) {
-						throw new RatingException("CLOB too long.");
-					}
-					xmlText = clob.getSubString(1, (int)clob.length());
-				}
-				finally {
-					try {
-						clob.free();
-					}
-					catch(Throwable t) {
-						if (logger.isLoggable(Level.WARNING)) {
-							StringWriter sw = new StringWriter();
-							PrintWriter pw = new PrintWriter(sw);
-							t.printStackTrace(pw);
-							logger.log(Level.WARNING, sw.toString());
-						}
-					}
-				}
-				return xmlText;
-			}
-			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
-			}
-		}
+		return RatingJdbcCompatUtil.getInstance().getSpecXmlFromDatabase(conn, officeId, ratingSpecId);
 	}
 
+	/**
+	 *
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
+	 */
+	@Deprecated
 	public static RatingSpec fromDatabase(Connection conn, String officeId, String ratingSpecId) throws RatingException
 	{
-		return new RatingSpec(conn, officeId, ratingSpecId);
+		return RatingJdbcCompatUtil.getInstance().specFromDatabase(conn, officeId, ratingSpecId);
 	}
 
 	/**
@@ -249,7 +204,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Public Constructor
 	 */
-	public RatingSpec() {};
+	public RatingSpec() {}
 	/**
 	 * Public Constructor from RatingSpecContainer
 	 * @param rsc The RatingSpecContainer object to initialize from
@@ -264,7 +219,9 @@ public class RatingSpec extends RatingTemplate {
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
 	 */
+	@Deprecated
 	public RatingSpec (
 			Connection conn,
 			String officeId,
@@ -277,18 +234,25 @@ public class RatingSpec extends RatingTemplate {
 	 * @param templateNode The template XML node
 	 * @param specNode The specification XML node
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(Node, Node) instead.
 	 */
+	@Deprecated
 	public RatingSpec(Node templateNode, Node specNode) throws RatingException {
 		setData(new RatingSpec(templateNode, specNode).getData());
 	}
+
 	/**
 	 * Public constructor from XML strings
 	 * @param templateXml The template XML text
 	 * @param specXml The specification XML text
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
 	 */
+	@Deprecated
 	public RatingSpec(String templateXml , String specXml) throws RatingException {
-		setData(templateXml, specXml);
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		RatingSpec ratingSpec = service.createRatingSpec(templateXml, specXml);
+		setData(ratingSpec.getData());
 	}
 	/**
 	 * Retrieves the identifier of the office that owns this rating specification
@@ -684,17 +648,18 @@ public class RatingSpec extends RatingTemplate {
 	 * @return The RatingSpecContainer
 	 */
 	@Override
-	public RatingTemplateContainer getData() {
+	public RatingSpecContainer getData() {
 		return getData(true);
 	}
 	/**
 	 * Retrieves a RatingSpecContainer containing the data of this object.
 	 * @return The RatingSpecContainer
 	 */
-	public RatingTemplateContainer getData(boolean getTemplate) {
+	public RatingSpecContainer getData(boolean getTemplate) {
 		RatingSpecContainer rsc = new RatingSpecContainer();
 		if (getTemplate) super.getData(rsc);
 		rsc.officeId = officeId;
+		rsc.specOfficeId = officeId;
 		rsc.templateId = getTemplateId();
 		rsc.specId = locationId + "." + rsc.templateId + "." + version;
 		rsc.locationId = locationId;
@@ -758,265 +723,162 @@ public class RatingSpec extends RatingTemplate {
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
 	 */
-	public void setData (
+	@Deprecated
+	public synchronized void setData (
 			Connection conn,
 			String officeId,
 			String ratingSpecId)
 			throws RatingException {
-		synchronized(conn) {
-			try {
-				String specXml = RatingSpec.getXmlfromDatabase(conn, officeId, ratingSpecId);
-				String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
-				String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
-				String templateXml = RatingTemplate.getXmlfromDatabase(conn, officeId, templateId);
-				setData(templateXml, specXml);
-			}
-			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
-			}
-		}
+		RatingSpec ratingSpec = RatingJdbcCompatUtil.getInstance().specFromDatabase(conn, officeId, ratingSpecId);
+		setData(ratingSpec.getData());
 	}
+
 	/**
 	 * Sets the data for this object from XML Text
 	 * @param templateXml The template XML text
 	 * @param specXml The specification XML text
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
 	 */
+	@Deprecated
 	public void setData(String templateXml, String specXml) throws RatingException {
-		if (templateXml == null) {
-			throw new RatingException("The rating template XML string is null");
-		}
-		if (specXml == null) {
-			throw new RatingException("The rating specification XML string is null");
-		}
-		try {
-			RatingConst.initXmlParsing();
-			Document templateDoc = RatingConst.readXmlAsDocument(templateXml);
-			Document specDoc = RatingConst.readXmlAsDocument(specXml);
-			setData(templateDoc.getDocumentElement().getElementsByTagName("rating-template").item(0), specDoc.getDocumentElement().getElementsByTagName("rating-spec").item(0));
-		}
-		catch (Exception e) {
-			throw new RatingException(e);
-		}
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		RatingSpecContainer container = service.createRatingSpec(templateXml, specXml).getData();
+		setData(container);
 	}
+
 	/**
 	 * Sets the data for this object from XML nodes
 	 * @param templateNode The template XML node
 	 * @param specNode The specification XML node
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
 	 */
+	@Deprecated
 	public void setData(Node templateNode, Node specNode) throws RatingException {
-		try {
-			if (templateNode == null) {
-				throw new RatingException("The rating template node string is null");
-			}
-			if (specNode == null) {
-				throw new RatingException("The rating specification node string is null");
-			}
-			//-------------------------//
-			// parse the template node //
-			//-------------------------//
-			RatingConst.initXmlParsing();
-			String parametersId = (String)RatingConst.parametersIdXpath.evaluate(templateNode, XPathConstants.STRING);
-			String officeId = (String)RatingConst.officeIdXpath.evaluate(templateNode, XPathConstants.STRING);
-			String[] paramIds = split(parametersId, SEPARATOR2, "L");
-			if (paramIds.length != 2) {
-				throw new RatingException(String.format("Rating template has invalid parameters identifier: %s", parametersId));
-			}
-			String depParam = paramIds[1];
-			paramIds = split(paramIds[0], SEPARATOR3, "L");
-			String templateVersion = (String)RatingConst.versionXpath.evaluate(templateNode, XPathConstants.STRING);
-			Node indParamsNode = (Node)RatingConst.indParamsNodeXpath.evaluate(templateNode, XPathConstants.NODE);
-			NodeList indParamNodes = (NodeList)RatingConst.indParamNodesXpath.evaluate(indParamsNode, XPathConstants.NODESET);
-			int indParamCount = indParamNodes.getLength();
-			if (indParamCount != paramIds.length) {
-				throw new RatingException("Rating template has inconsistent numbers of independent parameters.");
-			}
-			RatingMethod[] inRangeMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeLowMethods = new RatingMethod[indParamCount];
-			RatingMethod[] outRangeHighMethods = new RatingMethod[indParamCount];
-			for (int i = 0; i < indParamCount; ++i) {
-				Node indParamNode = indParamNodes.item(i);
-				double pos = (Double)RatingConst.indParamPosXpath.evaluate(indParamNode, XPathConstants.NUMBER);
-				if (pos != i+1) {
-					throw new RatingException("Parameters out of order in rating template.");
-				}
-				if (!paramIds[i].equals(RatingConst.parameterXpath.evaluate(indParamNode, XPathConstants.STRING))) {
-					throw new RatingException(String.format("Rating template has inconsistent independent parameter %d.", (i+1)));
-				}
-				inRangeMethods[i] = RatingMethod.fromString((String)RatingConst.inRangeMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
-				outRangeLowMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeLowMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
-				outRangeHighMethods[i] = RatingMethod.fromString((String)RatingConst.outRangeHighMethodXpath.evaluate(indParamNode, XPathConstants.STRING));
-			}
-			if (!depParam.equals(RatingConst.depParamXpath.evaluate(templateNode, XPathConstants.STRING))) {
-				throw new RatingException("Rating template has inconsistent dependent parameter.");
-			}
-			String templateDescription = (String)RatingConst.descriptionXpath.evaluate(templateNode, XPathConstants.STRING);
-			//----------------------------//
-			// parse the rating spec node //
-			//----------------------------//
-			if (!officeId.equals(RatingConst.officeIdXpath.evaluate(specNode, XPathConstants.STRING))) {
-				throw new RatingException("Rating template and specification have different office identifiers.");
-			}
-			String ratingSpecId = (String)RatingConst.ratingSpecIdXpath.evaluate(specNode, XPathConstants.STRING);
-			String templateId = (String)RatingConst.templateIdXpath.evaluate(specNode, XPathConstants.STRING);
-			String locationId = (String)RatingConst.locationIdXpath.evaluate(specNode, XPathConstants.STRING);
-			String[] parts = split(ratingSpecId, SEPARATOR1, "L");
-			if (parts.length != 4) {
-				throw new RatingException("Rating specification has invalid identifier");
-			}
-			if (!parts[0].equals(locationId)) {
-				throw new RatingException("Rating template and specification have different locations.");
-			}
-			if (!templateId.equals(String.format("%s%s%s", parametersId, SEPARATOR1, templateVersion))) {
-				throw new RatingException("Rating template and specification have inconsistent identifiers.");
-			}
-			String sourceAgencyId = (String)RatingConst.sourceAgencyXpath.evaluate(specNode, XPathConstants.STRING);
-			String inRangeMethod = (String)RatingConst.inRangeMethodXpath.evaluate(specNode, XPathConstants.STRING);
-			String outRangeLowMethod = (String)RatingConst.outRangeLowMethodXpath.evaluate(specNode, XPathConstants.STRING);
-			String outRangeHighMethod = (String)RatingConst.outRangeHighMethodXpath.evaluate(specNode, XPathConstants.STRING);
-			String activeStr = (String)RatingConst.activeXpath.evaluate(specNode, XPathConstants.STRING);
-			String autoUpdateStr = (String)RatingConst.autoUpdateXpath.evaluate(specNode, XPathConstants.STRING);
-			String autoActivateStr = (String)RatingConst.autoActivateXpath.evaluate(specNode, XPathConstants.STRING);
-			String autoMigrateExtensionsStr = (String)RatingConst.autoMigrateExtXpath.evaluate(specNode, XPathConstants.STRING);
-			boolean active =  activeStr.equals("true");
-			boolean autoUpdate = autoUpdateStr.equals("true");
-			boolean autoActivate = autoActivateStr.equals("true");
-			boolean autoMigrateExtensions = autoMigrateExtensionsStr.equals("true");
-			indParamsNode = (Node)RatingConst.indRoundingNodeXpath.evaluate(specNode, XPathConstants.NODE);
-			indParamNodes = (NodeList)RatingConst.indRoundingNodesXpath.evaluate(indParamsNode, XPathConstants.NODESET);
-			indParamCount = indParamNodes.getLength();
-			if (indParamCount != paramIds.length) {
-				throw new RatingException("Rating specification has different numbers of independent parameters than rating template.");
-			}
-			String[] indRoundingSpecs = new String[indParamCount];
-			for (int i = 0; i < indParamCount; ++i) {
-				Node indParamNode = indParamNodes.item(i);
-				double pos = (Double)RatingConst.indParamPosXpath.evaluate(indParamNode, XPathConstants.NUMBER);
-				if (pos != i+1) {
-					throw new RatingException("Parameters out of order in rating specification.");
-				}
-				indRoundingSpecs[i] = indParamNode.getFirstChild().getNodeValue().trim();
-			}
-			String depRoundingSpec = (String)RatingConst.depRoundingXpath.evaluate(specNode, XPathConstants.STRING);
-			String specDescription = (String)RatingConst.descriptionXpath.evaluate(specNode, XPathConstants.STRING);
-			setOfficeId(officeId);
-			parts = split(ratingSpecId, SEPARATOR1, "L");
-			if (parts.length != 4) throw new RatingException("Invalid rating specification: " + ratingSpecId);
-			setLocationId(parts[0]);
-			super.setParametersId(parts[1]);
-			super.setVersion(parts[2]);
-			setVersion(parts[3]);
-			setSourceAgencyId(sourceAgencyId);
-			setDescription(specDescription);
-			setInRangeMethod(RatingMethod.fromString(inRangeMethod));
-			setOutRangeLowMethod(RatingMethod.fromString(outRangeLowMethod));
-			setOutRangeHighMethod(RatingMethod.fromString(outRangeHighMethod));
-			setActive(active);
-			setAutoUpdate(autoUpdate);
-			setAutoActivate(autoActivate);
-			setAutoMigrateExtensions(autoMigrateExtensions);
-			setIndRoundingSpecs(indRoundingSpecs);
-			setDepRoundingSpec(depRoundingSpec);
-			setInRangeMethods(inRangeMethods);
-			setOutRangeLowMethods(outRangeLowMethods);
-			setOutRangeHighMethods(outRangeHighMethods);
-			setTemplateId(templateId);
-			setTemplateDescription(templateDescription);
-		}
-		catch (Throwable t) {
-			if (t instanceof RatingException) throw (RatingException)t;
-			t.printStackTrace();
-			throw new RatingException(t);
-		}
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		RatingTemplateContainer container = service.createRatingSpec(templateNode, specNode).getData();
+		setData(container);
 	}
+
 	/**
 	 * Generates an XML document from this rating specification containing only the
 	 * &lt;rating-spec&gt; element.
 	 * @param indent The character(s) for each level of indentation
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
 	public String toSpecXml(CharSequence indent) {
-		return ((RatingSpecContainer)getData()).toSpecXml(indent, 0);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, 0, false);
 	}
+
 	/**
 	 * Generates an XML document fragment from this rating specification containing only the
 	 * &lt;rating-spec&gt; element.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
 	public String toSpecXml(CharSequence indent, int level) {
-		return ((RatingSpecContainer)getData()).toSpecXml(indent, level);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, level, false);
 	}
+
 	/**
 	 * Generates an XML document from this rating specification containing only the
 	 * &lt;rating-template&gt; element.
 	 * @param indent The character(s) for each level of indentation
 	 * @return The XML document
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplate, CharSequence, int) instead.
 	 */
 	public String toTemplateXml(CharSequence indent) {
-		return ((RatingSpecContainer)getData()).toTemplateXml(indent, 0);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, 0);
 	}
+
 	/**
 	 * Generates an XML document fragment from this rating specification containing only the
 	 * &lt;rating-template&gt; element.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplate, CharSequence, int) instead.
 	 */
 	public String toTemplateXml(CharSequence indent, int level) {
-		return ((RatingSpecContainer)getData()).toTemplateXml(indent, level);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, level);
 	}
+
 	/**
 	 * Generates an XML document from this rating specification containing both
 	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
 	 * @param indent The character(s) for each level of indentation
 	 * @return The XML document
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
+	@Deprecated
 	public String toXml(CharSequence indent) {
-		return toXmlString(indent, 0);
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, 0, false);
 	}
+
 	/**
 	 * Generates an XML document fragment from this rating specification containing both
 	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
+	@Deprecated
 	public String toXml(CharSequence indent, int level) {
-		return toXmlString(indent, level);
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level, false);
 	}
+
 	/**
 	 * Generates an XML document fragment from this rating specification.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
+	@Deprecated
 	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
-		return toXmlString(indent, level, includeTemplate);
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level, includeTemplate);
 	}
+
 	/**
 	 * Generates an XML document fragment from this rating specification containing both
 	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
+	@Deprecated
 	@Override
 	public String toXmlString(CharSequence indent, int level) {
-		return toXmlString(indent, level, false);
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level, false);
 	}
+
 	/**
 	 * Generates an XML document fragment from this rating specification.
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
 	 */
+	@Deprecated
 	public String toXmlString(CharSequence indent, int level, boolean includeTemplate) {
-		return ((RatingSpecContainer)getData()).toXml(indent, level, includeTemplate);
+		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level, includeTemplate);
 	}
 
 	/**
@@ -1038,22 +900,25 @@ public class RatingSpec extends RatingTemplate {
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, RatingSpec, boolean, boolean) instead
 	 */
+	@Deprecated
 	@Override
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-//		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(false)).toSpecXml(""), overwriteExisting);
-		storeToDatabase(conn,overwriteExisting,false);
+		RatingJdbcCompatUtil.getInstance().storeToDatabase(this, conn, overwriteExisting, false);
 	}
 
+	/**
+	 *
+	 * @param conn
+	 * @param overwriteExisting
+	 * @param storeTemplate
+	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, RatingSpec, boolean, boolean) instead
+	 */
+	@Deprecated
 	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean storeTemplate) throws RatingException {
-		if (storeTemplate)
-		{
-			RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toXml(""), overwriteExisting);
-    	}
-    	else
-    	{
-    		RatingSet.storeToDatabase(conn, ((RatingSpecContainer)getData(storeTemplate)).toSpecXml(""), overwriteExisting);
-    	}
+		RatingJdbcCompatUtil.getInstance().storeToDatabase(this, conn, overwriteExisting, storeTemplate);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)

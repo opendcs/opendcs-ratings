@@ -66,113 +66,14 @@ public class RatingConst {
 	 * Used in generating rating spec for offsets
 	 */
 	public static final String USGS_OFFSETS_SPEC_VERSION = "Production";
-	
-	static final String specNodeXpathStr = "/ratings/rating-spec[@office-id='%s' and normalize-space(rating-spec-id)='%s']";
-	static final String templateNodeXpathStr = "/ratings/rating-template[@office-id='%s' and normalize-space(parameters-id)='%s' and normalize-space(version)='%s']";
-	static boolean xmlParsingInitialized                    = false;
-	private static DocumentBuilder builder					= null;
-	static XPath xpath                                      = null;
-	static XPathExpression officeIdXpath                    = null;
-	static XPathExpression parametersIdXpath                = null;
-	static XPathExpression versionXpath                     = null;
-	static XPathExpression indParamsNodeXpath               = null;
-	static XPathExpression indParamNodesXpath               = null;
-	static XPathExpression indParamPosXpath                 = null;
-	static XPathExpression parameterXpath                   = null;
-	static XPathExpression inRangeMethodXpath               = null;
-	static XPathExpression outRangeLowMethodXpath           = null;
-	static XPathExpression outRangeHighMethodXpath          = null;
-	static XPathExpression depParamXpath                    = null;
-	static XPathExpression descriptionXpath                 = null;
-	static XPathExpression ratingNodesXpath                 = null;
-	static XPathExpression ratingSpecIdXpath                = null;
-	static XPathExpression templateIdXpath                  = null;
-	static XPathExpression locationIdXpath                  = null;
-	static XPathExpression sourceAgencyXpath                = null;
-	static XPathExpression autoUpdateXpath                  = null;
-	static XPathExpression autoActivateXpath                = null;
-	static XPathExpression autoMigrateExtXpath              = null;
-	static XPathExpression indRoundingNodeXpath             = null;
-	static XPathExpression indRoundingNodesXpath            = null;
-	static XPathExpression depRoundingXpath                 = null;
-	static XPathExpression unitsIdXpath                     = null;
-	static XPathExpression effectiveDateXpath               = null;
-	static XPathExpression createDateXpath                  = null;
-	static XPathExpression activeXpath                      = null;
-	static XPathExpression formulaXpath                     = null;
-	static XPathExpression ratingPointGroupNodesXpath       = null;
-	static XPathExpression extensionPointGroupNodesXpath    = null;
-	static XPathExpression otherIndParamNodesXpath          = null;
-	static XPathExpression otherIndValXPath                 = null;
-	static XPathExpression pointNodesXpath                  = null;
-	static XPathExpression indValXpath                      = null;
-	static XPathExpression depValXpath                      = null;
-	static XPathExpression noteXpath                        = null;
-	static XPathExpression shiftNodesXpath                  = null;
-	static XPathExpression offsetNodeXpath                  = null;
 
-	/**
-	 * Initializes static variables for parsing CWMS-style ratings XML instances
-	 * @throws ParserConfigurationException
-	 * @throws XPathExpressionException
-	 */
-	static void initXmlParsing() throws ParserConfigurationException, XPathExpressionException {
-		if (!xmlParsingInitialized) {
-			builder                       = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			xpath                         = XPathFactory.newInstance().newXPath();
-			officeIdXpath                 = xpath.compile("./@office-id");
-			parametersIdXpath             = xpath.compile("./parameters-id");
-			versionXpath                  = xpath.compile("./version");
-			indParamsNodeXpath            = xpath.compile("./ind-parameter-specs");
-			indParamNodesXpath            = xpath.compile("./ind-parameter-spec");
-			indParamPosXpath              = xpath.compile("./@position");
-			parameterXpath                = xpath.compile("./parameter");
-			inRangeMethodXpath            = xpath.compile("./in-range-method");
-			outRangeLowMethodXpath        = xpath.compile("./out-range-low-method");
-			outRangeHighMethodXpath       = xpath.compile("./out-range-high-method");
-			depParamXpath                 = xpath.compile("./dep-parameter");
-			descriptionXpath              = xpath.compile("./description");
-			ratingNodesXpath              = xpath.compile("/ratings/rating|/ratings/usgs-stream-rating");
-			ratingSpecIdXpath             = xpath.compile("./rating-spec-id");
-			templateIdXpath               = xpath.compile("./template-id");
-			locationIdXpath               = xpath.compile("./location-id");
-			sourceAgencyXpath             = xpath.compile("./source-agency");
-			autoUpdateXpath               = xpath.compile("./auto-update");
-			autoActivateXpath             = xpath.compile("./auto-activate");
-			autoMigrateExtXpath           = xpath.compile("./auto-migrate-extension");
-			indRoundingNodeXpath          = xpath.compile("./ind-rounding-specs");
-			indRoundingNodesXpath         = xpath.compile("./ind-rounding-spec");
-			depRoundingXpath              = xpath.compile("./dep-rounding-spec");
-			unitsIdXpath                  = xpath.compile("./units-id");
-			effectiveDateXpath            = xpath.compile("./effective-date");
-			createDateXpath               = xpath.compile("./create-date");
-			activeXpath                   = xpath.compile("./active");
-			formulaXpath                  = xpath.compile("./formula");
-			ratingPointGroupNodesXpath    = xpath.compile("./rating-points");
-			extensionPointGroupNodesXpath = xpath.compile("./extension-points");
-			otherIndParamNodesXpath       = xpath.compile("./other-ind");
-			otherIndValXPath              = xpath.compile("./@value");
-			pointNodesXpath               = xpath.compile("./point");
-			indValXpath                   = xpath.compile("./ind");
-			depValXpath                   = xpath.compile("./dep");
-			noteXpath                     = xpath.compile("./note");
-			shiftNodesXpath               = xpath.compile("./height-shifts");
-			offsetNodeXpath               = xpath.compile("./height-offsets");
-			xmlParsingInitialized         = true;
-		}
-	}
-
-	static synchronized Document readXmlAsDocument(String xml) throws IOException, SAXException
-	{
-		return builder.parse(new InputSource(new StringReader(xml)));
-	}
 	
 	/**
 	 * Constants specifying rating behaviors in various contexts.
 	 *
 	 * @author Mike Perryman
 	 */
-	public static enum RatingMethod {
+	public enum RatingMethod {
 		/**
 		 * Return null if between values or outside range.<p>XML text representation: "NULL"
 		 */

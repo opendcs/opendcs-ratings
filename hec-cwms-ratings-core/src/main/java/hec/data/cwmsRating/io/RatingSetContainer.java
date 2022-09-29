@@ -8,15 +8,9 @@
 
 package hec.data.cwmsRating.io;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import hec.data.RatingException;
 import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingSetXmlParser;
-import hec.data.cwmsRating.RatingUtil;
+import hec.data.cwmsRating.RatingSetFactory;
 import hec.io.DataContainer;
 import hec.io.DataContainerTransformer;
 import hec.io.HecIoException;
@@ -53,7 +47,10 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
+	 *
 	 */
+	@Deprecated
 	public RatingSetContainer(Element ratingElement) throws RatingException {
 		populateFromXml(ratingElement);
 	}
@@ -64,7 +61,9 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
 	 * @throws RatingException
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
 	 */
+	@Deprecated
 	public RatingSetContainer(String xmlText) throws RatingException {
 		populateFromXml(xmlText);
 	}
@@ -74,9 +73,14 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
 	 */
+	@Deprecated
 	public void populateFromXml(Element ratingElement) throws RatingException {
-		populateFromXml(RatingUtil.jdomElementToText(ratingElement));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		RatingSetContainer rsc = service.createRatingSetContainer(ratingElement);
+		ratingSpecContainer = rsc.ratingSpecContainer;
+		abstractRatingContainers = rsc.abstractRatingContainers;
 	}
 	/**
 	 * Populates this RatingSetContainer object from an XML instance.
@@ -85,12 +89,16 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
 	 * @throws RatingException
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
 	 */
+	@Deprecated
 	public void populateFromXml(String xmlText) throws RatingException {
-		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		RatingSetContainer rsc = service.createRatingSetContainer(xmlText);
 		ratingSpecContainer = rsc.ratingSpecContainer;
 		abstractRatingContainers = rsc.abstractRatingContainers;
 	}
+
 	/**
 	 * Creates another RatingSetContainer object and fills it with with data from this one
 	 */
@@ -123,67 +131,45 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 			return ((Object)this).toString();
 		}
 	}
+
+	/**
+	 *
+	 * @return xml representation of this RatingSetContainer
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
+	 */
+	@Deprecated
 	public String toXml(CharSequence indent) {
 		return toXml(indent, 0);
 	}
 
+	/**
+	 *
+	 * @return xml representation of this RatingSetContainer
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
+	 */
+	@Deprecated
 	public String toXml(CharSequence indent, int level) {
 		return toXml(indent, level, true);
 	}
 
+	/**
+	 *
+	 * @return xml representation of this RatingSetContainer
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
+	 */
+	@Deprecated
 	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
 		return toXml(indent, level, includeTemplate, true);
 	}
 
+	/**
+	 *
+	 * @return xml representation of this RatingSetContainer
+	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
+	 */
+	@Deprecated
 	public String toXml(CharSequence indent, int level, boolean includeTemplate, boolean includeEmptyTableRatings) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		List<String> ratingXmlStrings = new ArrayList<String>();
-		SortedSet<String> templateXmlStrings = new TreeSet<String>();
-		SortedSet<String> specXmlStrings = new TreeSet<String>();
-		String thisTemplateXml = ratingSpecContainer.toTemplateXml(indent, level+1);
-		if (level == 0) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
-			if (abstractRatingContainers != null) {
-				for (AbstractRatingContainer arc : abstractRatingContainers) {
-					if (arc instanceof VirtualRatingContainer) {
-						VirtualRatingContainer vrc = (VirtualRatingContainer)arc;
-						vrc.getSoucreRatingsXml(indent, level+1, templateXmlStrings, specXmlStrings, ratingXmlStrings);
-					}
-					else if (arc instanceof TransitionalRatingContainer) {
-						TransitionalRatingContainer trrc = (TransitionalRatingContainer)arc;
-						trrc.getSoucreRatingsXml(indent, level+1, templateXmlStrings, specXmlStrings, ratingXmlStrings);
-					}
-				}
-			}
-		}
-		for (String templateXml : templateXmlStrings) {
-			if (!templateXml.equals(thisTemplateXml)) {
-				sb.append(templateXml);
-			}
-		}
-		if (ratingSpecContainer != null) {
-			sb.append(ratingSpecContainer.toXml(indent, level+1, includeTemplate));
-		}
-		for (String specXml : specXmlStrings) {
-			sb.append(specXml);
-		}
-		if (abstractRatingContainers != null) {
-			for (AbstractRatingContainer arc : abstractRatingContainers) {
-				if (includeEmptyTableRatings || !(arc instanceof TableRatingContainer) || ((TableRatingContainer)arc).values != null)
-				sb.append(arc.toXml(indent, level+1));
-			}
-		}
-		for (String ratingXml : ratingXmlStrings) {
-			sb.append(ratingXml);
-		}
-		if (level == 0) {
-			sb.append(prefix).append("</ratings>\n");
-		}
-		return sb.toString();
+		return RatingContainerXmlCompatUtil.getInstance().toXml(this, indent, level, includeTemplate, includeEmptyTableRatings);
 	}
 	/**
 	 * Add the specified offset to the values of the specified parameter.
@@ -584,7 +570,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	public DataContainer toDataContainer() throws HecIoException
 	{
 		try {
-			return new RatingSet(this).getDssData();
+			return RatingSetFactory.ratingSet(this).getDssData();
 		}
 		catch(RatingException e) {
 			throw new HecIoException(e);

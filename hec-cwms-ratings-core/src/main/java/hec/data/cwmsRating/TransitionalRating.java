@@ -11,12 +11,12 @@
  */
 package hec.data.cwmsRating;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import static hec.util.TextUtil.replaceAll;
 
 import hec.data.RatingException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import hec.data.cwmsRating.io.SourceRatingContainer;
 import hec.data.cwmsRating.io.TransitionalRatingContainer;
 import hec.hecmath.computation.ComputationException;
@@ -24,8 +24,9 @@ import hec.hecmath.computation.Condition;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
-
-import static hec.util.TextUtil.replaceAll;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Rating that selects among multiple possible ratings depending on input parameter values.
@@ -60,14 +61,20 @@ public class TransitionalRating extends AbstractRating {
 		init();
 		setData(trrc);
 	}
+
 	/**
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRating(String) instead
 	 */
+	@Deprecated
 	public TransitionalRating(String xmlText) throws RatingException {
-		setData(new TransitionalRatingContainer(xmlText));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		TransitionalRatingContainer container = service.createTransitionalRatingContainer(xmlText);
+		setData(container);
 	}
+
 	/**
 	 * performs common initialization tasks
 	 */
@@ -247,12 +254,14 @@ public class TransitionalRating extends AbstractRating {
 			}
 		}
 	}
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#toXmlString(java.lang.CharSequence, int)
+
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TransitionalRating, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return getData().toXml(indent, indentLevel);
+		return RatingXmlCompatUtil.getInstance().toXml(this, indent, indentLevel);
 	}
 
 	/* (non-Javadoc)

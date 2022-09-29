@@ -97,6 +97,7 @@ public interface ICwmsRating extends IRating {
 	 * @param indent The character(s) used for indentation in the XML string
 	 * @param indentLevel The beginning indentation level for the XML string
 	 * @return This rating as an XML string
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(AbstractRating, CharSequence, int) instead
 	 */
 	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 

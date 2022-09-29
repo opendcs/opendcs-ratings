@@ -6,9 +6,6 @@
  *
  */
 
-/**
- *
- */
 package hec.data.cwmsRating.io;
 
 import java.util.ArrayList;
@@ -18,22 +15,21 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import hec.data.RatingException;
-import hec.data.RatingRuntimeException;
 import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingSetXmlParser;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.VirtualRating;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import org.jdom.Element;
+
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
@@ -62,44 +58,47 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * Public constructor from a JDOM Element. The connections and sourceRatings fields will be null
 	 * @param ratingElement The JDOM Element
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */
+	@Deprecated
 	public VirtualRatingContainer(Element ratingElement) throws RatingException {
 		populateFromXml(ratingElement);
 	}
+
 	/**
 	 * Public constructor from an XML snippet. The connections and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
 	 * @throws RatingException any issues with processing the XML data.
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */
+	@Deprecated
 	public VirtualRatingContainer(String xmlText) throws RatingException {
 		populateFromXml(xmlText);
 	}
+
 	/**
 	 * Populates the VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
 	 * @param ratingElement The JDOM Element
 	 * @throws RatingException any issues with processing the XML data.
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */
+	@Deprecated
 	public void populateFromXml(Element ratingElement) throws RatingException {
-		try {
-			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingException(e);
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		VirtualRatingContainer virtualRatingContainer = service.createVirtualRatingContainer(ratingElement);
+		virtualRatingContainer.clone(this);
 	}
 	/**
 	 * Populates the VirtualRatingContainer from an XML snippet. The connections and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(String) instead
 	 */
+	@Deprecated
 	public void populateFromXml(String xmlText) throws RatingException {
-		RatingSetContainer rsc = RatingSetXmlParser.parseString(xmlText);
-		if (rsc.abstractRatingContainers.length == 1 && rsc.abstractRatingContainers[0] instanceof VirtualRatingContainer) {
-			rsc.abstractRatingContainers[0].clone(this);
-		}
-		else {
-			throw new RatingException("XML text does not specify an VirtualRating object.");
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		VirtualRatingContainer virtualRatingContainer = service.createVirtualRatingContainer(xmlText);
+		virtualRatingContainer.clone(this);
 	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
@@ -282,7 +281,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 				sourceRatings[i].clone(vrc.sourceRatings[i]);
 			}
 		}
-		else if (sourceRatingIds != null) {
+		if (sourceRatingIds != null) {
 			vrc.sourceRatingIds = new String[sourceRatingIds.length];
 			for (int i = 0; i < sourceRatingIds.length; ++i) {
 				vrc.sourceRatingIds[i] = sourceRatingIds[i];
@@ -290,51 +289,28 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
-	 */
 	@Override
-	public boolean equals(Object obj) {
-		boolean result = obj == this;
-		if (!result) {
-			test:
-				do {
-					if (obj == null || obj.getClass() != getClass()) break;
-					if (!super.equals(obj)) break;
-					VirtualRatingContainer other = (VirtualRatingContainer)obj;
-					if ((other.connections == null) != (connections == null)) break;
-					if (!other.connections.equals(connections)) break;
-					if ((other.sourceRatings == null) != (sourceRatings == null)) break;
-					if (sourceRatings != null) {
-						for (int i = 0; i < sourceRatings.length; ++i) {
-							if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
-							if (sourceRatings[i] != null) {
-								if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
-							}
-						}
-					}
-					result = true;
-				} while(false);
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
 		}
-		return result;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		VirtualRatingContainer that = (VirtualRatingContainer) o;
+		return Arrays.equals(sourceRatingIds, that.sourceRatingIds) && Arrays.equals(sourceRatings, that.sourceRatings) &&
+			Objects.equals(connections, that.connections);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
-	 */
 	@Override
 	public int hashCode() {
-		int hashCode = getClass().getName().hashCode() + super.hashCode() + 3 * (connections == null ? 1 : connections.hashCode());
-		if (sourceRatings == null) {
-			hashCode += 5;
-		}
-		else {
-			hashCode += 7 * sourceRatings.length;
-			for (int i = 0; i < sourceRatings.length; ++i) {
-				hashCode += 11 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
-			}
-		}
-		return hashCode;
+		int result = Objects.hash(super.hashCode(), connections);
+		result = 31 * result + Arrays.hashCode(sourceRatingIds);
+		result = 31 * result + Arrays.hashCode(sourceRatings);
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -458,115 +434,31 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		super.setVerticalDatumInfo(xmlStr);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
+	/**
+	 *
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRatingContainer, CharSequence, int) instead
 	 */
 	@Override
 	public String toXml(CharSequence indent) {
 		return toXml(indent, 0);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence, int)
+	/**
+	 *
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRatingContainer, CharSequence, int) instead
 	 */
 	@Override
 	public String toXml(CharSequence indent, int level) {
-		try {
-			if (vdc != null && vdc.getCurrentOffset() != 0.) {
-				VirtualRatingContainer _clone = (VirtualRatingContainer)this.clone();
-				_clone.toNativeVerticalDatum();
-				return _clone.toXml(indent, level);
-			}
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingRuntimeException(e);
-		}
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		if (level == 0) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
-			SortedSet<String> templateXmlStrings = new TreeSet<String>();
-			SortedSet<String> specXmlStrings = new TreeSet<String>();
-			List<String> ratingXmlStrings = new ArrayList<String>();
-			getSoucreRatingsXml(indent, level+1, templateXmlStrings, specXmlStrings, ratingXmlStrings);
-			for (String templateXml : templateXmlStrings) {
-				sb.append(templateXml);
-			}
-			for (String specXml : specXmlStrings) {
-				sb.append(specXml);
-			}
-			for (String specXml : ratingXmlStrings) {
-				sb.append(specXml);
-			}
-			prefix += indent;
-		}
-		sb.append(super.toXml(prefix, indent, "virtual-rating"));
-		if (connections == null || connections.length() == 0) {
-			sb.append(prefix).append(indent).append("<connections/>\n");
-		}
-		else {
-			sb.append(prefix).append(indent).append("<connections>").append(connections).append("</connections>\n");
-		}
-		if (sourceRatings == null || sourceRatings.length == 0) {
-			sb.append(prefix).append(indent).append("<source-ratings/>\n");
-		}
-		else {
-			sb.append(prefix).append(indent).append("<source-ratings>\n");
-			StringBuilder sourceRatingUnits = new StringBuilder();
-			for (int i = 0; i < sourceRatings.length; ++i) {
-				sourceRatingUnits.setLength(0);
-				sourceRatingUnits.append(" {");
-				for (int j = 0; j < sourceRatings[i].units.length; ++j) {
-					sourceRatingUnits.append(j == 0 ? "" : j == sourceRatings[i].units.length-1 ? ";" : ",")
-					                 .append(TextUtil.xmlEntityEncode(sourceRatings[i].units[j]));
-				}
-				sourceRatingUnits.append("}");
-				sb.append(prefix).append(indent).append(indent).append("<source-rating position=\""+(i+1)+"\">\n");
-				if (sourceRatings[i].rsc == null) {
-					sb.append(prefix).append(indent).append(indent).append(indent)
-					  .append("<rating-expression>").append(TextUtil.xmlEntityEncode(sourceRatings[i].mathExpression))
-					  .append(sourceRatingUnits.toString())
-					  .append("</rating-expression>\n");
-				}
-				else {
-					sb.append(prefix).append(indent).append(indent).append(indent)
-					  .append("<rating-spec-id>").append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId))
-					  .append(sourceRatingUnits.toString())
-					  .append("</rating-spec-id>\n");
-				}
-				sb.append(prefix).append(indent).append(indent).append("</source-rating>\n");
-			}
-			sb.append(prefix).append(indent).append("</source-ratings>\n");
-		}
-		sb.append(prefix).append("</virtual-rating>\n");
-		if (level == 0) {
-			sb.append("</ratings>\n");
-		}
-		return sb.toString();
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level);
 	}
 
+	/**
+	 *
+	 * @deprecated will be removed as this should be internal API only
+	 */
 	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
-		if (sourceRatings != null) {
-			for (SourceRatingContainer src : sourceRatings) {
-				if (src.rsc != null) {
-					templateStrings.add(src.rsc.ratingSpecContainer.toTemplateXml(indent, level));
-					specStrings.add(src.rsc.ratingSpecContainer.toSpecXml(indent, level));
-					for (AbstractRatingContainer arc : src.rsc.abstractRatingContainers) {
-						ratingStrings.add(arc.toXml(indent, level));
-					}
-					if (src.rsc.abstractRatingContainers[0] instanceof VirtualRatingContainer) {
-						VirtualRatingContainer vrc = (VirtualRatingContainer)src.rsc.abstractRatingContainers[0];
-						vrc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
-					}
-					else if (src.rsc.abstractRatingContainers[0] instanceof TransitionalRatingContainer) {
-						TransitionalRatingContainer trc = (TransitionalRatingContainer)src.rsc.abstractRatingContainers[0];
-						trc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
-					}
-				}
-			}
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		service.getSourceRatingsXml(this, indent, level, templateStrings, specStrings, ratingStrings);
 	}
 }

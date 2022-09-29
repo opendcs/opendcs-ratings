@@ -8,6 +8,21 @@
 
 package hec.data.cwmsRating;
 
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.split;
+
+import hec.data.DataSetException;
+import hec.data.RatingException;
+import hec.data.cwmsRating.RatingConst.RatingMethod;
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.RatingJdbcCompatUtil;
+import hec.data.cwmsRating.io.RatingTemplateContainer;
+import hec.data.cwmsRating.io.RatingXmlCompatUtil;
+import hec.data.rating.IRatingTemplate;
+import hec.data.rating.JDomRatingTemplate;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.CallableStatement;
@@ -17,20 +32,7 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import hec.data.DataSetException;
-import hec.data.RatingException;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
-import hec.data.rating.IRatingTemplate;
-import hec.data.rating.JDomRatingTemplate;
 import rma.lang.Modifiable;
-
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.join;
-import static hec.util.TextUtil.split;
 
 /**
  * Implements CWMS-style rating template.  Holds information about parameters of rating objects.
@@ -84,65 +86,20 @@ public class RatingTemplate implements Modifiable
 	 * @param templateId The rating template identifier
 	 * @throws RatingException any issues retrieving the data or processing what's returned
 	 * @return the rating template in XML form
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#getRatingSpecXmlFromDatabase(Connection, String, String) instead
 	 */
-	public static String getXmlfromDatabase(
-			Connection conn,
-			String officeId,
-			String templateId)
-			throws RatingException {
-		String xmlText = null;
-		synchronized(conn) {
-			try {
-				String sql =
-						"begin "                                  +
-						   "cwms_rating.retrieve_templates_xml("   +
-						      "p_templates        => :1,"         +
-						      "p_template_id_mask => :2,"         +
-						      "p_office_id_mask   => :3);"        +
-						"end;";
-				CallableStatement stmt = conn.prepareCall(sql);
-				stmt.registerOutParameter(1, Types.CLOB);
-				stmt.setString(2, templateId);
-				if (officeId == null) {
-					stmt.setNull(3, Types.VARCHAR);
-				}
-				else {
-					stmt.setString(3, officeId);
-				}
-				stmt.execute();
-				Clob clob = stmt.getClob(1);
-				stmt.close();
-				try {
-					if (clob.length() > Integer.MAX_VALUE) {
-						throw new RatingException("CLOB too long.");
-					}
-					xmlText = clob.getSubString(1, (int)clob.length());
-				}
-				finally {
-					try {
-						clob.free();
-					}
-					catch(Throwable t) {
-						if (logger.isLoggable(Level.WARNING)) {
-							StringWriter sw = new StringWriter();
-							PrintWriter pw = new PrintWriter(sw);
-							t.printStackTrace(pw);
-							logger.log(Level.WARNING, sw.toString());
-						}
-					}
-				}
-				return xmlText;
-			}
-			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
-			}
-		}
+	public static String getXmlfromDatabase(Connection conn, String officeId, String templateId) throws RatingException {
+		return RatingJdbcCompatUtil.getInstance().getTemplateXmlFromDatabase(conn, officeId, templateId);
 	}
 
+	/**
+	 *
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingTemplate(Connection, String, String) instead
+	 */
+	@Deprecated
 	public static RatingTemplate fromDatabase(Connection conn, String officeId, String templateId) throws RatingException
 	{
-		return new RatingTemplate(conn, officeId, templateId);
+		return RatingJdbcCompatUtil.getInstance().templateFromDatabase(conn, officeId, templateId);
 	}
 
 	/**
@@ -190,7 +147,9 @@ public class RatingTemplate implements Modifiable
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
 	 * @throws RatingException any issues with retrieving the data.
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingTemplate(Connection, String, String) instead
 	 */
+	@Deprecated
 	public RatingTemplate(
 			Connection conn,
 			String officeId,
@@ -419,29 +378,28 @@ public class RatingTemplate implements Modifiable
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param templateId The rating template identifier
 	 * @throws RatingException any issues retrieving or using the specified data.
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingTemplate(Connection, String, String) instead
 	 */
-	public void setData (
+	@Deprecated
+	public synchronized void setData (
 			Connection conn,
 			String officeId,
 			String templateId)
 			throws RatingException {
-		synchronized(conn) {
-			try {
-				setData(RatingTemplate.getXmlfromDatabase(conn, officeId, templateId));
-			}
-			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
-			}
-		}
+		RatingTemplate ratingTemplate = RatingJdbcCompatUtil.getInstance().templateFromDatabase(conn, officeId, templateId);
+		setData(ratingTemplate.getData());
 	}
 	/**
 	 * Sets the data from this object from an XML instance
 	 * @param xmlText The XML instance
 	 * @throws RatingException any errors processing the XML data.
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingTemplate(String) instead.
 	 */
+	@Deprecated
 	public void setData(String xmlText) throws RatingException {
-		setData(new RatingTemplateContainer(xmlText));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		RatingTemplateContainer container = service.createRatingTemplateContainer(xmlText);
+		setData(container);
 	}
 	/**
 	 * Sets the data from this object from a RatingTemplateContainer
@@ -536,9 +494,12 @@ public class RatingTemplate implements Modifiable
 	 * @param indent The character(s) for each level of indentation
 	 * @param level The base indentation level for the document fragment
 	 * @return The XML document fragment
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplate, CharSequence, int) instead.
 	 */
+	@Deprecated
 	public String toXmlString(CharSequence indent, int level) {
-		return getData().toTemplateXml(indent, level);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, level);
 	}
 
 	/**
@@ -599,9 +560,11 @@ public class RatingTemplate implements Modifiable
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
 	 * @throws RatingException any issues storing this to the database
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(RatingTemplate, Connection, boolean) instead.
 	 */
+	@Deprecated
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingSet.storeToDatabase(conn, getData().toTemplateXml(""), overwriteExisting);
+		RatingJdbcCompatUtil.getInstance().storeToDatabase(this, conn, overwriteExisting);
 	}
 
 	/**

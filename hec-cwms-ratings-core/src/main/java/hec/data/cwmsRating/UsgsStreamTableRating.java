@@ -8,6 +8,8 @@
 
 package hec.data.cwmsRating;
 
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -133,7 +135,7 @@ public class UsgsStreamTableRating extends TableRating {
 			this.offsets.addObserver(this);
 		}
 		if (urc.shifts != null) {
-			setShifts(new RatingSet(urc.shifts));
+			setShifts(RatingSetFactory.ratingSet(urc.shifts));
 			if (urc.unitsId != null && urc.unitsId.length() > 0) {
 				String heightUnit = TextUtil.split(urc.unitsId, ";")[0];
 				for (AbstractRating shift : getShifts().getRatings()) {
@@ -147,9 +149,13 @@ public class UsgsStreamTableRating extends TableRating {
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRating(String) instead
 	 */
+	@Deprecated
 	public UsgsStreamTableRating(String xmlText) throws RatingException {
-		setData(new UsgsStreamTableRatingContainer(xmlText));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		UsgsStreamTableRatingContainer container = service.createUsgsStreamTableRatingContainer(xmlText);
+		setData(container);
 	}
 
 	/* (non-Javadoc)
@@ -697,10 +703,10 @@ public class UsgsStreamTableRating extends TableRating {
 			RatingSet retval = null;
 			if(this.shifts != null)
 			{
-				retval = new RatingSet(this.shifts.getData());
+				retval = RatingSetFactory.ratingSet(this.shifts.getData());
 				TableRating tr = (TableRating)retval.getRatings()[0];
 				if (tr.effectiveDate == effectiveDate) {
-					TableRatingContainer trc = (TableRatingContainer)tr.getData();
+					TableRatingContainer trc = tr.getData();
 					if (trc.values.length == 1 && trc.values[0].indValue == 0 && trc.values[0].depValue == 0) {
 						//----------------------------------------------------//
 						// remove the zero shift at the rating effective date //
@@ -732,7 +738,7 @@ public class UsgsStreamTableRating extends TableRating {
 					//---------------//
 					// normal shifts //
 					//---------------//
-					RatingSet _shifts = new RatingSet(rsc);
+					RatingSet _shifts = RatingSetFactory.ratingSet(rsc);
 					AbstractRating[] arcs = _shifts.getRatings();
 					TableRatingContainer trc1 = (TableRatingContainer) arcs[0].getData();
 					if (trc1.effectiveDateMillis < effectiveDate) {
@@ -818,7 +824,7 @@ public class UsgsStreamTableRating extends TableRating {
 				catch (RatingException e) {
 					throw new UnsupportedOperationException(e);
 				}
-			if (offsets != null) ustrc.offsets = (TableRatingContainer)offsets.getData();
+			if (offsets != null) ustrc.offsets = offsets.getData();
 			return ustrc;
 		}
 	}
@@ -889,27 +895,21 @@ public class UsgsStreamTableRating extends TableRating {
 					ustrc.active,
 					ustrc.description);
 
-			setShifts(ustrc.shifts == null ? null : new RatingSet(ustrc.shifts));
+			setShifts(ustrc.shifts == null ? null : RatingSetFactory.ratingSet(ustrc.shifts));
 			setOffsets(ustrc.offsets == null ? null : new TableRating(ustrc.offsets));
 
 			observationTarget.setChanged();
 			observationTarget.notifyObservers();
 		}
 	}
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#toXmlString(java.lang.CharSequence, int)
+
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(UsgsStreamTableRating, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		UsgsStreamTableRating clone = new UsgsStreamTableRating((UsgsStreamTableRatingContainer) getData());
-		if (clone.shifts != null) {
-			try {
-				clone.shifts.removeRating(this.effectiveDate);
-			}
-			catch (RatingException e) {
-			}
-		}
-		return clone.getData().toXml(indent, indentLevel);
+		return RatingXmlCompatUtil.getInstance().toXml(this, indent, indentLevel);
 	}
 	/**
 	 * Retrieves the stage shift for an unshifted stage at a specified time
@@ -987,7 +987,7 @@ public class UsgsStreamTableRating extends TableRating {
 		synchronized(this) {
 			double offset = 0.;
 			if (offsets != null && offsets.values != null && offsets.values.length > 0) {
-				TableRatingContainer trc = (TableRatingContainer)offsets.getData();
+				TableRatingContainer trc = offsets.getData();
 				if (trc.values.length == 1) {
 					offset = trc.values[0].depValue;
 				}
@@ -1160,7 +1160,7 @@ public class UsgsStreamTableRating extends TableRating {
 			{
 				//create a new shifts rating set container
 				shiftsRatingSetContainer = createShiftsRatingSetContainer(shiftDate,stageShiftValues,shiftActive);
-				shiftsRef = new RatingSet(shiftsRatingSetContainer);
+				shiftsRef = RatingSetFactory.ratingSet(shiftsRatingSetContainer);
 				setShifts(shiftsRef);
 			}
 			else
