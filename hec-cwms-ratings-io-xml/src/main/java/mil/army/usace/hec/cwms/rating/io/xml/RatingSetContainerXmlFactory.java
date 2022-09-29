@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2021. Hydrologic Engineering Center (HEC).
- * United States Army Corps of Engineers
- * All Rights Reserved. HEC PROPRIETARY/CONFIDENTIAL.
+ * Copyright (c) 2022
+ * United States Army Corps of Engineers - Hydrologic Engineering Center (USACE/HEC)
+ * All Rights Reserved.  USACE PROPRIETARY/CONFIDENTIAL.
  * Source may not be released without written approval from HEC
- *
  */
 
-package hec.data.cwmsRating;
+package mil.army.usace.hec.cwms.rating.io.xml;
 
 import java.io.File;
 import java.io.FileReader;
@@ -24,6 +23,8 @@ import java.util.TreeSet;
 import hec.data.RatingException;
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.RatingRuntimeException;
+import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.RatingConst;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
@@ -66,7 +67,7 @@ import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
  *
  * @author Mike Perryman
  */
-public class RatingSetXmlParser extends XMLFilterImpl {
+public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 
 	//-----------------------------//
 	// strings expected in the XML //
@@ -224,28 +225,26 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		public boolean active = false;
 	}
 
-	//--------------------------//
-	// public parsing interface //
-	//--------------------------//
-
 	/**
 	 * Parses a RatingSetContainer XML instance from a string.
-	 * @param str The string containing the XML
-	 * @return The resulting RatingSetContainer object
+	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
 	 * @throws RatingException any errors parsing the string
 	 */
-	public static RatingSetContainer parseString(String str) throws RatingException {
-		return parseString(str, false);
+	public static RatingSetContainer ratingSetContainerFromXml(String xmlText) throws RatingException {
+		return ratingSetContainerFromXml(xmlText, false);
 	}
 	/**
 	 * Parses a RatingSetContainer XML instance from a string.
-	 * @param str The string containing the XML
+	 * @param xmlText The string containing the XML
 	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
 	 * @return The resulting RatingSetContainer object
 	 * @throws RatingException any errors parsing the string
 	 */
-	public static RatingSetContainer parseString(String str, boolean requireRatingPoints) throws RatingException {
-		return parseReader(new StringReader(str), requireRatingPoints);
+	public static RatingSetContainer ratingSetContainerFromXml(String xmlText, boolean requireRatingPoints) throws RatingException {
+		return parseReader(new StringReader(xmlText), requireRatingPoints);
 	}
 	/**
 	 * Parses a RatingSetContainer XML instance from a File object.
@@ -333,9 +332,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
 	 */
 	public static RatingSetContainer parseInputSource(InputSource is, boolean requireRatingPoints) throws RatingException {
-		RatingSetXmlParser parser = null;
+		RatingSetContainerXmlFactory parser = null;
 		try {
-			parser = new RatingSetXmlParser(requireRatingPoints);
+			parser = new RatingSetContainerXmlFactory(requireRatingPoints);
 			parser.parse(is);
 		}
 		catch (Throwable t) {
@@ -355,14 +354,14 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	 * Private constructor
 	 * @throws SAXException
 	 */
-	private RatingSetXmlParser() throws SAXException {
+	private RatingSetContainerXmlFactory() throws SAXException {
 		this(true);
 	}
 	/*
 	 * Private constructor
 	 * @throws SAXException
 	 */
-	private RatingSetXmlParser(boolean requireRatingPoints) throws SAXException {
+	private RatingSetContainerXmlFactory(boolean requireRatingPoints) throws SAXException {
 		super(new ParserAdapter((Parser) XMLReaderFactory.createXMLReader()));
 		this.requireRatingPoints = requireRatingPoints;
 	}
@@ -373,7 +372,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 		return rsc;
 	}
 	/**
-	 * @throws a new RatingRuntimeException if XML doesn't match expected structure
+	 * @throws RatingRuntimeException if XML doesn't match expected structure
 	 */
 	private void elementError() {
 		if (!inVerticalDatumInfo) { // don't worry about structure in here
@@ -913,7 +912,10 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			else {
 				rspc = rspcsById.get(topLevelSpecId).clone();
 			}
-			rtcsById.get(templateId).clone(rspc);
+			RatingTemplateContainer rtc = rtcsById.get(templateId);
+			if(rtc != null) {
+				rtc.clone(rspc);
+			}
 			//-----------------------------------//
 			// populate the rating set container //
 			//-----------------------------------//
@@ -975,9 +977,9 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 			}
 			sb1.append(sb2);
 			if (sb1.length() > 0) {
-				AbstractRating.logger.info("XML conatins unused templates and/or specifications:" + sb1.toString());
+				AbstractRating.getLogger().info("XML conatins unused templates and/or specifications:" + sb1.toString());
 			}
-			AbstractRating.logger.fine("Top level rating = " + topLevelIds.get(0));
+			AbstractRating.getLogger().fine("Top level rating = " + topLevelIds.get(0));
 		}
 		else {
 			//------------------------------------------------------------------------------------------------//
@@ -1048,7 +1050,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 				}
 			}
 		}
-		AbstractRating.logger.fine(sb.toString());
+		AbstractRating.getLogger().fine(sb.toString());
 	}
 	/*
 	 * SAX method - validate structure and process attributes
@@ -1433,13 +1435,11 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					String id = rtc.toString();
 					if (rtcsById == null) {
 						rtcsById = new HashMap<String, RatingTemplateContainer>();
-				}
-					else if (rtcsById.containsKey(id)) {
-						throw new RatingRuntimeException("Rating template specified multiple times: "+id);
+					} else if (rtcsById.containsKey(id)) {
+						throw new RatingRuntimeException("Rating template specified multiple times: " + id);
 					}
 					rtcsById.put(rtc.toString(), rtc);
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					throw new RatingRuntimeException(e);
 				}
 				rtc = null;
@@ -1758,7 +1758,7 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 					HecTime ht = new HecTime();
 					ht.setTimeInMillis(arc.effectiveDateMillis);
 					msg.append(arc.toString()).append("@").append(ht.getXMLDateTime(0)).append(" more than once.");
-					AbstractRating.logger.warning(msg.toString());
+					AbstractRating.getLogger().warning(msg.toString());
 				}
 			}
 		case 3 :
@@ -1784,15 +1784,5 @@ public class RatingSetXmlParser extends XMLFilterImpl {
 	public void characters(char[] ch, int start, int len) {
 		chars.append(ch, start, len);
 	}
-
-//	public static void main(String[] args) throws Exception {
-//		String filename = "t:/rating.xml";
-//		RatingSet rs = null;
-//		long t1 = System.currentTimeMillis();
-//		rs = RatingSetXmlParser.parseFile(filename);
-//		long t2 = System.currentTimeMillis();
-//		System.out.println(rs.toXmlString("  "));
-//		System.out.println(t2-t1);
-//	}
 
 }

@@ -8,6 +8,8 @@
 
 package hec.data.cwmsRating;
 
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.VirtualRatingContainer;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
@@ -169,9 +171,13 @@ public class TableRating extends AbstractRating {
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRating(String) instead
 	 */
+	@Deprecated
 	public TableRating(String xmlText) throws RatingException {
-		setData(new TableRatingContainer(xmlText));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		VirtualRatingContainer container = service.createVirtualRatingContainer(xmlText);
+		setData(container);
 	}
 	/**
 	 * Public Constructor
@@ -813,12 +819,15 @@ public class TableRating extends AbstractRating {
 			}
 		}
 	}
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#toXmlString(java.lang.CharSequence, int)
+
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRating, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return getData().toXml(indent, indentLevel);
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, indentLevel);
 	}
 
 	public String getLookupMethods() {

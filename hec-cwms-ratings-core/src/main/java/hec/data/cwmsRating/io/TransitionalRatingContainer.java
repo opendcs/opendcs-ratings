@@ -6,9 +6,6 @@
  *
  */
 
-/**
- *
- */
 package hec.data.cwmsRating.io;
 
 import java.util.ArrayList;
@@ -17,10 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import hec.data.RatingException;
-import hec.data.RatingRuntimeException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.TransitionalRating;
 import hec.util.TextUtil;
@@ -58,7 +53,9 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * Public constructor from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
 	 * @param ratingElement The JDOM Element
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(Element) instead
 	 */
+	@Deprecated
 	public TransitionalRatingContainer(Element ratingElement) throws RatingException {
 		populateFromXml(ratingElement);
 	}
@@ -66,7 +63,9 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * Public constructor from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(String) instead
 	 */
+	@Deprecated
 	public TransitionalRatingContainer(String xmlText) throws RatingException {
 		populateFromXml(xmlText);
 	}
@@ -74,28 +73,25 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * Populates the TransitionalRatingContainer from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
 	 * @param ratingElement The jdom element
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(Element) instead
 	 */
+	@Deprecated
 	public void populateFromXml(Element ratingElement) throws RatingException {
-		try {
-			AbstractRatingContainer.populateCommonDataFromXml(ratingElement, this);
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingException(e);
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		TransitionalRatingContainer transitionalRatingContainer = service.createTransitionalRatingContainer(ratingElement);
+		transitionalRatingContainer.clone(this);
 	}
 	/**
 	 * Populates the TransitionalRatingContainer from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(String) instead
 	 */
+	@Deprecated
 	public void populateFromXml(String xmlText) throws RatingException {
-		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
-		if (arc instanceof TransitionalRatingContainer) {
-			arc.clone(this);
-		}
-		else {
-			throw new RatingException("XML text does not specify an TransitionalRating object.");
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		TransitionalRatingContainer transitionalRatingContainer = service.createTransitionalRatingContainer(xmlText);
+		transitionalRatingContainer.clone(this);
 	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
@@ -171,87 +167,30 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
-	 */
 	@Override
-	public boolean equals(Object obj) {
-		boolean result = obj == this;
-		if (!result) {
-			test:
-				do {
-					if (obj == null || obj.getClass() != getClass()) break;
-					TransitionalRatingContainer other = (TransitionalRatingContainer)obj;
-					if (!super.equals(obj)) break;
-					if ((other.conditions == null) != (conditions == null)) break;
-					if (conditions != null) {
-						if (other.conditions.length != conditions.length) break;
-						for (int i = 0; i < conditions.length; ++i) {
-							if ((other.conditions[i] == null) != (conditions[i] == null)) break test;
-							if (conditions[i] != null) {
-								if (!other.conditions[i].equals(conditions[i])) break test;
-							}
-						}
-					}
-					if ((other.evaluations == null) != (evaluations == null)) break;
-					if (evaluations != null) {
-						if (other.evaluations.length != evaluations.length) break;
-						for (int i = 0; i < evaluations.length; ++i) {
-							if ((other.evaluations[i] == null) != (evaluations[i] == null)) break test;
-							if (evaluations[i] != null) {
-								if (!other.evaluations[i].equals(evaluations[i])) break test;
-							}
-						}
-					}
-					if ((other.sourceRatings == null) != (sourceRatings == null)) break;
-					if (sourceRatings != null) {
-						for (int i = 0; i < sourceRatings.length; ++i) {
-							if ((other.sourceRatings[i] == null) != (sourceRatings[i] == null)) break test;
-							if (sourceRatings[i] != null) {
-								if (!other.sourceRatings[i].equals(sourceRatings[i])) break test;
-							}
-						}
-					}
-					result = true;
-				} while(false);
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
 		}
-		return result;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		TransitionalRatingContainer that = (TransitionalRatingContainer) o;
+		return Arrays.equals(sourceRatingIds, that.sourceRatingIds) && Arrays.equals(conditions, that.conditions) &&
+			Arrays.equals(evaluations, that.evaluations) && Arrays.equals(sourceRatings, that.sourceRatings);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
-	 */
 	@Override
 	public int hashCode() {
-		int hashCode = getClass().getName().hashCode() + super.hashCode();
-		if (conditions == null) {
-			hashCode += 3;
-		}
-		else {
-			hashCode += 5 * conditions.length;
-			for (int i = 0; i < conditions.length; ++i) {
-				hashCode += 7 * (conditions[i] == null ? i+1 : conditions[i].hashCode());
-			}
-		}
-		if (evaluations == null) {
-			hashCode += 11;
-		}
-		else {
-			hashCode += 13 * evaluations.length;
-			for (int i = 0; i < evaluations.length; ++i) {
-				hashCode += 17 * (evaluations[i] == null ? i+1 : evaluations[i].hashCode());
-			}
-		}
-		if (sourceRatings == null) {
-			hashCode += 19;
-		}
-		else {
-			hashCode += 23 * sourceRatings.length;
-			for (int i = 0; i < sourceRatings.length; ++i) {
-				hashCode += 29 * (sourceRatings[i] == null ? i+1 : sourceRatings[i].hashCode());
-			}
-		}
-		return hashCode;
+		int result = super.hashCode();
+		result = 31 * result + Arrays.hashCode(sourceRatingIds);
+		result = 31 * result + Arrays.hashCode(conditions);
+		result = 31 * result + Arrays.hashCode(evaluations);
+		result = 31 * result + Arrays.hashCode(sourceRatings);
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -382,113 +321,33 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		super.setVerticalDatumInfo(xmlStr);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence)
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TransitionalRatingContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXml(CharSequence indent) {
 		return toXml(indent, 0);
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toXml(java.lang.CharSequence, int)
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TransitionalRatingContainer, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXml(CharSequence indent, int level) {
-		try {
-			if (vdc != null && vdc.getCurrentOffset() != 0.) {
-				TransitionalRatingContainer _clone = (TransitionalRatingContainer)this.clone();
-				_clone.toNativeVerticalDatum();
-				return _clone.toXml(indent, level);
-			}
-		}
-		catch (VerticalDatumException e) {
-			throw new RatingRuntimeException(e);
-		}
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < level; ++i) sb.append(indent);
-		String prefix = sb.toString();
-		sb.delete(0, sb.length());
-		if (level == 0) {
-			sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			sb.append("<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n");
-			SortedSet<String> templateXmlStrings = new TreeSet<String>();
-			SortedSet<String> specXmlStrings = new TreeSet<String>();
-			List<String> ratingXmlStrings = new ArrayList<String>();
-			getSoucreRatingsXml(indent, level+1, templateXmlStrings, specXmlStrings, ratingXmlStrings);
-			for (String templateXml : templateXmlStrings) {
-				sb.append(templateXml);
-			}
-			for (String specXml : specXmlStrings) {
-				sb.append(specXml);
-			}
-			for (String specXml : ratingXmlStrings) {
-				sb.append(specXml);
-			}
-			prefix += indent;
-		}
-		sb.append(super.toXml(prefix, indent, "transitional-rating"));
-		if (conditions == null || conditions.length == 0) {
-			sb.append(prefix).append(indent).append("<select/>\n");
-		}
-		else {
-			sb.append(prefix).append(indent).append("<select>\n");
-			for (int i = 0; i < conditions.length; ++i) {
-				sb.append(prefix).append(indent).append(indent).append("<case position=\""+(i+1)+"\">\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append(String.format("<when>%s</when>\n", TextUtil.xmlEntityEncode(conditions[i])));
-				sb.append(prefix).append(indent).append(indent).append(indent).append(String.format("<then>%s</then>\n", TextUtil.xmlEntityEncode(evaluations[i])));
-				sb.append(prefix).append(indent).append(indent).append("</case>\n");
-			}
-			sb.append(prefix).append(indent).append(indent).append(String.format("<default>%s</default>\n", TextUtil.xmlEntityEncode(evaluations[evaluations.length-1])));
-			sb.append(prefix).append(indent).append("</select>\n");
-		}
-		if (sourceRatings == null) {
-			sb.append(prefix).append(indent).append("<source-ratings/>\n");
-		}
-		else {
-			sb.append(prefix).append(indent).append("<source-ratings>\n");
-			StringBuilder sourceRatingUnits = new StringBuilder();
-			for (int i = 0; i < sourceRatings.length; ++i) {
-				sourceRatingUnits.setLength(0);
-				sourceRatingUnits.append(" {");
-				for (int j = 0; j < sourceRatings[i].units.length; ++j) {
-					sourceRatingUnits.append(j == 0 ? "" : j == sourceRatings[i].units.length-1 ? ";" : ",")
-					                 .append(TextUtil.xmlEntityEncode(sourceRatings[i].units[j]));
-				}
-				sourceRatingUnits.append("}");
-				sb.append(prefix).append(indent).append(indent).append("<rating-spec-id position=\""+(i+1)+"\">\n");
-				sb.append(prefix).append(indent).append(indent).append(indent).append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId)).append("\n");
-				sb.append(prefix).append(indent).append(indent).append("</rating-spec-id>\n");
-			}
-			sb.append(prefix).append(indent).append("</source-ratings>\n");
-		}
-		sb.append(prefix).append("</transitional-rating>\n");
-		if (level == 0) {
-			sb.append("</ratings>\n");
-		}
-		return sb.toString();
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(this, indent, level);
 	}
 
+	/**
+	 *
+	 * @deprecated will be removed as this should be internal API only
+	 */
+	@Deprecated
 	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
-		if (sourceRatings != null) {
-			for (SourceRatingContainer src : sourceRatings) {
-				if (src.rsc != null) {
-					templateStrings.add(src.rsc.ratingSpecContainer.toTemplateXml(indent, level));
-					specStrings.add(src.rsc.ratingSpecContainer.toSpecXml(indent, level));
-					for (AbstractRatingContainer arc : src.rsc.abstractRatingContainers) {
-						ratingStrings.add(arc.toXml(indent, level));
-					}
-					if (src.rsc.abstractRatingContainers[0] instanceof VirtualRatingContainer) {
-						VirtualRatingContainer vrc = (VirtualRatingContainer)src.rsc.abstractRatingContainers[0];
-						vrc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
-					}
-					else if (src.rsc.abstractRatingContainers[0] instanceof TransitionalRatingContainer) {
-						TransitionalRatingContainer trc = (TransitionalRatingContainer)src.rsc.abstractRatingContainers[0];
-						trc.getSoucreRatingsXml(indent, level, templateStrings, specStrings, ratingStrings);
-					}
-				}
-			}
-		}
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		service.getSourceRatingsXml(this, indent, level, templateStrings, specStrings, ratingStrings);
 	}
 
 }

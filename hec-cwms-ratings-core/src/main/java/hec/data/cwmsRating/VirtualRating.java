@@ -11,6 +11,18 @@
  */
 package hec.data.cwmsRating;
 
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+
+import hec.data.RatingException;
+import hec.data.Units;
+import hec.data.UnitsConversionException;
+import hec.data.cwmsRating.io.AbstractRatingContainer;
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.SourceRatingContainer;
+import hec.data.cwmsRating.io.VirtualRatingContainer;
+import hec.lang.Observable;
+import hec.util.TextUtil;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,18 +36,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import hec.data.RatingException;
-import hec.data.Units;
-import hec.data.UnitsConversionException;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.SourceRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
-import hec.lang.Observable;
-import hec.util.TextUtil;
-
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 
 /**
  * Rating that is comprised of other ratings and math expressions connected
@@ -242,9 +242,13 @@ public class VirtualRating extends AbstractRating {
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRating(String) instead
 	 */
+	@Deprecated
 	public VirtualRating(String xmlText) throws RatingException {
-		setData(new VirtualRatingContainer(xmlText));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		VirtualRatingContainer container = service.createVirtualRatingContainer(xmlText);
+		setData(container);
 	}
 	/**
 	 * performs common initialization tasks
@@ -788,13 +792,15 @@ public class VirtualRating extends AbstractRating {
 			}
 		}
 	}
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#toXmlString(java.lang.CharSequence, int)
+
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRating, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
-	public String toXmlString(CharSequence indent, int indentLevel)
-			throws RatingException {
-		return getData().toXml(indent, indentLevel);
+	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		return service.toXml(getData(), indent, indentLevel);
 	}
 
 	/* (non-Javadoc)

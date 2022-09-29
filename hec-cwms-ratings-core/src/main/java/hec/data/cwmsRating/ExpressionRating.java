@@ -8,6 +8,8 @@
 
 package hec.data.cwmsRating;
 
+import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
+import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import java.util.Arrays;
 
 import hec.data.RatingException;
@@ -84,10 +86,15 @@ public class ExpressionRating extends AbstractRating {
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRating(String) instead
 	 */
+	@Deprecated
 	public ExpressionRating(String xmlText) throws RatingException {
-		setData(new ExpressionRatingContainer(xmlText));
+		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
+		ExpressionRatingContainer expressionRatingContainer = service.createExpressionRatingContainer(xmlText);
+		setData(expressionRatingContainer);
 	}
+
 	/**
 	 * Retrieves the mathematical expression for this rating
 	 * @return
@@ -372,12 +379,14 @@ public class ExpressionRating extends AbstractRating {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#toXmlString(java.lang.CharSequence, int)
+	/**
+	 *
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(String, CharSequence, int) instead
 	 */
+	@Deprecated
 	@Override
 	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return getData().toXml(indent, indentLevel);
+		return RatingXmlCompatUtil.getInstance().toXml(this, indent, indentLevel);
 	}
 	/**
 	 * Initialization helper for constructors and generators

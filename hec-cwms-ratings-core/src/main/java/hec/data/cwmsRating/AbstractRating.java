@@ -8,13 +8,12 @@
 
 package hec.data.cwmsRating;
 
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.Types;
-import java.util.Arrays;
-import java.util.Observer;
-import java.util.logging.Logger;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static hec.lang.Const.UNDEFINED_TIME;
+import static hec.util.TextUtil.replaceAll;
+import static hec.util.TextUtil.split;
 
 import hec.data.DataSetException;
 import hec.data.Parameter;
@@ -22,9 +21,8 @@ import hec.data.RatingException;
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import hec.data.cwmsRating.io.RatingJdbcCompatUtil;
+import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingSpecification;
@@ -32,17 +30,17 @@ import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Types;
+import java.util.Arrays;
+import java.util.Observer;
+import java.util.logging.Logger;
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 import rma.lang.Modifiable;
-
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
-import static hec.lang.Const.UNDEFINED_TIME;
-import static hec.util.TextUtil.replaceAll;
-import static hec.util.TextUtil.split;
 
 /**
  * Base class for all cwmsRating implementations
@@ -141,14 +139,13 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 * @param xmlText The XML text to generate the rating object from
 	 * @return The generated rating object.
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRating instead
 	 */
+	@Deprecated
 	public static AbstractRating fromXml(String xmlText) throws RatingException {
-		AbstractRatingContainer arc = AbstractRatingContainer.buildFromXml(xmlText);
-		if (arc instanceof UsgsStreamTableRatingContainer) return new UsgsStreamTableRating((UsgsStreamTableRatingContainer)arc);
-		if (arc instanceof TableRatingContainer) return new TableRating((TableRatingContainer)arc);
-		if (arc instanceof ExpressionRatingContainer) return new ExpressionRating((ExpressionRatingContainer)arc);
-		return null;
+		return RatingXmlCompatUtil.getInstance().fromXml(xmlText);
 	}
+
 	/**
 	 * Generates a new AbstractRating object from a CWMS database connection
 	 * @param conn The connection to a CWMS database
@@ -158,62 +155,14 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 *                      The rating with the latest effective date on or before this time is retrieved. If null, the latest rating is retrieved.
 	 * @return The new AbstractRating object
 	 * @throws RatingException
+	 * Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#retrieve(Connection, String, String, Long) instead;
 	 */
-	public static AbstractRating fromDatabase(
-			Connection conn, 
-			String officeId, 
-			String ratingSpecId, 
-			Long effectiveDate)
-			throws RatingException {
-		synchronized(conn) {
-			try {
-				String sql = 
-						"declare " +
-						   "l_millis_end           integer := :1;" +
-						   "l_effective_date_start date;" +
-						   "l_effective_date_end   date;" +
-						"begin " +
-						   "if l_millis_end is not null then "    +
-						      "l_effective_date_end := cast(cwms_util.to_timestamp(l_millis_end) as date);" +
-						   "end if;" +
-						   "cwms_rating.retrieve_ratings_xml2("   +
-						      "p_ratings              => :2,"     +
-						      "p_spec_id_mask         => :3,"     +
-						      "p_effective_date_start => null,"   +
-						      "p_effective_date_end   => l_effective_date_end,"   +
-						      "p_time_zone            => 'UTC',"  +
-						      "p_office_id_mask       => :4);"    +
-						"end;";
-				CallableStatement stmt = conn.prepareCall(sql);
-				stmt.registerOutParameter(2, Types.CLOB);
-				stmt.setString(3, ratingSpecId);
-				if (effectiveDate == null) {
-					stmt.setNull(1, Types.INTEGER);
-				}
-				else {
-					stmt.setLong(1, effectiveDate);
-				}
-				if (officeId == null) {
-					stmt.setNull(4, Types.VARCHAR);
-				}
-				else {
-					stmt.setString(4, officeId);
-				}
-				stmt.execute();
-				Clob clob = stmt.getClob(2);
-				stmt.close();
-				if (clob.length() > Integer.MAX_VALUE) {
-					throw new RatingException("CLOB too long.");
-				}
-				String xmlText = clob.getSubString(1, (int)clob.length());
-				return fromXml(xmlText);
-			}
-			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
-			}
-		}
+	@Deprecated
+	public static AbstractRating fromDatabase(Connection conn, String officeId, String ratingSpecId, Long effectiveDate) throws RatingException {
+		RatingJdbcCompatUtil service = RatingJdbcCompatUtil.getInstance();
+		return service.fromDatabase(conn, officeId, ratingSpecId, effectiveDate);
 	}
+
 	public static boolean compatibleUnits(String[] units1, String[] units2) {
 		boolean compatible = false;
 		comparison:
@@ -394,7 +343,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 					return null;
 				}
 				ratingUnits = split(replaceAll(ratingUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
-			};
+			}
 			return Arrays.copyOf(ratingUnits, ratingUnits.length);
 		}
 	}
@@ -1213,9 +1162,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
 	 * @throws RatingException
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, boolean) instead;
 	 */
+	@Deprecated
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingSet.storeToDatabase(conn, getData().toXml(""), overwriteExisting);
+		RatingJdbcCompatUtil service = RatingJdbcCompatUtil.getInstance();
+		service.storeToDatabase(this, conn, overwriteExisting);
 	}
 	/**
 	 * Returns whether this rating has vertical datum information
@@ -1236,7 +1188,11 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 */
 	@Override
 	public abstract int hashCode();
-	 
+
+	/**
+	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(CharSequence, int) instead
+	 */
+	@Deprecated
 	@Override
 	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 
@@ -1258,4 +1214,5 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	{
 		this.vdc = vdc;
 	}
+
 }
