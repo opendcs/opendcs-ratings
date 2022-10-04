@@ -64,12 +64,18 @@ import static hec.data.Parameter.PARAMID_TIMING_PERIOD;
 import static hec.data.Parameter.PARAMID_TRAVEL;
 import static hec.data.Parameter.PARAMID_VOLUME;
 import static hec.data.Parameter.PARAMID_WIDTH;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import hec.data.RatingException;
 import hec.data.cwmsRating.AbstractRating;
+import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingValue;
 import hec.data.cwmsRating.TableRating;
+import hec.util.TextUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -237,6 +243,22 @@ public class RatingSetTest
 		// this should not be null because we have 4 ind parameters. There should be a dep Table
 		assertNotNull(tRating[0].getDepValues(),"Table not read");
 		return;
+	}
+
+	@Test
+	public void testRatingSetFromXmlCompressed() throws Exception
+	{
+		String base64 = TextUtil.compress(_xmlText, "base64");
+		AbstractRatingSet abstractRatingSet = RatingXmlFactory.ratingSet(base64);
+		AbstractRatingSet fromUncompressed = RatingXmlFactory.ratingSet(_xmlText);
+		assertEquals(abstractRatingSet, fromUncompressed);
+	}
+
+	@Test
+	public void testRatingSetFromInvalidXml() throws Exception
+	{
+		String base64 = TextUtil.compress(_xmlText, "base64");
+		assertThrows(RatingException.class, () -> RatingXmlFactory.ratingSet(base64 + "b"));
 	}
 
 }
