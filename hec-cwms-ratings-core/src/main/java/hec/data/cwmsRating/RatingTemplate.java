@@ -462,9 +462,15 @@ public class RatingTemplate implements Modifiable
 		setTemplateId(rtc.templateId);
 		description = rtc.templateDescription;
 		this.indParamCount = indParamCount;
-		this.inRangeMethods = inRangeMethods;
-		this.outRangeLowMethods = outRangeLowMethods;
-		this.outRangeHighMethods = outRangeHighMethods;
+		if(outRangeLowMethods != null) {
+			setOutRangeLowMethods(outRangeLowMethods);
+		}
+		if(inRangeMethods != null) {
+			setInRangeMethods(inRangeMethods);
+		}
+		if(outRangeHighMethods != null) {
+			setOutRangeHighMethods(outRangeHighMethods);
+		}
 	}
 	/**
 	 * Fills a specified RatingTemplateContainer object with information from this rating template.
