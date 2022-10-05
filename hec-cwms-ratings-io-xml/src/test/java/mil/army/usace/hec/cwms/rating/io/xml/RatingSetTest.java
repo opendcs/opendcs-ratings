@@ -6,66 +6,9 @@
  */
 package mil.army.usace.hec.cwms.rating.io.xml;
 
-import static hec.data.Parameter.PARAMID_AREA;
-import static hec.data.Parameter.PARAMID_AREABASIN;
-import static hec.data.Parameter.PARAMID_AREAIMPACTED;
-import static hec.data.Parameter.PARAMID_AREAKA;
-import static hec.data.Parameter.PARAMID_AREARESERVOIR;
-import static hec.data.Parameter.PARAMID_AREASURFACE;
-import static hec.data.Parameter.PARAMID_ATI;
-import static hec.data.Parameter.PARAMID_BOTTOM_LENGTH;
-import static hec.data.Parameter.PARAMID_COLDRATE;
-import static hec.data.Parameter.PARAMID_CONC;
-import static hec.data.Parameter.PARAMID_COSTKAF;
-import static hec.data.Parameter.PARAMID_COUNT;
-import static hec.data.Parameter.PARAMID_CURENCY;
-import static hec.data.Parameter.PARAMID_DENSITY;
-import static hec.data.Parameter.PARAMID_DEPOSITION;
-import static hec.data.Parameter.PARAMID_DEPTH;
-import static hec.data.Parameter.PARAMID_DISTANCE;
-import static hec.data.Parameter.PARAMID_ELEV;
-import static hec.data.Parameter.PARAMID_ENERGY;
-import static hec.data.Parameter.PARAMID_EVAP;
-import static hec.data.Parameter.PARAMID_EVAPRATE;
-import static hec.data.Parameter.PARAMID_EXTINCTION;
-import static hec.data.Parameter.PARAMID_FLOW;
-import static hec.data.Parameter.PARAMID_FLOWKAF;
-import static hec.data.Parameter.PARAMID_FLOWPERAREA;
-import static hec.data.Parameter.PARAMID_GROWTH_RATE;
-import static hec.data.Parameter.PARAMID_LENGTH;
-import static hec.data.Parameter.PARAMID_LOSSDEFICIT;
-import static hec.data.Parameter.PARAMID_LOSSRATE;
-import static hec.data.Parameter.PARAMID_MELTRATE;
-import static hec.data.Parameter.PARAMID_OPENING;
-import static hec.data.Parameter.PARAMID_PENALTY;
-import static hec.data.Parameter.PARAMID_PERC;
-import static hec.data.Parameter.PARAMID_PERCENT;
-import static hec.data.Parameter.PARAMID_PERCRATE;
-import static hec.data.Parameter.PARAMID_POWER;
-import static hec.data.Parameter.PARAMID_PRECIP;
-import static hec.data.Parameter.PARAMID_PRESSURE;
-import static hec.data.Parameter.PARAMID_RATE_OF_RISE;
-import static hec.data.Parameter.PARAMID_SALINITY;
-import static hec.data.Parameter.PARAMID_SEDIMENT_DISCHARGE;
-import static hec.data.Parameter.PARAMID_SED_LOAD;
-import static hec.data.Parameter.PARAMID_SED_SIZE;
-import static hec.data.Parameter.PARAMID_SHADE_FRAC;
-import static hec.data.Parameter.PARAMID_SPEED;
-import static hec.data.Parameter.PARAMID_SPINRATE;
-import static hec.data.Parameter.PARAMID_STAGE;
-import static hec.data.Parameter.PARAMID_STOR;
-import static hec.data.Parameter.PARAMID_STORKAF;
-import static hec.data.Parameter.PARAMID_SUSP_SOLIDS;
-import static hec.data.Parameter.PARAMID_TEMP;
-import static hec.data.Parameter.PARAMID_THICKNESS;
-import static hec.data.Parameter.PARAMID_TIMING;
-import static hec.data.Parameter.PARAMID_TIMING_OFFSET;
-import static hec.data.Parameter.PARAMID_TIMING_PERIOD;
-import static hec.data.Parameter.PARAMID_TRAVEL;
-import static hec.data.Parameter.PARAMID_VOLUME;
-import static hec.data.Parameter.PARAMID_WIDTH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import hec.data.RatingException;
@@ -76,25 +19,12 @@ import hec.data.cwmsRating.RatingValue;
 import hec.data.cwmsRating.TableRating;
 import hec.util.TextUtil;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-
-
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 public class RatingSetTest
 {
-	String _xmlText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+	private static final String XML_TEXT = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 		"<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">"+
 		"<rating-template office-id=\"SWT\">  <parameters-id>Elev;Area</parameters-id>"+
 		"<version>Linear</version>"+
@@ -152,7 +82,7 @@ public class RatingSetTest
 		"</rating-points>"+
 		"</rating>"+
 		"</ratings>";
-	String _xmlText1 = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+	private static final String XML_TEXT_1 = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
 		"<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">"+
 		"<rating-template office-id=\"SWT\">"+
 		"<parameters-id>%-DO-Saturation,%-DO-Saturation,%-DO-Saturation,%-DO-Saturation;%-DO-Saturation</parameters-id>"+
@@ -231,11 +161,55 @@ public class RatingSetTest
 		"</rating>"+
 		"</ratings>";
 
+	private static final String XML_WITH_NO_POINTS = "<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"https://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n" +
+		"  <rating-template office-id=\"SWT\">\n" +
+		"    <parameters-id>Elev;Area</parameters-id>\n" +
+		"    <version>Workshop</version>\n" +
+		"    <ind-parameter-specs>\n" +
+		"      <ind-parameter-spec position=\"1\">\n" +
+		"        <parameter>Elev</parameter>\n" +
+		"        <in-range-method>LINEAR</in-range-method>\n" +
+		"        <out-range-low-method>HIGHER</out-range-low-method>\n" +
+		"        <out-range-high-method>LINEAR</out-range-high-method>\n" +
+		"      </ind-parameter-spec>\n" +
+		"    </ind-parameter-specs>\n" +
+		"    <dep-parameter>Area</dep-parameter>\n" +
+		"    <description>demo only</description>\n" +
+		"  </rating-template>\n" +
+		"  <rating-spec office-id=\"SWT\">\n" +
+		"    <rating-spec-id>COPA.Elev;Area.Workshop.Production</rating-spec-id>\n" +
+		"    <template-id>Elev;Area.Workshop</template-id>\n" +
+		"    <location-id>COPA</location-id>\n" +
+		"    <version>Production</version>\n" +
+		"    <source-agency>CESWT</source-agency>\n" +
+		"    <in-range-method>LINEAR</in-range-method>\n" +
+		"    <out-range-low-method>NULL</out-range-low-method>\n" +
+		"    <out-range-high-method>LINEAR</out-range-high-method>\n" +
+		"    <active>true</active>\n" +
+		"    <auto-update>false</auto-update>\n" +
+		"    <auto-activate>false</auto-activate>\n" +
+		"    <auto-migrate-extension>false</auto-migrate-extension>\n" +
+		"    <ind-rounding-specs>\n" +
+		"      <ind-rounding-spec position=\"1\">2222256782</ind-rounding-spec>\n" +
+		"    </ind-rounding-specs>\n" +
+		"    <dep-rounding-spec>2222233332</dep-rounding-spec>\n" +
+		"    <description>test rating</description>\n" +
+		"  </rating-spec>\n" +
+		"  <simple-rating office-id=\"SWT\">\n" +
+		"    <rating-spec-id>COPA.Elev;Area.Workshop.Production</rating-spec-id>\n" +
+		"    <units-id>ft;acre</units-id>\n" +
+		"    <effective-date>2014-11-18T19:22:00Z</effective-date>\n" +
+		"    <create-date>2014-11-18T19:23:00Z</create-date>\n" +
+		"    <active>true</active>\n" +
+		"    <description>test rating</description>\n" +
+		"    <rating-points/>\n" +
+		"  </simple-rating>\n" +
+		"</ratings>";
+
 	@Test
-	public void testRatingSetFromXml() throws Exception
-	{
-		RatingSet.fromXml(_xmlText);
-		RatingSet ratingSet = RatingSet.fromXml(_xmlText1);
+	public void testRatingSetFromXml() throws Exception {
+		RatingSet.fromXml(XML_TEXT);
+		RatingSet ratingSet = RatingSet.fromXml(XML_TEXT_1);
 		AbstractRating[] absRatings = ratingSet.getRatings();
 
 		int iCount = absRatings[0].getIndParamCount();
@@ -246,19 +220,24 @@ public class RatingSetTest
 	}
 
 	@Test
-	public void testRatingSetFromXmlCompressed() throws Exception
-	{
-		String base64 = TextUtil.compress(_xmlText, "base64");
+	public void testRatingSetFromXmlCompressed() throws Exception {
+		String base64 = TextUtil.compress(XML_TEXT, "base64");
 		AbstractRatingSet abstractRatingSet = RatingXmlFactory.ratingSet(base64);
-		AbstractRatingSet fromUncompressed = RatingXmlFactory.ratingSet(_xmlText);
+		AbstractRatingSet fromUncompressed = RatingXmlFactory.ratingSet(XML_TEXT);
 		assertEquals(abstractRatingSet, fromUncompressed);
 	}
 
 	@Test
-	public void testRatingSetFromInvalidXml() throws Exception
-	{
-		String base64 = TextUtil.compress(_xmlText, "base64");
+	public void testRatingSetFromInvalidXml() throws Exception {
+		String base64 = TextUtil.compress(XML_TEXT, "base64");
 		assertThrows(RatingException.class, () -> RatingXmlFactory.ratingSet(base64 + "b"));
+	}
+
+	@Test
+	public void testTableRatingXmlNoPoints() throws Exception {
+		AbstractRating rating = RatingXmlFactory.ratingSet(XML_WITH_NO_POINTS).getRatings()[0];
+		RatingValue[] ratingValues = ((TableRating) rating).getRatingValues();
+		assertNull(ratingValues);
 	}
 
 }

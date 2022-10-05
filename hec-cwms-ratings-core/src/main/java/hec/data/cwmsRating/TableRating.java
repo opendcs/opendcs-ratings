@@ -1146,12 +1146,12 @@ public class TableRating extends AbstractRating {
 			case PREVIOUS:
 				throw new RatingException("Out of range low method " + outRangeLowMethod + " cannot be used in this context");
 			case LOWER:
-				if (props.hasIncreasing()) {
+				if (props != null && props.hasIncreasing()) {
 					throw new RatingException("Out of range low method " + outRangeLowMethod + " cannot be used in this context");
 				}
 				break;
 			case HIGHER:
-				if (props.hasDecreasing()) {
+				if (props != null && props.hasDecreasing()) {
 					throw new RatingException("Out of range low method " + outRangeLowMethod + " cannot be used in this context");
 				}
 				break;
