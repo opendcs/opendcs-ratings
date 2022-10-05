@@ -29,8 +29,12 @@ import hec.hecmath.TextMath;
 import hec.io.TextContainer;
 import hec.util.TextUtil;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class RatingXmlFactory {
+
+    private static final Logger LOGGER = Logger.getLogger(RatingXmlFactory.class.getName());
 
     private RatingXmlFactory() {
         throw new AssertionError("Utility class");
@@ -282,11 +286,14 @@ public final class RatingXmlFactory {
             return RatingSetFactory.ratingSet(container);
         } catch (RatingException e1) {
             try {
-                xmlText = TextUtil.uncompress(xmlText, "base64");
-                RatingSetContainer container = RatingSetContainerXmlFactory.ratingSetContainerFromXml(xmlText).clone();
+                String uncompressedXmlText = TextUtil.uncompress(xmlText, "base64");
+                RatingSetContainer container = RatingSetContainerXmlFactory.ratingSetContainerFromXml(uncompressedXmlText).clone();
                 return RatingSetFactory.ratingSet(container);
-            } catch (RatingException | IOException e2) {
-                throw new RatingException("Text is not a valid compressed or uncompressed CWMS Ratings XML instance.", e2);
+            } catch (RatingException | IOException | RuntimeException e2) {
+                LOGGER.log(Level.FINE, "Invalid compressed ratings xml: " + xmlText, e2);
+                RatingException ex = new RatingException("Text is not a valid compressed or uncompressed CWMS Ratings XML instance.", e1);
+                ex.addSuppressed(e2);
+                throw ex;
             }
         }
     }
