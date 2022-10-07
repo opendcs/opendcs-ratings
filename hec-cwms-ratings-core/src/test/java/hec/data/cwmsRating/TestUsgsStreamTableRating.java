@@ -10,9 +10,12 @@ package hec.data.cwmsRating;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,15 +23,102 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import hec.data.RatingException;
 import hec.data.cwmsRating.io.RatingValueContainer;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 
 public class TestUsgsStreamTableRating
 {
+
+	private static UsgsStreamTableRating _rating;
+
+	@BeforeAll
+	public static void setup() throws RatingException {
+		long millis = ZonedDateTime.of(2022, 10, 6, 16, 0, 0, 0, ZoneId.of("UTC")).toInstant().toEpochMilli();
+		UsgsStreamTableRatingContainer urc = new UsgsStreamTableRatingContainer();
+		urc.active = true;
+		urc.createDateMillis = millis;
+		urc.description = "unit testing";
+		urc.effectiveDateMillis = millis;
+		urc.officeId = "SWT";
+		urc.ratingSpecId = "Test.Stage;Flow.Test.Test";
+		urc.unitsId = "ft;cfs";
+		urc.inRangeMethod = RatingConst.RatingMethod.LINEAR.toString();
+		urc.outRangeHighMethod = RatingConst.RatingMethod.LINEAR.toString();
+		urc.outRangeLowMethod = RatingConst.RatingMethod.LINEAR.toString();
+		RatingValueContainer v1 = new RatingValueContainer();
+		v1.indValue = 0;
+		v1.depValue = 1;
+		RatingValueContainer v2 = new RatingValueContainer();
+		v2.indValue = 100;
+		v2.depValue = 1_000;
+		RatingValueContainer v3 = new RatingValueContainer();
+		v3.indValue = 1_000;
+		v3.depValue = 1_000_000;
+		urc.values = new RatingValueContainer[]{v1, v2, v3};
+		_rating = new UsgsStreamTableRating(urc);
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RatingConst.RatingMethod.class, names = {"NULL", "NEAREST", "PREVIOUS", "NEXT", "LOWER", "HIGHER", "CLOSEST", "LIN_LOG", "LOG_LIN", "LINEAR", "LOGARITHMIC"})
+	public void testReverseRateValidInRange(RatingConst.RatingMethod method) {
+		_rating.inRangeMethod = method;
+		assertDoesNotThrow(() -> _rating.reverseRate(1.0));
+		assertDoesNotThrow(() -> _rating.reverseRate(5.0));
+		assertDoesNotThrow(() -> _rating.reverseRate(100_000));
+		assertDoesNotThrow(() -> _rating.reverseRate(999_999));
+		assertDoesNotThrow(() -> _rating.reverseRate(1_000_000));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RatingConst.RatingMethod.class, names = {"ERROR"})
+	public void testReverseRateInvalidInRange(RatingConst.RatingMethod method) {
+		_rating.inRangeMethod = method;
+		assertThrows(RatingException.class, () -> _rating.reverseRate(1.0));
+		assertThrows(RatingException.class, () -> _rating.reverseRate(5.0));
+		assertThrows(RatingException.class, () -> _rating.reverseRate(100_000));
+		assertThrows(RatingException.class, () -> _rating.reverseRate(999_999));
+		assertThrows(RatingException.class, () -> _rating.reverseRate(1_000_000));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RatingConst.RatingMethod.class, names = {"NULL", "NEAREST", "PREVIOUS", "LOWER", "CLOSEST", "LIN_LOG", "LOG_LIN", "LINEAR", "LOGARITHMIC"})
+	public void testReverseRateValidOutOfRangeHigh(RatingConst.RatingMethod method) {
+		_rating.outRangeHighMethod = method;
+		assertDoesNotThrow(() -> _rating.reverseRate(1_000_001));
+		assertDoesNotThrow(() -> _rating.reverseRate(10_000_000));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RatingConst.RatingMethod.class, names = {"ERROR", "NEXT", "HIGHER"})
+	public void testReverseRateInvalidOutOfRangeHigh(RatingConst.RatingMethod method) {
+		_rating.outRangeHighMethod = method;
+		assertThrows(RatingException.class, () -> _rating.reverseRate(1_000_001));
+		assertThrows(RatingException.class, () -> _rating.reverseRate(10_000_000));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RatingConst.RatingMethod.class, names = {"NULL", "NEAREST", "NEXT", "HIGHER", "CLOSEST", "LIN_LOG", "LOG_LIN", "LINEAR", "LOGARITHMIC"})
+	public void testReverseRateValidOutOfRangeLow(RatingConst.RatingMethod method) {
+		_rating.outRangeLowMethod = method;
+		assertDoesNotThrow(() -> _rating.reverseRate(-1));
+		assertDoesNotThrow(() -> _rating.reverseRate(-500));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RatingConst.RatingMethod.class, names = {"ERROR", "PREVIOUS", "LOWER"})
+	public void testReverseRateInvalidOutOfRangeLow(RatingConst.RatingMethod method) {
+		_rating.outRangeLowMethod = method;
+		assertThrows(RatingException.class, () -> _rating.reverseRate(-1));
+		assertThrows(RatingException.class, () -> _rating.reverseRate(-500));
+	}
 
     @Disabled
 	@Test
