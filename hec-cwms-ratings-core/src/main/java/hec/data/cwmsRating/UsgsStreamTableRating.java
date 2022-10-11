@@ -553,14 +553,17 @@ public class UsgsStreamTableRating extends TableRating {
 				case NEAREST:
 				case CLOSEST:
 					flow = effectiveValues[0].getDepValue();
+					extrap_method = outRangeLowMethod;
 					break;
 				case LOWER:
 					if (props.hasIncreasing()) throw new RatingException("No lower value in table.");
 					flow = effectiveValues[0].getDepValue();
+					extrap_method = outRangeLowMethod;
 					break;
 				case HIGHER:
 					if (props.hasDecreasing()) throw new RatingException("No higher value in table.");
 					flow = effectiveValues[0].getDepValue();
+					extrap_method = outRangeLowMethod;
 					break;
 				default:
 					throw new RatingException(
@@ -591,14 +594,17 @@ public class UsgsStreamTableRating extends TableRating {
 				case NEAREST:
 				case CLOSEST:
 					flow = effectiveValues[effectiveValues.length-1].getDepValue();
+					extrap_method = outRangeHighMethod;
 					break;
 				case LOWER:
 					if (props.hasDecreasing()) throw new RatingException("No lower value in table.");
 					flow = effectiveValues[effectiveValues.length-1].getDepValue();
+					extrap_method = outRangeHighMethod;
 					break;
 				case HIGHER:
 					if (props.hasIncreasing()) throw new RatingException("No higher value in table.");
 					flow = effectiveValues[effectiveValues.length-1].getDepValue();
+					extrap_method = outRangeHighMethod;
 					break;
 				default:
 					throw new RatingException(
@@ -616,6 +622,9 @@ public class UsgsStreamTableRating extends TableRating {
 			double loFlow = effectiveValues[lo].getDepValue();
 			double hiFlow = effectiveValues[hi].getDepValue();
 			RatingMethod method = (out_range_low || out_range_high) ? extrap_method : inRangeMethod;
+			if(method == null) {
+				throw new RatingException("Internal error, cannot determine rating method for reverse rate function with value: " + depVal);
+			}
 			switch (method) {
 			case NULL:
 				return UNDEFINED_DOUBLE;
@@ -623,14 +632,19 @@ public class UsgsStreamTableRating extends TableRating {
 				throw new RatingException("No such value in table.");
 			case PREVIOUS:
 				shifted = loHeight;
+				break;
 			case NEXT:
 				shifted = hiHeight;
+				break;
 			case LOWER:
 				shifted = props.hasIncreasing() ? loHeight : hiHeight;
+				break;
 			case HIGHER:
 				shifted = props.hasIncreasing() ? hiHeight : loHeight;
+				break;
 			case CLOSEST:
 				shifted = lt(Math.abs(flow - loFlow), Math.abs(hiHeight - hiFlow)) ? loHeight : hiHeight;
+				break;
 			default:
 				break;
 			}
