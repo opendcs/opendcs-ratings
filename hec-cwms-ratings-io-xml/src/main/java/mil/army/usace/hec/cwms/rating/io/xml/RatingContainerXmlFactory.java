@@ -396,7 +396,7 @@ public final class RatingContainerXmlFactory {
                     trc.createDateMillis = hectime.getTimeInMillis();
                 }
                 data = elem.getChildTextTrim("transition-start-date");
-                if (data != null) {
+                if (data != null && !data.isEmpty()) {
                     hectime.set(data);
                     trc.transitionStartDateMillis = hectime.getTimeInMillis();
                 }

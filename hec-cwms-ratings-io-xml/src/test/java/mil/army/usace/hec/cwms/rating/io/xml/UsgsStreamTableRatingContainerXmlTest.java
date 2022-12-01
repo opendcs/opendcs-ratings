@@ -91,7 +91,7 @@ class UsgsStreamTableRatingContainerXmlTest {
         assertEquals("ft;ft", shifts.unitsId);
         assertTrue(shifts.active);
         assertEquals(Instant.parse("2019-07-06T22:13:00Z"), Instant.ofEpochMilli(shifts.effectiveDateMillis));
-        assertEquals(Instant.parse("1970-01-01T00:00:00Z"), Instant.ofEpochMilli(shifts.transitionStartDateMillis));
+        assertEquals(NumericalConstants.UNDEFINED_INSTANT, Instant.ofEpochMilli(shifts.transitionStartDateMillis));
         assertEquals(Instant.parse("2019-07-06T22:13:00Z"), Instant.ofEpochMilli(shifts.createDateMillis));
         assertNull(shifts.description);
 
