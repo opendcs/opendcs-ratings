@@ -471,21 +471,17 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 						else if (parts[2].equals(UNITS_ID_STR)) {
 							arc.unitsId = data;
 						}
-						else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
+						else if (parts[2].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
 							hectime.set(data);
 							arc.effectiveDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[2].equals(TRANSITION_START_DATE_STR)) {
-							if (data.length() > 0) {
-								hectime.set(data);
-								arc.transitionStartDateMillis = hectime.getTimeInMillis();
-							}
+						else if (parts[2].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+							hectime.set(data);
+							arc.transitionStartDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[2].equals(CREATE_DATE_STR)) {
-							if (data.length() > 0) {
-								hectime.set(data);
-								arc.createDateMillis = hectime.getTimeInMillis();
-							}
+						else if (parts[2].equals(CREATE_DATE_STR) && !data.isEmpty()) {
+							hectime.set(data);
+							arc.createDateMillis = hectime.getTimeInMillis();
 						}
 						else if (parts[2].equals(ACTIVE_STR)) {
 							arc.active = Boolean.parseBoolean(data);
@@ -506,21 +502,17 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 						if (parts[2].equals(RATING_SPEC_ID_STR)) {
 							vrc.ratingSpecId = data;
 						}
-						else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
+						else if (parts[2].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
 							hectime.set(data);
 							vrc.effectiveDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[2].equals(TRANSITION_START_DATE_STR)) {
-							if (data.length() > 0) {
-								hectime.set(data);
-								vrc.transitionStartDateMillis = hectime.getTimeInMillis();
-							}
+						else if (parts[2].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+							hectime.set(data);
+							vrc.transitionStartDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[2].equals(CREATE_DATE_STR)) {
-							if (data.length() > 0) {
-								hectime.set(data);
-								vrc.createDateMillis = hectime.getTimeInMillis();
-							}
+						else if (parts[2].equals(CREATE_DATE_STR) && !data.isEmpty()) {
+							hectime.set(data);
+							vrc.createDateMillis = hectime.getTimeInMillis();
 						}
 						else if (parts[2].equals(ACTIVE_STR)) {
 							vrc.active = Boolean.parseBoolean(data);
@@ -539,21 +531,17 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 						else if (parts[2].equals(UNITS_ID_STR)) {
 							trrc.unitsId = data;
 						}
-						else if (parts[2].equals(EFFECTIVE_DATE_STR)) {
+						else if (parts[2].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
 							hectime.set(data);
 							trrc.effectiveDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[2].equals(TRANSITION_START_DATE_STR)) {
-							if (data.length() > 0) {
-								hectime.set(data);
-								trrc.transitionStartDateMillis = hectime.getTimeInMillis();
-							}
+						else if (parts[2].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+							hectime.set(data);
+							trrc.transitionStartDateMillis = hectime.getTimeInMillis();
 						}
-						else if (parts[2].equals(CREATE_DATE_STR)) {
-							if (data.length() > 0) {
-								hectime.set(data);
-								trrc.createDateMillis = hectime.getTimeInMillis();
-							}
+						else if (parts[2].equals(CREATE_DATE_STR)  && !data.isEmpty()) {
+							hectime.set(data);
+							trrc.createDateMillis = hectime.getTimeInMillis();
 						}
 						else if (parts[2].equals(ACTIVE_STR)) {
 							trrc.active = Boolean.parseBoolean(data);
@@ -571,21 +559,19 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 					}
 					else if (parts[1].equals(USGS_STREAM_RATING_STR)) {
 						if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
-							if (parts[3].equals(EFFECTIVE_DATE_STR)) {
+							if (parts[3].equals(EFFECTIVE_DATE_STR)  && !data.isEmpty()) {
 								hectime.set(data);
 								shiftInfo.get(shiftPointSetCount-1).effectiveDate = hectime.getTimeInMillis();
 							}
-							else if (parts[3].equals(CREATE_DATE_STR)) {
+							else if (parts[3].equals(CREATE_DATE_STR) && !data.isEmpty()) {
 								hectime.set(data);
 								shiftInfo.get(shiftPointSetCount-1).createDate = hectime.getTimeInMillis();
 							}
-							else if (parts[3].equals(TRANSITION_START_DATE_STR)) {
-								if (data.length() > 0) {
-									hectime.set(data);
-									shiftInfo.get(shiftPointSetCount-1).transitionStartDate = hectime.getTimeInMillis();
-								}
+							else if (parts[3].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+								hectime.set(data);
+								shiftInfo.get(shiftPointSetCount-1).transitionStartDate = hectime.getTimeInMillis();
 							}
-							else if (parts[3].equals(ACTIVE_STR)) {
+							else if (parts[3].equals(ACTIVE_STR) && !data.isEmpty()) {
 								hectime.set(data);
 								shiftInfo.get(shiftPointSetCount-1).active = Boolean.parseBoolean(data);
 							}

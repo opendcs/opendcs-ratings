@@ -122,12 +122,12 @@ final class RatingXmlUtil {
             arc.setVerticalDatumContainer(new VerticalDatumContainer(RatingXmlUtil.jdomElementToText(verticalDatumElement)));
         }
         data = ratingElement.getChildTextTrim("effective-date");
-        if (data != null) {
+        if (data != null && !data.isEmpty()) {
             hectime.set(data);
             arc.effectiveDateMillis = hectime.getTimeInMillis();
         }
         data = ratingElement.getChildTextTrim("create-date");
-        if (data != null) {
+        if (data != null && !data.isEmpty()) {
             hectime.set(data);
             arc.createDateMillis = hectime.getTimeInMillis();
         }
