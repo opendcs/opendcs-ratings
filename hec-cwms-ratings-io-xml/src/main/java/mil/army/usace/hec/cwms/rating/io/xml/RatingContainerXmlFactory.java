@@ -386,12 +386,12 @@ public final class RatingContainerXmlFactory {
                 trc.ratingSpecId = rsc.specId;
                 elem = (Element) elems.get(i);
                 String data = elem.getChildTextTrim("effective-date");
-                if (data != null) {
+                if (data != null && !data.isEmpty()) {
                     hectime.set(data);
                     trc.effectiveDateMillis = hectime.getTimeInMillis();
                 }
                 data = elem.getChildTextTrim("create-date");
-                if (data != null) {
+                if (data != null && !data.isEmpty()) {
                     hectime.set(data);
                     trc.createDateMillis = hectime.getTimeInMillis();
                 }
