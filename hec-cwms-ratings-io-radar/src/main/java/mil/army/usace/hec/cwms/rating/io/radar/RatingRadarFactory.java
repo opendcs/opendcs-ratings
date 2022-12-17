@@ -139,7 +139,7 @@ public final class RatingRadarFactory {
         //------------------------------------//
         RatingController ratingController = new RatingController();
         try {
-            return ratingController.retrieveRatingXml(conn, new RatingEndpointInput(ratingSpecId).officeId(officeId));
+            return ratingController.retrieveRatingXml(conn, RatingEndpointInput.getOne(ratingSpecId, officeId));
         } catch (IOException e) {
             throw new RatingException(e);
         }
