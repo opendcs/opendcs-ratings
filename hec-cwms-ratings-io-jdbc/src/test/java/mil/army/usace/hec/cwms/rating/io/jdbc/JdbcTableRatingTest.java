@@ -172,9 +172,9 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 assertNotEquals(ratingSet, abstractRatingSet);
                 assertTrue(abstractRatingSet instanceof ReferenceJdbcRatingSet);
                 assertEquals(0, abstractRatingSet.getRatings().length);
-                //The following assertions are currently failing due to CWDB-194
-//                assertEquals(12.0, abstractRatingSet.rate(new Date().getTime(), 392.0), 0.0);
-//                assertEquals(392.0, abstractRatingSet.reverseRate(new Date().getTime(), 12.0), 0.0);
+                abstractRatingSet.setDataUnits(conn, new String[]{"ft", "acre"});
+                assertEquals(12.0, abstractRatingSet.rate(new Date().getTime(), 392.0), 0.0);
+                assertEquals(392.0, abstractRatingSet.reverseRate(new Date().getTime(), 12.0), 0.0);
             } catch (RatingException e) {
                 throw new RuntimeException(e);
             }
@@ -191,9 +191,9 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 assertTrue(abstractRatingSet instanceof ReferenceJdbcRatingSet);
                 assertEquals(0, abstractRatingSet.getRatings().length);
 
-                //The following assertions are currently failing due to CWDB-194
-//                assertEquals(12.0, abstractRatingSet.rate(new Date().getTime(), 392.0), 0.0);
-//                assertEquals(392.0, abstractRatingSet.reverseRate(new Date().getTime(), 12.0), 0.0);
+                abstractRatingSet.setDataUnits(conn, new String[]{"ft", "acre"});
+                assertEquals(12.0, abstractRatingSet.rate(new Date().getTime(), 392.0), 0.0);
+                assertEquals(392.0, abstractRatingSet.reverseRate(new Date().getTime(), 12.0), 0.0);
             } catch (RatingException e) {
                 throw new RuntimeException(e);
             }
