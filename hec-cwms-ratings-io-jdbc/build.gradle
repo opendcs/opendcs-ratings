@@ -27,8 +27,8 @@ dependencies {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
-    implementation("mil.army.usace.hec:cwms-db-dao:9.4.0")
-    runtimeClasspath("mil.army.usace.hec:cwms-db-jooq:9.4.0") {
+    implementation("mil.army.usace.hec:cwms-db-dao:10.0.0-RC1")
+    runtimeClasspath("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC10") {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
@@ -37,7 +37,7 @@ dependencies {
     testImplementation("org.testcontainers:jdbc:1.17.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.1")
     testImplementation("mil.army.usace.hec:testcontainers-cwms:1.0.6")
-    testImplementation("mil.army.usace.hec:cwms-db-jooq:9.4.0") {
+    testImplementation("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC1") {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
