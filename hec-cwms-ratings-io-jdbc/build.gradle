@@ -5,8 +5,8 @@ test {
                 .extensions*.findByType(JacocoTaskExtension)
                 .destinationFile.absolutePath
         def rootProjectDirUri = rootProject.projectDir.toURI()
-        def classpaths = sourceSets.findAll { !it.name.toLowerCase().contains('test') }.flatten()
-                .java.outputDir.collect { it.toURI() }
+        def nonTestSourceSets = sourceSets.findAll { !it.name.toLowerCase().contains('test') }.flatten()
+        def classpaths = nonTestSourceSets.collect { it.output.classesDirs.collect { it.toURI() } }.flatten()
                 .collect { rootProjectDirUri.relativize it }
                 .collect { "+:$it**" }
         println "##teamcity[jacocoReport " +
@@ -28,7 +28,7 @@ dependencies {
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
     implementation("mil.army.usace.hec:cwms-db-dao:10.0.0-RC1")
-    runtimeClasspath("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC10") {
+    runtimeOnly("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC10") {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
