@@ -8,8 +8,6 @@ dependencies {
     compileOnly project(":hec-cwms-ratings-core")
 
     testImplementation project(":hec-cwms-ratings-core")
-
-    annotationProcessor("mil.army.usace.hec:service-annotations:1.2.1")
 }
 
 test {

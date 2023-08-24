@@ -24,13 +24,10 @@ test {
 dependencies {
     implementation project(":hec-cwms-ratings-core")
     implementation project(":hec-cwms-ratings-io-xml")
-    implementation "mil.army.usace.hec:cwms-http-client:4.5.0"
-    implementation "mil.army.usace.hec:cwms-radar-client:4.5.0"
-    implementation "mil.army.usace.hec:cwms-radar-model:4.5.0"
+    implementation libs.cwms.http.client
+    implementation libs.cwms.radar.client
+    implementation libs.cwms.radar.model
     testImplementation project(":hec-cwms-ratings-core")
-    testImplementation "mil.army.usace.hec:cwms-http-client:4.5.0"
-    testImplementation "mil.army.usace.hec:cwms-radar-client:4.5.0"
-    testImplementation "mil.army.usace.hec:cwms-radar-model:4.5.0"
 }
 
 publishing {

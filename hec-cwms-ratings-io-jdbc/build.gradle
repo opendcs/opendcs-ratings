@@ -29,26 +29,23 @@ test.finalizedBy jacocoTestReport
 dependencies {
     implementation project(":hec-cwms-ratings-core")
     implementation project(":hec-cwms-ratings-io-xml")
-    implementation ("mil.army.usace.hec:cwms-db-jooq-codegen:7.0.0-SNAPSHOT") {
+    implementation (libs.cwms.db.jooq.codegen) {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
-    implementation("mil.army.usace.hec:cwms-db-dao:10.0.0-RC1")
-    runtimeOnly("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC1") {
+    implementation(libs.cwms.db.dao)
+    runtimeOnly(libs.cwms.db.jooq.base) {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
+
     testImplementation project(":hec-cwms-ratings-core")
-    testImplementation("org.testcontainers:testcontainers:1.17.1")
-    testImplementation("org.testcontainers:jdbc:1.17.1")
-    testImplementation("org.testcontainers:junit-jupiter:1.17.1")
-    testImplementation("mil.army.usace.hec:testcontainers-cwms:1.0.6")
-    testImplementation("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC1") {
-        exclude group: "org.jooq.pro", module: "jooq-meta"
-        exclude group: "org.jooq.pro", module: "jooq-codegen"
-    }
-    annotationProcessor("mil.army.usace.hec:service-annotations:1.2.1")
+    testImplementation(libs.testcontainers.testcontainers)
+    testImplementation(libs.testcontainers.jdbc)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.cwms)
 }
+configurations.testImplementation.extendsFrom(configurations.runtimeOnly)
 
 publishing {
     publications {
