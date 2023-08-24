@@ -1,3 +1,9 @@
+plugins {
+    id "ratings.java-conventions"
+    id "ratings.deps-conventions"
+    id "ratings.publishing-conventions"
+}
+
 test {
     useJUnitPlatform()
     doLast {

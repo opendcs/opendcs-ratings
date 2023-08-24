@@ -1,3 +1,9 @@
+plugins {
+    id "ratings.java-conventions"
+    id "ratings.deps-conventions"
+    id "ratings.publishing-conventions"
+}
+
 test {
     useJUnitPlatform()
     doLast {
@@ -16,6 +22,15 @@ test {
 }
 
 test.finalizedBy jacocoTestReport
+
+dependencies {
+    api(libs.hec.monolith) {
+        exclude group: "codebase", module: "*"
+        exclude group: "com.sun.media", module: "*"
+        exclude group: "javax.media", module: "*"
+    }
+    api(libs.jdom)
+}
 
 publishing {
     publications {

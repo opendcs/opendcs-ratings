@@ -1,0 +1,27 @@
+plugins {
+    id "java-library"
+    id 'jacoco'
+}
+
+dependencies {
+    annotationProcessor(libs.service.annotations)
+
+    testImplementation(libs.bundles.junit.api)
+    testRuntimeOnly(libs.junit.engine)
+}
+
+configurations.implementation.extendsFrom(configurations.annotationProcessor)
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    failOnError = true
+    options.addBooleanOption("Xdoclint:all",true)
+    options.addBooleanOption("html5",true)
+}

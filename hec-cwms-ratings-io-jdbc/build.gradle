@@ -1,3 +1,9 @@
+plugins {
+    id "ratings.java-conventions"
+    id "ratings.deps-conventions"
+    id "ratings.publishing-conventions"
+}
+
 test {
     useJUnitPlatform()
     doLast {
@@ -28,7 +34,7 @@ dependencies {
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
     implementation("mil.army.usace.hec:cwms-db-dao:10.0.0-RC1")
-    runtimeOnly("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC10") {
+    runtimeOnly("mil.army.usace.hec:cwms-db-jooq:10.0.0-RC1") {
         exclude group: "org.jooq.pro", module: "jooq-meta"
         exclude group: "org.jooq.pro", module: "jooq-codegen"
     }
