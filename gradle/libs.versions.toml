@@ -1,10 +1,10 @@
 [versions]
-hec-monolith = "4.0.0-RC3"
+hec-monolith = "4.0.0"
 jooq-codegen = "7.0.0-SNAPSHOT"
 hec-data-access = "10.0.0-RC1"
 cwms-radar = "4.5.0"
 
-service-annotations = "1.2.2"
+service-annotations = "2.0.1"
 
 jdom = "1.1.3"
 

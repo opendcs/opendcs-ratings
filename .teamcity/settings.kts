@@ -85,19 +85,19 @@ object Build : BuildType({
         gradle {
             tasks = "build"
             name = "build and test Project"
-            jdkHome = "%env.JDK_11_x64%"
+            jdkHome = "%env.JDK_17_0_x64%"
             gradleParams = "-Pcwms.image=registry.hecdev.net/cwms_schema_installer:22.1.1-SNAPSHOT -Poracle.version=registry.hecdev.net/oracle/database:19.3.0-ee -Pteamcity.build.branch=%teamcity.build.branch%-%teamcity.agent.name%"
         }
         gradle {
             tasks = "sonarqube"
             name = "SonarQube Analysis"
             gradleParams = "-x test -Dsonar.login=%system.SONAR_TOKEN% -Dsonar.host.url=https://sonarqube.hecdev.net"
-            jdkHome = "%env.JDK_11_x64%"
+            jdkHome = "%env.JDK_17_0_x64%"
         }
         gradle {
             tasks = "publish"
             name = "Publish Artifacts"
-            jdkHome = "%env.JDK_11_x64%"
+            jdkHome = "%env.JDK_17_0_x64%"
             gradleParams = "-PmavenUser=%env.NEXUS_USER% -PmavenPassword=%env.NEXUS_PASSWORD%"
             conditions {
                 matches("teamcity.build.branch", "(refs/tags/.*|refs/heads/main)")
@@ -136,7 +136,7 @@ object Build : BuildType({
         }
         dockerSupport {
             loginToRegistry = on {
-                dockerRegistryId = "PROJECT_EXT_11"
+                dockerRegistryId = "PROJECT_EXT_17_0"
             }
         }
     }

@@ -12,10 +12,11 @@ dependencies {
 
 configurations.implementation.extendsFrom(configurations.annotationProcessor)
 
+compileJava {
+    options.release = 11
+}
+
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
     withJavadocJar()
     withSourcesJar()
 }
