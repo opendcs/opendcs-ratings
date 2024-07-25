@@ -273,7 +273,7 @@ public final class RatingCdaFactory
     public static RatingSpec ratingSpec(ApiConnectionInfo conn, String officeId, String ratingSpecId) throws RatingException {
         try {
             RatingSpecController ratingSpecController = new RatingSpecController();
-            RatingSpecEndpointInput input = new RatingSpecEndpointInput().ratingId(ratingSpecId).officeId(officeId);
+            RatingSpecEndpointInput.GetOne input = RatingSpecEndpointInput.getOne(ratingSpecId, officeId);
             mil.army.usace.hec.cwms.radar.client.model.RatingSpec ratingSpec = ratingSpecController.retrieveRatingSpec(conn, input);
 
             RatingSpecContainer ratingSpecContainer = new RatingSpecContainer();
@@ -328,8 +328,9 @@ public final class RatingCdaFactory
     public static RatingTemplate ratingTemplate(ApiConnectionInfo conn, String officeId, String templateId) throws RatingException {
         try {
             RatingTemplateController ratingTemplateController = new RatingTemplateController();
+            RatingTemplateEndpointInput.GetOne input = RatingTemplateEndpointInput.getOne(templateId, officeId);
             mil.army.usace.hec.cwms.radar.client.model.RatingTemplate ratingTemplate =
-                ratingTemplateController.retrieveRatingTemplate(conn, new RatingTemplateEndpointInput().templateId(templateId).officeId(officeId));
+                ratingTemplateController.retrieveRatingTemplate(conn, input);
             RatingTemplateContainer ratingTemplateContainer = new RatingTemplateContainer();
             ratingTemplateContainer.depParam = ratingTemplate.getDependentParameter();
             ratingTemplateContainer.indParams =
