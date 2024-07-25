@@ -3,7 +3,7 @@ includeBuild("$gradle.ext.externalLibDir") {
         substitute(module("mil.army.usace.hec:hec-cwms-ratings-core")).using(project(":hec-cwms-ratings-core"))
 		substitute(module("mil.army.usace.hec:hec-cwms-ratings-gfx")).using(project(":hec-cwms-ratings-gfx"))
 		substitute(module("mil.army.usace.hec:hec-cwms-ratings-io-jdbc")).using(project(":hec-cwms-ratings-io-jdbc"))
-		substitute(module("mil.army.usace.hec:hec-cwms-ratings-io-radar")).using(project(":hec-cwms-ratings-io-radar"))
+		substitute(module("mil.army.usace.hec:hec-cwms-ratings-io-cda")).using(project(":hec-cwms-ratings-io-cda"))
 		substitute(module("mil.army.usace.hec:hec-cwms-ratings-io-xml")).using(project(":hec-cwms-ratings-io-xml"))
     }
 }

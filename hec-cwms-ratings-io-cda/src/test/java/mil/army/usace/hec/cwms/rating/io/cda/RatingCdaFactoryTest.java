@@ -5,14 +5,13 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.radar;
+package mil.army.usace.hec.cwms.rating.io.cda;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import hec.data.UsgsRounder;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.ConcreteRatingSet;
@@ -23,14 +22,15 @@ import mil.army.usace.hec.cwms.http.client.ApiConnectionInfoBuilder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-final class RatingRadarFactoryTest {
+final class RatingCdaFactoryTest
+{
 
     @Disabled
     @Test
-    public void testRatingSetRetrievalRadar() throws Exception {
+    public void testRatingSetRetrievalCda() throws Exception {
         String ratingId = "WARW.Stage;Flow.EXSA.PRODUCTION";
         ApiConnectionInfo apiConnectionInfo = new ApiConnectionInfoBuilder("http://localhost:11526/cwms-data/").build();
-        AbstractRatingSet ratingSet = RatingRadarFactory.eagerRatingSet(apiConnectionInfo, "SWT", ratingId, null, null, true);
+        AbstractRatingSet ratingSet = RatingCdaFactory.eagerRatingSet(apiConnectionInfo, "SWT", ratingId, null, null, true);
         assertNotNull(ratingSet);
         AbstractRating[] ratings = ratingSet.getRatings();
         assertEquals(15, ratings.length);

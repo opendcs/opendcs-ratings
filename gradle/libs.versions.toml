@@ -2,7 +2,7 @@
 hec-monolith = "4.0.0"
 jooq-codegen = "7.0.0-SNAPSHOT"
 hec-data-access = "10.0.0"
-cwms-radar = "4.5.0"
+cwms-data-api = "4.5.0"
 
 service-annotations = "2.0.1"
 
@@ -20,9 +20,9 @@ cwms-db-jooq-codegen = { module = "mil.army.usace.hec:cwms-db-jooq-codegen", ver
 cwms-db-dao = { module = "mil.army.usace.hec:cwms-db-dao", version.ref = "hec-data-access" }
 cwms-db-jooq-base = { module = "mil.army.usace.hec:cwms-db-jooq", version.ref = "hec-data-access" }
 
-cwms-http-client = { module = "mil.army.usace.hec:cwms-http-client", version.ref = "cwms-radar" }
-cwms-radar-client = { module = "mil.army.usace.hec:cwms-radar-client", version.ref = "cwms-radar" }
-cwms-radar-model = { module = "mil.army.usace.hec:cwms-radar-model", version.ref = "cwms-radar" }
+cwms-http-client = { module = "mil.army.usace.hec:cwms-http-client", version.ref = "cwms-data-api" }
+cwms-data-api-client = { module = "mil.army.usace.hec:cwms-radar-client", version.ref = "cwms-data-api" }
+cwms-data-api-model = { module = "mil.army.usace.hec:cwms-radar-model", version.ref = "cwms-data-api" }
 
 service-annotations = { module = "mil.army.usace.hec:service-annotations", version.ref = "service-annotations" }
 

@@ -5,7 +5,7 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.radar;
+package mil.army.usace.hec.cwms.rating.io.cda;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
@@ -33,9 +33,10 @@ import mil.army.usace.hec.cwms.radar.client.model.ParameterSpec;
 import mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory;
 import mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory;
 
-public final class RatingRadarFactory {
+public final class RatingCdaFactory
+{
 
-    private RatingRadarFactory() {
+    private RatingCdaFactory() {
         throw new AssertionError("Utility class");
     }
 
@@ -81,7 +82,7 @@ public final class RatingRadarFactory {
      *                             <td>No ratings are loaded ever - values are passed to database to be rated</td>
      *                           </tr>
      *                         </table>
-     * @param conn         The connection information to CWMS RADAR
+     * @param conn         The connection information to CDA
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
      * @param startTime    The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
@@ -123,7 +124,7 @@ public final class RatingRadarFactory {
                 case LAZY:
                 case REFERENCE:
                 default:
-                    throw new RatingException("Database load method: " + databaseLoadMethod + " is currently unsupported for CWMS RADAR client");
+                    throw new RatingException("Database load method: " + databaseLoadMethod + " is currently unsupported for CDA client");
             }
             RatingSet.getLogger().log(Level.FINE, () -> "Retrieved XML:\n" + xmlText);
             return xmlText;
@@ -135,7 +136,7 @@ public final class RatingRadarFactory {
     private static String retrieveRatingSetXml(ApiConnectionInfo conn, String officeId, String ratingSpecId, Timestamp startTime, Timestamp endTime,
                                                boolean dataTimes) throws RatingException {
         //------------------------------------//
-        // Load all rating data from RADAR //
+        // Load all rating data from CDA //
         //------------------------------------//
         RatingController ratingController = new RatingController();
         try {
@@ -148,7 +149,7 @@ public final class RatingRadarFactory {
     /**
      * Public constructor a CWMS database connection. The system property default for database load method is used for choosing an implementation.
      *
-     * @param conn         The connection information to CWMS RADAR
+     * @param conn         The connection information to CDA
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
      * @param startTime    The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
@@ -195,7 +196,7 @@ public final class RatingRadarFactory {
      *                                   <td>No ratings are loaded ever - values are passed to database to be rated</td>
      *                                 </tr>
      *                               </table>
-     * @param conn               The connection information to CWMS RADAR
+     * @param conn               The connection information to CDA
      * @param officeId           The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId       The rating specification identifier
      * @param startTime          The earliest time to retrieve, as interpreted by inEffectTimes, in milliseconds.  If null, no earliest limit is set.
@@ -227,7 +228,7 @@ public final class RatingRadarFactory {
             case LAZY:
             case REFERENCE:
             default:
-                throw new RatingException("Database load method: " + databaseLoadMethod + " is currently unsupported for CWMS RADAR client");
+                throw new RatingException("Database load method: " + databaseLoadMethod + " is currently unsupported for CDA client");
         }
         return retval;
     }
@@ -264,7 +265,7 @@ public final class RatingRadarFactory {
     /**
      * Factory constructor from the CWMS database
      *
-     * @param conn         The connection information to CWMS RADAR
+     * @param conn         The connection information to CDA
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
      * @throws RatingException any issues retrieving the data or processing what's returned
@@ -302,7 +303,7 @@ public final class RatingRadarFactory {
     /**
      * Retrieves a RatingTemplate XML instance from a CWMS database connection
      *
-     * @param conn         The connection information to CWMS RADAR
+     * @param conn         The connection information to CDA
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connected user is used.
      * @param ratingSpecId The rating specification identifier
      * @return XML string from the database
@@ -319,7 +320,7 @@ public final class RatingRadarFactory {
     /**
      * Factory constructor from a CWMS database connection
      *
-     * @param conn       The connection information to CWMS RADAR
+     * @param conn       The connection information to CDA
      * @param officeId   The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param templateId The rating template identifier
      * @throws RatingException any issues with retrieving the data.
@@ -354,7 +355,7 @@ public final class RatingRadarFactory {
     /**
      * Generates a new RatingTemplate object from a CWMS database connection
      *
-     * @param conn             The connection information to CWMS RADAR
+     * @param conn             The connection information to CDA
      * @param officeId         The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingTemplateId The rating template identifier
      * @return the rating template in XML form
