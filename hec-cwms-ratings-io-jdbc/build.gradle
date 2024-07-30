@@ -29,16 +29,10 @@ test.finalizedBy jacocoTestReport
 dependencies {
     implementation project(":hec-cwms-ratings-core")
     implementation project(":hec-cwms-ratings-io-xml")
+    implementation (libs.jooq)
     implementation (libs.cwms.db.jooq.codegen) {
-        exclude group: "org.jooq.pro", module: "jooq-meta"
-        exclude group: "org.jooq.pro", module: "jooq-codegen"
+        exclude group: "org.jooq", module: "*"
     }
-    implementation(libs.cwms.db.dao)
-    runtimeOnly(libs.cwms.db.jooq.base) {
-        exclude group: "org.jooq.pro", module: "jooq-meta"
-        exclude group: "org.jooq.pro", module: "jooq-codegen"
-    }
-
     testImplementation project(":hec-cwms-ratings-core")
     testImplementation(libs.testcontainers.testcontainers)
     testImplementation(libs.testcontainers.jdbc)

@@ -1,7 +1,7 @@
 [versions]
 hec-monolith = "5.0.0-rc06"
-jooq-codegen = "7.0.0-SNAPSHOT"
-hec-data-access = "10.0.0"
+jooq-codegen = "23.03.16-1.0.2"
+jooq = { strictly = "3.18.7-jdk11" }
 cwms-data-api = "9.0.0-RC08"
 
 service-annotations = "2.0.1"
@@ -15,9 +15,8 @@ cwms-testcontainers = "1.0.6"
 [libraries]
 hec-monolith = { module = "mil.army.usace.hec:hec-monolith", version.ref = "hec-monolith" }
 hec-monolith-bom = { module = "mil.army.usace.hec:hec-monolith-bom", version.ref = "hec-monolith" }
-cwms-db-jooq-codegen = { module = "mil.army.usace.hec:cwms-db-jooq-codegen", version.ref = "jooq-codegen" }
-cwms-db-dao = { module = "mil.army.usace.hec:cwms-db-dao", version.ref = "hec-data-access" }
-cwms-db-jooq-base = { module = "mil.army.usace.hec:cwms-db-jooq", version.ref = "hec-data-access" }
+cwms-db-jooq-codegen = {module = 'mil.army.usace.hec:cwms-db-jooq-codegen_java11', version.ref = "jooq-codegen" }
+jooq = {module = 'org.jooq.pro-java-11:jooq', version.ref = "jooq" }
 
 cwms-http-client = { module = "mil.army.usace.hec:cwms-http-client", version.ref = "cwms-data-api" }
 cwms-data-api-client = { module = "mil.army.usace.hec:cwms-data-api-client", version.ref = "cwms-data-api" }

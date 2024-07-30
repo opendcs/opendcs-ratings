@@ -29,26 +29,34 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import mil.army.usace.hec.metadata.constants.NumericalConstants;
 import org.jooq.Configuration;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
-import usace.cwms.db.dao.ifc.rating.CwmsDbRating;
-import usace.cwms.db.dao.util.services.CwmsDbServiceLookup;
 import usace.cwms.db.jooq.codegen.packages.CWMS_LOC_PACKAGE;
+import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_UTIL_PACKAGE;
+import usace.cwms.db.jooq.codegen.packages.cwms_rating.GET_RATING_EXTENTS;
 import usace.cwms.db.jooq.codegen.tables.AV_RATING;
 import usace.cwms.db.jooq.codegen.tables.AV_RATING_SPEC;
+import usace.cwms.db.jooq.codegen.udt.records.DATE_TABLE_TYPE;
+import usace.cwms.db.jooq.codegen.udt.records.DOUBLE_TAB_T;
+import usace.cwms.db.jooq.codegen.udt.records.DOUBLE_TAB_TAB_T;
+import usace.cwms.db.jooq.codegen.udt.records.STR_TAB_T;
 
 
 /**
@@ -610,18 +618,35 @@ public class ReferenceRating implements IRating, VerticalDatum {
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {
         Connection conn = getConnection();
         try {
-            CwmsDbRating cwmsRatingDao = getCwmsRatingDao(conn);
-            int paramCount = this.parameters.length;
-            double[][][] extents = new double[][][] {new double[2][paramCount]};
-            String[][] parameters = new String[][] {new String[paramCount]};
-            String[][] units = new String[][] {new String[paramCount]};
-            cwmsRatingDao.getRatingExtents(conn, ratingSpecId, officeId, true, ratingTime, extents, parameters, units);
-            return extents[0];
+            String pNativeUnits = "T";
+            Timestamp pRatingTime = new Timestamp(ratingTime);
+            String pTimeZone = TimeZone.getTimeZone("UTC").getID();
+            GET_RATING_EXTENTS ratingExtents = CWMS_RATING_PACKAGE.call_GET_RATING_EXTENTS(
+                    DSL.using(conn).configuration(), ratingSpecId, pNativeUnits, pRatingTime,
+                    pTimeZone, officeId);
+            DOUBLE_TAB_TAB_T extent = ratingExtents.getP_VALUES();
+            return conertToDoubleArr(extent);
         } catch (Exception e) {
             throw new RatingException(e);
         } finally {
             releaseConnection(conn);
         }
+    }
+
+    public double[][] conertToDoubleArr(DOUBLE_TAB_TAB_T extent)
+    {
+        double[][] retval = new double[extent.size()][];
+        for(int i = 0; i < extent.size(); i++)
+        {
+            DOUBLE_TAB_T values = extent.get(i);
+            double[] retvalValues = new double[values.size()];
+            for(int j = 0; j < values.size(); j++)
+            {
+                retvalValues[j] = values.get(j);
+            }
+            retval[i] = retvalValues;
+        }
+        return retval;
     }
 
     /* (non-Javadoc)
@@ -850,15 +875,46 @@ public class ReferenceRating implements IRating, VerticalDatum {
         synchronized (this) {
             Connection conn = getConnection();
             try {
-                CwmsDbRating cwmsRatingDao = getCwmsRatingDao(conn);
-                return cwmsRatingDao.rate(conn, ratingSpecId, officeId, dataUnits == null ? ratingUnits : dataUnits,
-                    dbIndVals, valTimes, ratingTime);
-            } catch (RuntimeException | SQLException e) {
+                DOUBLE_TAB_TAB_T pValues = convertDoubleDoubles(indVals);
+                STR_TAB_T pUnits = convertStrings(dataUnits == null ? ratingUnits : dataUnits);
+                String pRound = "F";
+                DATE_TABLE_TYPE pValueTimes = convertDateVals(valTimes);
+                Timestamp pRatingTime = new Timestamp(ratingTime);
+                String pTimeZone = TimeZone.getTimeZone("UTC").getID();
+                String pOfficeId = null;
+                DOUBLE_TAB_T rated = CWMS_RATING_PACKAGE.call_RATE(DSL.using(conn).configuration(),
+                        ratingSpecId,
+                        pValues, pUnits, pRound, pValueTimes, pRatingTime, pTimeZone,
+                        pOfficeId);
+                return convertDoubleTabTValues(rated);
+            } catch (RuntimeException e) {
                 throw new RatingException(e);
             } finally {
                 releaseConnection(conn);
             }
         }
+    }
+
+    private STR_TAB_T convertStrings(String[] units)
+    {
+        STR_TAB_T retval = new STR_TAB_T();
+        Collections.addAll(retval, units);
+        return retval;
+    }
+
+    private DOUBLE_TAB_TAB_T convertDoubleDoubles(double[][] indVals)
+    {
+        DOUBLE_TAB_TAB_T retval = new DOUBLE_TAB_TAB_T();
+        for(double[] values : indVals)
+        {
+            DOUBLE_TAB_T doubleTabT = new DOUBLE_TAB_T();
+            for(double value : values)
+            {
+                doubleTabT.add(value);
+            }
+            retval.add(doubleTabT);
+        }
+        return retval;
     }
 
     /* (non-Javadoc)
@@ -962,26 +1018,52 @@ public class ReferenceRating implements IRating, VerticalDatum {
     public synchronized double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
         Connection conn = getConnection();
         try {
-            CwmsDbRating cwmsRatingDao = getCwmsRatingDao(conn);
-            return cwmsRatingDao.reverseRate(conn, ratingSpecId, officeId, dataUnits == null ? ratingUnits : dataUnits,
-                depVals, valTimes, ratingTime);
-        } catch (RuntimeException | SQLException e) {
+            DOUBLE_TAB_T pValues = convertDoubleVals(depVals);
+            STR_TAB_T pUnits = new STR_TAB_T(dataUnits == null ? ratingUnits : dataUnits);
+            String pRound = "F";
+            DATE_TABLE_TYPE pValueTimes = convertDateVals(valTimes);
+            Timestamp pRatingTime = new Timestamp(ratingTime);
+            String pTimeZone = TimeZone.getTimeZone("UTC").getID();
+            DOUBLE_TAB_T rated = CWMS_RATING_PACKAGE.call_REVERSE_RATE(DSL.using(conn).configuration(),
+                    ratingSpecId, pValues, pUnits, pRound, pValueTimes, pRatingTime,
+                    pTimeZone, officeId);
+            return convertDoubleTabTValues(rated);
+        } catch (RuntimeException e) {
             throw new RatingException(e);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    private CwmsDbRating getCwmsRatingDao(Connection connection) throws RatingException {
-        try {
-            CwmsDbRating cwmsDbRating = CwmsDbServiceLookup.buildCwmsDb(CwmsDbRating.class, connection);
-            if (cwmsDbRating == null) {
-                throw new RatingException("CwmsDbRating is unsupported");
-            }
-            return cwmsDbRating;
-        } catch (SQLException ex) {
-            throw new RatingException(ex);
+    private DATE_TABLE_TYPE convertDateVals(long[] valTimes)
+    {
+        DATE_TABLE_TYPE dateTableType = new DATE_TABLE_TYPE();
+        for(long val : valTimes)
+        {
+            dateTableType.add(new Timestamp(val));
         }
+        return dateTableType;
+    }
+
+    private DOUBLE_TAB_T convertDoubleVals(double[] depVals)
+    {
+        DOUBLE_TAB_T doubleTabT = new DOUBLE_TAB_T();
+        for(double val : depVals)
+        {
+            doubleTabT.add(val);
+        }
+        return doubleTabT;
+    }
+
+    private double[] convertDoubleTabTValues(DOUBLE_TAB_T values)
+    {
+        double[] retval = new double[values.size()];
+        for(int i = 0; i < values.size();i++)
+        {
+            Double value = values.get(i);
+			retval[i] = Objects.requireNonNullElse(value, NumericalConstants.HEC_UNDEFINED_DOUBLE);
+        }
+        return retval;
     }
 
     /* (non-Javadoc)

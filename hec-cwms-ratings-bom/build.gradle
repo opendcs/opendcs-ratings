@@ -12,8 +12,6 @@ dependencies {
     api platform(libs.hec.monolith.bom)
     constraints {
         runtime(libs.cwms.db.jooq.codegen)
-        runtime(libs.cwms.db.dao)
-        runtime(libs.cwms.db.jooq.base)
 
         api(libs.cwms.http.client)
         runtime(libs.cwms.data.api.client)
