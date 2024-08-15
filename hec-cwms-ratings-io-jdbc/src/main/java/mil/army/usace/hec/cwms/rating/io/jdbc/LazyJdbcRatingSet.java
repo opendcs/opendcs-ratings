@@ -576,9 +576,9 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
         for (AbstractRating rating : activeRatings.values()) {
             if (rating instanceof UsgsStreamTableRating) {
                 try {
-                    JdbcRatingSet shifts = (JdbcRatingSet) ((UsgsStreamTableRating) rating).getShifts();
-                    if (shifts != null) {
-                        shifts.setDbInfo(dbInfo);
+                    RatingSet shifts = ((UsgsStreamTableRating) rating).getShifts();
+                    if(shifts instanceof JdbcRatingSet) {
+                        ((JdbcRatingSet) shifts).setDbInfo(dbInfo);
                     }
                 } catch (RatingException e) {
                     getLogger().log(Level.WARNING, "Unable to set database info for shift rating set: " + rating.getName(), e);
@@ -588,7 +588,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                 if (sourceRatings != null) {
                     for (SourceRating sourceRating : ((VirtualRating) rating).getSourceRatings()) {
                         RatingSet ratingSet = sourceRating.getRatingSet();
-                        if (ratingSet != null) {
+                        if(ratingSet instanceof JdbcRatingSet) {
                             ((JdbcRatingSet) ratingSet).setDbInfo(dbInfo);
                         }
                     }
@@ -598,7 +598,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                 if (sourceRatings != null) {
                     for (SourceRating sourceRating : ((TransitionalRating) rating).getSourceRatings()) {
                         RatingSet ratingSet = sourceRating.getRatingSet();
-                        if (ratingSet != null) {
+                        if(ratingSet instanceof JdbcRatingSet) {
                             ((JdbcRatingSet) ratingSet).setDbInfo(dbInfo);
                         }
                     }
@@ -608,9 +608,9 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
         for (AbstractRating rating : ratings.values()) {
             if (rating instanceof UsgsStreamTableRating) {
                 try {
-                    JdbcRatingSet shifts = (JdbcRatingSet) ((UsgsStreamTableRating) rating).getShifts();
-                    if (shifts != null) {
-                        shifts.setDbInfo(dbInfo);
+                    RatingSet shifts = ((UsgsStreamTableRating) rating).getShifts();
+                    if(shifts instanceof JdbcRatingSet) {
+                        ((JdbcRatingSet) shifts).setDbInfo(dbInfo);
                     }
                 } catch (RatingException e) {
                     getLogger().log(Level.WARNING, "Unable to set database info for shift rating set: " + rating.getName(), e);
@@ -620,7 +620,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                 if (sourceRatings != null) {
                     for (SourceRating sourceRating : ((VirtualRating) rating).getSourceRatings()) {
                         RatingSet ratingSet = sourceRating.getRatingSet();
-                        if (ratingSet != null) {
+                        if(ratingSet instanceof JdbcRatingSet) {
                             ((JdbcRatingSet) ratingSet).setDbInfo(dbInfo);
                         }
                     }
@@ -630,7 +630,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                 if (sourceRatings != null) {
                     for (SourceRating sourceRating : ((TransitionalRating) rating).getSourceRatings()) {
                         RatingSet ratingSet = sourceRating.getRatingSet();
-                        if (ratingSet != null) {
+                        if(ratingSet instanceof JdbcRatingSet) {
                             ((JdbcRatingSet) ratingSet).setDbInfo(dbInfo);
                         }
                     }

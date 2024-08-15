@@ -709,8 +709,8 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
             for (AbstractRating rating : activeRatings.values()) {
                 if (rating instanceof UsgsStreamTableRating) {
                     try {
-                        JdbcRatingSet shifts = (JdbcRatingSet) ((UsgsStreamTableRating) rating).getShifts();
-                        if (shifts != null) {
+                        RatingSet shifts = ((UsgsStreamTableRating) rating).getShifts();
+                        if (shifts instanceof JdbcRatingSet) {
                             shifts.clearDatabaseConnection();
                         }
                     } catch (RatingException e) {
@@ -721,7 +721,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
                     if (sourceRatings != null) {
                         for (SourceRating sourceRating : ((VirtualRating) rating).getSourceRatings()) {
                             RatingSet ratingSet = sourceRating.getRatingSet();
-                            if (ratingSet != null) {
+                            if (ratingSet instanceof JdbcRatingSet) {
                                 ((JdbcRatingSet) ratingSet).clearDatabaseConnection();
                             }
                         }
