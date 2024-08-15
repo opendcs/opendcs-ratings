@@ -6,3 +6,4 @@ build
 bin
 .teamcity/target
 .idea/
+gradle.properties
