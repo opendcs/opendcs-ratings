@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2024
+# United States Army Corps of Engineers - Hydrologic Engineering Center (USACE/HEC)
+# All Rights Reserved.  USACE PROPRIETARY/CONFIDENTIAL.
+# Source may not be released without written approval from HEC
+#
+
+org.gradle.jvmargs=-Xmx8g
+#testcontainer.cwms.bypass.url=
+#testcontainer.cwms.bypass.cwms.pass=
+#testcontainer.cwms.bypass.office.id=
+#testcontainer.cwms.bypass.office.eroc=

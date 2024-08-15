@@ -19,9 +19,10 @@ test {
                 "dataPath='${dataPaths.join ' '}' " +
                 "classpath='${classpaths.join ' '}']"
     }
-    systemProperty 'cwms.image', project.findProperty('cwms.image')
     systemProperty 'oracle.version', project.findProperty('oracle.version')
-    systemProperty 'teamcity.build.branch', project.findProperty('teamcity.build.branch')
+    systemProperties += project.properties.findAll { k, v -> k.startsWith("testcontainer") }
+    systemProperties += project.properties.findAll { k, v -> k.startsWith("cwms") }
+    systemProperties += project.properties.findAll { k, v -> k.startsWith("teamcity") }
 }
 
 test.finalizedBy jacocoTestReport
