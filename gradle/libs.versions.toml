@@ -2,7 +2,7 @@
 hec-monolith = "5.0.0-rc06"
 jooq-codegen = "23.03.16-1.0.2"
 jooq = { strictly = "3.18.7-jdk11" }
-cwms-data-api = "9.0.0-RC08"
+cwms-data-api = "10.1.0"
 
 service-annotations = "2.0.1"
 

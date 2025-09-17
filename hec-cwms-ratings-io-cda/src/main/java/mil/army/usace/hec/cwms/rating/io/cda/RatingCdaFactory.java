@@ -22,14 +22,14 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.logging.Level;
 import mil.army.usace.hec.cwms.http.client.ApiConnectionInfo;
-import mil.army.usace.hec.cwms.radar.client.controllers.RatingController;
-import mil.army.usace.hec.cwms.radar.client.controllers.RatingEndpointInput;
-import mil.army.usace.hec.cwms.radar.client.controllers.RatingSpecController;
-import mil.army.usace.hec.cwms.radar.client.controllers.RatingSpecEndpointInput;
-import mil.army.usace.hec.cwms.radar.client.controllers.RatingTemplateController;
-import mil.army.usace.hec.cwms.radar.client.controllers.RatingTemplateEndpointInput;
-import mil.army.usace.hec.cwms.radar.client.model.IndependentRoundingSpec;
-import mil.army.usace.hec.cwms.radar.client.model.ParameterSpec;
+import mil.army.usace.hec.cwms.data.api.client.controllers.RatingController;
+import mil.army.usace.hec.cwms.data.api.client.controllers.RatingEndpointInput;
+import mil.army.usace.hec.cwms.data.api.client.controllers.RatingSpecController;
+import mil.army.usace.hec.cwms.data.api.client.controllers.RatingSpecEndpointInput;
+import mil.army.usace.hec.cwms.data.api.client.controllers.RatingTemplateController;
+import mil.army.usace.hec.cwms.data.api.client.controllers.RatingTemplateEndpointInput;
+import mil.army.usace.hec.cwms.data.api.client.model.IndependentRoundingSpec;
+import mil.army.usace.hec.cwms.data.api.client.model.ParameterSpec;
 import mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory;
 import mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory;
 
@@ -274,7 +274,7 @@ public final class RatingCdaFactory
         try {
             RatingSpecController ratingSpecController = new RatingSpecController();
             RatingSpecEndpointInput.GetOne input = RatingSpecEndpointInput.getOne(ratingSpecId, officeId);
-            mil.army.usace.hec.cwms.radar.client.model.RatingSpec ratingSpec = ratingSpecController.retrieveRatingSpec(conn, input);
+            mil.army.usace.hec.cwms.data.api.client.model.RatingSpec ratingSpec = ratingSpecController.retrieveRatingSpec(conn, input);
 
             RatingSpecContainer ratingSpecContainer = new RatingSpecContainer();
             ratingTemplate(conn, officeId, ratingSpec.getTemplateId()).getData().clone(ratingSpecContainer);
@@ -329,7 +329,7 @@ public final class RatingCdaFactory
         try {
             RatingTemplateController ratingTemplateController = new RatingTemplateController();
             RatingTemplateEndpointInput.GetOne input = RatingTemplateEndpointInput.getOne(templateId, officeId);
-            mil.army.usace.hec.cwms.radar.client.model.RatingTemplate ratingTemplate =
+            mil.army.usace.hec.cwms.data.api.client.model.RatingTemplate ratingTemplate =
                 ratingTemplateController.retrieveRatingTemplate(conn, input);
             RatingTemplateContainer ratingTemplateContainer = new RatingTemplateContainer();
             ratingTemplateContainer.depParam = ratingTemplate.getDependentParameter();
