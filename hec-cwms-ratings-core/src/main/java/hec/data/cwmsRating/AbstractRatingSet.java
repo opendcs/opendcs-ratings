@@ -48,6 +48,7 @@ import java.util.Observer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
@@ -306,8 +307,11 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             ar.setRatingTime(getRatingTime());
             ar.setDataUnits(getDataUnits());
             try {
+                String currentDatum = rating.getCurrentVerticalDatum();
                 ar.setVerticalDatumInfo(getVerticalDatumInfo());
-            } catch (Exception e) {
+                ar.vdc.currentDatum = currentDatum;
+            } catch (VerticalDatumException e) {
+                LOGGER.log(Level.FINE, "Could not set vertical datum info on rating being added to rating set.", e);
             }
             ar.setAllowUnsafe(doesAllowUnsafe());
             ar.setWarnUnsafe(doesWarnUnsafe());
@@ -315,8 +319,11 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 activeRatings.put(rating.getEffectiveDate(), rating);
                 activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
             }
-            rating.deleteObserver(this);
-            rating.addObserver(this);
+            if(rating.observationTarget != null)
+            {
+                rating.deleteObserver(this);
+                rating.addObserver(this);
+            }
             validate();
         }
         if (observationTarget != null) {
