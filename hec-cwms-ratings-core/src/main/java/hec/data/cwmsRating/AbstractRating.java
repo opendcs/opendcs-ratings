@@ -187,7 +187,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	@Override
 	public void addObserver(Observer o) {
 		synchronized(this) {
-			observationTarget.addObserver(o);
+            if(observationTarget != null) {
+                observationTarget.addObserver(o);
+            }
 		}
 	}
 	/* (non-Javadoc)
@@ -196,7 +198,9 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	@Override
 	public void deleteObserver(Observer o) {
 		synchronized(this) {
-			observationTarget.deleteObserver(o);
+            if(observationTarget != null) {
+                observationTarget.deleteObserver(o);
+            }
 		}
 	}
 	/* (non-Javadoc)

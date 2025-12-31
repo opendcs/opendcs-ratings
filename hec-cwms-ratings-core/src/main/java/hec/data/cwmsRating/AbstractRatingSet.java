@@ -319,11 +319,8 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 activeRatings.put(rating.getEffectiveDate(), rating);
                 activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
             }
-            if(rating.observationTarget != null)
-            {
-                rating.deleteObserver(this);
-                rating.addObserver(this);
-            }
+            rating.deleteObserver(this);
+            rating.addObserver(this);
             validate();
         }
         if (observationTarget != null) {
