@@ -309,7 +309,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             try {
                 String currentDatum = rating.getCurrentVerticalDatum();
                 ar.setVerticalDatumInfo(getVerticalDatumInfo());
-                ar.vdc.currentDatum = currentDatum;
+                ar.vdc.forceVerticalDatum(currentDatum);
             } catch (VerticalDatumException e) {
                 LOGGER.log(Level.FINE, "Could not set vertical datum info on rating being added to rating set.", e);
             }
