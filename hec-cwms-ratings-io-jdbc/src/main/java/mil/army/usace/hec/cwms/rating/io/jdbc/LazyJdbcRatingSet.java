@@ -7,7 +7,6 @@
 
 package mil.army.usace.hec.cwms.rating.io.jdbc;
 
-import hec.data.IRating;
 
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst.RatingMethod;

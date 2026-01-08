@@ -8,7 +8,7 @@
 
 package hec.data.cwmsRating.io;
 
-
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.UsgsStreamTableRating;
 import mil.army.usace.hec.metadata.VerticalDatumException;

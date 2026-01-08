@@ -9,6 +9,7 @@
 package hec.data.cwmsRating.io;
 
 
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingSetFactory;
 import hec.io.DataContainer;

@@ -15,9 +15,8 @@ import java.util.Arrays;
 import java.util.Observer;
 import java.util.TimeZone;
 
-import hec.data.DataSetIllegalArgumentException;
-import hec.data.IRating;
 import hec.data.Interval;
+import hec.data.DataSetIllegalArgumentException;
 
 import hec.data.Units;
 import hec.data.UnitsConversionException;

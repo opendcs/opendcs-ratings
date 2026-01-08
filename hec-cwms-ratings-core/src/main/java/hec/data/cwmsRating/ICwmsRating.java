@@ -10,8 +10,6 @@ package hec.data.cwmsRating;
 
 import java.util.Observer;
 
-import hec.data.IRating;
-
 
 /**
  * Interface to be implemented by all CWMS-style rating objects

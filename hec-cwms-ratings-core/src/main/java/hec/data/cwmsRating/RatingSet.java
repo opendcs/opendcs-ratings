@@ -11,7 +11,6 @@ package hec.data.cwmsRating;
 import static hec.lang.Const.UNDEFINED_TIME;
 
 import hec.data.DataSetException;
-import hec.data.IRating;
 
 import hec.data.RoundingException;
 import hec.data.cwmsRating.io.RatingJdbcCompatUtil;

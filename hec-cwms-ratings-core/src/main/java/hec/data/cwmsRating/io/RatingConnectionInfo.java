@@ -8,6 +8,7 @@
 package hec.data.cwmsRating.io;
 
 
+import hec.data.cwmsRating.RatingException;
 
 public interface RatingConnectionInfo {
 

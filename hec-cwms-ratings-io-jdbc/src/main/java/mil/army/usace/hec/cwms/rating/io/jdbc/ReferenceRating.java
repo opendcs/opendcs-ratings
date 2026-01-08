@@ -14,7 +14,6 @@ import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
 
 import hec.data.DataSetIllegalArgumentException;
-import hec.data.IRating;
 import hec.data.Parameter;
 
 import hec.data.Units;

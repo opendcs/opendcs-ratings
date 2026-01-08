@@ -15,7 +15,6 @@ import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
 
 import hec.data.DataSetException;
-import hec.data.IRating;
 import hec.data.Parameter;
 
 import hec.data.RatingObjectDoesNotExistException;
