@@ -16,7 +16,7 @@ import static hec.lang.Const.UNDEFINED_TIME;
 import hec.data.DataSetIllegalArgumentException;
 import hec.data.IRating;
 import hec.data.Parameter;
-import hec.data.RatingException;
+
 import hec.data.Units;
 import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.TimeSeriesRater;

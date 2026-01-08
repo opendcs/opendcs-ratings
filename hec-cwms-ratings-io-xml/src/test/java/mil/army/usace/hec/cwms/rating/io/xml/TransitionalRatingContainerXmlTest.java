@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.TransitionalRatingContainer;
 import hec.data.cwmsRating.io.TransitionalRatingContainer;
 import java.io.BufferedReader;

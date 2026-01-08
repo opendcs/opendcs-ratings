@@ -18,7 +18,7 @@ import java.util.TimeZone;
 import hec.data.DataSetIllegalArgumentException;
 import hec.data.IRating;
 import hec.data.Interval;
-import hec.data.RatingException;
+
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.IndependentValuesContainer;

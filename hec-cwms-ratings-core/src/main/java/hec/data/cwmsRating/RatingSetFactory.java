@@ -7,7 +7,7 @@
 
 package hec.data.cwmsRating;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.RatingSetContainer;
 
 public final class RatingSetFactory {

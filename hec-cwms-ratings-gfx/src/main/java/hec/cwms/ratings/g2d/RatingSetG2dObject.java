@@ -16,7 +16,7 @@ package hec.cwms.ratings.g2d;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.RatingSet;
 import hec.geometry.Axis;
 import hec.geometry.WorldRect;

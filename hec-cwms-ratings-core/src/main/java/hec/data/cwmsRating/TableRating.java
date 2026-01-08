@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Vector;
 
 import hec.data.NotMonotonicRatingException;
-import hec.data.RatingException;
+
 import hec.data.RatingOutOfRangeException;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;

@@ -10,7 +10,7 @@ package mil.army.usace.hec.cwms.rating.io.cda;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingSpec;

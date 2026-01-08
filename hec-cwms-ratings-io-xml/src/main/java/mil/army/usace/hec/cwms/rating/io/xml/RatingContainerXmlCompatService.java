@@ -7,7 +7,7 @@
 
 package mil.army.usace.hec.cwms.rating.io.xml;
 
-import hec.data.RatingException;
+
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
 import hec.data.cwmsRating.io.AbstractRatingContainer;

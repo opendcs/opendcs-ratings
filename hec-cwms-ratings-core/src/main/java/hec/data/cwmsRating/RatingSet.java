@@ -12,7 +12,7 @@ import static hec.lang.Const.UNDEFINED_TIME;
 
 import hec.data.DataSetException;
 import hec.data.IRating;
-import hec.data.RatingException;
+
 import hec.data.RoundingException;
 import hec.data.cwmsRating.io.RatingJdbcCompatUtil;
 import hec.data.cwmsRating.io.RatingSetContainer;

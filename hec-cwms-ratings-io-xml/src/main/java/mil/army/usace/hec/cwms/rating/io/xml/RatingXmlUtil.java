@@ -9,7 +9,7 @@ package mil.army.usace.hec.cwms.rating.io.xml;
 
 import static hec.lang.Const.UNDEFINED_TIME;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.VirtualRatingContainer;
 import hec.heclib.util.HecTime;

@@ -13,7 +13,7 @@ package hec.data.cwmsRating;
 
 import static hec.util.TextUtil.replaceAll;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
 import hec.data.cwmsRating.io.RatingXmlCompatUtil;

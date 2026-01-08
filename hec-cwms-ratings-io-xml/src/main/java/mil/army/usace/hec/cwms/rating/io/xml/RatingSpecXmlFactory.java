@@ -12,7 +12,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
 
-import hec.data.RatingException;
+
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingConst;

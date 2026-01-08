@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import hec.data.DataSetException;
-import hec.data.RatingException;
+
 import hec.data.RoundingException;
 import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;

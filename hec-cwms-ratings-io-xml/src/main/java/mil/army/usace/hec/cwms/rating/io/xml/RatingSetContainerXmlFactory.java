@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import hec.data.RatingException;
+
 import hec.data.RatingObjectDoesNotExistException;
 import hec.data.RatingRuntimeException;
 import hec.data.cwmsRating.AbstractRating;

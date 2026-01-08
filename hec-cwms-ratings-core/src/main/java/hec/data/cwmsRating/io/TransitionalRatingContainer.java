@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.TransitionalRating;
 import hec.util.TextUtil;

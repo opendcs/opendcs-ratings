@@ -7,7 +7,7 @@
 
 package mil.army.usace.hec.cwms.rating.io.xml;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.ExpressionRating;

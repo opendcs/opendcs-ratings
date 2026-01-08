@@ -15,7 +15,7 @@ import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
 
 import hec.data.DataSetException;
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
 import hec.data.cwmsRating.io.RatingJdbcCompatUtil;

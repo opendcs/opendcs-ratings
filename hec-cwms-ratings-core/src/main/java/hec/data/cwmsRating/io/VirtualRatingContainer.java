@@ -21,7 +21,7 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.VirtualRating;

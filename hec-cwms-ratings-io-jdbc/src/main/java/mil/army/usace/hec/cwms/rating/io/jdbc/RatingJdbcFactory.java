@@ -9,7 +9,7 @@ package mil.army.usace.hec.cwms.rating.io.jdbc;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;

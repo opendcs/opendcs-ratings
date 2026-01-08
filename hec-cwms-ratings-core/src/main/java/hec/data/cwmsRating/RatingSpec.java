@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 import hec.data.DataSetException;
 import hec.data.DataSetIllegalArgumentException;
 import hec.data.Parameter;
-import hec.data.RatingException;
+
 import hec.data.RoundingException;
 import hec.data.UsgsRounder;
 import hec.data.cwmsRating.RatingConst.RatingMethod;

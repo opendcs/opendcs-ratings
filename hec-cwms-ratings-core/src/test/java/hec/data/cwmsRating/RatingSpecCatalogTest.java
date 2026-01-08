@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import hec.data.RatingException;
+
 import hec.data.RoundingException;
 import hec.data.location.LocationTemplate;
 

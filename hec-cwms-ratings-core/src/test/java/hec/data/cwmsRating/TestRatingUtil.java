@@ -15,7 +15,7 @@ import java.util.TimeZone;
 
 import org.junit.jupiter.api.Test;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.heclib.util.HecTimeArray;

@@ -26,7 +26,7 @@ package hec.data.cwmsRating;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.RatingTemplateContainer;
 import org.junit.jupiter.api.Test;
 
