@@ -17,7 +17,6 @@ import static hec.util.TextUtil.split;
 import hec.data.DataSetException;
 import hec.data.Parameter;
 
-import hec.data.RatingObjectDoesNotExistException;
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;

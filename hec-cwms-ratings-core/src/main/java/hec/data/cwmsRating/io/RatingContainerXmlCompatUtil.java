@@ -8,9 +8,9 @@
 package hec.data.cwmsRating.io;
 
 
-import hec.data.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.RatingObjectDoesNotExistException;
 import hec.data.cwmsRating.RatingException;
-import hec.data.RatingRuntimeException;
+import hec.data.cwmsRating.RatingRuntimeException;
 import java.util.List;
 import java.util.Set;
 import org.jdom.Element;
