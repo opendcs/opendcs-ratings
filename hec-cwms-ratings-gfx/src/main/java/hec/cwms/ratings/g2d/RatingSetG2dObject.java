@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 
 import hec.data.cwmsRating.RatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.geometry.Axis;
 import hec.geometry.WorldRect;
 import hec.gfx2d.G2dData;

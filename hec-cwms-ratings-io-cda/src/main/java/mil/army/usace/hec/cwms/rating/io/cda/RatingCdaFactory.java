@@ -13,6 +13,7 @@ import static hec.util.TextUtil.join;
 
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.RatingTemplate;
 import hec.data.cwmsRating.io.RatingSpecContainer;

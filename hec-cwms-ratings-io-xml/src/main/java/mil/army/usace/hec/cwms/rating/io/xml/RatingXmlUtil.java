@@ -12,6 +12,7 @@ import static hec.lang.Const.UNDEFINED_TIME;
 
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.VirtualRatingContainer;
+import hec.data.cwmsRating.RatingException;
 import hec.heclib.util.HecTime;
 import hec.util.TextUtil;
 import java.io.IOException;

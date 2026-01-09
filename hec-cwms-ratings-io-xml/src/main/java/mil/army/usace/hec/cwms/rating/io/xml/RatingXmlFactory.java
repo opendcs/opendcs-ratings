@@ -12,6 +12,7 @@ import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.ExpressionRating;
 import hec.data.cwmsRating.RatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.RatingSetFactory;
 import hec.data.cwmsRating.TableRating;
 import hec.data.cwmsRating.TransitionalRating;

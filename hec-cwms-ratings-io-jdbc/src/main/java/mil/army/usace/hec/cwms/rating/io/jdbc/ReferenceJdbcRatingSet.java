@@ -10,6 +10,7 @@ package mil.army.usace.hec.cwms.rating.io.jdbc;
 
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingSpec;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.io.RatingSetContainer;
 import hec.data.cwmsRating.io.ReferenceRatingContainer;
 import hec.io.TextContainer;

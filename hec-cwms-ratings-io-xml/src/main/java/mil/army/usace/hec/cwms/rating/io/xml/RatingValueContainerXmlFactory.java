@@ -10,6 +10,7 @@ package mil.army.usace.hec.cwms.rating.io.xml;
 
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
+import hec.data.cwmsRating.RatingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jdom.Element;

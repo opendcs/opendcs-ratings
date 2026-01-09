@@ -11,6 +11,7 @@ package mil.army.usace.hec.cwms.rating.io.xml;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import hec.hecmath.TextMath;
