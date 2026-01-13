@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.VirtualRatingContainer;
+import hec.data.cwmsRating.RatingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

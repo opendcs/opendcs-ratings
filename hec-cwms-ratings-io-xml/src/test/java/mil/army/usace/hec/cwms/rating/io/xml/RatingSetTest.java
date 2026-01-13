@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;
