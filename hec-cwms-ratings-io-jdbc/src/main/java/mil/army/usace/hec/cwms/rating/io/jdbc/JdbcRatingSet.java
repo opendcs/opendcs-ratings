@@ -10,6 +10,7 @@ package mil.army.usace.hec.cwms.rating.io.jdbc;
 
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.CwmsRatingSet;
 import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.SourceRating;
@@ -69,7 +70,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
      * @param conn       The database connection to use if the rating was lazily loaded
      * @return The rating extents
      * @throws RatingException any errors calcualting the value
-     * @see IRating#getRatingExtents(long)
+     * @see hec.data.cwmsRating.IRating#getRatingExtents(long)
      */
     @Override
     public final double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {

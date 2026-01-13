@@ -9,6 +9,7 @@ package mil.army.usace.hec.cwms.rating.io.jdbc;
 
 
 import java.sql.Connection;
+import hec.data.cwmsRating.RatingException;
 
 public interface ConnectionProvider {
 

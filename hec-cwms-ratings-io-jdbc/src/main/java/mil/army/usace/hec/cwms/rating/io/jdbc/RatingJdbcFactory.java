@@ -13,6 +13,7 @@ import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.AbstractRatingSet;
 import hec.data.cwmsRating.RatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.RatingSpec;
 import hec.data.cwmsRating.RatingTemplate;
 import hec.data.cwmsRating.io.RatingSetContainer;

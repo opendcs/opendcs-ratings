@@ -17,6 +17,7 @@ import hec.data.DataSetIllegalArgumentException;
 import hec.data.Parameter;
 
 import hec.data.Units;
+import hec.data.cwmsRating.IRating;
 import hec.data.cwmsRating.RatingSet;
 import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.TimeSeriesRater;
