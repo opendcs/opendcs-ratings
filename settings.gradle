@@ -2,7 +2,6 @@ rootProject.name = 'hec-cwms-ratings'
 
 
 include 'hec-cwms-ratings-core'
-include 'hec-cwms-ratings-gfx'
 include 'hec-cwms-ratings-io-jdbc'
 include 'hec-cwms-ratings-io-cda'
 include 'hec-cwms-ratings-io-xml'

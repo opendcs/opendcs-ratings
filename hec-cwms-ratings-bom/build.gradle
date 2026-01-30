@@ -18,7 +18,6 @@ dependencies {
         runtime(libs.cwms.data.api.model)
 
         api(project(":hec-cwms-ratings-core"))
-        api(project(":hec-cwms-ratings-gfx"))
         runtime(project(":hec-cwms-ratings-io-jdbc"))
         runtime(project(":hec-cwms-ratings-io-cda"))
         runtime(project(":hec-cwms-ratings-io-xml"))
