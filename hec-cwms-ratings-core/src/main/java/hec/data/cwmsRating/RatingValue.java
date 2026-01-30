@@ -10,7 +10,7 @@ package hec.data.cwmsRating;
 
 import java.util.Observer;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.RatingValueContainer;
 import hec.data.cwmsRating.io.TableRatingContainer;
 import hec.lang.Observable;

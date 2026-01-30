@@ -8,7 +8,7 @@
 
 package hec.data.cwmsRating.io;
 
-import hec.data.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.RatingObjectDoesNotExistException;
 import java.util.Arrays;
 
 /**

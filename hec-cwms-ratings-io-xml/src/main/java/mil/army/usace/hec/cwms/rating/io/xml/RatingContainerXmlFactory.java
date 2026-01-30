@@ -17,9 +17,10 @@ import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
 import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.lang.Const.UNDEFINED_TIME;
 
-import hec.data.RatingException;
-import hec.data.RatingObjectDoesNotExistException;
-import hec.data.RatingRuntimeException;
+
+import hec.data.cwmsRating.RatingObjectDoesNotExistException;
+import hec.data.cwmsRating.RatingRuntimeException;
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.AbstractRating;
 import hec.data.cwmsRating.RatingMethodId;
 import hec.data.cwmsRating.io.AbstractRatingContainer;

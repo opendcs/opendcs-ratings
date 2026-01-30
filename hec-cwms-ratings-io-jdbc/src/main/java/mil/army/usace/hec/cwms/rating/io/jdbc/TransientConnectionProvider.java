@@ -7,7 +7,8 @@
 
 package mil.army.usace.hec.cwms.rating.io.jdbc;
 
-import hec.data.RatingException;
+
+import hec.data.cwmsRating.RatingException;
 import java.sql.Connection;
 
 final class TransientConnectionProvider implements ConnectionProvider {

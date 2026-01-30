@@ -16,9 +16,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import hec.data.IRating;
 import hec.data.Parameter;
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.io.Conversion;

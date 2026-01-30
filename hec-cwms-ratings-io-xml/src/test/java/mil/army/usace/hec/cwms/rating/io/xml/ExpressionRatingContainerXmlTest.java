@@ -11,7 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import hec.data.RatingException;
+
+import hec.data.cwmsRating.RatingException;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;
 import java.io.BufferedReader;
 import java.io.IOException;

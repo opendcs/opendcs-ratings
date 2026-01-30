@@ -15,9 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import hec.data.NotMonotonicRatingException;
-import hec.data.RatingException;
-import hec.data.RatingOutOfRangeException;
+
 import hec.data.Units;
 import hec.data.cwmsRating.RatingConst.RatingMethod;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
@@ -29,8 +27,8 @@ import hec.util.TextUtil;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
-import static hec.data.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
+import static hec.data.cwmsRating.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
+import static hec.data.cwmsRating.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;

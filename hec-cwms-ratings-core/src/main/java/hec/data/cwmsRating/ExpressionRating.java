@@ -12,7 +12,7 @@ import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
 import hec.data.cwmsRating.io.RatingXmlCompatUtil;
 import java.util.Arrays;
 
-import hec.data.RatingException;
+
 import hec.data.Units;
 import hec.data.cwmsRating.io.AbstractRatingContainer;
 import hec.data.cwmsRating.io.ExpressionRatingContainer;

@@ -9,7 +9,7 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.RatingSpecContainer;
 import hec.data.location.LocationTemplate;
 

@@ -17,7 +17,7 @@ import static hec.util.TextUtil.split;
 
 import hec.data.DataSetException;
 import hec.data.Parameter;
-import hec.data.RatingException;
+
 import hec.data.Units;
 import hec.data.UnitsConversionException;
 import hec.data.cwmsRating.io.AbstractRatingContainer;

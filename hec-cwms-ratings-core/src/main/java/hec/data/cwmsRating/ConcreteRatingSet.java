@@ -7,7 +7,7 @@
 
 package hec.data.cwmsRating;
 
-import hec.data.RatingException;
+
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import java.sql.Connection;

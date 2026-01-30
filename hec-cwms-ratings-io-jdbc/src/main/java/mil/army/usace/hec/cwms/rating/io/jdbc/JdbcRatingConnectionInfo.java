@@ -7,8 +7,9 @@
 
 package mil.army.usace.hec.cwms.rating.io.jdbc;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.io.RatingConnectionInfo;
+import hec.data.cwmsRating.RatingException;
 
 final class JdbcRatingConnectionInfo implements RatingConnectionInfo {
 

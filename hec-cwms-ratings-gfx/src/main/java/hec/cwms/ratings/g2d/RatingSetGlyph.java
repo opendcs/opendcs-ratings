@@ -19,8 +19,9 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hec.data.RatingException;
+
 import hec.data.cwmsRating.RatingSet;
+import hec.data.cwmsRating.RatingException;
 import hec.cwms.ratings.geom.RatingSetPathIterator;
 import hec.geometry.Axis;
 import hec.geometry.Scale;
