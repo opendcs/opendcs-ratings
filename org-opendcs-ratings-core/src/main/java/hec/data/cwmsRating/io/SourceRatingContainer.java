@@ -9,7 +9,7 @@
 /**
  * 
  */
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 /**
  * Container for source ratings for virtual and transitional ratings

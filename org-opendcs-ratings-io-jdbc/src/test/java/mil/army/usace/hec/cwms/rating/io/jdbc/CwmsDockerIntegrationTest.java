@@ -5,7 +5,7 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
 import com.google.common.flogger.FluentLogger;
 import java.sql.SQLException;

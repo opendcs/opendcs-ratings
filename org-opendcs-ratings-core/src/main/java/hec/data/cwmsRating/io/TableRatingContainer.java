@@ -6,12 +6,12 @@
  *
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.TableRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.TableRating;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import java.io.StringReader;

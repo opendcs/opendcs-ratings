@@ -14,11 +14,11 @@ package org.opendcs.ratings;
 import static hec.util.TextUtil.replaceAll;
 
 
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
-import hec.data.cwmsRating.io.RatingXmlCompatUtil;
-import hec.data.cwmsRating.io.SourceRatingContainer;
-import hec.data.cwmsRating.io.TransitionalRatingContainer;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
+import org.opendcs.ratings.io.SourceRatingContainer;
+import org.opendcs.ratings.io.TransitionalRatingContainer;
 import hec.hecmath.computation.ComputationException;
 import hec.hecmath.computation.Condition;
 import hec.hecmath.computation.MathExpression;

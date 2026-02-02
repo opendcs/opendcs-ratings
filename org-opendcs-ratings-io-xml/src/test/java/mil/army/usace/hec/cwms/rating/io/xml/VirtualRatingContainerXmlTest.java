@@ -5,7 +5,7 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,9 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
-import hec.data.cwmsRating.RatingException;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
+import org.opendcs.ratings.RatingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

@@ -18,14 +18,14 @@ import java.util.TimeZone;
 
 import hec.data.Parameter;
 
-import hec.data.cwmsRating.io.IndependentValuesContainer;
+import org.opendcs.ratings.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.util.TextUtil;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 
 /**
  *

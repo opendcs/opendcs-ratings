@@ -5,14 +5,14 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
 
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingSpec;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.ReferenceRatingContainer;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingSpec;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.ReferenceRatingContainer;
 import hec.io.TextContainer;
 import java.sql.Connection;
 import java.util.Arrays;

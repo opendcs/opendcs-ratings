@@ -6,7 +6,7 @@
  *
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,16 +15,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.TransitionalRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.TransitionalRating;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import org.jdom.Element;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 
 /**
  *

@@ -8,9 +8,9 @@
 
 package org.opendcs.ratings;
 
-import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
-import hec.data.cwmsRating.io.RatingJdbcCompatUtil;
-import hec.data.cwmsRating.io.RatingXmlCompatUtil;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.RatingJdbcCompatUtil;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import java.sql.Connection;
 import java.util.logging.Logger;
 
@@ -20,18 +20,18 @@ import hec.data.Parameter;
 
 import hec.data.RoundingException;
 import hec.data.UsgsRounder;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingTemplateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.JDomRatingSpecification;
 import hec.util.TextUtil;
 
 import org.w3c.dom.Node;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
 /**
  * Implements the CWMS-style rating specification

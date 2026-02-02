@@ -8,7 +8,7 @@
 package org.opendcs.ratings;
 
 
-import hec.data.cwmsRating.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import java.util.NavigableMap;

@@ -6,12 +6,12 @@
  *
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingSetFactory;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingSetFactory;
 import hec.io.DataContainer;
 import hec.io.DataContainerTransformer;
 import hec.io.HecIoException;

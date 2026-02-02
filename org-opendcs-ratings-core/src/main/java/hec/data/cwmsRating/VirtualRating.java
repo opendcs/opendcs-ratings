@@ -11,16 +11,16 @@
  */
 package org.opendcs.ratings;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 
 
 import hec.data.Units;
 import hec.data.UnitsConversionException;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
-import hec.data.cwmsRating.io.SourceRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.SourceRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 import java.sql.Connection;

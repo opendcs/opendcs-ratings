@@ -8,7 +8,7 @@
 package org.opendcs.ratings;
 
 
-import hec.data.cwmsRating.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
 
 public final class RatingSetFactory {
 

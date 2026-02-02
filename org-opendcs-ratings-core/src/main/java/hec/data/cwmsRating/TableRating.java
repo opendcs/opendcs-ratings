@@ -8,8 +8,8 @@
 
 package org.opendcs.ratings;
 
-import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.VirtualRatingContainer;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
@@ -17,19 +17,19 @@ import java.util.Vector;
 
 
 import hec.data.Units;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.RatingValueContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import static hec.data.cwmsRating.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
-import static hec.data.cwmsRating.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
+import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;

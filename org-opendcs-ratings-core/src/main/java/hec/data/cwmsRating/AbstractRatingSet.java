@@ -8,9 +8,9 @@
 
 package org.opendcs.ratings;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
 
@@ -18,11 +18,11 @@ import hec.data.DataSetException;
 import hec.data.Parameter;
 
 import hec.data.Units;
-import hec.data.cwmsRating.RatingConst.RatingMethod;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSetStateContainer;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.IndependentValuesContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSetStateContainer;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;

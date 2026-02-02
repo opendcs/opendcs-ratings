@@ -11,8 +11,8 @@ package org.opendcs.ratings;
 import java.util.Observer;
 
 
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
+import org.opendcs.ratings.io.RatingValueContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
 import hec.lang.Observable;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;

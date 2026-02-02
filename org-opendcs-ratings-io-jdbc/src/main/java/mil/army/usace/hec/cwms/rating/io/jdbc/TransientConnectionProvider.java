@@ -5,10 +5,10 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
 
-import hec.data.cwmsRating.RatingException;
+import org.opendcs.ratings.RatingException;
 import java.sql.Connection;
 
 final class TransientConnectionProvider implements ConnectionProvider {

@@ -5,7 +5,7 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -13,11 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingValue;
-import hec.data.cwmsRating.TableRating;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingValue;
+import org.opendcs.ratings.TableRating;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

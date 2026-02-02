@@ -6,7 +6,7 @@
  *
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 /**
  * Container to hold times and values to be rated

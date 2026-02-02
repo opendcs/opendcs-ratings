@@ -5,19 +5,19 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.cda;
+package org.opendcs.ratings.io.cda;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.join;
 
 
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingSpec;
-import hec.data.cwmsRating.RatingTemplate;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSpec;
+import org.opendcs.ratings.RatingTemplate;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingTemplateContainer;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;

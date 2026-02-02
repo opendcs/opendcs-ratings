@@ -5,10 +5,10 @@
  * Source may not be released without written approval from HEC
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 
-import hec.data.cwmsRating.RatingException;
+import org.opendcs.ratings.RatingException;
 
 public interface RatingConnectionInfo {
 

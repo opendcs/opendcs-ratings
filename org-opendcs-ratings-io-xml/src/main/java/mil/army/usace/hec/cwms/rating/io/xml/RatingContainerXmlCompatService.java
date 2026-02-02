@@ -5,21 +5,21 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
 
-import hec.data.cwmsRating.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.TransitionalRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.ExpressionRatingContainer;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingTemplateContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
+import org.opendcs.ratings.io.TransitionalRatingContainer;
+import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
 import java.util.List;
 import java.util.Set;
 import org.jdom.Element;

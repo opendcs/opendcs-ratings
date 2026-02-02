@@ -10,7 +10,7 @@ package org.opendcs.ratings;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
+import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 
-import hec.data.cwmsRating.io.RatingValueContainer;
+import org.opendcs.ratings.io.RatingValueContainer;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;

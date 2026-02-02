@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 
-import hec.data.cwmsRating.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingSpecContainer;
 import hec.data.location.LocationTemplate;
 
 public final class RatingSpecCatalog {

@@ -4,7 +4,7 @@
  * All Rights Reserved.  USACE PROPRIETARY/CONFIDENTIAL.
  * Source may not be released without written approval from HEC
  */
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,12 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingValue;
-import hec.data.cwmsRating.TableRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingValue;
+import org.opendcs.ratings.TableRating;
 import hec.util.TextUtil;
 
 

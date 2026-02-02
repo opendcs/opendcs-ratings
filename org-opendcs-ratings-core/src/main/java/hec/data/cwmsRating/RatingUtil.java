@@ -9,7 +9,7 @@ package org.opendcs.ratings;
 
 
 import hec.data.Units;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
+import org.opendcs.ratings.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;

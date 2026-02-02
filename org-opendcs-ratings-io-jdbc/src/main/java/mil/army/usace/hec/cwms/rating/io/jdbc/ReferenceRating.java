@@ -5,11 +5,11 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
 
@@ -17,11 +17,11 @@ import hec.data.DataSetIllegalArgumentException;
 import hec.data.Parameter;
 
 import hec.data.Units;
-import hec.data.cwmsRating.IRating;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.TimeSeriesRater;
-import hec.data.cwmsRating.io.ReferenceRatingContainer;
+import org.opendcs.ratings.IRating;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.TimeSeriesRater;
+import org.opendcs.ratings.io.ReferenceRatingContainer;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.util.TextUtil;

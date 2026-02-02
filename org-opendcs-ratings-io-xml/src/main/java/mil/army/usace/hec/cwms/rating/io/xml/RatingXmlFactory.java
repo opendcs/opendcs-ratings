@@ -5,26 +5,26 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
 
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.ExpressionRating;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingSetFactory;
-import hec.data.cwmsRating.TableRating;
-import hec.data.cwmsRating.TransitionalRating;
-import hec.data.cwmsRating.UsgsStreamTableRating;
-import hec.data.cwmsRating.VirtualRating;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.TransitionalRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.ExpressionRating;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSetFactory;
+import org.opendcs.ratings.TableRating;
+import org.opendcs.ratings.TransitionalRating;
+import org.opendcs.ratings.UsgsStreamTableRating;
+import org.opendcs.ratings.VirtualRating;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.ExpressionRatingContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
+import org.opendcs.ratings.io.TransitionalRatingContainer;
+import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.hecmath.HecMathException;
 import hec.hecmath.TextMath;
 import hec.io.TextContainer;

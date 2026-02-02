@@ -5,12 +5,12 @@
  * Source may not be released without written approval from HEC
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 
-import hec.data.cwmsRating.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingRuntimeException;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingRuntimeException;
 import java.util.List;
 import java.util.Set;
 import org.jdom.Element;

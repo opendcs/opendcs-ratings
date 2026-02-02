@@ -5,18 +5,18 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.cda;
+package org.opendcs.ratings.io.cda;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.ConcreteRatingSet;
-import hec.data.cwmsRating.RatingConst;
-import hec.data.cwmsRating.RatingSpec;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.ConcreteRatingSet;
+import org.opendcs.ratings.RatingConst;
+import org.opendcs.ratings.RatingSpec;
 import mil.army.usace.hec.cwms.http.client.ApiConnectionInfo;
 import mil.army.usace.hec.cwms.http.client.ApiConnectionInfoBuilder;
 import org.junit.jupiter.api.Disabled;

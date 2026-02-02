@@ -5,12 +5,12 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
 
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.RatingException;
+import org.opendcs.ratings.io.RatingValueContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
+import org.opendcs.ratings.RatingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jdom.Element;

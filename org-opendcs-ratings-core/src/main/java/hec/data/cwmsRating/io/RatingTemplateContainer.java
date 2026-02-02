@@ -6,9 +6,9 @@
  *
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
-import hec.data.cwmsRating.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
 import java.util.Arrays;
 
 /**

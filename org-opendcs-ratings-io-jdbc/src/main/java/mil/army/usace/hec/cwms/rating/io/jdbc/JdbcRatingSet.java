@@ -5,19 +5,19 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
 
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.CwmsRatingSet;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.SourceRating;
-import hec.data.cwmsRating.TransitionalRating;
-import hec.data.cwmsRating.UsgsStreamTableRating;
-import hec.data.cwmsRating.VirtualRating;
-import hec.data.cwmsRating.io.RatingSetStateContainer;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.CwmsRatingSet;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.SourceRating;
+import org.opendcs.ratings.TransitionalRating;
+import org.opendcs.ratings.UsgsStreamTableRating;
+import org.opendcs.ratings.VirtualRating;
+import org.opendcs.ratings.io.RatingSetStateContainer;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import java.sql.Connection;

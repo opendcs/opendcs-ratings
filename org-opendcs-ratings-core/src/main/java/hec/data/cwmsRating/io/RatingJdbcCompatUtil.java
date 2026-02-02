@@ -5,15 +5,15 @@
  * Source may not be released without written approval from HEC
  */
 
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingRuntimeException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.AbstractRatingSet;
-import hec.data.cwmsRating.RatingSet;
-import hec.data.cwmsRating.RatingSpec;
-import hec.data.cwmsRating.RatingTemplate;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingRuntimeException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.AbstractRatingSet;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.RatingSpec;
+import org.opendcs.ratings.RatingTemplate;
 import java.sql.Connection;
 import rma.util.lookup.Lookup;
 

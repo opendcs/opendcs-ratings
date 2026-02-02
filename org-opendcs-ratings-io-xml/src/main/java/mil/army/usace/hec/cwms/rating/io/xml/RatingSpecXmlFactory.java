@@ -5,22 +5,22 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
 
 
-import hec.data.cwmsRating.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingConst;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.RatingSpec;
-import hec.data.cwmsRating.RatingTemplate;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingTemplateContainer;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingConst;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSpec;
+import org.opendcs.ratings.RatingTemplate;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingTemplateContainer;
 import hec.util.TextUtil;
 import java.io.IOException;
 import java.io.StringReader;

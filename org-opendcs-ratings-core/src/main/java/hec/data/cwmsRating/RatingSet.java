@@ -13,11 +13,11 @@ import static hec.lang.Const.UNDEFINED_TIME;
 import hec.data.DataSetException;
 
 import hec.data.RoundingException;
-import hec.data.cwmsRating.io.RatingJdbcCompatUtil;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSetStateContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingXmlCompatUtil;
+import org.opendcs.ratings.io.RatingJdbcCompatUtil;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSetStateContainer;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import hec.data.rating.IRatingSpecification;
 import hec.data.rating.IRatingTemplate;
 import hec.hecmath.TextMath;

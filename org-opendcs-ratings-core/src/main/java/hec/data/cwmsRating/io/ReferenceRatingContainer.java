@@ -9,7 +9,7 @@
 /**
  * 
  */
-package hec.data.cwmsRating.io;
+package org.opendcs.ratings.io;
 
 /**
  * @author Q0hecmdp

@@ -5,34 +5,34 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.xml;
+package org.opendcs.ratings.io.xml;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SPEC_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SPEC_VERSION;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_SUBPARAM;
-import static hec.data.cwmsRating.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SPEC_VERSION;
+import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.lang.Const.UNDEFINED_TIME;
 
 
-import hec.data.cwmsRating.RatingObjectDoesNotExistException;
-import hec.data.cwmsRating.RatingRuntimeException;
-import hec.data.cwmsRating.RatingException;
-import hec.data.cwmsRating.AbstractRating;
-import hec.data.cwmsRating.RatingMethodId;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
-import hec.data.cwmsRating.io.RatingSetContainer;
-import hec.data.cwmsRating.io.RatingSpecContainer;
-import hec.data.cwmsRating.io.RatingValueContainer;
-import hec.data.cwmsRating.io.SourceRatingContainer;
-import hec.data.cwmsRating.io.TableRatingContainer;
-import hec.data.cwmsRating.io.TransitionalRatingContainer;
-import hec.data.cwmsRating.io.UsgsStreamTableRatingContainer;
-import hec.data.cwmsRating.io.VirtualRatingContainer;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.RatingRuntimeException;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingMethodId;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.ExpressionRatingContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingValueContainer;
+import org.opendcs.ratings.io.SourceRatingContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
+import org.opendcs.ratings.io.TransitionalRatingContainer;
+import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.util.TextUtil;
 import java.util.ArrayList;

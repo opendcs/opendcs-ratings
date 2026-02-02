@@ -20,8 +20,8 @@ import hec.data.DataSetIllegalArgumentException;
 
 import hec.data.Units;
 import hec.data.UnitsConversionException;
-import hec.data.cwmsRating.io.IndependentValuesContainer;
-import hec.data.cwmsRating.io.SourceRatingContainer;
+import org.opendcs.ratings.io.IndependentValuesContainer;
+import org.opendcs.ratings.io.SourceRatingContainer;
 import hec.hecmath.HecMathException;
 import hec.hecmath.TimeSeriesMath;
 import hec.hecmath.computation.ComputationException;
@@ -37,8 +37,8 @@ import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 
-import static hec.data.cwmsRating.RatingConst.SEPARATOR2;
-import static hec.data.cwmsRating.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_INT;
 import static hec.lang.Const.UNDEFINED_TIME;

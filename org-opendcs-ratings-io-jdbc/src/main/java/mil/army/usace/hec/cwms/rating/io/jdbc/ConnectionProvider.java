@@ -5,11 +5,11 @@
  * Source may not be released without written approval from HEC
  */
 
-package mil.army.usace.hec.cwms.rating.io.jdbc;
+package org.opendcs.ratings.io.jdbc;
 
 
 import java.sql.Connection;
-import hec.data.cwmsRating.RatingException;
+import org.opendcs.ratings.RatingException;
 
 public interface ConnectionProvider {
 

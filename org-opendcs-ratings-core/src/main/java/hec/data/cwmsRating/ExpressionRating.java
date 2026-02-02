@@ -8,14 +8,14 @@
 
 package org.opendcs.ratings;
 
-import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
-import hec.data.cwmsRating.io.RatingXmlCompatUtil;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import java.util.Arrays;
 
 
 import hec.data.Units;
-import hec.data.cwmsRating.io.AbstractRatingContainer;
-import hec.data.cwmsRating.io.ExpressionRatingContainer;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.ExpressionRatingContainer;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.Variable;
 import hec.hecmath.computation.VariableSet;
