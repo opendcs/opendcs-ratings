@@ -22,18 +22,18 @@ test {
 }
 
 dependencies {
-    implementation project(":hec-cwms-ratings-core")
-    implementation project(":hec-cwms-ratings-io-xml")
+    implementation project(":org-opendcs-ratings-core")
+    implementation project(":org-opendcs-ratings-io-xml")
     implementation libs.cwms.http.client
     implementation libs.cwms.data.api.client
     implementation libs.cwms.data.api.model
-    testImplementation project(":hec-cwms-ratings-core")
+    testImplementation project(":org-opendcs-ratings-core")
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'hec-cwms-ratings-io-cda'
+            artifactId = 'org-opendcs-ratings-io-cda'
             from components.java
         }
     }

@@ -17,10 +17,10 @@ dependencies {
         runtime(libs.cwms.data.api.client)
         runtime(libs.cwms.data.api.model)
 
-        api(project(":hec-cwms-ratings-core"))
-        runtime(project(":hec-cwms-ratings-io-jdbc"))
-        runtime(project(":hec-cwms-ratings-io-cda"))
-        runtime(project(":hec-cwms-ratings-io-xml"))
+        api(project(":org-opendcs-ratings-core"))
+        runtime(project(":org-opendcs-ratings-io-jdbc"))
+        runtime(project(":org-opendcs-ratings-io-cda"))
+        runtime(project(":org-opendcs-ratings-io-xml"))
     }
 }
 

@@ -5,9 +5,9 @@ plugins {
 }
 
 dependencies {
-    compileOnly project(":hec-cwms-ratings-core")
+    compileOnly project(":org-opendcs-ratings-core")
 
-    testImplementation project(":hec-cwms-ratings-core")
+    testImplementation project(":org-opendcs-ratings-core")
 }
 
 test {
@@ -32,7 +32,7 @@ test.finalizedBy jacocoTestReport
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'hec-cwms-ratings-io-xml'
+            artifactId = 'org-opendcs-ratings-io-xml'
             from components.java
         }
     }
