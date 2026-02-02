@@ -805,7 +805,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param description           The description of this rating specification
      * @throws RatingException
      * @throws RoundingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSpec)} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec)} instead
      */
     @Deprecated
     public RatingSet(String officeId, String ratingSpecId, String sourceAgencyId, String inRangeMethod, String outRangeLowMethod,
@@ -820,7 +820,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param rsc The RatingSpecContainer object to initialize from
      * @throws RatingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSpec)} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec)} instead
      */
     @Deprecated
     public RatingSet(RatingSpecContainer rsc) throws RatingException {
@@ -881,7 +881,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param ratingSpec The rating specification
      * @throws RatingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSpec)} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec)} instead
      */
     @Deprecated
     public RatingSet(RatingSpec ratingSpec) throws RatingException {
@@ -894,7 +894,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpec The rating specification
      * @param rating     The rating
      * @throws RatingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSpec, AbstractRating)} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec, AbstractRating)} instead
      */
     @Deprecated
     public RatingSet(RatingSpec ratingSpec, AbstractRating rating) throws RatingException {
@@ -907,7 +907,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpec The rating specification
      * @param ratings    The time series of ratings
      * @throws RatingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSpec, AbstractRating[])} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec, AbstractRating[])} instead
      */
     @Deprecated
     public RatingSet(RatingSpec ratingSpec, AbstractRating[] ratings) throws RatingException {
@@ -920,7 +920,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpec The rating specification
      * @param ratings    The time series of ratings
      * @throws RatingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSpec, Iterable)} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec, Iterable)} instead
      */
     @Deprecated
     public RatingSet(RatingSpec ratingSpec, Iterable<AbstractRating> ratings) throws RatingException {
@@ -957,7 +957,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param rsc The RatingSetContainer object to initialize from
      * @throws RatingException
-     * @deprecated Use {@link hec.data.cwmsRating.RatingSetFactory#ratingSet(RatingSetContainer)} instead
+     * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSetContainer)} instead
      */
     @Deprecated
     public RatingSet(RatingSetContainer rsc) throws RatingException {

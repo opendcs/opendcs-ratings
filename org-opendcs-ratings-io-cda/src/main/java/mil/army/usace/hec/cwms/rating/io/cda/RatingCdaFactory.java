@@ -31,8 +31,8 @@ import mil.army.usace.hec.cwms.data.api.client.controllers.RatingTemplateControl
 import mil.army.usace.hec.cwms.data.api.client.controllers.RatingTemplateEndpointInput;
 import mil.army.usace.hec.cwms.data.api.client.model.IndependentRoundingSpec;
 import mil.army.usace.hec.cwms.data.api.client.model.ParameterSpec;
-import mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory;
-import mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory;
+import org.opendcs.ratings.io.xml.RatingSpecXmlFactory;
+import org.opendcs.ratings.io.xml.RatingXmlFactory;
 
 public final class RatingCdaFactory
 {

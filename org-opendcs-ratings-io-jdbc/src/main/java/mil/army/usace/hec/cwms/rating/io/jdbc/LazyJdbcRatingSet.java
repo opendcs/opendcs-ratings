@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory;
+import org.opendcs.ratings.io.xml.RatingXmlFactory;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;

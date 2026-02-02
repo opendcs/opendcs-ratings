@@ -27,7 +27,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory;
+import org.opendcs.ratings.io.xml.RatingXmlFactory;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
