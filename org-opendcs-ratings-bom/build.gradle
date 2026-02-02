@@ -1,0 +1,33 @@
+plugins {
+    id "java-platform"
+    id "ratings.deps-conventions"
+    id "ratings.publishing-conventions"
+}
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    api platform(libs.hec.monolith.bom)
+    constraints {
+        runtime(libs.cwms.db.jooq.codegen)
+
+        api(libs.cwms.http.client)
+        runtime(libs.cwms.data.api.client)
+        runtime(libs.cwms.data.api.model)
+
+        api(project(":org-opendcs-ratings-core"))
+        runtime(project(":org-opendcs-ratings-io-jdbc"))
+        runtime(project(":org-opendcs-ratings-io-cda"))
+        runtime(project(":org-opendcs-ratings-io-xml"))
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.javaPlatform
+        }
+    }
+}

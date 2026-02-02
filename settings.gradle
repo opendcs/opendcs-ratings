@@ -1,9 +1,8 @@
-rootProject.name = 'hec-cwms-ratings'
+rootProject.name = 'org-opendcs-ratings'
 
 
-include 'hec-cwms-ratings-core'
-include 'hec-cwms-ratings-gfx'
-include 'hec-cwms-ratings-io-jdbc'
-include 'hec-cwms-ratings-io-cda'
-include 'hec-cwms-ratings-io-xml'
-include 'hec-cwms-ratings-bom'
+include 'org-opendcs-ratings-core'
+include 'org-opendcs-ratings-io-jdbc'
+include 'org-opendcs-ratings-io-cda'
+include 'org-opendcs-ratings-io-xml'
+include 'org-opendcs-ratings-bom'
