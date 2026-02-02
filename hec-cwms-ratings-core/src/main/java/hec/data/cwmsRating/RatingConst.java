@@ -6,7 +6,7 @@
  *
  */
 
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import java.io.IOException;
 import java.io.StringReader;

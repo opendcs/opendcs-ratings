@@ -1,4 +1,4 @@
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;

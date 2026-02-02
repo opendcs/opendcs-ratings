@@ -1,4 +1,4 @@
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import org.junit.jupiter.api.Test;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;

@@ -1,4 +1,4 @@
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 /**
  * This class is used to differentiate Not Monotonically increasing or decreasing errors from regular rating exceptions

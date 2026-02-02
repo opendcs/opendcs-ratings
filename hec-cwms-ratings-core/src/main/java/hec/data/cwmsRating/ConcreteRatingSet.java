@@ -5,7 +5,7 @@
  * Source may not be released without written approval from HEC
  */
 
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 
 import hec.hecmath.TimeSeriesMath;

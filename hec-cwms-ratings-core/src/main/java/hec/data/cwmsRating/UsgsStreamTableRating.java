@@ -6,7 +6,7 @@
  *
  */
 
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import hec.data.cwmsRating.io.RatingContainerXmlCompatUtil;
 import hec.data.cwmsRating.io.RatingXmlCompatUtil;

@@ -9,7 +9,7 @@
 /**
  * 
  */
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import static hec.util.TextUtil.replaceAll;
 

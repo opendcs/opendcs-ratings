@@ -6,7 +6,7 @@
  *
  */
 
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import static hec.data.cwmsRating.RatingConst.SEPARATOR1;
 import static hec.data.cwmsRating.RatingConst.SEPARATOR2;

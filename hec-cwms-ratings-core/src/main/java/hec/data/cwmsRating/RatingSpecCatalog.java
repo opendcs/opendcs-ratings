@@ -1,4 +1,4 @@
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import java.util.Collection;
 import java.util.Collections;

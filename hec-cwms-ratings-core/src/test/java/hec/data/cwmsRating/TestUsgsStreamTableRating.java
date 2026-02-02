@@ -6,7 +6,7 @@
  *
  */
 
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import static org.junit.jupiter.api.Assertions.*;
 

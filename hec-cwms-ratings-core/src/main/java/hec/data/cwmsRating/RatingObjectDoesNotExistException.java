@@ -1,4 +1,4 @@
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 /**
  * Class to encapsulate rating errors arising from missing objects

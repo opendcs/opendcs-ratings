@@ -9,7 +9,7 @@
 /**
  *
  */
-package hec.data.cwmsRating;
+package org.opendcs.ratings;
 
 import java.util.Arrays;
 import java.util.Observer;
