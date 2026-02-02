@@ -351,7 +351,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long[], double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long[], double[])
      */
     @Override
     public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {

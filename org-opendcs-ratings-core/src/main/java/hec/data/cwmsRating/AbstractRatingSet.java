@@ -1436,7 +1436,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingTime()
+     * @see org.opendcs.ratings.IRating#getRatingTime()
      */
     @Override
     public final synchronized long getRatingTime() {
@@ -1444,7 +1444,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setRatingTime(long)
+     * @see org.opendcs.ratings.IRating#setRatingTime(long)
      */
     @Override
     public final synchronized void setRatingTime(long ratingTime) {
@@ -1455,7 +1455,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#resetRatingtime()
+     * @see org.opendcs.ratings.IRating#resetRatingtime()
      */
     @Override
     public final synchronized void resetRatingTime() {
@@ -1523,7 +1523,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getName()
+     * @see org.opendcs.ratings.IRating#getName()
      */
     @Override
     public final synchronized String getName() {
@@ -1556,7 +1556,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingParameters()
+     * @see org.opendcs.ratings.IRating#getRatingParameters()
      */
     @Override
     public final synchronized String[] getRatingParameters() {
@@ -1564,7 +1564,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingUnits()
+     * @see org.opendcs.ratings.IRating#getRatingUnits()
      */
     @Override
     public synchronized String[] getRatingUnits() {
@@ -1576,7 +1576,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getDataUnits()
+     * @see org.opendcs.ratings.IRating#getDataUnits()
      */
     @Override
     public synchronized String[] getDataUnits() {
@@ -1592,7 +1592,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setDataUnits(java.lang.String[])
+     * @see org.opendcs.ratings.IRating#setDataUnits(java.lang.String[])
      */
     @Override
     public synchronized void setDataUnits(String[] units) throws RatingException {
@@ -1653,7 +1653,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getDefaultValueTime()
+     * @see org.opendcs.ratings.IRating#getDefaultValueTime()
      */
     @Override
     public final synchronized long getDefaultValueTime() {
@@ -1661,7 +1661,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setDefaultValueTime(long)
+     * @see org.opendcs.ratings.IRating#setDefaultValueTime(long)
      */
     @Override
     public final synchronized void setDefaultValueTime(long defaultValueTime) {
@@ -1674,7 +1674,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double)
+     * @see org.opendcs.ratings.IRating#rate(double)
      */
     @Override
     public final synchronized double rate(double indVal) throws RatingException {
@@ -1685,7 +1685,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double[])
+     * @see org.opendcs.ratings.IRating#rate(double[])
      */
     @Override
     public final synchronized double rateOne(double... indVals) throws RatingException {
@@ -1696,7 +1696,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double[])
+     * @see org.opendcs.ratings.IRating#rate(double[])
      */
     @Override
     public final synchronized double rateOne2(double[] indVals) throws RatingException {
@@ -1707,7 +1707,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rateOne(double[])
+     * @see org.opendcs.ratings.IRating#rateOne(double[])
      */
     @Override
     public final synchronized double[] rate(double[] indVals) throws RatingException {
@@ -1718,7 +1718,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double[][])
+     * @see org.opendcs.ratings.IRating#rate(double[][])
      */
     @Override
     public final synchronized double[] rate(double[][] indVals) throws RatingException {
@@ -1731,7 +1731,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double)
+     * @see org.opendcs.ratings.IRating#rate(long, double)
      */
     @Override
     public final synchronized double rate(long valTime, double indVal) throws RatingException {
@@ -1739,7 +1739,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double[])
+     * @see org.opendcs.ratings.IRating#rate(long, double[])
      */
     @Override
     public final synchronized double rateOne(long valTime, double... indVals) throws RatingException {
@@ -1752,7 +1752,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double[])
+     * @see org.opendcs.ratings.IRating#rate(long, double[])
      */
     @Override
     public final synchronized double rateOne2(long valTime, double... indVals) throws RatingException {
@@ -1760,7 +1760,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rateOne(long, double[])
+     * @see org.opendcs.ratings.IRating#rateOne(long, double[])
      */
     @Override
     public final synchronized double[] rate(long valTime, double[] indVals) throws RatingException {
@@ -1768,7 +1768,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rateOne(long[], double[])
+     * @see org.opendcs.ratings.IRating#rateOne(long[], double[])
      */
     @Override
     public final synchronized double[] rate(long[] valTimes, double[] indVals) throws RatingException {
@@ -1776,7 +1776,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double[][])
+     * @see org.opendcs.ratings.IRating#rate(long, double[][])
      */
     @Override
     public final synchronized double[] rate(long valTime, double[][] indVals) throws RatingException {
@@ -1786,7 +1786,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long[], double[][])
+     * @see org.opendcs.ratings.IRating#rate(long[], double[][])
      */
     @Override
     public final synchronized double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
@@ -1794,7 +1794,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(double)
+     * @see org.opendcs.ratings.IRating#reverseRate(double)
      */
     @Override
     public final synchronized double reverseRate(double depVal) throws RatingException {
@@ -1807,7 +1807,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(double[])
      */
     @Override
     public final synchronized double[] reverseRate(double[] depVals) throws RatingException {
@@ -1818,7 +1818,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long, double)
+     * @see org.opendcs.ratings.IRating#reverseRate(long, double)
      */
     @Override
     public final synchronized double reverseRate(long valTime, double depVal) throws RatingException {
@@ -1828,7 +1828,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long, double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long, double[])
      */
     @Override
     public final synchronized double[] reverseRate(long valTime, double[] depVals) throws RatingException {
@@ -1838,7 +1838,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long[], double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long[], double[])
      */
     @Override
     public synchronized double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
@@ -2033,7 +2033,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(hec.io.TimeSeriesContainer)
+     * @see org.opendcs.ratings.IRating#reverseRate(hec.io.TimeSeriesContainer)
      */
     @Override
     public final synchronized TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
@@ -2092,7 +2092,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getIndParamCount()
+     * @see org.opendcs.ratings.IRating#getIndParamCount()
      */
     @Override
     public final synchronized int getIndParamCount() throws RatingException {
@@ -2417,7 +2417,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.AbstractRating#hashCode()
+     * @see org.opendcs.ratings.AbstractRating#hashCode()
      */
     @Override
     public int hashCode() {

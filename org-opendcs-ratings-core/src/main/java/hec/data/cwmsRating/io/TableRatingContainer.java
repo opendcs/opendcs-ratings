@@ -36,17 +36,17 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	public RatingValueContainer[] extensionValues = null;
 	/**
 	 * The rating method for handling independent parameter values that lie between values in the rating table
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String inRangeMethod = null;
 	/**
 	 * The rating method for handling independent parameter values that are less than the least values in the rating table
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String outRangeLowMethod = null;
 	/**
 	 * The rating method for handling independent parameter values that are greater than the greatest values in the rating table
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String outRangeHighMethod = null;
 	/**
@@ -97,7 +97,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		tableRatingContainer.clone(this);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -141,7 +141,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -213,7 +213,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	}
 	
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#newRating()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#newRating()
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
@@ -268,7 +268,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNativeVerticalDatum()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toNativeVerticalDatum()
 	 */
 	@Override
 	public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -298,7 +298,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNGVD29()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toNGVD29()
 	 */
 	@Override
 	public boolean toNGVD29() throws VerticalDatumException {
@@ -328,7 +328,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNAVD88()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toNAVD88()
 	 */
 	@Override
 	public boolean toNAVD88() throws VerticalDatumException {
@@ -359,7 +359,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#addOffset(int, double)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#addOffset(int, double)
 	 */
 	@Override
 	public void addOffset(int paramNum, double offset) throws RatingException {

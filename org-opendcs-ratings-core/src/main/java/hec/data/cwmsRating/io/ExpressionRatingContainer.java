@@ -76,7 +76,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -97,7 +97,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#hashCode()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -130,7 +130,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#newRating()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#newRating()
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {

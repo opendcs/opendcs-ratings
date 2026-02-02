@@ -39,17 +39,17 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	public String sourceAgencyId = null;
 	/**
 	 * The rating method for handling dates that lie between effective dates of the ratings
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String inRangeMethod = null;
 	/**
 	 * The rating method for handling dates that are earlier than the earliest effective date of the ratings
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String outRangeLowMethod = null;
 	/**
 	 * The rating method for handling dates that are later than the latest effective date of the ratings
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String outRangeHighMethod = null;
 	/**
@@ -158,7 +158,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		return result;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.RatingTemplateContainer#hashCode()
+	 * @see org.opendcs.ratings.io.RatingTemplateContainer#hashCode()
 	 */
 	@Override
 	public int hashCode() {

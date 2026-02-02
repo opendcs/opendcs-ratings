@@ -514,7 +514,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getParametersId()
+	 * @see org.opendcs.ratings.RatingTemplate#getParametersId()
 	 */
 	@Override
 	public String getParametersId() {
@@ -522,7 +522,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setParametersId(java.lang.String)
+	 * @see org.opendcs.ratings.RatingTemplate#setParametersId(java.lang.String)
 	 */
 	@Override
 	public void setParametersId(String parametersId) throws RatingException {
@@ -530,7 +530,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getTemplateId()
+	 * @see org.opendcs.ratings.RatingTemplate#getTemplateId()
 	 */
 	@Override
 	public String getTemplateId() {
@@ -538,7 +538,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setTemplateId(java.lang.String)
+	 * @see org.opendcs.ratings.RatingTemplate#setTemplateId(java.lang.String)
 	 */
 	@Override
 	public void setTemplateId(String templateId) throws RatingException {
@@ -546,7 +546,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getIndParameters()
+	 * @see org.opendcs.ratings.RatingTemplate#getIndParameters()
 	 */
 	@Override
 	public String[] getIndParameters() {
@@ -554,7 +554,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setIndParameters(java.lang.String[])
+	 * @see org.opendcs.ratings.RatingTemplate#setIndParameters(java.lang.String[])
 	 */
 	@Override
 	public void setIndParameters(String[] indParameters) {
@@ -562,7 +562,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getIndParamCount()
+	 * @see org.opendcs.ratings.RatingTemplate#getIndParamCount()
 	 */
 	@Override
 	public int getIndParamCount() {
@@ -570,7 +570,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getDepParameter()
+	 * @see org.opendcs.ratings.RatingTemplate#getDepParameter()
 	 */
 	@Override
 	public String getDepParameter() {
@@ -578,21 +578,21 @@ public class RatingSpec extends RatingTemplate {
 	}
 	/*
 	 * (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setDepParameter(java.lang.String)
+	 * @see org.opendcs.ratings.RatingTemplate#setDepParameter(java.lang.String)
 	 */
 	@Override
 	public void setDepParameter(String depParameter) {
 		super.setDepParameter(depParameter);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getInRangeMethods()
+	 * @see org.opendcs.ratings.RatingTemplate#getInRangeMethods()
 	 */
 	@Override
 	public RatingMethod[] getInRangeMethods() {
 		return super.getInRangeMethods();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setInRangeMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
+	 * @see org.opendcs.ratings.RatingTemplate#setInRangeMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
 	 */
 	@Override
 	public void setInRangeMethods(RatingMethod[] inRangeMethods)
@@ -600,14 +600,14 @@ public class RatingSpec extends RatingTemplate {
 		super.setInRangeMethods(inRangeMethods);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getOutRangeLowMethods()
+	 * @see org.opendcs.ratings.RatingTemplate#getOutRangeLowMethods()
 	 */
 	@Override
 	public RatingMethod[] getOutRangeLowMethods() {
 		return super.getOutRangeLowMethods();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setOutRangeLowMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
+	 * @see org.opendcs.ratings.RatingTemplate#setOutRangeLowMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
 	 */
 	@Override
 	public void setOutRangeLowMethods(RatingMethod[] outRangeLowMethods)
@@ -615,14 +615,14 @@ public class RatingSpec extends RatingTemplate {
 		super.setOutRangeLowMethods(outRangeLowMethods);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#getOutRangeHighMethods()
+	 * @see org.opendcs.ratings.RatingTemplate#getOutRangeHighMethods()
 	 */
 	@Override
 	public RatingMethod[] getOutRangeHighMethods() {
 		return super.getOutRangeHighMethods();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTemplate#setOutRangeHighMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
+	 * @see org.opendcs.ratings.RatingTemplate#setOutRangeHighMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
 	 */
 	@Override
 	public void setOutRangeHighMethods(RatingMethod[] outRangeHighMethods)
@@ -929,7 +929,7 @@ public class RatingSpec extends RatingTemplate {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {

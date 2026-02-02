@@ -1379,7 +1379,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingTime()
+     * @see org.opendcs.ratings.IRating#getRatingTime()
      */
     @Override
     public long getRatingTime() {
@@ -1387,7 +1387,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setRatingTime(long)
+     * @see org.opendcs.ratings.IRating#setRatingTime(long)
      */
     @Override
     public void setRatingTime(long ratingTime) {
@@ -1395,7 +1395,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#resetRatingtime()
+     * @see org.opendcs.ratings.IRating#resetRatingtime()
      */
     @Override
     public void resetRatingTime() {
@@ -1448,7 +1448,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getName()
+     * @see org.opendcs.ratings.IRating#getName()
      */
     @Override
     public String getName() {
@@ -1464,7 +1464,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingParameters()
+     * @see org.opendcs.ratings.IRating#getRatingParameters()
      */
     @Override
     public String[] getRatingParameters() {
@@ -1472,7 +1472,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingUnits()
+     * @see org.opendcs.ratings.IRating#getRatingUnits()
      */
     @Override
     public String[] getRatingUnits() {
@@ -1480,7 +1480,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getDataUnits()
+     * @see org.opendcs.ratings.IRating#getDataUnits()
      */
     @Override
     public String[] getDataUnits() {
@@ -1488,7 +1488,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setDataUnits(java.lang.String[])
+     * @see org.opendcs.ratings.IRating#setDataUnits(java.lang.String[])
      */
     @Override
     public void setDataUnits(String[] units) throws RatingException {
@@ -1541,7 +1541,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getDefaultValueTime()
+     * @see org.opendcs.ratings.IRating#getDefaultValueTime()
      */
     @Override
     public long getDefaultValueTime() {
@@ -1549,7 +1549,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setDefaultValueTime(long)
+     * @see org.opendcs.ratings.IRating#setDefaultValueTime(long)
      */
     @Override
     public void setDefaultValueTime(long defaultValueTime) {
@@ -1557,7 +1557,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double)
+     * @see org.opendcs.ratings.IRating#rate(double)
      */
     @Override
     public double rate(double indVal) throws RatingException {
@@ -1565,7 +1565,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double[])
+     * @see org.opendcs.ratings.IRating#rate(double[])
      */
     @Override
     public double rateOne(double... indVals) throws RatingException {
@@ -1573,7 +1573,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double[])
+     * @see org.opendcs.ratings.IRating#rate(double[])
      */
     @Override
     public double rateOne2(double[] indVals) throws RatingException {
@@ -1581,7 +1581,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rateOne(double[])
+     * @see org.opendcs.ratings.IRating#rateOne(double[])
      */
     @Override
     public double[] rate(double[] indVals) throws RatingException {
@@ -1589,7 +1589,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(double[][])
+     * @see org.opendcs.ratings.IRating#rate(double[][])
      */
     @Override
     public double[] rate(double[][] indVals) throws RatingException {
@@ -1597,7 +1597,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double)
+     * @see org.opendcs.ratings.IRating#rate(long, double)
      */
     @Override
     public double rate(long valTime, double indVal) throws RatingException {
@@ -1605,7 +1605,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double[])
+     * @see org.opendcs.ratings.IRating#rate(long, double[])
      */
     @Override
     public double rateOne(long valTime, double... indVals) throws RatingException {
@@ -1613,7 +1613,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double[])
+     * @see org.opendcs.ratings.IRating#rate(long, double[])
      */
     @Override
     public double rateOne2(long valTime, double... indVals) throws RatingException {
@@ -1621,7 +1621,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rateOne(long, double[])
+     * @see org.opendcs.ratings.IRating#rateOne(long, double[])
      */
     @Override
     public double[] rate(long valTime, double[] indVals) throws RatingException {
@@ -1629,7 +1629,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rateOne(long[], double[])
+     * @see org.opendcs.ratings.IRating#rateOne(long[], double[])
      */
     @Override
     public double[] rate(long[] valTimes, double[] indVals) throws RatingException {
@@ -1637,7 +1637,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long, double[][])
+     * @see org.opendcs.ratings.IRating#rate(long, double[][])
      */
     @Override
     public double[] rate(long valTime, double[][] indVals) throws RatingException {
@@ -1645,7 +1645,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(long[], double[][])
+     * @see org.opendcs.ratings.IRating#rate(long[], double[][])
      */
     @Override
     public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
@@ -1653,7 +1653,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(double)
+     * @see org.opendcs.ratings.IRating#reverseRate(double)
      */
     @Override
     public double reverseRate(double depVal) throws RatingException {
@@ -1661,7 +1661,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(double[])
      */
     @Override
     public double[] reverseRate(double[] depVals) throws RatingException {
@@ -1669,7 +1669,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long, double)
+     * @see org.opendcs.ratings.IRating#reverseRate(long, double)
      */
     @Override
     public double reverseRate(long valTime, double depVal) throws RatingException {
@@ -1677,7 +1677,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long, double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long, double[])
      */
     @Override
     public double[] reverseRate(long valTime, double[] depVals) throws RatingException {
@@ -1685,7 +1685,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long[], double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long[], double[])
      */
     @Override
     public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
@@ -1693,7 +1693,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(hec.io.TimeSeriesContainer)
+     * @see org.opendcs.ratings.IRating#reverseRate(hec.io.TimeSeriesContainer)
      */
     @Override
     public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
@@ -1709,7 +1709,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getIndParamCount()
+     * @see org.opendcs.ratings.IRating#getIndParamCount()
      */
     @Override
     public int getIndParamCount() throws RatingException {
@@ -2491,7 +2491,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.AbstractRating#hashCode()
+     * @see org.opendcs.ratings.AbstractRating#hashCode()
      */
     @Override
     public int hashCode() {

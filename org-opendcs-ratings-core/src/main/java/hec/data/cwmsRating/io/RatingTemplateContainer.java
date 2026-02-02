@@ -43,17 +43,17 @@ public class RatingTemplateContainer {
 	public String templateVersion = null;
 	/**
 	 * The rating method for handling independent parameter values that lie between values in the rating tables, one for each independent parameter
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String[] inRangeMethods = null;
 	/**
 	 * The rating method for handling independent parameter values that are less than the least values in the rating tables, one for each independent parameter
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String[] outRangeLowMethods = null;
 	/**
 	 * The rating method for handling independent parameter values that are greater than the greatest values in the rating tables, one for each independent parameter
-	 * @see hec.data.cwmsRating.RatingConst.RatingMethod
+	 * @see org.opendcs.ratings.RatingConst.RatingMethod
 	 */
 	public String[] outRangeHighMethods = null;
 	/**

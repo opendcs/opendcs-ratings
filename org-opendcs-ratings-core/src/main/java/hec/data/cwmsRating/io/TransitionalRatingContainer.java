@@ -137,7 +137,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#clone(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#clone(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void clone(AbstractRatingContainer other) {
@@ -194,7 +194,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#clone()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#clone()
 	 */
 	@Override
 	public AbstractRatingContainer clone() {
@@ -204,7 +204,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#getInstance()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#getInstance()
 	 */
 	@Override
 	public AbstractRatingContainer getInstance() {
@@ -212,7 +212,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#newRating()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#newRating()
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
@@ -220,7 +220,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNativeVerticalDatum()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toNativeVerticalDatum()
 	 */
 	@Override
 	public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -237,7 +237,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNGVD29()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toNGVD29()
 	 */
 	@Override
 	public boolean toNGVD29() throws VerticalDatumException {
@@ -254,7 +254,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toNAVD88()
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toNAVD88()
 	 */
 	@Override
 	public boolean toNAVD88() throws VerticalDatumException {
@@ -271,7 +271,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#toVerticalDatum(java.lang.String)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#toVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -288,7 +288,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#addOffset(int, double)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#addOffset(int, double)
 	 */
 	@Override
 	public void addOffset(int paramNum, double offset) throws RatingException {
@@ -304,7 +304,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.AbstractRatingContainer#setVerticalDatumInfo(java.lang.String)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#setVerticalDatumInfo(java.lang.String)
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr)

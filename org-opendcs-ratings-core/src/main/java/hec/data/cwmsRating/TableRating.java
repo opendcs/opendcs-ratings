@@ -286,7 +286,7 @@ public class TableRating extends AbstractRating {
 		return eq(v1, v2) || v1 < v2;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(double)
+	 * @see org.opendcs.ratings.AbstractRating#rate(double)
 	 */
 	@Override
 	public double rate(double pIndVal) throws RatingException {
@@ -295,7 +295,7 @@ public class TableRating extends AbstractRating {
 		return rate(ind_vals, 0);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(double)
+	 * @see org.opendcs.ratings.AbstractRating#rate(double)
 	 */
 	@Override
 	public double rateOne(double... pIndVals) throws RatingException {
@@ -303,7 +303,7 @@ public class TableRating extends AbstractRating {
 		return rate(pIndVals, 0);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(double)
+	 * @see org.opendcs.ratings.AbstractRating#rate(double)
 	 */
 	@Override
 	public double rateOne2(double[] pIndVals) throws RatingException {
@@ -311,7 +311,7 @@ public class TableRating extends AbstractRating {
 		return rate(pIndVals, 0);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rateOne(double[])
+	 * @see org.opendcs.ratings.AbstractRating#rateOne(double[])
 	 */
 	@Override
 	public double[] rate(double[] pIndVals) throws RatingException {
@@ -321,7 +321,7 @@ public class TableRating extends AbstractRating {
 		return rated;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(double[][])
+	 * @see org.opendcs.ratings.AbstractRating#rate(double[][])
 	 */
 	@Override
 	public double[] rate(double[][] pIndVals) throws RatingException {
@@ -671,7 +671,7 @@ public class TableRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double)
+	 * @see org.opendcs.ratings.AbstractRating#rate(long, double)
 	 */
 	@Override
 	public double rate(long valTime, double pIndVal) throws RatingException {
@@ -679,7 +679,7 @@ public class TableRating extends AbstractRating {
 		return rate(pIndVal);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double[])
+	 * @see org.opendcs.ratings.AbstractRating#rate(long, double[])
 	 */
 	@Override
 	public double rateOne(long valTime, double... pIndVals) throws RatingException {
@@ -687,7 +687,7 @@ public class TableRating extends AbstractRating {
 		return rateOne(pIndVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double[])
+	 * @see org.opendcs.ratings.AbstractRating#rate(long, double[])
 	 */
 	@Override
 	public double rateOne2(long valTime, double[] pIndVals) throws RatingException {
@@ -695,7 +695,7 @@ public class TableRating extends AbstractRating {
 		return rateOne(pIndVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rateOne(long, double[])
+	 * @see org.opendcs.ratings.AbstractRating#rateOne(long, double[])
 	 */
 	@Override
 	public double[] rate(long valTime, double[] pIndVals) throws RatingException {
@@ -703,7 +703,7 @@ public class TableRating extends AbstractRating {
 		return rate(pIndVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rateOne(long[], double[])
+	 * @see org.opendcs.ratings.AbstractRating#rateOne(long[], double[])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[] pIndVals) throws RatingException {
@@ -711,7 +711,7 @@ public class TableRating extends AbstractRating {
 		return rate(pIndVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(long, double[][])
+	 * @see org.opendcs.ratings.AbstractRating#rate(long, double[][])
 	 */
 	@Override
 	public double[] rate(long valTime, double[][] pIndVals) throws RatingException {
@@ -719,7 +719,7 @@ public class TableRating extends AbstractRating {
 		return rate(pIndVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#rate(long[], double[][])
+	 * @see org.opendcs.ratings.AbstractRating#rate(long[], double[][])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[][] pIndVals) throws RatingException {
@@ -728,7 +728,7 @@ public class TableRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#reverseRate(long[], double[])
+	 * @see org.opendcs.ratings.AbstractRating#reverseRate(long[], double[])
 	 */
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
@@ -753,7 +753,7 @@ public class TableRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getData()
+	 * @see org.opendcs.ratings.AbstractRating#getData()
 	 */
 	@Override
 	public TableRatingContainer getData() {
@@ -762,7 +762,7 @@ public class TableRating extends AbstractRating {
 		return trc;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setData(hec.data.cwmsRating.RatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.RatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
@@ -853,7 +853,7 @@ public class TableRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#reverseRate(long, double)
+	 * @see org.opendcs.ratings.AbstractRating#reverseRate(long, double)
 	 */
 	@Override
 	public double reverseRate(long valTime, double depVal) throws RatingException {
@@ -862,7 +862,7 @@ public class TableRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getIndParamCount()
+	 * @see org.opendcs.ratings.AbstractRating#getIndParamCount()
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
@@ -936,7 +936,7 @@ public class TableRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setName(java.lang.String)
+	 * @see org.opendcs.ratings.AbstractRating#setName(java.lang.String)
 	 */
 	@Override
 	public void setName(String name) throws RatingException {
@@ -1287,14 +1287,14 @@ public class TableRating extends AbstractRating {
 		return new TableRating((TableRatingContainer)ratingContainer);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.AbstractRating#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((TableRating)obj).getData()));
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {

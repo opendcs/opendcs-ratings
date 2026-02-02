@@ -1167,7 +1167,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 			return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((SourceRating)obj).getData()));
 		}
 		/* (non-Javadoc)
-		 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+		 * @see org.opendcs.ratings.AbstractRating#hashCode()
 		 */
 		@Override
 		public int hashCode() {

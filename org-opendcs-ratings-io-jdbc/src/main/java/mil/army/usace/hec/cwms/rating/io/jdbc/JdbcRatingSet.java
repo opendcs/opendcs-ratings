@@ -70,7 +70,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
      * @param conn       The database connection to use if the rating was lazily loaded
      * @return The rating extents
      * @throws RatingException any errors calcualting the value
-     * @see hec.data.cwmsRating.IRating#getRatingExtents(long)
+     * @see org.opendcs.ratings.IRating#getRatingExtents(long)
      */
     @Override
     public final double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {
@@ -767,7 +767,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.AbstractRating#hashCode()
+     * @see org.opendcs.ratings.AbstractRating#hashCode()
      */
     @Override
     public int hashCode() {

@@ -919,7 +919,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(hec.io.TimeSeriesContainer)
+     * @see org.opendcs.ratings.IRating#rate(hec.io.TimeSeriesContainer)
      */
     @Override
     public TimeSeriesContainer rate(TimeSeriesContainer tsc) throws RatingException {
@@ -928,7 +928,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#rate(hec.io.TimeSeriesContainer[])
+     * @see org.opendcs.ratings.IRating#rate(hec.io.TimeSeriesContainer[])
      */
     @Override
     public synchronized TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
@@ -973,7 +973,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(double)
+     * @see org.opendcs.ratings.IRating#reverseRate(double)
      */
     @Override
     public double reverseRate(double depVal) throws RatingException {
@@ -983,7 +983,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(double[])
      */
     @Override
     public double[] reverseRate(double[] depVals) throws RatingException {
@@ -993,7 +993,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long, double)
+     * @see org.opendcs.ratings.IRating#reverseRate(long, double)
      */
     @Override
     public double reverseRate(long valTime, double depVal) throws RatingException {
@@ -1003,7 +1003,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long, double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long, double[])
      */
     @Override
     public double[] reverseRate(long valTime, double[] depVals) throws RatingException {
@@ -1013,7 +1013,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long[], double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long[], double[])
      */
     @Override
     public synchronized double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
@@ -1068,7 +1068,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(hec.io.TimeSeriesContainer)
+     * @see org.opendcs.ratings.IRating#reverseRate(hec.io.TimeSeriesContainer)
      */
     @Override
     public synchronized TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {

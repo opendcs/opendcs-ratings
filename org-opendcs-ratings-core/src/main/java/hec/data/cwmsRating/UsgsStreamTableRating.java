@@ -159,7 +159,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(double)
+	 * @see org.opendcs.ratings.RatingTable#rate(double)
 	 */
 	@Override
 	public double rate(double indVal) throws RatingException {
@@ -167,7 +167,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(double[])
+	 * @see org.opendcs.ratings.RatingTable#rate(double[])
 	 */
 	@Override
 	public double rateOne(double... indVals) throws RatingException {
@@ -178,7 +178,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rateOne(double[])
+	 * @see org.opendcs.ratings.RatingTable#rateOne(double[])
 	 */
 	@Override
 	public double[] rate(double[] indVals) throws RatingException {
@@ -186,7 +186,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(double[][])
+	 * @see org.opendcs.ratings.RatingTable#rate(double[][])
 	 */
 	@Override
 	public double[] rate(double[][] indVals) throws RatingException {
@@ -194,7 +194,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(double[], int)
+	 * @see org.opendcs.ratings.RatingTable#rate(double[], int)
 	 */
 	@Override
 	protected double rate(double[] indVals, int offset) throws RatingException {
@@ -205,7 +205,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(long, double)
+	 * @see org.opendcs.ratings.RatingTable#rate(long, double)
 	 */
 	@Override
 	public double rate(long valTime, double indVal) throws RatingException {
@@ -215,7 +215,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(long, double[])
+	 * @see org.opendcs.ratings.RatingTable#rate(long, double[])
 	 */
 	@Override
 	public double rateOne(long valTime, double... indVals) throws RatingException {
@@ -226,7 +226,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rateOne(long, double[])
+	 * @see org.opendcs.ratings.RatingTable#rateOne(long, double[])
 	 */
 	@Override
 	public double[] rate(long valTime, double[] indVals) throws RatingException {
@@ -241,7 +241,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rateOne(long[], double[])
+	 * @see org.opendcs.ratings.RatingTable#rateOne(long[], double[])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[] indVals) throws RatingException {
@@ -456,7 +456,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(long, double[][])
+	 * @see org.opendcs.ratings.RatingTable#rate(long, double[][])
 	 */
 	@Override
 	public double[] rate(long valTime, double[][] indVals) throws RatingException {
@@ -471,7 +471,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTable#rate(long[], double[][])
+	 * @see org.opendcs.ratings.RatingTable#rate(long[], double[][])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
@@ -485,7 +485,7 @@ public class UsgsStreamTableRating extends TableRating {
 		return rate(valTimes, vals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.TableRating#reverseRate(long, double)
+	 * @see org.opendcs.ratings.TableRating#reverseRate(long, double)
 	 */
 	@Override
 	public double reverseRate(long valTime, double depVal) throws RatingException {
@@ -824,7 +824,7 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getData()
+	 * @see org.opendcs.ratings.ICwmsRating#getData()
 	 */
 	@Override
 	public UsgsStreamTableRatingContainer getData() {
@@ -843,7 +843,7 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setRatingTime(long)
+	 * @see org.opendcs.ratings.AbstractRating#setRatingTime(long)
 	 */
 	@Override
 	public void setRatingTime(long ratingTime) {
@@ -854,7 +854,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#resetRatingTime()
+	 * @see org.opendcs.ratings.AbstractRating#resetRatingTime()
 	 */
 	@Override
 	public void resetRatingTime() {
@@ -865,7 +865,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setData(hec.data.cwmsRating.RatingContainer)
+	 * @see org.opendcs.ratings.ICwmsRating#setData(hec.data.cwmsRating.RatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
@@ -1018,7 +1018,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getRatingExtents()
+	 * @see org.opendcs.ratings.AbstractRating#getRatingExtents()
 	 */
 	@Override
 	public double[][] getRatingExtents() throws RatingException {
@@ -1026,7 +1026,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.TableRating#getRatingExtents(long)
+	 * @see org.opendcs.ratings.TableRating#getRatingExtents(long)
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -1186,21 +1186,21 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.AbstractRating#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((UsgsStreamTableRating)obj).getData()));
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		return getClass().getName().hashCode() + getData().hashCode();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setEffectiveDate(long)
+	 * @see org.opendcs.ratings.AbstractRating#setEffectiveDate(long)
 	 */
 	@Override
 	public void setEffectiveDate(long effectiveDate) throws RatingException {

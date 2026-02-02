@@ -54,7 +54,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		populateFromXml(xmlText);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.io.TableRatingContainer#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -79,7 +79,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#hashCode()
+	 * @see org.opendcs.ratings.io.TableRatingContainer#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -90,7 +90,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.RatingTableContainer#clone(hec.data.cwmsRating.RatingContainer)
+	 * @see org.opendcs.ratings.RatingTableContainer#clone(hec.data.cwmsRating.RatingContainer)
 	 */
 	@Override
 	public void clone(AbstractRatingContainer other) {
@@ -109,7 +109,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#newRating()
+	 * @see org.opendcs.ratings.io.TableRatingContainer#newRating()
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
@@ -139,7 +139,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 		usgsStreamTableRatingContainer.clone(this);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNativeVerticalDatum()
+	 * @see org.opendcs.ratings.io.TableRatingContainer#toNativeVerticalDatum()
 	 */
 	@Override
 	public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -169,7 +169,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNGVD29()
+	 * @see org.opendcs.ratings.io.TableRatingContainer#toNGVD29()
 	 */
 	@Override
 	public boolean toNGVD29() throws VerticalDatumException {
@@ -203,7 +203,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#toNAVD88()
+	 * @see org.opendcs.ratings.io.TableRatingContainer#toNAVD88()
 	 */
 	@Override
 	public boolean toNAVD88() throws VerticalDatumException {
@@ -256,7 +256,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.io.TableRatingContainer#addOffset(int, double)
+	 * @see org.opendcs.ratings.io.TableRatingContainer#addOffset(int, double)
 	 */
 	@Override
 	public void addOffset(int paramNum, double offset) throws RatingException {

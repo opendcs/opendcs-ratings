@@ -298,7 +298,7 @@ public class RatingTemplate implements Modifiable
 	/**
 	 * Sets the rating template identifier
 	 * @param templateId The rating template identifier
-	 * @throws RatingException if the template doesn't contain two elements separated by {@value hec.data.cwmsRating.RatingConst#SEPARATOR1}
+	 * @throws RatingException if the template doesn't contain two elements separated by {@value org.opendcs.ratings.RatingConst#SEPARATOR1}
 	 */
 	public void setTemplateId(String templateId) throws RatingException {
 		String[] parts = split(templateId, SEPARATOR1, "L");
@@ -594,7 +594,7 @@ public class RatingTemplate implements Modifiable
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {

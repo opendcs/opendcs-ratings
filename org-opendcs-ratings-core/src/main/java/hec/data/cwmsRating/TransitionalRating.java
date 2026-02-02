@@ -503,7 +503,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getData()
+	 * @see org.opendcs.ratings.AbstractRating#getData()
 	 */
 	@Override
 	public TransitionalRatingContainer getData() {
@@ -535,7 +535,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
@@ -586,7 +586,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#reverseRate(long[], double[])
+	 * @see org.opendcs.ratings.AbstractRating#reverseRate(long[], double[])
 	 */
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
@@ -594,7 +594,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getValues(java.lang.Integer)
+	 * @see org.opendcs.ratings.AbstractRating#getValues(java.lang.Integer)
 	 */
 	@Override
 	public RatingValue[] getValues(Integer defaultInterval) {
@@ -602,7 +602,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getInstance(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#getInstance(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	public AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException {
@@ -612,14 +612,14 @@ public class TransitionalRating extends AbstractRating {
 		return new TransitionalRating((TransitionalRatingContainer)ratingContainer);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.AbstractRating#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((TransitionalRating)obj).getData()));
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {

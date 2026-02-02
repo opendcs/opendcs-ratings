@@ -78,7 +78,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getRatingUnits()
+     * @see org.opendcs.ratings.IRating#getRatingUnits()
      */
     @Override
     public synchronized String[] getRatingUnits() {
@@ -86,7 +86,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#getDataUnits()
+     * @see org.opendcs.ratings.IRating#getDataUnits()
      */
     @Override
     public synchronized String[] getDataUnits() {
@@ -100,7 +100,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#setDataUnits(java.lang.String[])
+     * @see org.opendcs.ratings.IRating#setDataUnits(java.lang.String[])
      */
     @Override
     public synchronized void setDataUnits(String[] units) throws RatingException {
@@ -141,7 +141,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.cwmsRating.IRating#reverseRate(long[], double[])
+     * @see org.opendcs.ratings.IRating#reverseRate(long[], double[])
      */
     @Override
     public synchronized double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {

@@ -272,7 +272,7 @@ public class RatingValue implements Observer {
 		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingValue)obj).getData()));
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {

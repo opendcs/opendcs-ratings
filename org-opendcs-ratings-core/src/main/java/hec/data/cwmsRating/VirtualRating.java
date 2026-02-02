@@ -1035,7 +1035,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getData()
+	 * @see org.opendcs.ratings.AbstractRating#getData()
 	 */
 	@Override
 	public VirtualRatingContainer getData() {
@@ -1045,7 +1045,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#getData(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	protected void getData(AbstractRatingContainer arc) {
@@ -1065,7 +1065,7 @@ public class VirtualRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer arc) throws RatingException {
@@ -1088,7 +1088,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#reverseRate(long[], double[])
+	 * @see org.opendcs.ratings.AbstractRating#reverseRate(long[], double[])
 	 */
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
@@ -1219,7 +1219,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getValues(java.lang.Integer)
+	 * @see org.opendcs.ratings.AbstractRating#getValues(java.lang.Integer)
 	 */
 	@Override
 	public RatingValue[] getValues(Integer defaultInterval) {
@@ -1227,7 +1227,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#getInstance(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#getInstance(hec.data.cwmsRating.io.AbstractRatingContainer)
 	 */
 	@Override
 	public AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException {
@@ -1237,7 +1237,7 @@ public class VirtualRating extends AbstractRating {
 		return new VirtualRating((VirtualRatingContainer)ratingContainer);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setDataUnitsId(java.lang.String)
+	 * @see org.opendcs.ratings.AbstractRating#setDataUnitsId(java.lang.String)
 	 */
 	@Override
 	public void setDataUnitsId(String dataUnitsId) {
@@ -1247,7 +1247,7 @@ public class VirtualRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#setDataUnits(java.lang.String[])
+	 * @see org.opendcs.ratings.AbstractRating#setDataUnits(java.lang.String[])
 	 */
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
@@ -1257,21 +1257,21 @@ public class VirtualRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#equals(java.lang.Object)
+	 * @see org.opendcs.ratings.AbstractRating#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((VirtualRating)obj).getData()));
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#hashCode()
+	 * @see org.opendcs.ratings.AbstractRating#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		return getClass().getName().hashCode() + getData().hashCode();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.AbstractRating#storeToDatabase(java.sql.Connection, boolean)
+	 * @see org.opendcs.ratings.AbstractRating#storeToDatabase(java.sql.Connection, boolean)
 	 */
 	@Override
 	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {

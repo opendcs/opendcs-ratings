@@ -182,7 +182,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 				split(replaceAll(units2, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L"));
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#addObserver(java.util.Observer)
+	 * @see org.opendcs.ratings.ICwmsRating#addObserver(java.util.Observer)
 	 */
 	@Override
 	public void addObserver(Observer o) {
@@ -193,7 +193,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#deleteObserver(java.util.Observer)
+	 * @see org.opendcs.ratings.ICwmsRating#deleteObserver(java.util.Observer)
 	 */
 	@Override
 	public void deleteObserver(Observer o) {
@@ -204,7 +204,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getRatingSpecId()
+	 * @see org.opendcs.ratings.ICwmsRating#getRatingSpecId()
 	 */
 	@Override
 	public String getRatingSpecId() {
@@ -213,7 +213,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getOfficeId()
+	 * @see org.opendcs.ratings.ICwmsRating#getOfficeId()
 	 */
 	@Override
 	public String getOfficeId() {
@@ -222,7 +222,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setOfficeId(java.lang.String)
+	 * @see org.opendcs.ratings.ICwmsRating#setOfficeId(java.lang.String)
 	 */
 	@Override
 	public void setOfficeId(String officeId) {
@@ -231,7 +231,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setRatingSpecId(java.lang.String)
+	 * @see org.opendcs.ratings.ICwmsRating#setRatingSpecId(java.lang.String)
 	 */
 	@Override
 	public void setRatingSpecId(String ratingSpecId) {
@@ -248,7 +248,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getUnitsId()
+	 * @see org.opendcs.ratings.ICwmsRating#getUnitsId()
 	 */
 	@Override
 	public String getRatingUnitsId() {
@@ -257,7 +257,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setUnitsId(java.lang.String)
+	 * @see org.opendcs.ratings.ICwmsRating#setUnitsId(java.lang.String)
 	 */
 	@Override
 	public void setRatingUnitsId(String ratingUnitsId) {
@@ -267,7 +267,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getDataUnitsId()
+	 * @see org.opendcs.ratings.ICwmsRating#getDataUnitsId()
 	 */
 	@Override
 	public String getDataUnitsId() {
@@ -276,7 +276,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setDataUnitsId(java.lang.String)
+	 * @see org.opendcs.ratings.ICwmsRating#setDataUnitsId(java.lang.String)
 	 */
 	@Override
 	public void setDataUnitsId(String dataUnitsId) {
@@ -291,7 +291,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#getName()
+	 * @see org.opendcs.ratings.IRating#getName()
 	 */
 	@Override
 	public String getName() {
@@ -321,7 +321,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#getRatingParameters()
+	 * @see org.opendcs.ratings.IRating#getRatingParameters()
 	 */
 	@Override
 	public String[] getRatingParameters() {
@@ -337,7 +337,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#getRatingUnits()
+	 * @see org.opendcs.ratings.IRating#getRatingUnits()
 	 */
 	@Override
 	public String[] getRatingUnits() {
@@ -388,7 +388,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		setDataUnits(getDataUnits());
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#getDataUnits()
+	 * @see org.opendcs.ratings.IRating#getDataUnits()
 	 */
 	@Override
 	public String[] getDataUnits() {
@@ -403,7 +403,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#setDataUnits(java.lang.String[])
+	 * @see org.opendcs.ratings.IRating#setDataUnits(java.lang.String[])
 	 */
 	@Override
 	public void setDataUnits(String[] units) throws RatingException {
@@ -492,7 +492,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#getIndParamCount()
+	 * @see org.opendcs.ratings.IRating#getIndParamCount()
 	 */
 	@Override
 	public int getIndParamCount() throws RatingException {
@@ -599,7 +599,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#isActive()
+	 * @see org.opendcs.ratings.ICwmsRating#isActive()
 	 */
 	@Override
 	public boolean isActive() {
@@ -608,7 +608,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setActive(boolean)
+	 * @see org.opendcs.ratings.ICwmsRating#setActive(boolean)
 	 */
 	@Override
 	public void setActive(boolean active) {
@@ -619,7 +619,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getDescription()
+	 * @see org.opendcs.ratings.ICwmsRating#getDescription()
 	 */
 	@Override
 	public String getDescription() {
@@ -628,7 +628,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setDescription(java.lang.String)
+	 * @see org.opendcs.ratings.ICwmsRating#setDescription(java.lang.String)
 	 */
 	@Override
 	public void setDescription(String description) {
@@ -647,7 +647,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#getDefaultValuetime()
+	 * @see org.opendcs.ratings.ICwmsRating#getDefaultValuetime()
 	 */
 	@Override
 	public long getDefaultValueTime() {
@@ -656,7 +656,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#setDefaultValuetime(long)
+	 * @see org.opendcs.ratings.ICwmsRating#setDefaultValuetime(long)
 	 */
 	@Override
 	public void setDefaultValueTime(long defaultValueTime) {
@@ -665,7 +665,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.ICwmsRating#resetDefaultValuetime()
+	 * @see org.opendcs.ratings.ICwmsRating#resetDefaultValuetime()
 	 */
 	@Override
 	public void resetDefaultValuetime() {
@@ -674,7 +674,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#getRatingTime()
+	 * @see org.opendcs.ratings.IRating#getRatingTime()
 	 */
 	@Override
 	public long getRatingTime() {
@@ -683,7 +683,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#setRatingTime(long)
+	 * @see org.opendcs.ratings.IRating#setRatingTime(long)
 	 */
 	@Override
 	public void setRatingTime(long ratingTime) {
@@ -692,7 +692,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#resetRatingtime()
+	 * @see org.opendcs.ratings.IRating#resetRatingtime()
 	 */
 	@Override
 	public void resetRatingTime() {
@@ -739,7 +739,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 */
 	public abstract void setData(AbstractRatingContainer rc) throws RatingException;
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#rate(hec.io.TimeSeriesContainer)
+	 * @see org.opendcs.ratings.IRating#rate(hec.io.TimeSeriesContainer)
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer tsc) throws RatingException {
@@ -748,7 +748,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#rate(hec.io.TimeSeriesContainer[])
+	 * @see org.opendcs.ratings.IRating#rate(hec.io.TimeSeriesContainer[])
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
@@ -790,7 +790,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#reverseRate(double)
+	 * @see org.opendcs.ratings.IRating#reverseRate(double)
 	 */
 	@Override
 	public double reverseRate(double depVal) throws RatingException {
@@ -799,7 +799,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		return reverseRate(valTimes, depVals)[0];
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#reverseRate(double[])
+	 * @see org.opendcs.ratings.IRating#reverseRate(double[])
 	 */
 	@Override
 	public double[] reverseRate(double[] depVals) throws RatingException {
@@ -808,7 +808,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		return reverseRate(valTimes, depVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#reverseRate(long, double)
+	 * @see org.opendcs.ratings.IRating#reverseRate(long, double)
 	 */
 	@Override
 	public double reverseRate(long valTime, double depVal) throws RatingException {
@@ -817,7 +817,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		return reverseRate(valTimes, depVals)[0];
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#reverseRate(long, double[])
+	 * @see org.opendcs.ratings.IRating#reverseRate(long, double[])
 	 */
 	@Override
 	public double[] reverseRate(long valTime, double[] depVals) throws RatingException {
@@ -826,12 +826,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		return reverseRate(valTimes, depVals);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#reverseRate(long[], double[])
+	 * @see org.opendcs.ratings.IRating#reverseRate(long[], double[])
 	 */
 	@Override
 	public abstract double[] reverseRate(long[] valTimes, double[] depVals)	throws RatingException ;
 	/* (non-Javadoc)
-	 * @see hec.data.cwmsRating.IRating#reverseRate(hec.io.TimeSeriesContainer)
+	 * @see org.opendcs.ratings.IRating#reverseRate(hec.io.TimeSeriesContainer)
 	 */
 	@Override
 	public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
