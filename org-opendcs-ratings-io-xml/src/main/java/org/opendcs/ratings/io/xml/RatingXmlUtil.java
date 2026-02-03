@@ -38,7 +38,10 @@ import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -92,6 +95,32 @@ final class RatingXmlUtil {
 
     private RatingXmlUtil() {
         throw new AssertionError("Utility class");
+    }
+
+    static String elementText(org.w3c.dom.Element element) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Node n = element.getFirstChild(); n != null; n = n.getNextSibling()) {
+            short type = n.getNodeType();
+            if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE) {
+                sb.append(n.getNodeValue());
+            }
+        }
+
+        return sb.toString().trim();
+    }
+
+    static String attributeText(org.w3c.dom.Element element, String name) {
+        NamedNodeMap attrs = element.getAttributes();
+        for (int i = 0; i < attrs.getLength(); i++) {
+            Attr a = (Attr) attrs.item(i);
+            String qname = a.getName();
+            String lname = a.getLocalName();
+            if (qname.equals(name) || lname != null && lname.equals(name)) {
+                return a.getValue();
+            }
+        }
+        return "";
     }
 
     static String jdomElementToText(Element element) {
