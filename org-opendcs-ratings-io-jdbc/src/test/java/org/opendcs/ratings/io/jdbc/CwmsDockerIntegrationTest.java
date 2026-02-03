@@ -19,6 +19,7 @@ package org.opendcs.ratings.io.jdbc;
 import com.google.common.flogger.FluentLogger;
 import java.sql.SQLException;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainer;
+import mil.army.usace.hec.test.database.CwmsDatabaseContainers;
 import mil.army.usace.hec.test.database.TeamCityUtilities;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.output.OutputFrame;
@@ -28,19 +29,17 @@ import org.testcontainers.junit.jupiter.Container;
 public abstract class CwmsDockerIntegrationTest
 {
 	private static final FluentLogger LOGGER = FluentLogger.forEnclosingClass();
-	private static final String ORACLE_VERSION = System.getProperty("oracle.version", CwmsDatabaseContainer.ORACLE_19C);
-	private static final String IMAGE_VERSION = System.getProperty("cwms.image") != null ? System.getProperty("cwms.image") : "22.1.1-SNAPSHOT";
-	private static final String BRANCH = System.getProperty("teamcity.build.branch");
-	private static final String VOLUME_NAME = BRANCH != null ? TeamCityUtilities.cleanupBranchName(BRANCH) : "cwms_container_test_db";
+	private static final String VERSION = "latest-dev";
+	private static final String ORACLE_VERSION = System.getProperty("ratings.oracle.version", "ghcr.io/hydrologicengineeringcenter/cwms-database/cwms/database-ready-ora-23.5:" + VERSION);
 
 	@Container
-	private static final CwmsDatabaseContainer INSTANCE = new CwmsDatabaseContainer(ORACLE_VERSION)
-			.withSchemaImage(IMAGE_VERSION)
-			.withVolumeName(VOLUME_NAME)
+	private static CwmsDatabaseContainer<?> INSTANCE = CwmsDatabaseContainers.createDatabaseContainer(ORACLE_VERSION)
 			.withOfficeId("NAB")
 			.withOfficeEroc("e1")
 			.withLogConsumer(o -> logContainerOutput((OutputFrame) o));
-
+	
+	
+	
 
 	public static String getOracleVersion()
 	{
@@ -49,7 +48,7 @@ public abstract class CwmsDockerIntegrationTest
 
 	public static String getImageVersion()
 	{
-		return IMAGE_VERSION;
+		return VERSION;
 	}
 
 	public static CwmsDatabaseContainer<?> getInstance()
