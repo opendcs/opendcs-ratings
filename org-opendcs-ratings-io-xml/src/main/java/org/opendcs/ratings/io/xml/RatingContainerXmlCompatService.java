@@ -31,7 +31,8 @@ import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
 import org.opendcs.ratings.io.VirtualRatingContainer;
 import java.util.List;
 import java.util.Set;
-import org.jdom.Element;
+
+import org.w3c.dom.Element;
 import rma.services.annotations.ServiceProvider;
 
 @ServiceProvider(service = RatingContainerXmlCompatUtil.class)
@@ -136,7 +137,7 @@ public final class RatingContainerXmlCompatService implements RatingContainerXml
 
     @Override
     public RatingSetContainer createRatingSetContainer(Element ratingElement) throws RatingException {
-        return createRatingSetContainer(RatingXmlUtil.jdomElementToText(ratingElement));
+        return createRatingSetContainer(RatingXmlUtil.elementToText(ratingElement));
     }
 
     @Override

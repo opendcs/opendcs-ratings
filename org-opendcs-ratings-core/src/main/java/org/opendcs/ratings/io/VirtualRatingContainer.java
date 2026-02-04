@@ -28,8 +28,7 @@ import org.opendcs.ratings.RatingSpec;
 import org.opendcs.ratings.VirtualRating;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.VerticalDatumException;
-
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
@@ -56,8 +55,8 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 */
 	public VirtualRatingContainer() {}
 	/**
-	 * Public constructor from a JDOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement The JDOM Element
+	 * Public constructor from a DOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement The DOM Element
 	 * @throws RatingException
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */
@@ -78,8 +77,8 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 
 	/**
-	 * Populates the VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement The JDOM Element
+	 * Populates the VirtualRatingContainer from a DOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement The DOM Element
 	 * @throws RatingException any issues with processing the XML data.
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.opendcs.ratings.io.TransitionalRatingContainer;
 import org.opendcs.ratings.RatingException;
 import java.io.BufferedReader;
@@ -33,7 +34,6 @@ import java.time.Instant;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mil.army.usace.hec.metadata.constants.NumericalConstants;
-import org.jdom.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,12 +43,14 @@ class TransitionalRatingContainerXmlTest {
 
     @BeforeEach
     public void setup() throws IOException, RatingException {
-        try (InputStream inputStream = getClass().getResourceAsStream("transitional_rating.xml");
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-             Stream<String> stream = bufferedReader.lines()) {
-            String text = stream.collect(Collectors.joining("\n"));
-            transitional = new TransitionalRatingContainer(text);
+        try (InputStream inputStream = getClass().getResourceAsStream("transitional_rating.xml")) {
+            Assertions.assertNotNull(inputStream);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                 Stream<String> stream = bufferedReader.lines()) {
+                String text = stream.collect(Collectors.joining("\n"));
+                transitional = new TransitionalRatingContainer(text);
+            }
         }
     }
 

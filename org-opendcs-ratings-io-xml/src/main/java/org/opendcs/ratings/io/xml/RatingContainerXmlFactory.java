@@ -25,6 +25,7 @@ import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
 import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
 import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.lang.Const.UNDEFINED_TIME;
+import static org.opendcs.ratings.io.xml.RatingXmlUtil.elementText;
 
 
 import org.opendcs.ratings.RatingObjectDoesNotExistException;
@@ -51,7 +52,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
-import org.jdom.Element;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public final class RatingContainerXmlFactory {
 
@@ -65,48 +67,59 @@ public final class RatingContainerXmlFactory {
         //----------------------------//
         // first try the root element //
         //----------------------------//
-        Element elem = RatingXmlUtil.textToJdomElement(xmlStr);
-        if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
-            if (elem.getChild("formula") != null) {
-                arc = expressionRatingContainer(elem);
-            } else {
-                arc = tableRatingContainer(elem);
-            }
-        } else if (elem.getName().equals("usgs-stream-rating")) {
-            arc = usgsStreamTableRatingContainer(elem);
-        } else if (elem.getName().equals("virtual-rating")) {
-            arc = virtualRatingContainer(elem);
-        } else if (elem.getName().equals("transitional-rating")) {
-            arc = transitionalRatingContainer(elem);
-        } else {
-            //------------------------------------------//
-            // next try immediate descendants from root //
-            //------------------------------------------//
-            for (Object obj : elem.getChildren()) {
-                elem = (Element) obj;
-                if (elem.getName().equals("simple-rating") || elem.getName().equals("rating")) {
-                    if (elem.getChild("formula") != null) {
-                        arc = expressionRatingContainer(elem);
-                        break;
-                    } else {
-                        arc = tableRatingContainer(elem);
-                        break;
-                    }
-                } else if (elem.getName().equals("usgs-stream-rating")) {
-                    arc = usgsStreamTableRatingContainer(elem);
-                    break;
-                } else if (elem.getName().equals("virtual-rating")) {
-                    arc = virtualRatingContainer(elem);
-                    break;
-                } else if (elem.getName().equals("transitional-rating")) {
-                    arc = transitionalRatingContainer(elem);
-                    break;
+        Element elem = RatingXmlUtil.textToElement(xmlStr);
+        switch (elem.getLocalName()) {
+            case "simple-rating":
+            case "rating":
+                if (elem.getElementsByTagName("formula").item(0) != null) {
+                    arc = expressionRatingContainer(elem);
+                } else {
+                    arc = tableRatingContainer(elem);
                 }
-            }
-            if (arc == null) {
-                throw new RatingObjectDoesNotExistException(
-                    "No <rating>, <simple-rating>, <usgs-stream-rating>, <virtual-rating>, or <transitional-rating> element in XML.");
-            }
+                break;
+            case "usgs-stream-rating":
+                arc = usgsStreamTableRatingContainer(elem);
+                break;
+            case "virtual-rating":
+                arc = virtualRatingContainer(elem);
+                break;
+            case "transitional-rating":
+                arc = transitionalRatingContainer(elem);
+                break;
+            default:
+                //------------------------------------------//
+                // next try immediate descendants from root //
+                //------------------------------------------//
+                NodeList elems = elem.getChildNodes();
+                label:
+                for (int i = 0; i < elems.getLength(); ++i) {
+                    elem = (Element) elems.item(i);
+                    switch (elem.getLocalName()) {
+                        case "simple-rating":
+                        case "rating":
+                            if (elem.getElementsByTagName("formula").item(0) != null) {
+                                arc = expressionRatingContainer(elem);
+                                break label;
+                            } else {
+                                arc = tableRatingContainer(elem);
+                                break label;
+                            }
+                        case "usgs-stream-rating":
+                            arc = usgsStreamTableRatingContainer(elem);
+                            break label;
+                        case "virtual-rating":
+                            arc = virtualRatingContainer(elem);
+                            break label;
+                        case "transitional-rating":
+                            arc = transitionalRatingContainer(elem);
+                            break label;
+                    }
+                }
+                if (arc == null) {
+                    throw new RatingObjectDoesNotExistException(
+                            "No <rating>, <simple-rating>, <usgs-stream-rating>, <virtual-rating>, or <transitional-rating> element in XML.");
+                }
+                break;
         }
         return arc;
     }
@@ -132,9 +145,7 @@ public final class RatingContainerXmlFactory {
             return toXml((TransitionalRatingContainer) abstractRatingContainer, indent, level);
         } else {
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < level; ++i) {
-                sb.append(indent);
-            }
+            sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
             String prefix = sb.toString();
             sb.delete(0, sb.length());
             if (level == 0) {
@@ -152,17 +163,17 @@ public final class RatingContainerXmlFactory {
     }
 
     /**
-     * Factory constructor from a jdom element
+     * Factory constructor from a DOM element
      *
-     * @param ratingElement the jdom element
-     * @return container object represented by jdom input
+     * @param ratingElement the DOM element
+     * @return container object represented by DOM input
      * @throws RatingException any errors transforming serialized rating into data object
      */
     public static ExpressionRatingContainer expressionRatingContainer(Element ratingElement) throws RatingException {
         try {
             ExpressionRatingContainer container = new ExpressionRatingContainer();
             RatingXmlUtil.populateCommonDataFromXml(ratingElement, container);
-            container.expression = ratingElement.getChildTextTrim("formula");
+            container.expression = elementText((Element) ratingElement.getElementsByTagName("formula").item(0));
             return container;
         } catch (VerticalDatumException e) {
             throw new RatingException(e);
@@ -205,9 +216,7 @@ public final class RatingContainerXmlFactory {
             throw new RatingRuntimeException(e);
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
         if (level == 0) {
@@ -227,10 +236,10 @@ public final class RatingContainerXmlFactory {
     }
 
     /**
-     * Factory constructor from a jdom element
+     * Factory constructor from a DOM element
      *
-     * @param ratingElement the jdom element
-     * @return container object represented by jdom input
+     * @param ratingElement the DOM element
+     * @return container object represented by DOM input
      * @throws RatingException any errors transforming serialized rating into data object
      */
     public static VirtualRatingContainer virtualRatingContainer(Element ratingElement) throws RatingException {
@@ -263,9 +272,7 @@ public final class RatingContainerXmlFactory {
             throw new RatingRuntimeException(e);
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
         List<String> ratingXmlStrings = new ArrayList<>();
@@ -287,7 +294,7 @@ public final class RatingContainerXmlFactory {
         sb.append(RatingXmlUtil.toXml(virtualRatingContainer, prefix, indent, "virtual-rating"));
         String connections = virtualRatingContainer.connections;
         SourceRatingContainer[] sourceRatings = virtualRatingContainer.sourceRatings;
-        if (connections == null || connections.length() == 0) {
+        if (connections == null || connections.isEmpty()) {
             sb.append(prefix).append(indent).append("<connections/>\n");
         } else {
             sb.append(prefix).append(indent).append("<connections>").append(connections).append("</connections>\n");
@@ -305,7 +312,7 @@ public final class RatingContainerXmlFactory {
                                      .append(TextUtil.xmlEntityEncode(sourceRatings[i].units[j]));
                 }
                 sourceRatingUnits.append("}");
-                sb.append(prefix).append(indent).append(indent).append("<source-rating position=\"" + (i + 1) + "\">\n");
+                sb.append(prefix).append(indent).append(indent).append("<source-rating position=\"").append(i + 1).append("\">\n");
                 if (sourceRatings[i].rsc == null) {
                     sb.append(prefix).append(indent).append(indent).append(indent).append("<rating-expression>")
                       .append(TextUtil.xmlEntityEncode(sourceRatings[i].mathExpression)).append(sourceRatingUnits).append("</rating-expression>\n");
@@ -346,10 +353,10 @@ public final class RatingContainerXmlFactory {
     }
 
     /**
-     * Factory constructor from a jdom element
+     * Factory constructor from a DOM element
      *
-     * @param ratingElement the jdom element
-     * @return container object represented by jdom input
+     * @param ratingElement the DOM element
+     * @return container object represented by DOM input
      * @throws RatingException any errors transforming serialized rating into data object
      */
     public static UsgsStreamTableRatingContainer usgsStreamTableRatingContainer(Element ratingElement) throws RatingException {
@@ -361,11 +368,11 @@ public final class RatingContainerXmlFactory {
         }
         String unitsId = usgsStreamTableRatingContainer.unitsId;
         String ratingSpecId = usgsStreamTableRatingContainer.ratingSpecId;
-        Element elem = null;
+        Element elem;
         String[] parts;
-        @SuppressWarnings("rawtypes") List elems = ratingElement.getChildren("height-shifts");
+        NodeList elems = ratingElement.getElementsByTagName("height-shifts");
         String heightUnit = unitsId.split(";", 'L')[0];
-        if (elems.size() > 0) {
+        if (elems.getLength() > 0) {
             HecTime hectime = new HecTime();
             usgsStreamTableRatingContainer.shifts = new RatingSetContainer();
             usgsStreamTableRatingContainer.shifts.ratingSpecContainer = new RatingSpecContainer();
@@ -389,47 +396,47 @@ public final class RatingContainerXmlFactory {
             rsc.indRoundingSpecs = new String[] {"4444444449"};
             rsc.depRoundingSpec = "4444444449";
 
-            usgsStreamTableRatingContainer.shifts.abstractRatingContainers = new TableRatingContainer[elems.size()];
-            for (int i = 0; i < elems.size(); ++i) {
+            usgsStreamTableRatingContainer.shifts.abstractRatingContainers = new TableRatingContainer[elems.getLength()];
+            for (int i = 0; i < elems.getLength(); ++i) {
                 usgsStreamTableRatingContainer.shifts.abstractRatingContainers[i] = new TableRatingContainer();
                 TableRatingContainer trc = (TableRatingContainer) usgsStreamTableRatingContainer.shifts.abstractRatingContainers[i];
                 trc.ratingSpecId = rsc.specId;
-                elem = (Element) elems.get(i);
-                String data = elem.getChildTextTrim("effective-date");
-                if (data != null && !data.isEmpty()) {
+                elem = (Element) elems.item(i);
+                String data = elementText((Element) elem.getElementsByTagName("effective-date").item(0));
+                if (!data.isEmpty()) {
                     hectime.set(data);
                     trc.effectiveDateMillis = hectime.getTimeInMillis();
                 }
-                data = elem.getChildTextTrim("create-date");
-                if (data != null && !data.isEmpty()) {
+                data = elementText((Element) elem.getElementsByTagName("create-date").item(0));
+                if (!data.isEmpty()) {
                     hectime.set(data);
                     trc.createDateMillis = hectime.getTimeInMillis();
                 }
-                data = elem.getChildTextTrim("transition-start-date");
-                if (data != null && !data.isEmpty()) {
+                data = elementText((Element) elem.getElementsByTagName("transition-start-date").item(0));
+                if (!data.isEmpty()) {
                     hectime.set(data);
                     trc.transitionStartDateMillis = hectime.getTimeInMillis();
                 }
-                trc.active = Boolean.parseBoolean(elem.getChildTextTrim("active"));
-                trc.description = elem.getChildTextTrim("description");
+                trc.active = Boolean.parseBoolean(elementText((Element) elem.getElementsByTagName("active").item(0)));
+                trc.description = elementText((Element) elem.getElementsByTagName("description").item(0));
                 trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
                 trc.inRangeMethod = RatingMethodId.Linear.name();
                 trc.outRangeLowMethod = RatingMethodId.Nearest.name();
                 trc.outRangeHighMethod = RatingMethodId.Nearest.name();
-                @SuppressWarnings("rawtypes") List pointElems = elem.getChildren("point");
-                if (pointElems.size() > 0) {
-                    trc.values = new RatingValueContainer[pointElems.size()];
-                    for (int j = 0; j < pointElems.size(); ++j) {
+                NodeList pointElems = elem.getElementsByTagName("point");
+                if (pointElems.getLength() > 0) {
+                    trc.values = new RatingValueContainer[pointElems.getLength()];
+                    for (int j = 0; j < pointElems.getLength(); ++j) {
                         trc.values[j] = new RatingValueContainer();
-                        elem = (Element) pointElems.get(j);
-                        trc.values[j].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-                        trc.values[j].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-                        trc.values[j].note = elem.getChildTextTrim("note");
+                        elem = (Element) pointElems.item(j);
+                        trc.values[j].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
+                        trc.values[j].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
+                        trc.values[j].note = elementText((Element) elem.getElementsByTagName("note").item(0));
                     }
                 }
             }
         }
-        elem = ratingElement.getChild("height-offsets");
+        elem = (Element) ratingElement.getElementsByTagName("height-offsets").item(0);
         if (elem != null) {
             usgsStreamTableRatingContainer.offsets = new TableRatingContainer();
             TableRatingContainer trc = usgsStreamTableRatingContainer.offsets;
@@ -441,47 +448,47 @@ public final class RatingContainerXmlFactory {
             trc.inRangeMethod = RatingMethodId.Previous.name();
             trc.outRangeLowMethod = RatingMethodId.Next.name();
             trc.outRangeHighMethod = RatingMethodId.Previous.name();
-            @SuppressWarnings("rawtypes") List pointElems = elem.getChildren("point");
-            if (pointElems.size() > 0) {
-                trc.values = new RatingValueContainer[pointElems.size()];
-                for (int i = 0; i < pointElems.size(); ++i) {
+            NodeList pointElems = elem.getElementsByTagName("point");
+            if (pointElems.getLength() > 0) {
+                trc.values = new RatingValueContainer[pointElems.getLength()];
+                for (int i = 0; i < pointElems.getLength(); ++i) {
                     trc.values[i] = new RatingValueContainer();
-                    elem = (Element) pointElems.get(i);
-                    trc.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-                    trc.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-                    trc.values[i].note = elem.getChildTextTrim("note");
+                    elem = (Element) pointElems.item(i);
+                    trc.values[i].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
+                    trc.values[i].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
+                    trc.values[i].note = elementText((Element) elem.getElementsByTagName("note").item(0));
                 }
             }
         }
-        elem = ratingElement.getChild("rating-points");
+        elem = (Element) ratingElement.getElementsByTagName("rating-points").item(0);
         if (elem != null) {
-            @SuppressWarnings("rawtypes") List pointElems = elem.getChildren("point");
-            if (pointElems.size() > 0) {
-                usgsStreamTableRatingContainer.values = new RatingValueContainer[pointElems.size()];
-                for (int i = 0; i < pointElems.size(); ++i) {
+            NodeList pointElems = elem.getElementsByTagName("point");
+            if (pointElems.getLength() > 0) {
+                usgsStreamTableRatingContainer.values = new RatingValueContainer[pointElems.getLength()];
+                for (int i = 0; i < pointElems.getLength(); ++i) {
                     usgsStreamTableRatingContainer.values[i] = new RatingValueContainer();
-                    elem = (Element) pointElems.get(i);
-                    usgsStreamTableRatingContainer.values[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-                    usgsStreamTableRatingContainer.values[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-                    usgsStreamTableRatingContainer.values[i].note = elem.getChildTextTrim("note");
+                    elem = (Element) pointElems.item(i);
+                    usgsStreamTableRatingContainer.values[i].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
+                    usgsStreamTableRatingContainer.values[i].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
+                    usgsStreamTableRatingContainer.values[i].note = elementText((Element) elem.getElementsByTagName("note").item(0));
                 }
             }
         }
-        elem = ratingElement.getChild("extension-points");
+        elem = (Element) ratingElement.getElementsByTagName("extension-points").item(0);
         if (elem != null) {
-            @SuppressWarnings("rawtypes") List pointElems = elem.getChildren("point");
-            if (pointElems.size() > 0) {
-                usgsStreamTableRatingContainer.extensionValues = new RatingValueContainer[pointElems.size()];
-                for (int i = 0; i < pointElems.size(); ++i) {
+            NodeList pointElems = elem.getElementsByTagName("point");
+            if (pointElems.getLength() > 0) {
+                usgsStreamTableRatingContainer.extensionValues = new RatingValueContainer[pointElems.getLength()];
+                for (int i = 0; i < pointElems.getLength(); ++i) {
                     usgsStreamTableRatingContainer.extensionValues[i] = new RatingValueContainer();
-                    elem = (Element) pointElems.get(i);
-                    usgsStreamTableRatingContainer.extensionValues[i].indValue = Double.parseDouble(elem.getChildTextTrim("ind"));
-                    usgsStreamTableRatingContainer.extensionValues[i].depValue = Double.parseDouble(elem.getChildTextTrim("dep"));
-                    usgsStreamTableRatingContainer.extensionValues[i].note = elem.getChildTextTrim("note");
+                    elem = (Element) pointElems.item(i);
+                    usgsStreamTableRatingContainer.extensionValues[i].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
+                    usgsStreamTableRatingContainer.extensionValues[i].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
+                    usgsStreamTableRatingContainer.extensionValues[i].note = elementText((Element) elem.getElementsByTagName("note").item(0));
                 }
             }
         }
-        Element verticalDatumElement = ratingElement.getChild("vertical-datum-info");
+        Element verticalDatumElement = (Element) ratingElement.getElementsByTagName("vertical-datum-info").item(0);
         if (verticalDatumElement != null) {
             try {
                 usgsStreamTableRatingContainer.setVerticalDatumContainer(new VerticalDatumContainer(verticalDatumElement.toString()));
@@ -540,9 +547,7 @@ public final class RatingContainerXmlFactory {
             throw new RatingRuntimeException(e);
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
         if (level == 0) {
@@ -624,20 +629,20 @@ public final class RatingContainerXmlFactory {
     }
 
     /**
-     * Factory constructor from a jdom element
+     * Factory constructor from a DOM element
      *
-     * @param ratingElement the jdom element
-     * @return container object represented by jdom input
+     * @param ratingElement the DOM element
+     * @return container object represented by DOM input
      * @throws RatingException any errors transforming serialized rating into data object
      */
     public static TableRatingContainer tableRatingContainer(Element ratingElement) throws RatingException {
         try {
             TableRatingContainer tableRatingContainer = new TableRatingContainer();
             RatingXmlUtil.populateCommonDataFromXml(ratingElement, tableRatingContainer);
-            if (!ratingElement.getChildren("rating-points").isEmpty()) {
+            if (ratingElement.getElementsByTagName("rating-points").getLength() > 0) {
                 tableRatingContainer.values = RatingValueContainerXmlFactory.makeContainers(ratingElement, "rating-points");
             }
-            if (!ratingElement.getChildren("extension-points").isEmpty()) {
+            if (ratingElement.getElementsByTagName("extension-points").getLength() > 0) {
                 tableRatingContainer.extensionValues = RatingValueContainerXmlFactory.makeContainers(ratingElement, "extension-points");
             }
             return tableRatingContainer;
@@ -682,9 +687,7 @@ public final class RatingContainerXmlFactory {
             throw new RatingRuntimeException(e);
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
         if (level == 0) {
@@ -703,15 +706,11 @@ public final class RatingContainerXmlFactory {
                     RatingValueContainerXmlFactory.toXml(tableRatingContainer.values[i], pointsPrefix, indent, sb);
                 }
             } else {
-                if (tableRatingContainer.values == null) {
-                    sb.append(prefix).append(indent).append("<rating-points/>\n");
-                } else {
-                    sb.append(prefix).append(indent).append("<rating-points>\n");
-                    for (int i = 0; i < tableRatingContainer.values.length; ++i) {
-                        RatingValueContainerXmlFactory.toXml(tableRatingContainer.values[i], pointsPrefix, indent, sb);
-                    }
-                    sb.append(prefix).append(indent).append("</rating-points>\n");
+                sb.append(prefix).append(indent).append("<rating-points>\n");
+                for (int i = 0; i < tableRatingContainer.values.length; ++i) {
+                    RatingValueContainerXmlFactory.toXml(tableRatingContainer.values[i], pointsPrefix, indent, sb);
                 }
+                sb.append(prefix).append(indent).append("</rating-points>\n");
             }
         }
         if (tableRatingContainer.extensionValues != null) {
@@ -719,13 +718,11 @@ public final class RatingContainerXmlFactory {
             if (multiParam) {
                 AbstractRating.getLogger().severe("Multiple independent parameter ratings cannot use extension values, ignoring");
             } else {
-                if (tableRatingContainer.extensionValues != null) {
-                    sb.append(prefix).append(indent).append("<extension-points>\n");
-                    for (int i = 0; i < tableRatingContainer.extensionValues.length; ++i) {
-                        RatingValueContainerXmlFactory.toXml(tableRatingContainer.extensionValues[i], pointsPrefix, indent, sb);
-                    }
-                    sb.append(prefix).append(indent).append("</extension-points>\n");
+                sb.append(prefix).append(indent).append("<extension-points>\n");
+                for (int i = 0; i < tableRatingContainer.extensionValues.length; ++i) {
+                    RatingValueContainerXmlFactory.toXml(tableRatingContainer.extensionValues[i], pointsPrefix, indent, sb);
                 }
+                sb.append(prefix).append(indent).append("</extension-points>\n");
             }
         }
         sb.append(prefix).append("</simple-rating>\n");
@@ -736,10 +733,10 @@ public final class RatingContainerXmlFactory {
     }
 
     /**
-     * Factory constructor from a jdom element
+     * Factory constructor from a DOM element
      *
-     * @param ratingElement the jdom element
-     * @return container object represented by jdom input
+     * @param ratingElement the DON element
+     * @return container object represented by DON input
      * @throws RatingException any errors transforming serialized rating into data object
      */
     public static TransitionalRatingContainer transitionalRatingContainer(Element ratingElement) throws RatingException {
@@ -787,9 +784,7 @@ public final class RatingContainerXmlFactory {
             throw new RatingRuntimeException(e);
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
         List<String> ratingXmlStrings = new ArrayList<>();
@@ -817,7 +812,7 @@ public final class RatingContainerXmlFactory {
         } else {
             sb.append(prefix).append(indent).append("<select>\n");
             for (int i = 0; i < conditions.length; ++i) {
-                sb.append(prefix).append(indent).append(indent).append("<case position=\"" + (i + 1) + "\">\n");
+                sb.append(prefix).append(indent).append(indent).append("<case position=\"").append(i + 1).append("\">\n");
                 sb.append(prefix).append(indent).append(indent).append(indent)
                   .append(String.format("<when>%s</when>\n", TextUtil.xmlEntityEncode(conditions[i])));
                 sb.append(prefix).append(indent).append(indent).append(indent)
@@ -838,12 +833,14 @@ public final class RatingContainerXmlFactory {
                 sourceRatingUnits.append(" {");
                 for (int j = 0; j < sourceRatings[i].units.length; ++j) {
                     sourceRatingUnits.append(j == 0 ? "" : j == sourceRatings[i].units.length - 1 ? ";" : ",")
-                                     .append(TextUtil.xmlEntityEncode(sourceRatings[i].units[j]));
+                                     .append(sourceRatings[i].units[j]);
                 }
                 sourceRatingUnits.append("}");
-                sb.append(prefix).append(indent).append(indent).append("<rating-spec-id position=\"" + (i + 1) + "\">\n");
+                sb.append(prefix).append(indent).append(indent).append("<rating-spec-id position=\"").append(i + 1).append("\">\n");
                 sb.append(prefix).append(indent).append(indent).append(indent)
-                  .append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId)).append("\n");
+                        .append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId))
+                        .append(TextUtil.xmlEntityEncode(sourceRatingUnits.toString()))
+                        .append("\n");
                 sb.append(prefix).append(indent).append(indent).append("</rating-spec-id>\n");
             }
             sb.append(prefix).append(indent).append("</source-ratings>\n");
@@ -896,9 +893,7 @@ public final class RatingContainerXmlFactory {
     public static String toXml(RatingSetContainer ratingSetContainer, CharSequence indent, int level, boolean includeTemplate,
                                boolean includeEmptyTableRatings) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
         List<String> ratingXmlStrings = new ArrayList<>();

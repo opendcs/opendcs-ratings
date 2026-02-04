@@ -26,29 +26,31 @@ import hec.heclib.util.HecTime;
 import hec.util.TextUtil;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.w3c.dom.Element;
 
 final class RatingXmlUtil {
 
-    static final String specNodeXpathStr = "/ratings/rating-spec[@office-id='%s' and normalize-space(rating-spec-id)='%s']";
-    static final String templateNodeXpathStr = "/ratings/rating-template[@office-id='%s' and normalize-space(parameters-id)='%s' and normalize-space(version)='%s']";
     static boolean xmlParsingInitialized                    = false;
     private static DocumentBuilder builder					= null;
     static XPath xpath                                      = null;
@@ -90,14 +92,12 @@ final class RatingXmlUtil {
     static XPathExpression noteXpath                        = null;
     static XPathExpression shiftNodesXpath                  = null;
     static XPathExpression offsetNodeXpath                  = null;
-    private static XMLOutputter outputter = null;
-    private static SAXBuilder saxBuilder = null;
 
     private RatingXmlUtil() {
         throw new AssertionError("Utility class");
     }
 
-    static String elementText(org.w3c.dom.Element element) {
+    static String elementText(Element element) {
         StringBuilder sb = new StringBuilder();
 
         for (Node n = element.getFirstChild(); n != null; n = n.getNextSibling()) {
@@ -110,7 +110,7 @@ final class RatingXmlUtil {
         return sb.toString().trim();
     }
 
-    static String attributeText(org.w3c.dom.Element element, String name) {
+    static String attributeText(Element element, String name) {
         NamedNodeMap attrs = element.getAttributes();
         for (int i = 0; i < attrs.getLength(); i++) {
             Attr a = (Attr) attrs.item(i);
@@ -123,60 +123,63 @@ final class RatingXmlUtil {
         return "";
     }
 
-    static String jdomElementToText(Element element) {
-        if (outputter == null) {
-            outputter = new XMLOutputter();
+    static String elementToText(Element element) {
+        Transformer t;
+        try {
+            t = TransformerFactory.newInstance().newTransformer();
+            StringWriter sw = new StringWriter();
+            t.transform(new DOMSource(element), new StreamResult(sw));
+            return sw.toString();
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
         }
-        synchronized (outputter) {
-            return outputter.outputString(element);
-        }
+
     }
 
-    static Element textToJdomElement(String text) throws RatingException {
-        if (saxBuilder == null) {
-            saxBuilder = new SAXBuilder();
-        }
+    static Element textToElement(String text) throws RatingException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);              // usually what you want
+        Document doc;
         try {
-            synchronized (saxBuilder) {
-                return saxBuilder.build(new StringReader(text)).getRootElement();
-            }
+            doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader(text)));
         } catch (Exception e) {
             throw new RatingException(e);
         }
+        return doc.getDocumentElement();
     }
 
 
     /**
      * Common code called from subclasses
-     * @throws VerticalDatumException
+     * @throws VerticalDatumException on error
      */
     static void populateCommonDataFromXml(Element ratingElement, AbstractRatingContainer arc) throws VerticalDatumException {
         HecTime hectime = new HecTime();
-        String data = null;
-        arc.officeId = ratingElement.getAttributeValue("office-id");
-        arc.ratingSpecId = ratingElement.getChildTextTrim("rating-spec-id");
-        arc.unitsId = ratingElement.getChildTextTrim("units-id");
-        Element verticalDatumElement = ratingElement.getChild("vertical-datum-info");
+        String data;
+        arc.officeId = attributeText(ratingElement, "office-id");
+        arc.ratingSpecId = elementText((Element) ratingElement.getElementsByTagName("rating-spec-id").item(0));
+        arc.unitsId = elementText((Element) ratingElement.getElementsByTagName("units-id").item(0));
+        Element verticalDatumElement = (Element) ratingElement.getElementsByTagName("vertical-datum-info").item(0);
         if (verticalDatumElement != null) {
-            arc.setVerticalDatumContainer(new VerticalDatumContainer(RatingXmlUtil.jdomElementToText(verticalDatumElement)));
+            arc.setVerticalDatumContainer(new VerticalDatumContainer(RatingXmlUtil.elementToText(verticalDatumElement)));
         }
-        data = ratingElement.getChildTextTrim("effective-date");
-        if (data != null && !data.isEmpty()) {
+        data = elementText((Element) ratingElement.getElementsByTagName("effective-date").item(0));
+        if (!data.isEmpty()) {
             hectime.set(data);
             arc.effectiveDateMillis = hectime.getTimeInMillis();
         }
-        data = ratingElement.getChildTextTrim("create-date");
-        if (data != null && !data.isEmpty()) {
+        data = elementText((Element) ratingElement.getElementsByTagName("create-date").item(0));
+        if (!data.isEmpty()) {
             hectime.set(data);
             arc.createDateMillis = hectime.getTimeInMillis();
         }
-        data = ratingElement.getChildTextTrim("transition-start-date");
-        if (data != null && !data.isEmpty()) {
+        data = elementText((Element) ratingElement.getElementsByTagName("transition-start-date").item(0));
+        if (!data.isEmpty()) {
             hectime.set(data);
             arc.transitionStartDateMillis = hectime.getTimeInMillis();
         }
-        arc.active = Boolean.parseBoolean(ratingElement.getChildTextTrim("active"));
-        arc.description = ratingElement.getChildTextTrim("description");
+        arc.active = Boolean.parseBoolean(elementText((Element) ratingElement.getElementsByTagName("active").item(0)));
+        arc.description = elementText((Element) ratingElement.getElementsByTagName("description").item(0));
     }
 
     /**
@@ -225,7 +228,7 @@ final class RatingXmlUtil {
             sb.append(prefix).append(indent).append("<create-date>").append(hectime.getXMLDateTime(0)).append("</create-date>\n");
         }
         sb.append(prefix).append(indent).append("<active>").append(active).append("</active>\n");
-        if (description == null || description.length() == 0) {
+        if (description == null || description.isEmpty()) {
             sb.append(prefix).append(indent).append("<description/>\n");
         }
         else{
@@ -236,8 +239,8 @@ final class RatingXmlUtil {
 
     /**
      * Initializes static variables for parsing CWMS-style ratings XML instances
-     * @throws ParserConfigurationException
-     * @throws XPathExpressionException
+     * @throws ParserConfigurationException on error
+     * @throws XPathExpressionException on error
      */
     static void initXmlParsing() throws ParserConfigurationException, XPathExpressionException {
         if (!xmlParsingInitialized) {

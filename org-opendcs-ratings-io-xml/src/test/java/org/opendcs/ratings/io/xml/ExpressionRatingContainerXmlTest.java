@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.io.ExpressionRatingContainer;
 import java.io.BufferedReader;
@@ -32,9 +33,9 @@ import java.time.Instant;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mil.army.usace.hec.metadata.constants.NumericalConstants;
-import org.jdom.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Element;
 
 class ExpressionRatingContainerXmlTest {
 
@@ -42,12 +43,14 @@ class ExpressionRatingContainerXmlTest {
 
     @BeforeEach
     public void setup() throws IOException, RatingException {
-        try (InputStream inputStream = getClass().getResourceAsStream("expression_rating.xml");
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-             Stream<String> stream = bufferedReader.lines()) {
-            String text = stream.collect(Collectors.joining("\n"));
-            expressionRatingContainer = new ExpressionRatingContainer(text);
+        try (InputStream inputStream = getClass().getResourceAsStream("expression_rating.xml")) {
+            Assertions.assertNotNull(inputStream);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                 Stream<String> stream = bufferedReader.lines()) {
+                String text = stream.collect(Collectors.joining("\n"));
+                expressionRatingContainer = new ExpressionRatingContainer(text);
+            }
         }
     }
 
@@ -59,9 +62,9 @@ class ExpressionRatingContainerXmlTest {
     }
 
     @Test
-    void testXmlJDomSerialization() throws RatingException {
+    void testXmlDomSerialization() throws RatingException {
         String xml = expressionRatingContainer.toXml("");
-        Element element = RatingXmlUtil.textToJdomElement(xml).getChild("simple-rating");
+        Element element = (Element) RatingXmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
         ExpressionRatingContainer newContainer = new ExpressionRatingContainer(element);
         assertEquals(expressionRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }

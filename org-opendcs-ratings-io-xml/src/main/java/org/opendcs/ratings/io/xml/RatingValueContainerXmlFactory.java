@@ -20,9 +20,14 @@ package org.opendcs.ratings.io.xml;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
 import org.opendcs.ratings.RatingException;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.jdom.Element;
+
+import static org.opendcs.ratings.io.xml.RatingXmlUtil.attributeText;
+import static org.opendcs.ratings.io.xml.RatingXmlUtil.elementText;
 
 final class RatingValueContainerXmlFactory {
 
@@ -32,30 +37,31 @@ final class RatingValueContainerXmlFactory {
 
     /**
      * Generates RatingValueContainer array from an XML node
-     * @param ratingElement The XML rating node as an org.jdom.Element object
+     * @param ratingElement The XML rating node as an Element object
      * @return The generated RatingValueContainer array
-     * @throws RatingException
+     * @throws RatingException on error
      */
     static RatingValueContainer[] makeContainers(Element ratingElement, String pointsElementsName) throws RatingException {
 
-        double[][] points = null;
+        double[][] points;
         String[] notes = null;
         int width = -1;
         int depth = 0;
         //---------------------------------//
         // determine the shape of the data //
         //---------------------------------//
-        List<?> pointsElems = ratingElement.getChildren(pointsElementsName);
-        if (pointsElems.size() == 0) return null;
-        for (Object pointsObj : pointsElems) {
-            Element pointsElem = (Element)pointsObj;
+        NodeList pointsElems = ratingElement.getElementsByTagName(pointsElementsName);
+        int count = pointsElems.getLength();
+        if (count == 0) return null;
+        for (int i = 0; i < count; ++i) {
+            Element pointsElem = (Element) pointsElems.item(i);
             if (width == -1) {
-                width = pointsElem.getChildren("other-ind").size(); // number of ind params - 1
+                width = pointsElem.getElementsByTagName("other-ind").getLength(); // number of ind params - 1
             }
-            if (pointsElem.getChildren("other-ind").size() != width) {
+            if (pointsElem.getElementsByTagName("other-ind").getLength() != width) {
                 throw new RatingException("Inconsistent number of independent parameters");
             }
-            depth += pointsElem.getChildren("point").size();
+            depth += pointsElem.getElementsByTagName("point").getLength();
         }
         width += 2; // now number of all params
         //------------------------------------//
@@ -66,24 +72,28 @@ final class RatingValueContainerXmlFactory {
         double[] otherInds = new double[width-2];
         int row = 0;
         String note;
-        for (Object obj : pointsElems) {
-            Element pointsElem = (Element)obj;
+        for (int i = 0; i < count; ++i) {
+            Element pointsElem = (Element) pointsElems.item(i);
             int col = 0;
-            for (Object otherIndObj : pointsElem.getChildren("other-ind")) {
-                Element otherIndElem = (Element)otherIndObj;
-                int pos = Integer.parseInt(otherIndElem.getAttributeValue("position"));
+            NodeList otherIndElems = pointsElem.getElementsByTagName("other-ind");
+            count = otherIndElems.getLength();
+            for (int j = 0; j < count; ++j) {
+                Element otherIndElem = (Element) otherIndElems.item(j);
+                int pos = Integer.parseInt(attributeText(otherIndElem, "position"));
                 if (pos != col+1) {
-                    throw new RatingException(String.format("Expected position %d, got %d on %s", col+1, pos, otherIndElem.toString()));
+                    throw new RatingException(String.format("Expected position %d, got %d on %s", col+1, pos, otherIndElem));
                 }
-                otherInds[col++] = Double.parseDouble(otherIndElem.getAttributeValue("value"));
+                otherInds[col++] = Double.parseDouble(attributeText(otherIndElem, "value"));
             }
-            for (Object pointObj : pointsElem.getChildren("point")) {
-                Element pointElem = (Element)pointObj;
+            NodeList pointElems = pointsElem.getElementsByTagName("point");
+            count = pointElems.getLength();
+            for (int j = 0; j < count; ++j) {
+                Element pointElem = (Element) pointElems.item(j);
                 for (col = 0; col < width-2; ++col) points[row][col] = otherInds[col];
-                points[row][width-2] = Double.parseDouble(pointElem.getChildTextTrim("ind"));
-                points[row][width-1] = Double.parseDouble(pointElem.getChildTextTrim("dep"));
-                note = pointElem.getChildTextTrim("note");
-                if (note != null) {
+                points[row][width-2] = Double.parseDouble(elementText((Element) pointElem.getElementsByTagName("ind").item(0)));
+                points[row][width-1] = Double.parseDouble(elementText((Element) pointElem.getElementsByTagName("dep").item(0)));
+                note = elementText((Element) pointElem.getElementsByTagName("note").item(0));
+                if (!note.isEmpty()) {
                     if (notes == null) notes = new String[depth];
                     notes[row] = note;
                 }

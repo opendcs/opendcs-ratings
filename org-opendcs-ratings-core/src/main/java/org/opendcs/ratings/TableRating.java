@@ -11,9 +11,7 @@ package org.opendcs.ratings;
 import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.VirtualRatingContainer;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 
 import hec.data.Units;
@@ -23,10 +21,13 @@ import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
 import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
@@ -34,6 +35,8 @@ import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.XmlUtil.elementText;
+
 /**
  * Table-based (lookup) rating implementation.
  *
@@ -94,7 +97,7 @@ public class TableRating extends AbstractRating {
 
 	void setBehaviors(RatingTemplate template) throws RatingException {
 		synchronized(this) {
-			TableRatingContainer trc = (TableRatingContainer) getData();
+			TableRatingContainer trc = getData();
 			TableRating.setBehaviors(trc, template.getInRangeMethods(), template.getOutRangeLowMethods(), template.getOutRangeHighMethods(), 0);
 			setData(trc);
 		}
@@ -131,7 +134,7 @@ public class TableRating extends AbstractRating {
 	/**
 	 * Public Constructor from TableRatingContainer
 	 * @param trc The TableRatingContainer object to construct from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public TableRating(TableRatingContainer trc) throws RatingException {
 		RatingValue[] values = null;
@@ -168,7 +171,7 @@ public class TableRating extends AbstractRating {
 	/**
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRating(String) instead
 	 */
 	@Deprecated
@@ -192,7 +195,7 @@ public class TableRating extends AbstractRating {
 	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
 	 * @param description The description of the rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public TableRating(
 			RatingValue[] values,
@@ -237,7 +240,7 @@ public class TableRating extends AbstractRating {
 	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
 	 * @param description The description of the rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public TableRating(
 			RatingValue[] values,
@@ -316,7 +319,7 @@ public class TableRating extends AbstractRating {
 	@Override
 	public double[] rate(double[] pIndVals) throws RatingException {
 
-		double rated[] = new double[pIndVals.length];
+		double[] rated = new double[pIndVals.length];
 		for (int i = 0; i < pIndVals.length; ++i) rated[i] = this.rate(pIndVals[i]);
 		return rated;
 	}
@@ -355,9 +358,7 @@ public class TableRating extends AbstractRating {
 				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 					dataUnits[i] = ratingUnits[i] = null;
 				}
-				else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
-				}
-				else {
+				else if(!Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])){
 					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
 					if (!allowUnsafe) throw new RatingException(msg);
 					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
@@ -379,7 +380,7 @@ public class TableRating extends AbstractRating {
 			int mid;
 			double mid_ind_val;
 			RatingMethod extrap_method = null;
-			double dep_val = UNDEFINED_DOUBLE;
+			double dep_val;
 			comps: do {
 				//--------------------------------------------------- //
 				// find the interpolation/extrapolation value indices //
@@ -430,7 +431,6 @@ public class TableRating extends AbstractRating {
 					switch (outRangeLowMethod) {
 					case NULL:
 						dep_val = UNDEFINED_DOUBLE;
-//						System.out.println("rate : dep_val 1 = " + dep_val);
 						break comps;
 					case ERROR:
 						throw new RatingOutOfRangeException(OUT_OF_RANGE_LOW);
@@ -447,36 +447,30 @@ public class TableRating extends AbstractRating {
 					case CLOSEST:
 						if (effectiveValues[0].hasDepValue()) {
 							dep_val = effectiveValues[0].getDepValue();
-//							System.out.println("rate : dep_val 2 = " + dep_val);
 							break comps;
 						}
 						else {
 							dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//							System.out.println("rate : dep_val 3 = " + dep_val);
 							break comps;
 						}
 					case LOWER:
 						if (props.hasIncreasing()) throw new RatingException("No lower value in table.");
 						if (effectiveValues[0].hasDepValue()) {
 							dep_val = effectiveValues[0].getDepValue();
-//							System.out.println("rate : dep_val 4 = " + dep_val);
 							break comps;
 						}
 						else {
 							dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//							System.out.println("rate : dep_val 5 = " + dep_val);
 							break comps;
 						}
 					case HIGHER:
 						if (props.hasDecreasing()) throw new RatingException("No higher value in table.");
 						if (effectiveValues[0].hasDepValue()) {
 							dep_val = effectiveValues[0].getDepValue();
-//							System.out.println("rate : dep_val 6 = " + dep_val);
 							break comps;
 						}
 						else {
 							dep_val = effectiveValues[0].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//							System.out.println("rate : dep_val 7 = " + dep_val);
 							break comps;
 						}
 					default:
@@ -494,7 +488,6 @@ public class TableRating extends AbstractRating {
 					switch (outRangeHighMethod) {
 					case NULL:
 						dep_val = UNDEFINED_DOUBLE;
-//						System.out.println("rate : dep_val 8 = " + dep_val);
 						break comps;
 					case ERROR:
 						throw new RatingOutOfRangeException(OUT_OF_RANGE_HIGH);
@@ -511,36 +504,30 @@ public class TableRating extends AbstractRating {
 					case CLOSEST:
 						if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
 							dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
-//							System.out.println("rate : dep_val 9 = " + dep_val);
 							break comps;
 						}
 						else {
 							dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//							System.out.println("rate : dep_val 10 = " + dep_val);
 							break comps;
 						}
 					case LOWER:
 						if (props.hasDecreasing()) throw new RatingException("No lower value in table.");
 						if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
 							dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
-//							System.out.println("rate : dep_val 11 = " + dep_val);
 							break comps;
 						}
 						else {
 							dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//							System.out.println("rate : dep_val 12 = " + dep_val);
 							break comps;
 						}
 					case HIGHER:
 						if (props.hasIncreasing()) throw new RatingException("No higher value in table.");
 						if (effectiveValues[effectiveValues.length-1].hasDepValue()) {
 							dep_val = effectiveValues[effectiveValues.length-1].getDepValue();
-//							System.out.println("rate : dep_val 13 = " + dep_val);
 							break comps;
 						}
 						else {
 							dep_val = effectiveValues[effectiveValues.length-1].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
-//							System.out.println("rate : dep_val 14 = " + dep_val);
 							break comps;
 						}
 					default:
@@ -567,8 +554,7 @@ public class TableRating extends AbstractRating {
 					else {
 						dep_val = effectiveValues[lo].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 					}
-//					System.out.println("rate : dep_val 15 = " + dep_val);
-					break comps;
+					break;
 				}
 				else if (eq(ind_val, hi_ind_val)) {
 					if (effectiveValues[hi].hasDepValue()) {
@@ -577,8 +563,7 @@ public class TableRating extends AbstractRating {
 					else {
 						dep_val = effectiveValues[hi].getDepValues().rate(pIndVals, dataUnits, ratingUnits, p_offset+1);
 					}
-//					System.out.println("rate : dep_val 16 = " + dep_val);
-					break comps;
+					break;
 				}
 				//-----------------------------------------------------------------//
 				// can't use specific rating, use in-range behavior or extrapolate //
@@ -596,23 +581,18 @@ public class TableRating extends AbstractRating {
 					throw new RatingException("No such value in table.");
 				case PREVIOUS:
 					dep_val = lo_dep_val;
-//					System.out.println("rate : dep_val 17 = " + dep_val);
 					break comps;
 				case NEXT:
 					dep_val = hi_dep_val;
-//					System.out.println("rate : dep_val 18 = " + dep_val);
 					break comps;
 				case LOWER:
 					dep_val = props.hasIncreasing() ? lo_dep_val : hi_dep_val;
-//					System.out.println("rate : dep_val 19 = " + dep_val);
 					break comps;
 				case HIGHER:
 					dep_val = props.hasDecreasing() ? lo_dep_val : hi_dep_val;
-//					System.out.println("rate : dep_val 20 = " + dep_val);
 					break comps;
 				case CLOSEST:
 					dep_val = lt(Math.abs(ind_val - lo_ind_val), Math.abs(hi_ind_val - ind_val)) ? lo_dep_val : hi_dep_val;
-//					System.out.println("rate : dep_val 21 = " + dep_val);
 					break comps;
 				default:
 					break;
@@ -661,8 +641,7 @@ public class TableRating extends AbstractRating {
 				double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 				if (dep_log) y = Math.pow(10, y);
 				dep_val = y;
-//				System.out.println("rate : dep_val 22 = " + dep_val);
-				break comps;
+				break;
 			} while(false);
 			if (p_offset == 0 && dep_val != UNDEFINED_DOUBLE) {
 				dep_val = convertUnits(dep_val, ratingUnits[ratingUnits.length-1], dataUnits[dataUnits.length-1]);
@@ -733,7 +712,7 @@ public class TableRating extends AbstractRating {
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
 		synchronized(this) {
-			long[] times = null;
+			long[] times;
 			if (valTimes == null) {
 				times = new long[depVals.length];
 				Arrays.fill(times, defaultValueTime);
@@ -783,7 +762,7 @@ public class TableRating extends AbstractRating {
 				for (int i = 0; i < trc.values.length; ++i) {
 					values[i] = new RatingValue(trc.values[i]);
 				}
-				RatingValue[] extensionValues = null;
+				RatingValue[] extensionValues;
 				if(trc.extensionValues != null)
 				{
 					extensionValues = new RatingValue[trc.extensionValues.length];
@@ -830,7 +809,7 @@ public class TableRating extends AbstractRating {
 
 	public String getLookupMethods() {
 		synchronized(this) {
-			return ((TableRatingContainer)getData()).getLookupMethods();
+			return getData().getLookupMethods();
 		}
 	}
 	/**
@@ -840,12 +819,14 @@ public class TableRating extends AbstractRating {
 	public void setLookupMethods(String xml) {
 		synchronized(this) {
 			try {
-				Document doc = new SAXBuilder().build(new StringReader(xml));
-				Element elem = doc.getRootElement();
-				if (elem.getName().equals("lookup-behaviors")) {
-					inRangeMethod = RatingMethod.fromString(elem.getChildText("in-range"));
-					outRangeLowMethod = RatingMethod.fromString(elem.getChildText("out-range-low"));
-					outRangeHighMethod = RatingMethod.fromString(elem.getChildText("out-range-high"));
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                DocumentBuilder db = dbf.newDocumentBuilder();
+				Document doc = db.parse(new InputSource(new StringReader(xml)));
+				Element elem = doc.getDocumentElement();
+				if (elem.getTagName().equals("lookup-behaviors")) {
+					inRangeMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("in-range").item(0)));
+					outRangeLowMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("out-range-low").item(0)));
+					outRangeHighMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("out-range-high").item(0)));
 				}
 			}
 			catch (Exception e) {
@@ -919,19 +900,18 @@ public class TableRating extends AbstractRating {
 				}
 			}
 			boolean isLeaf = values[0].hasDepValue();
-			for (int i = 0; i < values.length; ++i) {
-				if (isLeaf) {
-					if (lt(values[i].depValue, extents[0][level+1])) {
-						extents[0][level+1] = values[i].depValue;
-					}
-					if (gt(values[i].depValue, extents[1][level+1])) {
-						extents[1][level+1] = values[i].depValue;
-					}
-				}
-				else {
-					values[i].depTable.getRatingExtents(extents, level+1);
-				}
-			}
+            for (RatingValue value : values) {
+                if (isLeaf) {
+                    if (lt(value.depValue, extents[0][level + 1])) {
+                        extents[0][level + 1] = value.depValue;
+                    }
+                    if (gt(value.depValue, extents[1][level + 1])) {
+                        extents[1][level + 1] = value.depValue;
+                    }
+                } else {
+                    value.depTable.getRatingExtents(extents, level + 1);
+                }
+            }
 		}
 	}
 
@@ -976,7 +956,7 @@ public class TableRating extends AbstractRating {
 	 * Retrieves the independent parameter count of an array of rating values
 	 * @param values The rating values to analyze
 	 * @return The number of independent parameters for the specified rating values
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected static int getIndParamCount(RatingValue[] values) throws RatingException {
 		if (values == null || values.length == 0) {
@@ -993,14 +973,14 @@ public class TableRating extends AbstractRating {
 	}
 	/**
 	 * Generates the reversed permutation of this rating - used for reverseRate() methods
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected void reverse() throws RatingException {
 		synchronized(this) {
 			if (getIndParamCount() > 1) {
 				throw new RatingException("Cannot reverse a TableRating with more than one independent parameter");
 			}
-			TableRatingContainer trc = (TableRatingContainer)getData();
+			TableRatingContainer trc = getData();
 			if (trc.values != null) {
 				double temp;
 				for (RatingValueContainer rvc : trc.values) {
@@ -1047,7 +1027,7 @@ public class TableRating extends AbstractRating {
 	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
 	 * @param description The description of the rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected void init(
 			RatingValue[] values,
@@ -1067,7 +1047,7 @@ public class TableRating extends AbstractRating {
 			//-------------------------------------//
 			// validate the incoming rating values //
 			//-------------------------------------//
-			double[] ind_vals = null;
+			double[] ind_vals;
 			if (values != null && values.length > 0) {
 				getIndParamCount(values);
 				ind_vals = new double[values.length];
@@ -1085,7 +1065,7 @@ public class TableRating extends AbstractRating {
 				if (ratingSpecId == null) {
 					throw new RatingException("Only top-level table ratings can have extension values.");
 				}
-				if (getIndParamCount(extensionValues) != getIndParamCount(extensionValues)) {
+				if (getIndParamCount(extensionValues) != getIndParamCount(values)) {
 					throw new RatingException("Rating extension has different number of parameters than rating.");
 				}
 				ind_vals = new double[extensionValues.length];
@@ -1102,15 +1082,13 @@ public class TableRating extends AbstractRating {
 				//---------------------------------------------------------------------//
 				double first = values[0].getIndValue();
 				double last  = values[values.length-1].getIndValue();
-				List<RatingValue> effective = new Vector<RatingValue>();
+				List<RatingValue> effective = new Vector<>();
 				if (props.hasIncreasing()) {
 					int i;
 					for (i = 0; i < extensionValues.length && lt(extensionValues[i].getIndValue(), first); ++i) {
 						effective.add(extensionValues[i]);
 					}
-					for (int j = 0; j < values.length; ++j) {
-						effective.add(values[j]);
-					}
+                    Collections.addAll(effective, values);
 					for (; i < extensionValues.length && le(extensionValues[i].getIndValue(), last); ++i);
 					for (; i < extensionValues.length; ++i) {
 						effective.add(extensionValues[i]);
@@ -1121,25 +1099,20 @@ public class TableRating extends AbstractRating {
 					for (i = 0; i < extensionValues.length && lt(extensionValues[i].getIndValue(), first); ++i) {
 						effective.add(extensionValues[i]);
 					}
-					for (int j = 0; j < values.length; ++j) {
-						effective.add(values[j]);
-					}
+                    Collections.addAll(effective, values);
 					for (; i < extensionValues.length && ge(extensionValues[i].getIndValue(), last); ++i);
 					for (; i < extensionValues.length; ++i) {
 						effective.add(extensionValues[i]);
 					}
 				}
-				effectiveValues = effective.toArray(new RatingValue[effective.size()]);
+				effectiveValues = effective.toArray(new RatingValue[0]);
 			}
 			//----------------------------------//
 			// validate the specified behaviors //
 			//----------------------------------//
-			switch (inRangeMethod) {
-			case NEAREST:
-				throw new RatingException(inRangeMethod + " is not a valid in range method.");
-			default:
-				break;
-			}
+            if (inRangeMethod == RatingMethod.NEAREST) {
+                throw new RatingException(inRangeMethod + " is not a valid in range method.");
+            }
 			switch (outRangeLowMethod) {
 			case PREVIOUS:
 				throw new RatingException("Out of range low method " + outRangeLowMethod + " cannot be used in this context");
@@ -1160,12 +1133,12 @@ public class TableRating extends AbstractRating {
 			case NEXT:
 				throw new RatingException("Out of range high method " + outRangeHighMethod + " cannot be used in this context");
 			case LOWER:
-				if (props.hasDecreasing()) {
+				if (props != null && props.hasDecreasing()) {
 					throw new RatingException("Out of range high method " + outRangeHighMethod + " cannot be used in this context");
 				}
 				break;
 			case HIGHER:
-				if (props.hasIncreasing()) {
+				if (props != null && props.hasIncreasing()) {
 					throw new RatingException("Out of range high method " + outRangeHighMethod + " cannot be used in this context");
 				}
 				break;
@@ -1239,7 +1212,7 @@ public class TableRating extends AbstractRating {
 	/**
 	 * Sets the rating values to use to perform lookups
 	 * @param values The rating values
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setRatingValues(RatingValue[] values) throws RatingException {
 		synchronized(this) {
@@ -1250,7 +1223,7 @@ public class TableRating extends AbstractRating {
 			for (int i = 0; i < values.length;++i) {
 				rvcs[i] = values[i].getData();
 			}
-			TableRatingContainer trc = (TableRatingContainer)getData();
+			TableRatingContainer trc = getData();
 			trc.values = rvcs;
 			setData(trc);
 		}
@@ -1258,7 +1231,7 @@ public class TableRating extends AbstractRating {
 	/**
 	 * Sets the extension values to use to perform lookups
 	 * @param values The extension values
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setExtensionValues(RatingValue[] values) throws RatingException {
 		synchronized(this) {
@@ -1272,7 +1245,7 @@ public class TableRating extends AbstractRating {
 					rvcs[i] = values[i].getData();
 				}
 			}
-			TableRatingContainer trc = (TableRatingContainer)getData();
+			TableRatingContainer trc = getData();
 			trc.extensionValues = rvcs;
 			setData(trc);
 		}

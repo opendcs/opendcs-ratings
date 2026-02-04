@@ -12,8 +12,8 @@ import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.UsgsStreamTableRating;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.w3c.dom.Element;
 
-import org.jdom.Element;
 /**
  * Data container class for UsgsStreamTableRating data
  * @author Mike Perryman
@@ -34,9 +34,9 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	public UsgsStreamTableRatingContainer() {}
 	/**
-	 * Public constructor from a jdom element
-	 * @param ratingElement The jdom element
-	 * @throws RatingException
+	 * Public constructor from a DOM element
+	 * @param ratingElement The DOM element
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(Element) instead
 	 */
 	@Deprecated
@@ -46,7 +46,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	/**
 	 * Public constructor from an XML snippet
 	 * @param xmlText The XML snippet
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -113,12 +113,11 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
-		UsgsStreamTableRating rating = new UsgsStreamTableRating(this);
-		return rating;
+		return new UsgsStreamTableRating(this);
 	}
 	/**
-	 * Populates the UsgsStreamRatingContainer object from a jdom element
-	 * @param ratingElement the jdom element
+	 * Populates the UsgsStreamRatingContainer object from a DOM element
+	 * @param ratingElement the DOM element
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(Element) instead
 	 */
 	@Deprecated
