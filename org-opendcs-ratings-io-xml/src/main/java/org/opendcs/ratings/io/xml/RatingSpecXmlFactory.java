@@ -20,6 +20,8 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.io.xml.RatingXmlUtil.attributeText;
+import static org.opendcs.ratings.io.xml.RatingXmlUtil.elementText;
 
 
 import org.opendcs.ratings.RatingObjectDoesNotExistException;
@@ -31,18 +33,20 @@ import org.opendcs.ratings.RatingTemplate;
 import org.opendcs.ratings.io.RatingSpecContainer;
 import org.opendcs.ratings.io.RatingTemplateContainer;
 import hec.util.TextUtil;
-import java.io.IOException;
+
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
-import java.util.Iterator;
-import java.util.List;
+import java.io.StringWriter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPathConstants;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.filter.ElementFilter;
-import org.jdom.input.SAXBuilder;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 public final class RatingSpecXmlFactory {
 
@@ -50,11 +54,19 @@ public final class RatingSpecXmlFactory {
         throw new AssertionError("Utility class");
     }
 
+    private static void logThrowable(Throwable t) {
+        // still uses java.util.logging - should move to fluentLogger
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);;
+        pw.flush();
+        AbstractRating.getLogger().severe(sw.toString());
+    }
     /**
      * constructors a RatingSpecConstainer from an XML snippet
      *
      * @param xmlText The XML snippet
-     * @throws RatingObjectDoesNotExistException
+     * @throws RatingObjectDoesNotExistException on error
      */
     public static RatingSpecContainer ratingSpecContainer(String xmlText) throws RatingObjectDoesNotExistException {
         RatingSpecContainer ratingSpecContainer = new RatingSpecContainer();
@@ -67,97 +79,110 @@ public final class RatingSpecXmlFactory {
             noTemplateException = e;
         }
         try {
-            Document doc = new SAXBuilder().build(new StringReader(xmlText));
-            Element root = doc.getRootElement();
-            if (!root.getName().equals(elementName)) {
-                @SuppressWarnings("rawtypes") Iterator it = root.getDescendants(new ElementFilter(elementName));
-                if (it.hasNext()) {
-                    root = (Element) it.next();
-                }
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            BufferedReader br = new BufferedReader(new StringReader(xmlText));
+            InputSource is = new InputSource(br);
+            Document doc = db.parse(is);
+            Element root = doc.getDocumentElement();
+            if (!root.getTagName().equals(elementName)) {
+                root = (Element) root.getElementsByTagName(elementName).item(0);
             }
-            if (!root.getName().equals(elementName)) {
+            if (!root.getTagName().equals(elementName)) {
                 throw new RatingObjectDoesNotExistException(String.format("No <%s> element in XML.", elementName));
-            } else {
-                Element elem = null;
-                @SuppressWarnings("rawtypes") List elems = null;
-                ratingSpecContainer.specOfficeId = root.getAttributeValue("office-id");
-                elem = root.getChild("rating-spec-id");
-                if (elem != null) {
-                    ratingSpecContainer.specId = elem.getTextTrim();
-                }
-                elem = root.getChild("template-id");
-                if (elem != null) {
-                    ratingSpecContainer.templateId = elem.getTextTrim();
-                }
-                elem = root.getChild("location-id");
-                if (elem != null) {
-                    ratingSpecContainer.locationId = elem.getTextTrim();
-                }
-                elem = root.getChild("version");
-                if (elem != null) {
-                    ratingSpecContainer.specVersion = elem.getTextTrim();
-                }
-                elem = root.getChild("source-agency");
-                if (elem != null) {
-                    ratingSpecContainer.sourceAgencyId = elem.getTextTrim();
-                }
-                elem = root.getChild("in-range-method");
-                if (elem != null) {
-                    ratingSpecContainer.inRangeMethod = elem.getTextTrim();
-                }
-                elem = root.getChild("out-range-low-method");
-                if (elem != null) {
-                    ratingSpecContainer.outRangeLowMethod = elem.getTextTrim();
-                }
-                elem = root.getChild("out-range-high-method");
-                if (elem != null) {
-                    ratingSpecContainer.outRangeHighMethod = elem.getTextTrim();
-                }
-                elem = root.getChild("active");
-                if (elem != null) {
-                    ratingSpecContainer.active = Boolean.parseBoolean(elem.getTextTrim());
-                }
-                elem = root.getChild("auto-update");
-                if (elem != null) {
-                    ratingSpecContainer.autoUpdate = Boolean.parseBoolean(elem.getTextTrim());
-                }
-                elem = root.getChild("auto-activate");
-                if (elem != null) {
-                    ratingSpecContainer.autoActivate = Boolean.parseBoolean(elem.getTextTrim());
-                }
-                elem = root.getChild("auto-migrate-extension");
-                if (elem != null) {
-                    ratingSpecContainer.autoMigrateExtensions = Boolean.parseBoolean(elem.getTextTrim());
-                }
-                elem = root.getChild("ind-rounding-specs");
-                if (elem != null) {
-                    elems = elem.getChildren("ind-rounding-spec");
-                    ratingSpecContainer.indRoundingSpecs = new String[elems.size()];
-                    for (Object obj : elems) {
-                        elem = (Element) obj;
-                        try {
-                            int i = Integer.parseInt(elem.getAttributeValue("position")) - 1;
-                            if (i >= 0 && i < elems.size()) {
-                                ratingSpecContainer.indRoundingSpecs[i] = elem.getTextTrim();
-                            }
-                        } catch (Throwable t) {
+            }
+            Element elem = null;
+            NodeList elems = null;
+            ratingSpecContainer.specOfficeId = attributeText(root, "office-id");
+            elem = (Element) root.getElementsByTagName("rating-spec-id").item(0);
+            if (elem != null) {
+                ratingSpecContainer.specId = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("template-id").item(0);
+            if (elem != null) {
+                ratingSpecContainer.templateId = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("location-id").item(0);
+            if (elem != null) {
+                ratingSpecContainer.locationId = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("version").item(0);
+            if (elem != null) {
+                ratingSpecContainer.specVersion = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("source-agency").item(0);
+            if (elem != null) {
+                ratingSpecContainer.sourceAgencyId = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("in-range-method").item(0);
+            if (elem != null) {
+                ratingSpecContainer.inRangeMethod = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("out-range-low-method").item(0);
+            if (elem != null) {
+                ratingSpecContainer.outRangeLowMethod = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("out-range-high-method").item(0);
+            if (elem != null) {
+                ratingSpecContainer.outRangeHighMethod = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("active").item(0);
+            if (elem != null) {
+                ratingSpecContainer.active = Boolean.parseBoolean(elementText(elem));
+            }
+            elem = (Element) root.getElementsByTagName("auto-update").item(0);
+            if (elem != null) {
+                ratingSpecContainer.autoUpdate = Boolean.parseBoolean(elementText(elem));
+            }
+            elem = (Element) root.getElementsByTagName("active").item(0);
+            if (elem != null) {
+                ratingSpecContainer.active = Boolean.parseBoolean(elementText(elem));
+            }
+            elem = (Element) root.getElementsByTagName("auto-update").item(0);
+            if (elem != null) {
+                ratingSpecContainer.autoUpdate = Boolean.parseBoolean(elementText(elem));
+            }
+            elem = (Element) root.getElementsByTagName("auto-activate").item(0);
+            if (elem != null) {
+                ratingSpecContainer.autoActivate = Boolean.parseBoolean(elementText(elem));
+            }
+            elem = (Element) root.getElementsByTagName("auto-migrate-extension").item(0);
+            if (elem != null) {
+                ratingSpecContainer.autoMigrateExtensions = Boolean.parseBoolean(elementText(elem));
+            }
+            elem = (Element) root.getElementsByTagName("ind-rounding-specs").item(0);
+            if (elem != null) {
+                elems = elem.getElementsByTagName("ind-rounding-spec");
+                int count = elems.getLength();
+                ratingSpecContainer.indRoundingSpecs = new String[count];
+                for (int i = 0; i < count; ++i) {
+                    try {
+                        elem = (Element) elems.item(i);
+                        int j = Integer.parseInt(attributeText(elem,"position")) - 1;
+                        if (j >= 0 && j < count) {
+                            ratingSpecContainer.indRoundingSpecs[j] = elementText(elem);
                         }
                     }
-                }
-                elem = root.getChild("dep-rounding-spec");
-                if (elem != null) {
-                    ratingSpecContainer.depRoundingSpec = elem.getTextTrim();
-                }
-                elem = root.getChild("description");
-                if (elem != null) {
-                    ratingSpecContainer.specDescription = elem.getTextTrim();
+                    catch (Throwable t) {
+                        logThrowable(t);
+                    }
                 }
             }
-            if (noTemplateException != null) {
-                AbstractRating.getLogger().finer(noTemplateException.getMessage());
+            elem = (Element) root.getElementsByTagName("dep-rounding-spec").item(0);
+            if (elem != null) {
+                ratingSpecContainer.depRoundingSpec = elementText(elem);
             }
-        } catch (JDOMException | IOException e) {
-            AbstractRating.getLogger().severe(e.getMessage());
+            elem = (Element) root.getElementsByTagName("description").item(0);
+            if (elem != null) {
+                ratingSpecContainer.specDescription = elementText(elem);
+            }
+        }
+        catch (Throwable t) {
+            AbstractRating.getLogger().severe(t.getMessage());
+            throw new RuntimeException(t);
+        }
+        if (noTemplateException != null) {
+            AbstractRating.getLogger().finer(noTemplateException.getMessage());
         }
         return ratingSpecContainer;
     }
@@ -198,9 +223,7 @@ public final class RatingSpecXmlFactory {
      */
     static String toSpecXml(RatingSpecContainer ratingSpecContainer, CharSequence indent, int level) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
 
@@ -278,53 +301,55 @@ public final class RatingSpecXmlFactory {
         RatingTemplateContainer ratingTemplateContainer = new RatingTemplateContainer();
         String elementName = "rating-template";
         try {
-            Document doc = new SAXBuilder().build(new StringReader(xmlStr));
-            Element root = doc.getRootElement();
-            if (!root.getName().equals(elementName)) {
-                @SuppressWarnings("rawtypes") Iterator it = root.getDescendants(new ElementFilter(elementName));
-                if (it.hasNext()) {
-                    root = (Element) it.next();
-                }
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            BufferedReader br = new BufferedReader(new StringReader(xmlStr));
+            InputSource is = new InputSource(br);
+            Document doc = db.parse(is);
+            Element root = doc.getDocumentElement();
+            if (!root.getTagName().equals(elementName)) {
+                root = (Element) root.getElementsByTagName(elementName).item(0);
             }
-            if (!root.getName().equals(elementName)) {
+            if (!root.getTagName().equals(elementName)) {
                 throw new RatingObjectDoesNotExistException(String.format("No <%s> element in XML.", elementName));
-            } else {
-                Element elem = null;
-                @SuppressWarnings("rawtypes") List elems = null;
-                ratingTemplateContainer.officeId = root.getAttributeValue("office-id");
-                elem = root.getChild("version");
-                if (elem != null) {
-                    ratingTemplateContainer.templateVersion = elem.getTextTrim();
-                }
-                elem = root.getChild("ind-parameter-specs");
-                if (elem != null) {
-                    elems = elem.getChildren("ind-parameter-spec");
-                    ratingTemplateContainer.indParams = new String[elems.size()];
-                    ratingTemplateContainer.inRangeMethods = new String[elems.size()];
-                    ratingTemplateContainer.outRangeLowMethods = new String[elems.size()];
-                    ratingTemplateContainer.outRangeHighMethods = new String[elems.size()];
-                    for (Object obj : elems) {
-                        elem = (Element) obj;
-                        try {
-                            int i = Integer.parseInt(elem.getAttributeValue("position")) - 1;
-                            if (i >= 0 && i < elems.size()) {
-                                ratingTemplateContainer.indParams[i] = elem.getChildTextTrim("parameter");
-                                ratingTemplateContainer.inRangeMethods[i] = elem.getChildTextTrim("in-range-method");
-                                ratingTemplateContainer.outRangeLowMethods[i] = elem.getChildTextTrim("out-range-low-method");
-                                ratingTemplateContainer.outRangeHighMethods[i] = elem.getChildTextTrim("out-range-high-method");
-                            }
-                        } catch (Throwable t) {
+            }
+            ratingTemplateContainer.officeId = attributeText(root, "office-id");
+            Element elem = null;
+            NodeList elems = null;
+            elem = (Element) root.getElementsByTagName("version").item(0);
+            if (elem != null) {
+                ratingTemplateContainer.templateVersion = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("ind-parameter-specs").item(0);
+            if (elem != null) {
+                elems = elem.getElementsByTagName("ind-parameter-spec");
+                int count = elems.getLength();
+                ratingTemplateContainer.indParams = new String[count];
+                ratingTemplateContainer.inRangeMethods = new String[count];
+                ratingTemplateContainer.outRangeLowMethods = new String[count];
+                ratingTemplateContainer.outRangeHighMethods = new String[count];
+                for (int i = 0; i < count; ++i) {
+                    elem = (Element) elems.item(i);
+                    try {
+                        int j = Integer.parseInt(attributeText(elem, "position")) - 1;
+                        if (j >= 0 && j < count) {
+                            ratingTemplateContainer.indParams[i] = elementText((Element) elem.getElementsByTagName("parameter").item(0));
+                            ratingTemplateContainer.inRangeMethods[i] = elementText((Element) elem.getElementsByTagName("in-range-method").item(0));
+                            ratingTemplateContainer.outRangeLowMethods[i] = elementText((Element) elem.getElementsByTagName("out-range-low-method").item(0));
+                            ratingTemplateContainer.outRangeHighMethods[i] = elementText((Element) elem.getElementsByTagName("out-range-high-method").item(0));
                         }
+                    } catch (Throwable t) {
+                        logThrowable(t);
                     }
                 }
-                elem = root.getChild("dep-parameter");
-                if (elem != null) {
-                    ratingTemplateContainer.depParam = elem.getTextTrim();
-                }
-                elem = root.getChild("description");
-                if (elem != null) {
-                    ratingTemplateContainer.templateDescription = elem.getTextTrim();
-                }
+            }
+            elem = (Element) root.getElementsByTagName("dep-parameter").item(0);
+            if (elem != null) {
+                ratingTemplateContainer.depParam = elementText(elem);
+            }
+            elem = (Element) root.getElementsByTagName("description").item(0);
+            if (elem != null) {
+                ratingTemplateContainer.templateDescription = elementText(elem);
             }
             if (ratingTemplateContainer.indParams != null && ratingTemplateContainer.indParams.length > 0 &&
                 ratingTemplateContainer.depParam != null) {
@@ -336,8 +361,9 @@ public final class RatingSpecXmlFactory {
                 ratingTemplateContainer.templateId =
                     String.format("%s.%s", ratingTemplateContainer.parametersId, ratingTemplateContainer.templateVersion);
             }
-        } catch (JDOMException | IOException e) {
-            AbstractRating.getLogger().severe(e.getMessage());
+        } catch (Throwable t) {
+            AbstractRating.getLogger().severe(t.getMessage());
+            throw new RuntimeException(t);
         }
         return ratingTemplateContainer;
     }
@@ -352,9 +378,7 @@ public final class RatingSpecXmlFactory {
      */
     public static String toXml(RatingTemplateContainer ratingTemplateContainer, CharSequence indent, int level) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < level; ++i) {
-            sb.append(indent);
-        }
+        sb.append(String.valueOf(indent).repeat(Math.max(0, level)));
         String prefix = sb.toString();
         sb.delete(0, sb.length());
 
@@ -381,7 +405,7 @@ public final class RatingSpecXmlFactory {
         sb.append(prefix).append(indent).append("<ind-parameter-specs>\n");
         if (indParams != null) {
             for (int i = 0; i < indParams.length; ++i) {
-                String indParam = i < indParams.length && indParams[i] != null ? indParams[i] : "";
+                String indParam = indParams[i] != null ? indParams[i] : "";
                 String inRangeMethod = inRangeMethods != null && i < inRangeMethods.length && inRangeMethods[i] != null ? inRangeMethods[i] : "";
                 String outRangeLowMethod =
                     outRangeLowMethods != null && i < outRangeLowMethods.length && outRangeLowMethods[i] != null ? outRangeLowMethods[i] : "";
@@ -451,7 +475,7 @@ public final class RatingSpecXmlFactory {
      *
      * @param templateXml The template XML text
      * @param specXml     The specification XML text
-     * @throws RatingException
+     * @throws RatingException On error
      */
     public static RatingSpec ratingSpec(String templateXml, String specXml) throws RatingException {
         if (templateXml == null) {
@@ -462,8 +486,8 @@ public final class RatingSpecXmlFactory {
         }
         try {
             RatingXmlUtil.initXmlParsing();
-            org.w3c.dom.Document templateDoc = RatingXmlUtil.readXmlAsDocument(templateXml);
-            org.w3c.dom.Document specDoc = RatingXmlUtil.readXmlAsDocument(specXml);
+            Document templateDoc = RatingXmlUtil.readXmlAsDocument(templateXml);
+            Document specDoc = RatingXmlUtil.readXmlAsDocument(specXml);
             return ratingSpec(templateDoc.getDocumentElement().getElementsByTagName("rating-template").item(0),
                 specDoc.getDocumentElement().getElementsByTagName("rating-spec").item(0));
         } catch (Exception e) {
@@ -597,10 +621,10 @@ public final class RatingSpecXmlFactory {
             ratingSpec.setTemplateDescription(templateDescription);
             return ratingSpec;
         } catch (Throwable t) {
+            logThrowable(t);
             if (t instanceof RatingException) {
                 throw (RatingException) t;
             }
-            t.printStackTrace();
             throw new RatingException(t);
         }
     }
