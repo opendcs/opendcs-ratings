@@ -59,7 +59,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
     /**
      * Loads all rating values from table ratings that haven't already been loaded.
      *
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public void getConcreteRatings(Connection conn) throws RatingException {
@@ -75,7 +75,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
     /**
      * Loads all rating values from table ratings that haven't already been loaded.
      *
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void getConcreteRatings() throws RatingException {
         long[] effectiveDates = getEffectiveDates();
@@ -113,9 +113,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                             getLogger().log(Level.WARNING, "Cannot get concrete rating for " + rating.getRatingSpecId() + " for effective date " +
                                 sdf.format(rating.getEffectiveDate()) + " UTC. Removing effective date from rating set");
                             ratings.remove(rating.getEffectiveDate());
-                            if (activeRatings.containsKey(rating.getEffectiveDate())) {
-                                activeRatings.remove(rating.getEffectiveDate());
-                            }
+                            activeRatings.remove(rating.getEffectiveDate());
                         } else {
                             AbstractRating newRating = RatingXmlFactory.abstractRating(xmlText);
                             if (newRating == null) {
@@ -147,7 +145,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
      * @param valueSets  The value sets to rate
      * @param valueTimes The times associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {
@@ -185,7 +183,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
         Entry<Long, AbstractRating> lowerRating;
         Entry<Long, AbstractRating> upperRating;
         IRating lastUsedRating = null;
-        RatingMethod method = null;
+        RatingMethod method;
         for (int i = 0; i < valueSets.length; ++i) {
             if (i > 0 && valueTimes[i] == valueTimes[i - 1] && lastUsedRating != null) {
                 Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
@@ -246,18 +244,16 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                             break;
                     }
                     if (activeRatings.size() == 1) {
-                        switch (method) {
-                            case LINEAR:
-                                //-----------------------------------------------------------------//
-                                // allow LINEAR out of range high method with single active rating //
-                                //-----------------------------------------------------------------//
-                                getConcreteRating(activeRatings.lastEntry());
-                                lastUsedRating = activeRatings.lastEntry().getValue();
-                                Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-                                continue;
-                            default:
-                                throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+                        if (method == RatingMethod.LINEAR) {
+                            //-----------------------------------------------------------------//
+                            // allow LINEAR out of range high method with single active rating //
+                            //-----------------------------------------------------------------//
+                            getConcreteRating(activeRatings.lastEntry());
+                            lastUsedRating = activeRatings.lastEntry().getValue();
+                            Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                            continue;
                         }
+                        throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
                     }
                     upperRating = activeRatings.lastEntry();
                     lowerRating = activeRatings.lowerEntry(upperRating.getKey());
@@ -320,13 +316,11 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
             long t = valueTimes[i];
             long t1 = lowerRating.getKey();
             long t2 = upperRating.getKey();
-            double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-            double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-            if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
+            double y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+            double y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+            if (y1 == Const.UNDEFINED_DOUBLE || y2 == Const.UNDEFINED_DOUBLE) {
                 Y[i] = Const.UNDEFINED_DOUBLE;
             } else {
-                double y1 = Y1;
-                double y2 = Y2;
                 if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
                     t1 = ((UsgsStreamTableRating) lowerRating.getValue()).getLatestEffectiveDate(t2);
                 }
@@ -347,7 +341,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
      */
     @Override
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {
-        if (activeRatings.size() == 0) {
+        if (activeRatings.isEmpty()) {
             throw new RatingException("No active ratings.");
         }
         Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
@@ -365,7 +359,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
     @Override
     public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
         double[] Y = new double[depVals.length];
-        if (activeRatings.size() == 0) {
+        if (activeRatings.isEmpty()) {
             throw new RatingException("No active ratings.");
         }
         if (getDataUnits() == null) {
@@ -447,18 +441,16 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                             break;
                     }
                     if (activeRatings.size() == 1) {
-                        switch (method) {
-                            case LINEAR:
-                                //-----------------------------------------------------------------//
-                                // allow LINEAR out of range high method with single active rating //
-                                //-----------------------------------------------------------------//
-                                getConcreteRating(activeRatings.lastEntry());
-                                lastUsedRating = activeRatings.lastEntry().getValue();
-                                Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-                                continue;
-                            default:
-                                throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+                        if (method == RatingMethod.LINEAR) {
+                            //-----------------------------------------------------------------//
+                            // allow LINEAR out of range high method with single active rating //
+                            //-----------------------------------------------------------------//
+                            getConcreteRating(activeRatings.lastEntry());
+                            lastUsedRating = activeRatings.lastEntry().getValue();
+                            Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+                            continue;
                         }
+                        throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
                     }
                     upperRating = activeRatings.lastEntry();
                     lowerRating = activeRatings.lowerEntry(upperRating.getKey());

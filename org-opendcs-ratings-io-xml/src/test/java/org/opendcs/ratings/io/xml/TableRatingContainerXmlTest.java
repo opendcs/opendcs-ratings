@@ -89,7 +89,7 @@ class TableRatingContainerXmlTest {
         assertEquals(Instant.parse("2017-09-26T20:06:00Z"), Instant.ofEpochMilli(tableRatingContainer.effectiveDateMillis));
         assertEquals(Instant.parse("2017-09-28T20:06:00Z"), Instant.ofEpochMilli(tableRatingContainer.transitionStartDateMillis));
         assertEquals(Instant.parse("2017-09-26T20:06:00Z"), Instant.ofEpochMilli(tableRatingContainer.createDateMillis));
-        assertEquals("", tableRatingContainer.description);
+        assertNull(tableRatingContainer.description);
         assertNull(tableRatingContainer.getVerticalDatumContainer());
 
         assertEquals(126, tableRatingContainer.values.length);

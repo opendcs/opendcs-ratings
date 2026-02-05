@@ -141,7 +141,7 @@ public class RatingValueContainer {
 			String[] inRangeMethods,
 			String[] outRangeLowMethods,
 			String[] outRangeHighMethods) {
-		RatingValueContainer[] rvcs = null;
+		RatingValueContainer[] rvcs;
 		if (width == 2) {
 			//------------------------//
 			// only one ind parameter //
@@ -162,7 +162,7 @@ public class RatingValueContainer {
 			// determine the number of values of the 1st independent parameter //
 			//-----------------------------------------------------------------//
 			double lastIndValue = points[top][left];
-			List<Integer> breakpoints = new ArrayList<Integer>();
+			List<Integer> breakpoints = new ArrayList<>();
 			breakpoints.add(0);
 			for (int i = 1; i < depth; ++i) {
 				if (points[top+i][left] != lastIndValue) {

@@ -786,7 +786,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
     /**
      * @param conn The database connection to use
      * @return whether this rating set has been updated in the database
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final boolean isUpdated(Connection conn) throws RatingException {
@@ -820,7 +820,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
 
     /**
      * @return a the current database connection plus a flag specifying whether it was retrieved using the DbInfo
-     * @throws RatingException
+     * @throws RatingException on error
      */
     protected final synchronized Connection getConnection() throws RatingException {
         if (transientConnectionProvider != null) {

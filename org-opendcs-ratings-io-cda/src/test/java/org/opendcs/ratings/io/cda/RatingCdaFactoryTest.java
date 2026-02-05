@@ -16,11 +16,6 @@
 
 package org.opendcs.ratings.io.cda;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.AbstractRatingSet;
 import org.opendcs.ratings.ConcreteRatingSet;
@@ -30,6 +25,8 @@ import mil.army.usace.hec.cwms.http.client.ApiConnectionInfo;
 import mil.army.usace.hec.cwms.http.client.ApiConnectionInfoBuilder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 final class RatingCdaFactoryTest
 {
@@ -43,7 +40,7 @@ final class RatingCdaFactoryTest
         assertNotNull(ratingSet);
         AbstractRating[] ratings = ratingSet.getRatings();
         assertEquals(15, ratings.length);
-        assertTrue(ratingSet instanceof ConcreteRatingSet);
+        assertInstanceOf(ConcreteRatingSet.class, ratingSet);
         RatingSpec ratingSpec = ratingSet.getRatingSpec();
         assertEquals(ratingId, ratingSpec.getRatingSpecId());
         assertEquals("Flow", ratingSpec.getDepParameter());

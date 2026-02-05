@@ -66,7 +66,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * </table>
      */
     public enum DatabaseLoadMethod {
-        EAGER, LAZY, REFERENCE;
+        EAGER, LAZY, REFERENCE
 
     }
 
@@ -112,7 +112,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param conn         The connection to a CWMS database
      * @param ratingSpecId The rating specification identifier
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -128,7 +128,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -143,7 +143,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -159,7 +159,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -176,7 +176,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -193,7 +193,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -224,7 +224,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                           </tr>
      *                         </table>
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -257,7 +257,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param conn         The connection to a CWMS database
      * @param ratingSpecId The rating specification identifier
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -291,7 +291,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -325,7 +325,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -360,7 +360,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -396,7 +396,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -432,7 +432,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param startTime    The time of the earliest data to rate, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The time of the latest data to rate, in milliseconds.  If null, no latest limit is set.
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -482,7 +482,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                           </tr>
      *                         </table>
      * @return The new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -499,7 +499,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
      *                any other template and specification nodes are ignored. The XML instance may be compressed (gzip+base64).
      * @return A new RatingSet object
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#ratingSet(String) instead
      */
     @Deprecated
@@ -548,7 +548,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                           </tr>
      *                         </table>
      * @return The XML instance
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#getXmlFromDatabase(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -562,7 +562,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param conn         The connection to a CWMS database
      * @param ratingSpecId The rating specification identifier
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -577,7 +577,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpecId The rating specification identifier
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -591,7 +591,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param conn         The connection to a CWMS database
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -607,7 +607,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpecId The rating specification identifier
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -636,7 +636,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                             <td>Time time window specifies the time extent of data rate</td>
      *                           </tr>
      *                         </table>
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -667,7 +667,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                         </table>
      * @param conn         The connection to a CWMS database
      * @param ratingSpecId The rating specification identifier
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -701,7 +701,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpecId The rating specification identifier
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -733,7 +733,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param conn         The connection to a CWMS database
      * @param officeId     The identifier of the office owning the rating. If null, the office associated with the connect user is used.
      * @param ratingSpecId The rating specification identifier
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -767,7 +767,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param ratingSpecId The rating specification identifier
      * @param startTime    The earliest effective date to retrieve, in milliseconds.  If null, no earliest limit is set.
      * @param endTime      The latest effective date to retrieve, in milliseconds.  If null, no latest limit is set.
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -779,7 +779,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     /**
      * @param conn The database connection to use
      * @return whether this rating set has been updated in the database
-     * @throws Exception
+     * @throws Exception on error
      * @deprecated Reference mil.army.usace.hec.cwms.rating.io.jdbc.JdbcRatingSet instead
      */
     @Deprecated
@@ -803,8 +803,8 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param indRoundingSpecs      The USGS-style rounding specifications for each independent parameter
      * @param depRoundingSpec       The USGS-style rounding specifications for the dependent parameter
      * @param description           The description of this rating specification
-     * @throws RatingException
-     * @throws RoundingException
+     * @throws RatingException on error
+     * @throws RoundingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec)} instead
      */
     @Deprecated
@@ -819,7 +819,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public Constructor from RatingSpecContainer
      *
      * @param rsc The RatingSpecContainer object to initialize from
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec)} instead
      */
     @Deprecated
@@ -867,7 +867,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *                             <td>Time time window specifies the time extent of data rate</td>
      *                           </tr>
      *                         </table>
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSet(DatabaseLoadMethod, Connection, String, String, Long, Long, boolean) instead
      */
     @Deprecated
@@ -880,7 +880,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public Constructor - sets rating specification only
      *
      * @param ratingSpec The rating specification
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec)} instead
      */
     @Deprecated
@@ -893,7 +893,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param ratingSpec The rating specification
      * @param rating     The rating
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec, AbstractRating)} instead
      */
     @Deprecated
@@ -906,7 +906,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param ratingSpec The rating specification
      * @param ratings    The time series of ratings
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec, AbstractRating[])} instead
      */
     @Deprecated
@@ -919,7 +919,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param ratingSpec The rating specification
      * @param ratings    The time series of ratings
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSpec, Iterable)} instead
      */
     @Deprecated
@@ -931,7 +931,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public Constructor from an uncompressed XML instance
      *
      * @param xmlStr The XML instance to initialize from
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#(String) instead
      */
     @Deprecated
@@ -944,7 +944,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param xmlStr       The XML instance to initialize from
      * @param isCompressed Flag specifying whether the string is a compressed XML string
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#ratingSet(String, boolean) instead
      */
     @Deprecated
@@ -956,7 +956,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public Constructor from RatingSetContainer
      *
      * @param rsc The RatingSetContainer object to initialize from
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use {@link org.opendcs.ratings.RatingSetFactory#ratingSet(RatingSetContainer)} instead
      */
     @Deprecated
@@ -968,7 +968,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public Constructor from TextContainer (as read from DSS)
      *
      * @param tc The TextContainer object to initialize from
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#ratingSet(TextContainer) instead
      */
     @Deprecated
@@ -980,7 +980,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public Constructor from TextMath (as read from DSS)
      *
      * @param tm The TextMath object to initialize from
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#ratingSet(TextMath) instead
      */
     @Deprecated
@@ -1028,7 +1028,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Removes a single rating from the existing ratings.
      *
      * @param effectiveDate The effective date of the rating to remove, in Java milliseconds
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void removeRating(long effectiveDate) throws RatingException {
         this.composedRatingSet.removeRating(effectiveDate);
@@ -1045,7 +1045,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Replaces a single rating in the existing ratings
      *
      * @param rating The rating to replace an existing one
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void replaceRating(AbstractRating rating) throws RatingException {
         this.composedRatingSet.replaceRating(rating);
@@ -1055,7 +1055,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Replaces multiple ratings in the existing ratings.
      *
      * @param ratings The ratings to replace existing ones
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void replaceRatings(AbstractRating[] ratings) throws RatingException {
         this.composedRatingSet.replaceRatings(ratings);
@@ -1065,7 +1065,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Replaces multiple ratings in the existing ratings.
      *
      * @param ratings The ratings to replace existing ones
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void replaceRatings(Iterable<AbstractRating> ratings) throws RatingException {
         this.composedRatingSet.replaceRatings(ratings);
@@ -1083,7 +1083,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     /**
      * Loads all rating values from table ratings that haven't already been loaded.
      *
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Reference mil.army.usace.hec.cwms.rating.io.jdbc.JdbcRatingSet instead
      */
     @Deprecated
@@ -1094,7 +1094,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     /**
      * Loads all rating values from table ratings that haven't already been loaded.
      *
-     * @throws RatingException
+     * @throws RatingException on error
      * @deprecated Reference mil.army.usace.hec.cwms.rating.io.jdbc.JdbcRatingSet instead
      */
     @Deprecated
@@ -1109,7 +1109,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param value     The value to rate
      * @param valueTime The time associated with the value, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public double rate(double value, long valueTime) throws RatingException {
         return this.composedRatingSet.rate(value, valueTime);
@@ -1122,7 +1122,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param values    The values to rate
      * @param valueTime The time associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public double[] rate(double[] values, long valueTime) throws RatingException {
         return this.composedRatingSet.rate(values, valueTime);
@@ -1135,7 +1135,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param values     The values to rate
      * @param valueTimes The times associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public double[] rateOne(double[] values, long[] valueTimes) throws RatingException {
         return this.composedRatingSet.rateOne(values, valueTimes);
@@ -1148,7 +1148,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param valueSet  The value set to rate
      * @param valueTime The time associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public double rateOne(double[] valueSet, long valueTime) throws RatingException {
         return this.composedRatingSet.rateOne(valueSet, valueTime);
@@ -1161,7 +1161,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param valueSets  The value sets to rate
      * @param valueTimes The times associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {
         return this.composedRatingSet.rate(valueSets, valueTimes);
@@ -1173,7 +1173,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param tsc The TimeSeriesContainer to rate
      * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of dependent parameter of the rating.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public TimeSeriesContainer rate(TimeSeriesContainer tsc) throws RatingException {
@@ -1187,7 +1187,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param tsc          The TimeSeriesContainer to rate
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesContainer of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public TimeSeriesContainer rate(TimeSeriesContainer tsc, String ratedUnitStr) throws RatingException {
         return this.composedRatingSet.rate(tsc, ratedUnitStr);
@@ -1202,7 +1202,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      *
      * @param tscs The TimeSeriesContainers to rate, in order of the independent parameters of the rating.
      * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of the dependent parameter of the rating.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
@@ -1219,7 +1219,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param tscs         The TimeSeriesContainers to rate, in order of the independent parameters of the rating.
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesContainer of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public TimeSeriesContainer rate(TimeSeriesContainer[] tscs, String ratedUnitStr) throws RatingException {
         return this.composedRatingSet.rate(tscs, ratedUnitStr);
@@ -1240,7 +1240,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param tsm          The TimeSeriesMath to rate
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public TimeSeriesMath rate(TimeSeriesMath tsm, String ratedUnitStr) throws RatingException {
         return this.composedRatingSet.rate(tsm, ratedUnitStr);
@@ -1264,7 +1264,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param tsms         The TimeSeriesMaths to rate, in order of the independent parameters of the rating.
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public TimeSeriesMath rate(TimeSeriesMath[] tsms, String ratedUnitStr) throws RatingException {
         return this.composedRatingSet.rate(tsms, ratedUnitStr);
@@ -1281,20 +1281,16 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
 
 
     /**
-     * Returns the unique identifying parts for the rating specification.
-     *
-     * @return
-     * @throws DataSetException
+     * @return the unique identifying parts for the rating specification.
+     * @throws DataSetException on error
      */
     public IRatingSpecification getRatingSpecification() throws DataSetException {
         return this.composedRatingSet.getRatingSpecification();
     }
 
     /**
-     * Returns the unique identifying parts for the rating template.
-     *
-     * @return
-     * @throws DataSetException
+     * @return  the unique identifying parts for the rating template.
+     * @throws DataSetException on error
      */
     public IRatingTemplate getRatingTemplate() throws DataSetException {
         return this.composedRatingSet.getRatingTemplate();
@@ -1304,7 +1300,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Sets the rating specification.
      *
      * @param ratingSpec The rating specification
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void setRatingSpec(RatingSpec ratingSpec) throws RatingException {
         this.composedRatingSet.setRatingSpec(ratingSpec);
@@ -1335,7 +1331,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Sets the times series of ratings, replacing any existing ratings.
      *
      * @param ratings The time series of ratings
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public void setRatings(AbstractRating[] ratings) throws RatingException {
         this.composedRatingSet.setRatings(ratings);
@@ -1373,9 +1369,8 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     /**
      * Resets the default value time. This is used for rating values that have no inherent times.
      */
-    @Override
-    public void resetDefaultValuetime() {
-        this.composedRatingSet.resetDefaultValuetime();
+    public void resetDefaultValueTime() {
+        this.composedRatingSet.resetDefaultValueTime();
     }
 
     /* (non-Javadoc)
@@ -2487,7 +2482,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      */
     @Override
     public boolean equals(Object obj) {
-        return this.composedRatingSet.equals(obj);
+        return obj instanceof RatingSet && this.composedRatingSet.equals(obj);
     }
 
     /* (non-Javadoc)
@@ -2537,7 +2532,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /**
-     * @param rating
+     * @param rating The rating item to return the reference time for
      * @return the latest creation or effective date for this rating or its component parts
      */
     protected final long getReferenceTime(AbstractRating rating) {

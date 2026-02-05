@@ -80,7 +80,7 @@ class UsgsStreamTableRatingContainerXmlTest {
         assertEquals(Instant.parse("2019-07-06T18:45:00Z"), Instant.ofEpochMilli(usgsStreamTableRatingContainer.effectiveDateMillis));
         assertEquals(NumericalConstants.UNDEFINED_INSTANT, Instant.ofEpochMilli(usgsStreamTableRatingContainer.transitionStartDateMillis));
         assertEquals(Instant.parse("2019-07-05T18:45:00Z"), Instant.ofEpochMilli(usgsStreamTableRatingContainer.createDateMillis));
-        assertEquals("", usgsStreamTableRatingContainer.description);
+        assertNull(usgsStreamTableRatingContainer.description);
         assertNull(usgsStreamTableRatingContainer.getVerticalDatumContainer());
 
         assertEquals(4, usgsStreamTableRatingContainer.values.length);

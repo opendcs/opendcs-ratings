@@ -79,7 +79,7 @@ public final class RatingSpecCatalog {
 		LinkedHashSet<RatingSpec> retval = new LinkedHashSet<>();
 		if(specs != null) {
 			for(RatingSpec spec : specs) {
-				RatingSpec copy = new RatingSpec((RatingSpecContainer) spec.getData());
+				RatingSpec copy = new RatingSpec(spec.getData());
 				retval.add(copy);
 			}
 		}

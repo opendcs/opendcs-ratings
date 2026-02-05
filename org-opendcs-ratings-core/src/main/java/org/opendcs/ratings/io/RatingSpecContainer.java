@@ -89,7 +89,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	/**
 	 * Public constructor from an XML snippet
 	 * @param xmlStr The XML snippet
-	 * @throws RatingObjectDoesNotExistException
+	 * @throws RatingObjectDoesNotExistException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpecContainer(String) instead
 	 */
 	@Deprecated
@@ -293,7 +293,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 			return String.format("%s/%s", specOfficeId, specId);
 		}
 		catch (Throwable t) {
-			return ((Object)this).toString();
+			return this.toString();
 		}
 	}
 

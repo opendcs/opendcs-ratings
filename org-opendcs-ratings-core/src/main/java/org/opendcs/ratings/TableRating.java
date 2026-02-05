@@ -35,7 +35,7 @@ import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
-import static org.opendcs.ratings.XmlUtil.elementText;
+import static org.opendcs.ratings.XmlUtil.getChildElementText;
 
 /**
  * Table-based (lookup) rating implementation.
@@ -824,9 +824,9 @@ public class TableRating extends AbstractRating {
 				Document doc = db.parse(new InputSource(new StringReader(xml)));
 				Element elem = doc.getDocumentElement();
 				if (elem.getTagName().equals("lookup-behaviors")) {
-					inRangeMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("in-range").item(0)));
-					outRangeLowMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("out-range-low").item(0)));
-					outRangeHighMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("out-range-high").item(0)));
+					inRangeMethod = RatingMethod.fromString(getChildElementText(elem, "in-range"));
+					outRangeLowMethod = RatingMethod.fromString(getChildElementText(elem, "out-range-low"));
+					outRangeHighMethod = RatingMethod.fromString(getChildElementText(elem, "out-range-high"));
 				}
 			}
 			catch (Exception e) {
@@ -928,7 +928,7 @@ public class TableRating extends AbstractRating {
 		}
 	}
 
-	/**
+    /**
 	 * Fills the specified TableRatingContainer object with information from this rating.
 	 * @param trc The TableRatingObject to fill
 	 */

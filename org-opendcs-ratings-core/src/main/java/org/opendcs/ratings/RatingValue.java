@@ -12,7 +12,6 @@ import java.util.Observer;
 
 
 import org.opendcs.ratings.io.RatingValueContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
 import hec.lang.Observable;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;
@@ -27,7 +26,7 @@ public class RatingValue implements Observer {
 	 * Object that provides the Observable-by-composition functionality
 	 */
 	
-	protected Observable observationTarget = null;
+	protected Observable observationTarget;
 	/**
 	 * The independent value
 	 */
@@ -47,7 +46,7 @@ public class RatingValue implements Observer {
 	/**
 	 * Flag specifying whether this RatingValue has a dependent rating tabel
 	 */
-	protected boolean hasDepTable = false;
+	protected boolean hasDepTable;
 
 	static String format(double val) {
 		boolean negative = val < 0;
@@ -78,7 +77,7 @@ public class RatingValue implements Observer {
 	public RatingValue(double indValue, double depValue, String note) {
 		this.indValue = indValue;
 		this.depValue = depValue;
-		if (note != null && note.length() > 0) this.note = note;
+		if (note != null && !note.isEmpty()) this.note = note;
 		observationTarget = new Observable();
 		this.hasDepTable = false;
 	}
@@ -96,7 +95,7 @@ public class RatingValue implements Observer {
 	/**
 	 * Public Constructor from RatingValueContainer object
 	 * @param rvc The RatingValueContainer object to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public RatingValue(RatingValueContainer rvc) throws RatingException {
 		indValue = rvc.indValue;
@@ -162,7 +161,7 @@ public class RatingValue implements Observer {
 	/**
 	 * Sets the note
 	 * @param note The new note
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setNote(CharSequence note) throws RatingException {
 		if (hasDepTable) throw new RatingException("Cannot set note because RatingPoint has a dependent table of values.");
@@ -195,7 +194,7 @@ public class RatingValue implements Observer {
 	/**
 	 * Sets the dependent rating table
 	 * @param depTable The new dependent rating table
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setDepValues(TableRating depTable) throws RatingException {
 		if (depTable == null) throw new RatingException("Cannot set dependent values to a null table.");
@@ -214,13 +213,13 @@ public class RatingValue implements Observer {
 		rvc.indValue = indValue;
 		rvc.depValue = depValue;
 		rvc.note = note;
-		rvc.depTable = depTable == null ? null : (TableRatingContainer)depTable.getData();
+		rvc.depTable = depTable == null ? null : depTable.getData();
 		return rvc;
 	}
 	/**
 	 * Sets the objects data from a RatingValueContainer
 	 * @param rvc The RatingValueContainer to set the object from  
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setData(RatingValueContainer rvc) throws RatingException {
 		if (depTable != null) depTable.deleteObserver(this);

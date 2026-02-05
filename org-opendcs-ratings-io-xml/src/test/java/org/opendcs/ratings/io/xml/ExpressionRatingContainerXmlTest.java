@@ -78,7 +78,7 @@ class ExpressionRatingContainerXmlTest {
         assertEquals(Instant.parse("2018-04-11T16:47:00Z"), Instant.ofEpochMilli(expressionRatingContainer.effectiveDateMillis));
         assertEquals(NumericalConstants.UNDEFINED_INSTANT, Instant.ofEpochMilli(expressionRatingContainer.transitionStartDateMillis));
         assertEquals(Instant.parse("1970-01-01T00:00:00Z"), Instant.ofEpochMilli(expressionRatingContainer.createDateMillis));
-        assertEquals("", expressionRatingContainer.description);
+        assertNull(expressionRatingContainer.description);
         assertNull(expressionRatingContainer.getVerticalDatumContainer());
 
 

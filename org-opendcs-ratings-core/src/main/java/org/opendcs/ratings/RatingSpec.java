@@ -109,7 +109,7 @@ public class RatingSpec extends RatingTemplate {
 			String[] parts = TextUtil.split(ratingSpecId, SEPARATOR1);
 			if (parts.length != 4) break;
 			for (String part : parts) {
-				if (part.length() == 0) break test;
+				if (part.isEmpty()) break test;
 			}
 			parts = TextUtil.split(parts[1].replace(SEPARATOR2, SEPARATOR3), SEPARATOR3);
 			if (parts.length < 2) break;
@@ -165,8 +165,8 @@ public class RatingSpec extends RatingTemplate {
 	 * @param indRoundingSpecs The USGS-style rounding specifications for each independent parameter
 	 * @param depRoundingSpec The USGS-style rounding specifications for the dependent parameter
 	 * @param description The description of this rating specification
-	 * @throws RatingException
-	 * @throws RoundingException
+	 * @throws RatingException on error
+	 * @throws RoundingException on error
 	 */
 	public RatingSpec(
 			String officeId,
@@ -208,7 +208,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Public Constructor from RatingSpecContainer
 	 * @param rsc The RatingSpecContainer object to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public RatingSpec(RatingSpecContainer rsc) throws RatingException {
 		setData(rsc);
@@ -218,7 +218,7 @@ public class RatingSpec extends RatingTemplate {
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
 	 */
 	@Deprecated
@@ -233,7 +233,7 @@ public class RatingSpec extends RatingTemplate {
 	 * Public constructor from XML nodes
 	 * @param templateNode The template XML node
 	 * @param specNode The specification XML node
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(Node, Node) instead.
 	 */
 	@Deprecated
@@ -245,7 +245,7 @@ public class RatingSpec extends RatingTemplate {
 	 * Public constructor from XML strings
 	 * @param templateXml The template XML text
 	 * @param specXml The specification XML text
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
 	 */
 	@Deprecated
@@ -322,7 +322,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the prescribed behavior for when the time of the value to rate falls within the range of rating effective dates
 	 * @param inRangeMethod The prescribed behavior for when the time of the value to rate falls within the range of rating effective dates
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setInRangeMethod(RatingMethod inRangeMethod) throws RatingException {
 		if (inRangeMethod == RatingMethod.NEAREST) {
@@ -361,7 +361,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the prescribed behavior for when the time of the value to rate falls after the latest rating effective date
 	 * @param outRangeHighMethod The prescribed behavior for when the time of the value to rate falls after the latest rating effective date
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setOutRangeHighMethod(RatingMethod outRangeHighMethod) throws RatingException {
 		switch (outRangeHighMethod) {
@@ -431,7 +431,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Retrieves the rounding specifications for each of the independent parameters
 	 * @return The rounding specifications for each of the independent parameters
-	 * @throws RoundingException
+	 * @throws RoundingException on error
 	 */
 	public UsgsRounder[] getIndRoundingSpecs() throws RoundingException {
 		UsgsRounder[] specs = new UsgsRounder[indRoundingSpecs.length];
@@ -450,7 +450,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets rounding specifications for each of the independent parameters
 	 * @param indRoundingSpecs Rounding specification strings for each of the independent parameters
-	 * @throws RoundingException
+	 * @throws RoundingException on error
 	 */
 	public void setIndRoundingSpecs(UsgsRounder[] indRoundingSpecs) throws RoundingException {
 		this.indRoundingSpecs = new UsgsRounder[indRoundingSpecs.length];
@@ -459,7 +459,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets rounding specifications for each of the independent parameters
 	 * @param indRoundingSpecs Rounding specification strings for each of the independent parameters
-	 * @throws RoundingException
+	 * @throws RoundingException on error
 	 */
 	public void setIndRoundingSpecs(String[] indRoundingSpecs) throws RoundingException {
 		this.indRoundingSpecs = new UsgsRounder[indRoundingSpecs.length];
@@ -468,7 +468,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Retrieves the rounding specification for the dependent parameter
 	 * @return The rounding specification for the dependent parameter
-	 * @throws RoundingException
+	 * @throws RoundingException on error
 	 */
 	public UsgsRounder getDepRoundingSpec() throws RoundingException {
 		return new UsgsRounder(depRoundingSpec.getRoundingSpec());
@@ -483,7 +483,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the rounding specification for the dependent parameter
 	 * @param depRoundingSpec The rounding specification for the dependent parameter
-	 * @throws RoundingException
+	 * @throws RoundingException on error
 	 */
 	public void setDepRoundingSpec(UsgsRounder depRoundingSpec) throws RoundingException {
 		this.depRoundingSpec = new UsgsRounder(depRoundingSpec.getRoundingSpec());
@@ -491,7 +491,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the rounding specification for the dependent parameter
 	 * @param depRoundingSpec The rounding specification for the dependent parameter
-	 * @throws RoundingException
+	 * @throws RoundingException on error
 	 */
 	public void setDepRoundingSpec(String depRoundingSpec) throws RoundingException {
 		this.depRoundingSpec = new UsgsRounder(depRoundingSpec);
@@ -683,7 +683,7 @@ public class RatingSpec extends RatingTemplate {
 	/**
 	 * Sets the data from this object from a RatingSpecContainer
 	 * @param rsc The RatingSpecContainer with the data
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setData(RatingSpecContainer rsc) throws RatingException {
 		try {
@@ -722,7 +722,7 @@ public class RatingSpec extends RatingTemplate {
 	 * @param conn The connection to a CWMS database
 	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
 	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
 	 */
 	@Deprecated
@@ -739,7 +739,7 @@ public class RatingSpec extends RatingTemplate {
 	 * Sets the data for this object from XML Text
 	 * @param templateXml The template XML text
 	 * @param specXml The specification XML text
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
 	 */
 	@Deprecated
@@ -753,7 +753,7 @@ public class RatingSpec extends RatingTemplate {
 	 * Sets the data for this object from XML nodes
 	 * @param templateNode The template XML node
 	 * @param specNode The specification XML node
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
 	 */
 	@Deprecated
@@ -882,24 +882,21 @@ public class RatingSpec extends RatingTemplate {
 	}
 
 	/**
-	 * Returns the unique identifying parts for the rating specification.
-	 *
-	 * @return
-	 * @throws DataSetException
+	 * @return  the unique identifying parts for the rating specification.
+	 * @throws DataSetException on error
 	 */
 	public IRatingSpecification getRatingSpecification() throws DataSetException
 	{
 		String officeId = getOfficeId();
 		String specificationId = getRatingSpecId();
-		JDomRatingSpecification specification = new JDomRatingSpecification(officeId, specificationId);
-		return specification;
+        return new JDomRatingSpecification(officeId, specificationId);
 	}
 
 	/**
 	 * Stores the rating specification (without template) to a CWMS database
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, RatingSpec, boolean, boolean) instead
 	 */
 	@Deprecated
@@ -910,10 +907,10 @@ public class RatingSpec extends RatingTemplate {
 
 	/**
 	 *
-	 * @param conn
-	 * @param overwriteExisting
-	 * @param storeTemplate
-	 * @throws RatingException
+	 * @param conn the JDBC connection
+	 * @param overwriteExisting whether to overwrite any existing rating spec
+	 * @param storeTemplate whether to store the template information
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, RatingSpec, boolean, boolean) instead
 	 */
 	@Deprecated

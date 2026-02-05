@@ -6,12 +6,8 @@
  *
  */
 
-/**
- * 
- */
 package org.opendcs.ratings.io;
 
-import java.sql.Connection;
 import java.util.Arrays;
 
 import hec.lang.Const;
@@ -68,16 +64,17 @@ public class RatingSetStateContainer {
 		if (dbUrl      != null) hashCode +=  7 * dbUrl.hashCode();
 		if (dbUserName != null) hashCode += 11 * dbUserName.hashCode();
 		if (dbOfficeId != null) hashCode += 13 * dbOfficeId.hashCode();
-		if (dataUnits  != null) hashCode += 17 * dataUnits.hashCode();
+		if (dataUnits  != null) hashCode += 17 * Arrays.hashCode(dataUnits);
 		if (allowUnsafe       ) hashCode += 19;
 		if (warnUnsafe        ) hashCode += 23;
-		hashCode += 29 * defaultValueTime;
-		hashCode += 31 * ratingTime;
+		hashCode += 29 * (int)defaultValueTime;
+		hashCode += 31 * (int)ratingTime;
 		return hashCode;
 	}
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
+        if (! (obj instanceof RatingSetStateContainer)) return false;
 		RatingSetStateContainer rssc = (RatingSetStateContainer)obj;
 		if ((rssc.conn == null) != (conn == null) || (rssc.conn != null && !rssc.conn.equals(conn))) return false; 
 		if ((rssc.dbUrl == null) != (dbUrl == null) || (rssc.dbUrl != null && !rssc.dbUrl.equals(dbUrl))) return false;

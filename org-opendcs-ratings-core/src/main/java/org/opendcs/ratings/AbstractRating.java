@@ -20,6 +20,7 @@ import hec.data.Parameter;
 
 import hec.data.Units;
 import hec.data.UnitsConversionException;
+import hec.lang.Const;
 import org.opendcs.ratings.io.AbstractRatingContainer;
 import org.opendcs.ratings.io.RatingJdbcCompatUtil;
 import org.opendcs.ratings.io.RatingXmlCompatUtil;
@@ -30,10 +31,8 @@ import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
-import java.sql.CallableStatement;
-import java.sql.Clob;
+
 import java.sql.Connection;
-import java.sql.Types;
 import java.util.Arrays;
 import java.util.Observer;
 import java.util.logging.Logger;
@@ -131,14 +130,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 */
 	protected boolean warnUnsafe = true;
 	/**
-	 * Object to use for rating TimeSeriesContainer and TimeSeriesMath objects
-	 */
-	protected TimeSeriesRater tsRater = null;
-	/**
 	 * Generates a new AbstractRating object from XML text
 	 * @param xmlText The XML text to generate the rating object from
 	 * @return The generated rating object.
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRating instead
 	 */
 	@Deprecated
@@ -354,7 +349,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	/**
 	 * Set the rating units
 	 * @param units The rating units
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setRatingUnits(String[] units) throws RatingException {
 		if (units == null) {
@@ -366,7 +361,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 			if (units.length != parameters.length) {
 				throw new RatingException(String.format("Invalid number of rating units (%d units for %d parameters)", units.length, parameters.length));
 			}
-			Units parameterUnit = null;
+			Units parameterUnit;
 			for (int i = 0; i < parameters.length; ++i) {
 				try {
 					parameterUnit = new Parameter(parameters[i]).getUnits();
@@ -378,7 +373,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 				}
 				if (parameterUnit != null) {
 					if(!Units.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
-						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit.toString());
+						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit);
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg);
 					}
@@ -397,7 +392,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 				if (dataUnitsId == null) {
 					return getRatingUnits();
 				}
-				dataUnits = dataUnitsId == null ? getRatingUnits() : split(replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
+				dataUnits = split(replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3, "L"), SEPARATOR3, "L");
 			}
 			return Arrays.copyOf(dataUnits, dataUnits.length);
 		}
@@ -423,8 +418,8 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 			else if (units.length != ratingUnits.length) {
 				throw new RatingException("Invalid number of data units.");
 			}
-			Units dataUnit = null;
-			Units parameterUnit = null;
+			Units dataUnit;
+			Units parameterUnit;
 			for (int i = 0; i < units.length; ++i) {
 				try {
 					dataUnit = new Units(units[i]);
@@ -449,7 +444,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 						}
 						if (parameterUnit != null && !units[i].equals(parameterUnit.toString())) {
 							if(!Units.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
-								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit.toString());
+								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit);
 								if (!allowUnsafe) throw new RatingException(msg);
 								if (warnUnsafe) {
 									if (i == parameters.length - 1) {
@@ -665,15 +660,6 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		}
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.ICwmsRating#resetDefaultValuetime()
-	 */
-	@Override
-	public void resetDefaultValuetime() {
-		synchronized(this) {
-			this.defaultValueTime = UNDEFINED_TIME;
-		}
-	}
-	/* (non-Javadoc)
 	 * @see org.opendcs.ratings.IRating#getRatingTime()
 	 */
 	@Override
@@ -735,7 +721,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	/**
 	 * Sets this rating from a AbstractRatingContainer object.
 	 * @param rc The AbstractRatingContainer object to set the rating from.
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public abstract void setData(AbstractRatingContainer rc) throws RatingException;
 	/* (non-Javadoc)
@@ -752,12 +738,8 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 */
 	@Override
 	public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
-		if (tsRater == null) {
-			tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
-		}
-		synchronized(tsRater) {
-			return tsRater.rate(tscs);
-		}
+        TimeSeriesRater tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+        return tsRater.rate(tscs);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
@@ -835,17 +817,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 */
 	@Override
 	public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
-		synchronized(tsRater) {
-			if (tsRater == null) {
-				tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
-			}
-			return tsRater.reverseRate(tsc);
-		}
+        TimeSeriesRater tsRater = new TimeSeriesRater(this, allowUnsafe, warnUnsafe);
+        return tsRater.reverseRate(tsc);
 	}
 	/* (non-Javadoc)
 	 * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
 	 */
-	@Override
 	public TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
 		try {
 			return new TimeSeriesMath(reverseRate((TimeSeriesContainer)tsm.getData()));
@@ -1034,7 +1011,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 		if (vdc == null && xmlStr != null) {
 			vdc = new VerticalDatumContainer(xmlStr);
 		}
-		else if (xmlStr == null || xmlStr.trim().length() == 0) {
+		else if (xmlStr == null || xmlStr.trim().isEmpty()) {
 			vdc = null;
 		}
 		else {
@@ -1094,40 +1071,35 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	/**
 	 * Returns an array of Rating Values. The defaultInteger will be used by function based rating curves to
 	 * generate points a fixed number of dependent values apart
-	 * @param defaultInterval
-	 * @return 
+	 * @param defaultInterval The interval in minutes for ExpresionRating objects
+	 * @return The rated values
 	 */
 	public abstract RatingValue[] getValues(Integer defaultInterval);
 	
 	
 	/**
-	 * Returns the unique identifying parts for the rating specification.
-	 * 
-	 * @return
-	 * @throws DataSetException
+	 * @return the rating specification.
+	 * @throws DataSetException on error
 	 */
 	public IRatingSpecification getRatingSpecification() throws DataSetException
 	{
-		String officeId2 = null;
-		String ratingSpecId2 = null;
+		String officeId2;
+		String ratingSpecId2;
 		synchronized(this) {
 			officeId2 = getOfficeId();
 			ratingSpecId2 = getRatingSpecId();
 		}
-		JDomRatingSpecification ratingSpecification = new JDomRatingSpecification(officeId2, ratingSpecId2);
-		return ratingSpecification;
+        return new JDomRatingSpecification(officeId2, ratingSpecId2);
 	}
 	
 	/**
-	 * Returns the unique identifying parts for the rating template.
-	 * @return
-	 * @throws DataSetException
+	 * @return the rating template
+	 * @throws DataSetException on error
 	 */
 	public IRatingTemplate getRatingTemplate() throws DataSetException
 	{
 		IRatingSpecification ratingSpecification = getRatingSpecification();
-		IRatingTemplate ratingTemplate = ratingSpecification.getTemplate();
-		return ratingTemplate;
+        return ratingSpecification.getTemplate();
 	}
 	
 	/**
@@ -1165,7 +1137,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 * Stores the rating  to a CWMS database
 	 * @param conn The connection to the CWMS database
 	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, boolean) instead;
 	 */
 	@Deprecated
@@ -1201,8 +1173,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 
 	/**
-	 * Returns the VerticalDatumContainer
-	 * @return
+	 * @return the VerticalDatumContainer
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer()
@@ -1212,11 +1183,18 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 
 	/**
 	 * Sets the VerticalDatumContainer
-	 * @param vdc
+	 * @param vdc the VerticalDatumContainer
 	 */
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc)
 	{
 		this.vdc = vdc;
 	}
 
+    /**
+     * Resets the default value time. This is used for rating values that have no inherent times.
+     */
+    @Override
+    public void resetDefaultValueTime() {
+        this.defaultValueTime = Const.UNDEFINED_TIME;
+    };
 }

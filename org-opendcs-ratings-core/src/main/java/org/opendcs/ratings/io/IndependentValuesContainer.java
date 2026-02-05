@@ -74,8 +74,9 @@ public class IndependentValuesContainer {
 	public int hashCode() {
 		int hashCode = getClass().getName().hashCode();
 		if (valTimes != null) {
-			for (int i = 0; i < valTimes.length; ++i)
-			hashCode += (i+1) * (int)valTimes[i];
+			for (int i = 0; i < valTimes.length; ++i) {
+                hashCode += (i + 1) * (int) valTimes[i];
+            }
 		}
 		if (indVals != null) {
 			hashCode += 3 * indVals.length;

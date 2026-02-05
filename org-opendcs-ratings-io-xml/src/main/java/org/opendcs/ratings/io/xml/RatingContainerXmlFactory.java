@@ -25,7 +25,7 @@ import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
 import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
 import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.lang.Const.UNDEFINED_TIME;
-import static org.opendcs.ratings.io.xml.RatingXmlUtil.elementText;
+import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
 
 
 import org.opendcs.ratings.RatingObjectDoesNotExistException;
@@ -53,8 +53,6 @@ import java.util.TreeSet;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public final class RatingContainerXmlFactory {
 
@@ -72,7 +70,7 @@ public final class RatingContainerXmlFactory {
         switch (elem.getLocalName()) {
             case "simple-rating":
             case "rating":
-                if (elem.getElementsByTagName("formula").item(0) != null) {
+                if (getChildElement(elem, "formula") != null) {
                     arc = expressionRatingContainer(elem);
                 } else {
                     arc = tableRatingContainer(elem);
@@ -91,32 +89,27 @@ public final class RatingContainerXmlFactory {
                 //------------------------------------------//
                 // next try immediate descendants from root //
                 //------------------------------------------//
-                NodeList childNodes = elem.getChildNodes();
+                List<Element> childElems = getChildElements(elem, "*");
                 label:
-                for (int i = 0; i < childNodes.getLength(); ++i) {
-                    Node node = childNodes.item(i);
-                    if (node.getNodeType() != Node.ELEMENT_NODE) {
-                        continue;
-                    }
-                    elem = (Element) node;
-                    switch (elem.getLocalName()) {
+                for (Element childElem: childElems) {
+                    switch (childElem.getLocalName()) {
                         case "simple-rating":
                         case "rating":
-                            if (elem.getElementsByTagName("formula").item(0) != null) {
-                                arc = expressionRatingContainer(elem);
+                            if (getChildElement(childElem, "formula") != null) {
+                                arc = expressionRatingContainer(childElem);
                                 break label;
                             } else {
-                                arc = tableRatingContainer(elem);
+                                arc = tableRatingContainer(childElem);
                                 break label;
                             }
                         case "usgs-stream-rating":
-                            arc = usgsStreamTableRatingContainer(elem);
+                            arc = usgsStreamTableRatingContainer(childElem);
                             break label;
                         case "virtual-rating":
-                            arc = virtualRatingContainer(elem);
+                            arc = virtualRatingContainer(childElem);
                             break label;
                         case "transitional-rating":
-                            arc = transitionalRatingContainer(elem);
+                            arc = transitionalRatingContainer(childElem);
                             break label;
                     }
                 }
@@ -178,7 +171,11 @@ public final class RatingContainerXmlFactory {
         try {
             ExpressionRatingContainer container = new ExpressionRatingContainer();
             RatingXmlUtil.populateCommonDataFromXml(ratingElement, container);
-            container.expression = elementText((Element) ratingElement.getElementsByTagName("formula").item(0));
+            Element child = getChildElement(ratingElement, "formula");
+            if (child == null) {
+                throw new RatingException("Rating element is null");
+            }
+            container.expression = getElementText(child);
             return container;
         } catch (VerticalDatumException e) {
             throw new RatingException(e);
@@ -375,17 +372,9 @@ public final class RatingContainerXmlFactory {
         String ratingSpecId = usgsStreamTableRatingContainer.ratingSpecId;
         Element elem;
         String[] parts;
-        NodeList shiftNodes = ratingElement.getElementsByTagName("height-shifts");
+        List<Element> shiftsElems = getChildElements(ratingElement, "height-shifts");
         String heightUnit = unitsId.split(";", 'L')[0];
-        int elemCount = 0;
-        if (shiftNodes.getLength() > 0) {
-            for (int i = 0; i < shiftNodes.getLength(); ++i) {
-                if (shiftNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                    ++elemCount;
-                }
-            }
-        }
-        if (elemCount > 0) {
+        if (!shiftsElems.isEmpty()) {
             HecTime hectime = new HecTime();
             usgsStreamTableRatingContainer.shifts = new RatingSetContainer();
             usgsStreamTableRatingContainer.shifts.ratingSpecContainer = new RatingSpecContainer();
@@ -409,63 +398,47 @@ public final class RatingContainerXmlFactory {
             rsc.indRoundingSpecs = new String[] {"4444444449"};
             rsc.depRoundingSpec = "4444444449";
 
-            usgsStreamTableRatingContainer.shifts.abstractRatingContainers = new TableRatingContainer[elemCount];
-            for (int n = 0, i = -1; n < shiftNodes.getLength(); ++n) {
-                Node node = shiftNodes.item(n);
-                if (node.getNodeType() != Node.ELEMENT_NODE) {
-                    continue;
-                }
-                ++i;
+            usgsStreamTableRatingContainer.shifts.abstractRatingContainers = new TableRatingContainer[shiftsElems.size()];
+            for (int i = 0; i < shiftsElems.size(); ++i) {
+                Element shiftsElem = shiftsElems.get(i);
                 usgsStreamTableRatingContainer.shifts.abstractRatingContainers[i] = new TableRatingContainer();
                 TableRatingContainer trc = (TableRatingContainer) usgsStreamTableRatingContainer.shifts.abstractRatingContainers[i];
                 trc.ratingSpecId = rsc.specId;
-                elem = (Element) node;
-                String data = elementText((Element) elem.getElementsByTagName("effective-date").item(0));
-                if (!data.isEmpty()) {
+                String data = getChildElementText(shiftsElem, "effective-date");
+                if (data != null) {
                     hectime.set(data);
                     trc.effectiveDateMillis = hectime.getTimeInMillis();
                 }
-                data = elementText((Element) elem.getElementsByTagName("create-date").item(0));
-                if (!data.isEmpty()) {
+                data = getChildElementText(shiftsElem, "create-date");
+                if (data != null) {
                     hectime.set(data);
                     trc.createDateMillis = hectime.getTimeInMillis();
                 }
-                data = elementText((Element) elem.getElementsByTagName("transition-start-date").item(0));
-                if (!data.isEmpty()) {
+                data = getChildElementText(shiftsElem, "transition-start-date");
+                if (data != null) {
                     hectime.set(data);
                     trc.transitionStartDateMillis = hectime.getTimeInMillis();
                 }
-                trc.active = Boolean.parseBoolean(elementText((Element) elem.getElementsByTagName("active").item(0)));
-                trc.description = elementText((Element) elem.getElementsByTagName("description").item(0));
+                trc.active = Boolean.parseBoolean(getChildElementText(shiftsElem, "active"));
+                trc.description = getChildElementText(shiftsElem, "description");
                 trc.unitsId = String.format("%s;%s", heightUnit, heightUnit);
                 trc.inRangeMethod = RatingMethodId.Linear.name();
                 trc.outRangeLowMethod = RatingMethodId.Nearest.name();
                 trc.outRangeHighMethod = RatingMethodId.Nearest.name();
-                NodeList pointNodes = elem.getElementsByTagName("point");
-                int shiftElemCount = 0;
-                for (int j = 0; j < shiftNodes.getLength(); ++j) {
-                    if (shiftNodes.item(j).getNodeType() == Node.ELEMENT_NODE) {
-                        ++shiftElemCount;
-                    }
-                }
-                if (shiftElemCount > 0) {
-                    trc.values = new RatingValueContainer[shiftElemCount];
-                    for (int j = 0, k = -1; j < pointNodes.getLength(); ++j) {
-                        node = pointNodes.item(j);
-                        if (node.getNodeType() != Node.ELEMENT_NODE) {
-                            continue;
-                        }
-                        ++k;
-                        elem = (Element) node;
-                        trc.values[k] = new RatingValueContainer();
-                        trc.values[k].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
-                        trc.values[k].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
-                        trc.values[k].note = elementText((Element) elem.getElementsByTagName("note").item(0));
+                List<Element> pointElems = getChildElements(shiftsElem, "point");
+                if (!pointElems.isEmpty()) {
+                    trc.values = new RatingValueContainer[pointElems.size()];
+                    for (int j = 0; j < pointElems.size(); ++j) {
+                        Element shiftElem = pointElems.get(j);
+                        trc.values[j] = new RatingValueContainer();
+                        trc.values[j].indValue = Double.parseDouble(getChildElementText(shiftElem, "ind"));
+                        trc.values[j].depValue = Double.parseDouble(getChildElementText(shiftElem, "dep"));
+                        trc.values[j].note = getChildElementText(shiftElem, "note");
                     }
                 }
             }
         }
-        elem = (Element) ratingElement.getElementsByTagName("height-offsets").item(0);
+        elem = getChildElement(ratingElement, "height-offsets");
         if (elem != null) {
             usgsStreamTableRatingContainer.offsets = new TableRatingContainer();
             TableRatingContainer trc = usgsStreamTableRatingContainer.offsets;
@@ -477,80 +450,47 @@ public final class RatingContainerXmlFactory {
             trc.inRangeMethod = RatingMethodId.Previous.name();
             trc.outRangeLowMethod = RatingMethodId.Next.name();
             trc.outRangeHighMethod = RatingMethodId.Previous.name();
-            NodeList pointNodes = elem.getElementsByTagName("point");
-            int pointElemCount = 0;
-            for (int i = 0; i < pointNodes.getLength(); ++i) {
-                if (pointNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                    ++pointElemCount;
-                }
-            }
-            if (pointElemCount > 0) {
-                trc.values = new RatingValueContainer[pointElemCount];
-                for (int i = 0, j = -1; i < pointNodes.getLength(); ++i) {
-                    Node node = pointNodes.item(i);
-                    if (node.getNodeType() != Node.ELEMENT_NODE) {
-                        continue;
-                    }
-                    ++j;
-                    elem = (Element) node;
-                    trc.values[j] = new RatingValueContainer();
-                    trc.values[j].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
-                    trc.values[j].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
-                    trc.values[j].note = elementText((Element) elem.getElementsByTagName("note").item(0));
+            List<Element> pointElems = getChildElements(elem, "point");
+            if (!pointElems.isEmpty()) {
+                trc.values = new RatingValueContainer[pointElems.size()];
+                for (int i = 0; i < pointElems.size(); ++i) {
+                    elem = pointElems.get(i);
+                    trc.values[i] = new RatingValueContainer();
+                    trc.values[i].indValue = Double.parseDouble(getChildElementText(elem, "ind"));
+                    trc.values[i].depValue = Double.parseDouble(getChildElementText(elem, "dep"));
+                    trc.values[i].note = getChildElementText(elem, "note");
                 }
             }
         }
-        elem = (Element) ratingElement.getElementsByTagName("rating-points").item(0);
+        elem = getChildElement(ratingElement, "rating-points");
         if (elem != null) {
-            NodeList pointNodes = elem.getElementsByTagName("point");
-            int pointElemCount = 0;
-            for (int i = 0; i < pointNodes.getLength(); ++i) {
-                if (pointNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                    ++pointElemCount;
-                }
-            }
-            if (pointElemCount > 0) {
-                usgsStreamTableRatingContainer.values = new RatingValueContainer[pointElemCount];
-                for (int i = 0, j = -1; i < pointNodes.getLength(); ++i) {
-                    Node node = pointNodes.item(i);
-                    if (node.getNodeType() != Node.ELEMENT_NODE) {
-                        continue;
-                    }
-                    ++j;
-                    elem = (Element) node;
-                    usgsStreamTableRatingContainer.values[j] = new RatingValueContainer();
-                    usgsStreamTableRatingContainer.values[j].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
-                    usgsStreamTableRatingContainer.values[j].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
-                    usgsStreamTableRatingContainer.values[j].note = elementText((Element) elem.getElementsByTagName("note").item(0));
+            List<Element> pointElems = getChildElements(elem, "point");
+            if (!pointElems.isEmpty()) {
+                usgsStreamTableRatingContainer.values = new RatingValueContainer[pointElems.size()];
+                for (int i = 0; i < pointElems.size(); ++i) {
+                    elem = pointElems.get(i);
+                    usgsStreamTableRatingContainer.values[i] = new RatingValueContainer();
+                    usgsStreamTableRatingContainer.values[i].indValue = Double.parseDouble(getChildElementText(elem, "ind"));
+                    usgsStreamTableRatingContainer.values[i].depValue = Double.parseDouble(getChildElementText(elem, "dep"));
+                    usgsStreamTableRatingContainer.values[i].note = getChildElementText(elem, "note");
                 }
             }
         }
-        elem = (Element) ratingElement.getElementsByTagName("extension-points").item(0);
+        elem = getChildElement(ratingElement, "extension-points");
         if (elem != null) {
-            NodeList pointNodes = elem.getElementsByTagName("point");
-            int pointElemCount = 0;
-            for (int i = 0; i < pointNodes.getLength(); ++i) {
-                if (pointNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                    ++pointElemCount;
-                }
-            }
-            if (pointElemCount > 0) {
-                usgsStreamTableRatingContainer.extensionValues = new RatingValueContainer[pointElemCount];
-                for (int i = 0, j = -1; i < pointNodes.getLength(); ++i) {
-                    Node node = pointNodes.item(i);
-                    if (node.getNodeType() != Node.ELEMENT_NODE) {
-                        continue;
-                    }
-                    ++j;
-                    elem = (Element) node;
-                    usgsStreamTableRatingContainer.extensionValues[j] = new RatingValueContainer();
-                    usgsStreamTableRatingContainer.extensionValues[j].indValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("ind").item(0)));
-                    usgsStreamTableRatingContainer.extensionValues[j].depValue = Double.parseDouble(elementText((Element) elem.getElementsByTagName("dep").item(0)));
-                    usgsStreamTableRatingContainer.extensionValues[j].note = elementText((Element) elem.getElementsByTagName("note").item(0));
+            List<Element> pointElems = getChildElements(elem, "point");
+            if (!pointElems.isEmpty()) {
+                usgsStreamTableRatingContainer.extensionValues = new RatingValueContainer[pointElems.size()];
+                for (int i = 0; i < pointElems.size(); ++i) {
+                    elem = pointElems.get(i);
+                    usgsStreamTableRatingContainer.extensionValues[i] = new RatingValueContainer();
+                    usgsStreamTableRatingContainer.extensionValues[i].indValue = Double.parseDouble(getChildElementText(elem, "ind"));
+                    usgsStreamTableRatingContainer.extensionValues[i].depValue = Double.parseDouble(getChildElementText(elem, "dep"));
+                    usgsStreamTableRatingContainer.extensionValues[i].note = getChildElementText(elem, "note");
                 }
             }
         }
-        Element verticalDatumElement = (Element) ratingElement.getElementsByTagName("vertical-datum-info").item(0);
+        Element verticalDatumElement = getChildElement(ratingElement, "vertical-datum-info");
         if (verticalDatumElement != null) {
             try {
                 usgsStreamTableRatingContainer.setVerticalDatumContainer(new VerticalDatumContainer(verticalDatumElement.toString()));
@@ -889,19 +829,10 @@ public final class RatingContainerXmlFactory {
             sb.append(prefix).append(indent).append("<source-ratings/>\n");
         } else {
             sb.append(prefix).append(indent).append("<source-ratings>\n");
-            StringBuilder sourceRatingUnits = new StringBuilder();
             for (int i = 0; i < sourceRatings.length; ++i) {
-                sourceRatingUnits.setLength(0);
-                sourceRatingUnits.append(" {");
-                for (int j = 0; j < sourceRatings[i].units.length; ++j) {
-                    sourceRatingUnits.append(j == 0 ? "" : j == sourceRatings[i].units.length - 1 ? ";" : ",")
-                                     .append(sourceRatings[i].units[j]);
-                }
-                sourceRatingUnits.append("}");
                 sb.append(prefix).append(indent).append(indent).append("<rating-spec-id position=\"").append(i + 1).append("\">\n");
                 sb.append(prefix).append(indent).append(indent).append(indent)
                         .append(TextUtil.xmlEntityEncode(sourceRatings[i].rsc.ratingSpecContainer.specId))
-                        .append(TextUtil.xmlEntityEncode(sourceRatingUnits.toString()))
                         .append("\n");
                 sb.append(prefix).append(indent).append(indent).append("</rating-spec-id>\n");
             }

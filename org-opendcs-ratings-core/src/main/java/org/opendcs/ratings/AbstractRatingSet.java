@@ -71,7 +71,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     /**
      * Object that provides the Observable-by-composition functionality
      */
-    protected Observable observationTarget = null;
+    protected Observable observationTarget;
     /**
      * The CWMS-style rating specification (including rating template)
      */
@@ -102,11 +102,11 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     /**
      * Flag specifying whether this rating set allows "risky" behavior such as using mismatched units, unknown parameters, etc.
      */
-    protected boolean allowUnsafe = true;
+    protected boolean allowUnsafe;
     /**
      * Flag specifying whether this rating set outputs messges about "risky" behavior such as using mismatched units, unknown parameters, etc.
      */
-    protected boolean warnUnsafe = true;
+    protected boolean warnUnsafe;
 
     protected AbstractRatingSet() {
         allowUnsafe = alwaysAllowUnsafe;
@@ -155,7 +155,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      *
      * @param specMap a non-null map to add to
      * @param ratings the ratings to evaluate
-     * @param path
+     * @param path The top level of the rating specification to search under
      * @throws RatingException if the same spec id maps to two non-equal rating specs
      */
     private static void getAllRatingSpecs(HashMap<String, Object[]> specMap, Iterable<AbstractRating> ratings, String path) throws RatingException {
@@ -201,7 +201,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      */
     @Override
     public final void addRating(AbstractRating rating) throws RatingException {
-        addRatings(Arrays.asList(new AbstractRating[] {rating}));
+        addRatings(rating);
     }
 
     /**
@@ -211,7 +211,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @throws RatingException @see #addRatings(Iterable)
      */
     @Override
-    public final void addRatings(AbstractRating[] ratings) throws RatingException {
+    public final void addRatings(AbstractRating... ratings) throws RatingException {
         addRatings(Arrays.asList(ratings));
     }
 
@@ -251,7 +251,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         }
         HashMap<String, Object[]> newSpecs = new HashMap<>();
         AbstractRatingSet.getAllRatingSpecs(newSpecs, ratings, "");
-        if (this.ratings.size() > 0) {
+        if (!this.ratings.isEmpty()) {
             if (!this.ratings.firstEntry().getValue().getRatingSpecId().equals(ratingSpecId)) {
                 throw new RatingException("Cannot add ratings with different rating specification IDs");
             }
@@ -331,7 +331,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * Removes a single rating from the existing ratings.
      *
      * @param effectiveDate The effective date of the rating to remove, in Java milliseconds
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized final void removeRating(long effectiveDate) throws RatingException {
@@ -341,9 +341,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         }
         cwmsRating.deleteObserver(this);
         ratings.remove(effectiveDate);
-        if (activeRatings.containsKey(effectiveDate)) {
-            activeRatings.remove(effectiveDate);
-        }
+        activeRatings.remove(effectiveDate);
         if (observationTarget != null) {
             observationTarget.setChanged();
             observationTarget.notifyObservers();
@@ -370,7 +368,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * Replaces a single rating in the existing ratings
      *
      * @param rating The rating to replace an existing one
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized final void replaceRating(AbstractRating rating) throws RatingException {
@@ -421,7 +419,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * Replaces multiple ratings in the existing ratings.
      *
      * @param ratings The ratings to replace existing ones
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized final void replaceRatings(AbstractRating[] ratings) throws RatingException {
@@ -432,7 +430,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * Replaces multiple ratings in the existing ratings.
      *
      * @param ratings The ratings to replace existing ones
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized void replaceRatings(Iterable<AbstractRating> ratings) throws RatingException {
@@ -484,7 +482,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param value     The value to rate
      * @param valueTime The time associated with the value, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final double rate(double value, long valueTime) throws RatingException {
@@ -499,7 +497,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param values    The values to rate
      * @param valueTime The time associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final double[] rate(double[] values, long valueTime) throws RatingException {
@@ -515,7 +513,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param values     The values to rate
      * @param valueTimes The times associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final double[] rateOne(double[] values, long[] valueTimes) throws RatingException {
@@ -533,7 +531,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param valueSet  The value set to rate
      * @param valueTime The time associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final double rateOne(double[] valueSet, long valueTime) throws RatingException {
@@ -549,11 +547,11 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param valueSets  The value sets to rate
      * @param valueTimes The times associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {
-        double[] Y = new double[valueSets.length];
+        double[] y = new double[valueSets.length];
         int activeRatingCount = activeRatings.size();
         if (activeRatingCount == 0) {
             throw new RatingException("No active ratings.");
@@ -581,13 +579,13 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             }
         }
 
-        Entry<Long, AbstractRating> lowerRating = null;
-        Entry<Long, AbstractRating> upperRating = null;
+        Entry<Long, AbstractRating> lowerRating;
+        Entry<Long, AbstractRating> upperRating;
         IRating lastUsedRating = null;
-        RatingMethod method = null;
+        RatingMethod method;
         for (int i = 0; i < valueSets.length; ++i) {
             if (i > 0 && valueTimes[i] == valueTimes[i - 1] && lastUsedRating != null) {
-                Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                 continue;
             } else {
                 lowerRating = activeRatings.floorEntry(valueTimes[i]);
@@ -601,7 +599,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         case ERROR:
                             throw new RatingException("Effective date is before earliest rating");
                         case NULL:
-                            Y[i] = Const.UNDEFINED_DOUBLE;
+                            y[i] = Const.UNDEFINED_DOUBLE;
                             lastUsedRating = null;
                             continue;
                         case NEXT:
@@ -609,7 +607,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         case HIGHER:
                         case CLOSEST:
                             lastUsedRating = activeRatings.firstEntry().getValue();
-                            Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                            y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                             continue;
                         default:
                             break;
@@ -629,7 +627,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         case ERROR:
                             throw new RatingException("Effective date is after latest rating");
                         case NULL:
-                            Y[i] = Const.UNDEFINED_DOUBLE;
+                            y[i] = Const.UNDEFINED_DOUBLE;
                             lastUsedRating = null;
                             continue;
                         case PREVIOUS:
@@ -637,23 +635,21 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         case LOWER:
                         case CLOSEST:
                             lastUsedRating = activeRatings.lastEntry().getValue();
-                            Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                            y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                             continue;
                         default:
                             break;
                     }
                     if (activeRatings.size() == 1) {
-                        switch (method) {
-                            case LINEAR:
-                                //-----------------------------------------------------------------//
-                                // allow LINEAR out of range high method with single active rating //
-                                //-----------------------------------------------------------------//
-                                lastUsedRating = activeRatings.lastEntry().getValue();
-                                Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
-                                continue;
-                            default:
-                                throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+                        if (method == RatingMethod.LINEAR) {
+                            //-----------------------------------------------------------------//
+                            // allow LINEAR out of range high method with single active rating //
+                            //-----------------------------------------------------------------//
+                            lastUsedRating = activeRatings.lastEntry().getValue();
+                            y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                            continue;
                         }
+                        throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
                     }
                     upperRating = activeRatings.lastEntry();
                     lowerRating = activeRatings.lowerEntry(upperRating.getKey());
@@ -662,30 +658,30 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 // handle in-range and extrapolation //
                 //-----------------------------------//
                 if (lowerRating.getKey() == valueTimes[i]) {
-                    Y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+                    y[i] = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
                     continue;
                 }
                 if (upperRating.getKey() == valueTimes[i]) {
                     lastUsedRating = upperRating.getValue();
-                    Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                    y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                     continue;
                 }
                 switch (ratingSpec.getInRangeMethod()) {
                     case ERROR:
                         throw new RatingException("Effective date is between existing rating");
                     case NULL:
-                        Y[i] = Const.UNDEFINED_DOUBLE;
+                        y[i] = Const.UNDEFINED_DOUBLE;
                         lastUsedRating = null;
                         continue;
                     case PREVIOUS:
                     case LOWER:
                         lastUsedRating = lowerRating.getValue();
-                        Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                        y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                         continue;
                     case NEXT:
                     case HIGHER:
                         lastUsedRating = upperRating.getValue();
-                        Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                        y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                         continue;
                     case CLOSEST:
                         if (valueTimes[i] - lowerRating.getKey() < upperRating.getKey() - valueTimes[i]) {
@@ -693,7 +689,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         } else {
                             lastUsedRating = upperRating.getValue();
                         }
-                        Y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
+                        y[i] = lastUsedRating.rateOne(valueTimes[i], valueSets[i]);
                         continue;
                     default:
                         break;
@@ -708,26 +704,24 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             long t = valueTimes[i];
             long t1 = lowerRating.getKey();
             long t2 = upperRating.getKey();
-            double Y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-            double Y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
-            if (Y1 == Const.UNDEFINED_DOUBLE || Y2 == Const.UNDEFINED_DOUBLE) {
-                Y[i] = Const.UNDEFINED_DOUBLE;
+            double y1 = lowerRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+            double y2 = upperRating.getValue().rateOne(valueTimes[i], valueSets[i]);
+            if (y1 == Const.UNDEFINED_DOUBLE || y2 == Const.UNDEFINED_DOUBLE) {
+                y[i] = Const.UNDEFINED_DOUBLE;
             } else {
-                double y1 = Y1;
-                double y2 = Y2;
                 if (lowerRating.getValue() instanceof UsgsStreamTableRating) {
                     t1 = ((UsgsStreamTableRating) lowerRating.getValue()).getLatestEffectiveDate(t2);
                 }
                 if (transitionStartMillis > t1 && transitionStartMillis < t2) {
                     t1 = transitionStartMillis;
                 }
-                Y[i] = y1;
+                y[i] = y1;
                 if (t > t1) {
-                    Y[i] += (((double) t - t1) / (t2 - t1)) * (y2 - y1);
+                    y[i] += (((double) t - t1) / (t2 - t1)) * (y2 - y1);
                 }
             }
         }
-        return Y;
+        return y;
     }
 
     /**
@@ -736,7 +730,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      *
      * @param tsc The TimeSeriesContainer to rate
      * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of dependent parameter of the rating.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final TimeSeriesContainer rate(TimeSeriesContainer tsc) throws RatingException {
@@ -750,7 +744,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param tsc          The TimeSeriesContainer to rate
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesContainer of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized final TimeSeriesContainer rate(TimeSeriesContainer tsc, String ratedUnitStr) throws RatingException {
@@ -758,12 +752,12 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             throw new RatingException(String.format("Cannot rate a TimeSeriesContainer with a rating that has %d independent parameters",
                 ratingSpec.getIndParamCount()));
         }
-        if (ratings.size() == 0) {
+        if (ratings.isEmpty()) {
             throw new RatingException("No ratings.");
         }
         String[] units = getRatingUnits();
         String[] params = ratingSpec.getIndParameters();
-        if (ratedUnitStr == null || ratedUnitStr.length() == 0) {
+        if (ratedUnitStr == null || ratedUnitStr.isEmpty()) {
             ratedUnitStr = units[units.length - 1];
         }
         try {
@@ -881,7 +875,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             //-------------------------//
             // finally - do the rating //
             //-------------------------//
-            double[] indVals = null;
+            double[] indVals;
             long[] millis = new long[tsc.times.length];
             if (tz == null) {
                 for (int i = 0; i < millis.length; ++i) {
@@ -942,7 +936,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      *
      * @param tscs The TimeSeriesContainers to rate, in order of the independent parameters of the rating.
      * @return A TimeSeriesContainer of the rated values. The rated unit is the native unit of the dependent parameter of the rating.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
@@ -959,7 +953,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param tscs         The TimeSeriesContainers to rate, in order of the independent parameters of the rating.
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesContainer of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized final TimeSeriesContainer rate(TimeSeriesContainer[] tscs, String ratedUnitStr) throws RatingException {
@@ -969,11 +963,11 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     ratingSpec.getIndParamCount()));
         }
         String[] params = ratingSpec.getIndParameters();
-        if (ratings.size() == 0) {
+        if (ratings.isEmpty()) {
             throw new RatingException("No ratings.");
         }
         String[] units = getRatingUnits();
-        if (ratedUnitStr == null || ratedUnitStr.length() == 0) {
+        if (ratedUnitStr == null || ratedUnitStr.isEmpty()) {
             ratedUnitStr = units[units.length - 1];
         }
         int ratedInterval = tscs[0].interval;
@@ -1032,7 +1026,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             Parameter[] tscParam = new Parameter[indParamCount];
             Units[] tscUnit = new Units[indParamCount];
             Units ratedUnit = null;
-            boolean[] convertTscUnit = new boolean[indParamCount];
             boolean convertRatedUnit = false;
             for (int i = 0; i < indParamCount; ++i) {
                 tscParam[i] = null;
@@ -1082,18 +1075,14 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         }
                     }
                 }
-                if (tscUnit != null) {
-                    if (!tscs[i].units.equals(units[i])) {
-                        if (Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
-                            convertTscUnit[i] = true;
-                        } else {
-                            String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tscs[i].units, units[i]);
-                            if (!allowUnsafe) {
-                                throw new RatingException(msg);
-                            }
-                            if (warnUnsafe) {
-                                LOGGER.warning(msg + "  Rating will be performed on unconverted values.");
-                            }
+                if (!tscs[i].units.equals(units[i])) {
+                    if (!Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
+                        String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tscs[i].units, units[i]);
+                        if (!allowUnsafe) {
+                            throw new RatingException(msg);
+                        }
+                        if (warnUnsafe) {
+                            LOGGER.warning(msg + "  Rating will be performed on unconverted values.");
                         }
                     }
                 }
@@ -1166,7 +1155,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             if (ratedTsc.fullName.startsWith("/")) {
                 paramStr = paramStr.toUpperCase();
             }
-            if (tscs[0].subParameter == null || tscs[0].subParameter.length() == 0) {
+            if (tscs[0].subParameter == null || tscs[0].subParameter.isEmpty()) {
                 ratedTsc.fullName = replaceAll(tscs[0].fullName, tscs[0].parameter, paramStr, "IL");
             } else {
                 ratedTsc.fullName = replaceAll(tscs[0].fullName, String.format("%s-%s", tscs[0].parameter, tscs[0].subParameter), paramStr, "IL");
@@ -1199,7 +1188,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param tsm          The TimeSeriesMath to rate
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final TimeSeriesMath rate(TimeSeriesMath tsm, String ratedUnitStr) throws RatingException {
@@ -1231,7 +1220,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @param tsms         The TimeSeriesMaths to rate, in order of the independent parameters of the rating.
      * @param ratedUnitStr The unit to return the rated values in.
      * @return A TimeSeriesMath of the rated values. The rated unit is the specified unit.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final TimeSeriesMath rate(TimeSeriesMath[] tsms, String ratedUnitStr) throws RatingException {
@@ -1261,38 +1250,32 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
 
 
     /**
-     * Returns the unique identifying parts for the rating specification.
-     *
-     * @return
-     * @throws DataSetException
+     * @return the unique identifying parts for the rating specification.
+     * @throws DataSetException on error
      */
     @Override
     public final synchronized IRatingSpecification getRatingSpecification() throws DataSetException {
-        IRatingSpecification ratingSpecification = getRatingSpec().getRatingSpecification();
-        return ratingSpecification;
+        return getRatingSpec().getRatingSpecification();
     }
 
     /**
-     * Returns the unique identifying parts for the rating template.
-     *
-     * @return
-     * @throws DataSetException
+     * @return the unique identifying parts for the rating template.
+     * @throws DataSetException on error
      */
     @Override
     public final synchronized IRatingTemplate getRatingTemplate() throws DataSetException {
-        IRatingTemplate ratingTemplate = getRatingSpec().getRatingTemplate();
-        return ratingTemplate;
+        return getRatingSpec().getRatingTemplate();
     }
 
     /**
      * Sets the rating specification.
      *
      * @param ratingSpec The rating specification
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized final void setRatingSpec(RatingSpec ratingSpec) throws RatingException {
-        if (ratings != null && ratings.size() > 0) {
+        if (ratings != null && !ratings.isEmpty()) {
             if (ratingSpec.getIndParamCount() != ratings.firstEntry().getValue().getIndParamCount()) {
                 throw new RatingException("Number of independent parameters does not match existing ratings");
             }
@@ -1341,7 +1324,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      */
     @Override
     public final synchronized AbstractRating[] getRatings() {
-        return ratings.values().toArray(new AbstractRating[ratings.size()]);
+        return ratings.values().toArray(new AbstractRating[0]);
     }
 
     @Override
@@ -1381,7 +1364,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * Sets the times series of ratings, replacing any existing ratings.
      *
      * @param ratings The time series of ratings
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public final synchronized void setRatings(AbstractRating[] ratings) throws RatingException {
@@ -1425,14 +1408,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     @Override
     public final synchronized long getDefaultValuetime() {
         return defaultValueTime;
-    }
-
-    /**
-     * Resets the default value time. This is used for rating values that have no inherent times.
-     */
-    @Override
-    public final synchronized void resetDefaultValuetime() {
-        resetDefaultValueTime();
     }
 
     /* (non-Javadoc)
@@ -1529,7 +1504,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     public final synchronized String getName() {
         String name = null;
         if (ratingSpec == null) {
-            if (ratings.size() > 0) {
+            if (!ratings.isEmpty()) {
                 name = ratings.firstEntry().getValue().getName();
             }
         } else {
@@ -1569,7 +1544,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     @Override
     public synchronized String[] getRatingUnits() {
         String[] units = null;
-        if (ratings.size() > 0) {
+        if (!ratings.isEmpty()) {
             units = ratings.firstEntry().getValue().getRatingUnits();
         }
         return units;
@@ -1584,7 +1559,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         if (dataUnits != null) {
             units = Arrays.copyOf(dataUnits, dataUnits.length);
         } else {
-            if (ratings.size() > 0) {
+            if (!ratings.isEmpty()) {
                 units = ratings.firstEntry().getValue().getDataUnits();
             }
         }
@@ -1615,7 +1590,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      */
     @Override
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {
-        if (activeRatings.size() == 0) {
+        if (activeRatings.isEmpty()) {
             throw new RatingException("No active ratings.");
         }
         Entry<Long, AbstractRating> rating = activeRatings.floorEntry(ratingTime);
@@ -1843,7 +1818,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     @Override
     public synchronized double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
         double[] Y = new double[depVals.length];
-        if (activeRatings.size() == 0) {
+        if (activeRatings.isEmpty()) {
             throw new RatingException("No active ratings.");
         }
         if (getDataUnits() == null) {
@@ -1857,10 +1832,10 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 entry2 = ratings.higherEntry(entry1.getKey());
             }
         }
-        Entry<Long, AbstractRating> lowerRating = null;
-        Entry<Long, AbstractRating> upperRating = null;
+        Entry<Long, AbstractRating> lowerRating;
+        Entry<Long, AbstractRating> upperRating;
         IRating lastUsedRating = null;
-        RatingMethod method = null;
+        RatingMethod method;
         for (int i = 0; i < depVals.length; ++i) {
             if (i > 0 && valTimes[i] == valTimes[i - 1]) {
                 if (lastUsedRating == null) {
@@ -1923,17 +1898,15 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             break;
                     }
                     if (activeRatings.size() == 1) {
-                        switch (method) {
-                            case LINEAR:
-                                //-----------------------------------------------------------------//
-                                // allow LINEAR out of range high method with single active rating //
-                                //-----------------------------------------------------------------//
-                                lastUsedRating = activeRatings.lastEntry().getValue();
-                                Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
-                                continue;
-                            default:
-                                throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
+                        if (method == RatingMethod.LINEAR) {
+                            //-----------------------------------------------------------------//
+                            // allow LINEAR out of range high method with single active rating //
+                            //-----------------------------------------------------------------//
+                            lastUsedRating = activeRatings.lastEntry().getValue();
+                            Y[i] = lastUsedRating.reverseRate(valTimes[i], depVals[i]);
+                            continue;
                         }
+                        throw new RatingException(String.format("Cannot use rating method %s with only one active rating.", method));
                     }
                     upperRating = activeRatings.lastEntry();
                     lowerRating = activeRatings.lowerEntry(upperRating.getKey());
@@ -2141,7 +2114,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         if (ratingSpec != null) {
             rsc.ratingSpecContainer = ratingSpec.getData();
         }
-        if (ratings.size() > 0) {
+        if (!ratings.isEmpty()) {
             rsc.abstractRatingContainers = new AbstractRatingContainer[ratings.size()];
             Iterator<AbstractRating> it = ratings.values().iterator();
             for (int i = 0; it.hasNext(); ++i) {
@@ -2438,27 +2411,25 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @throws RatingException if the rating set is not valid
      */
     protected synchronized void validate() throws RatingException {
-        if (ratings.size() == 0) {
+        if (ratings.isEmpty()) {
             return;
         }
         String unitsId = ratings.firstEntry().getValue().getRatingUnitsId();
         String[] units = unitsId == null ? null : split(unitsId.replace(SEPARATOR2, SEPARATOR3), SEPARATOR3, "L");
-        String[] params = null;
-        boolean[] validParams = null;
-        boolean[] validUnits = null;
+        String[] params;
+        boolean[] validParams;
+        boolean[] validUnits;
         try {
             if (ratingSpec != null) {
                 params = ratingSpec.getIndParameters();
                 validParams = new boolean[ratingSpec.getIndParamCount() + 1];
                 validUnits = new boolean[ratingSpec.getIndParamCount() + 1];
-                Parameter ratingParam = null;
-                Units ratingUnit = null;
+                Parameter ratingParam;
+                Units ratingUnit;
                 for (int i = 0; i < params.length; ++i) {
-                    ratingParam = null;
                     validParams[i] = false;
                     if (ratingSpec != null) {
                         try {
-                            ratingParam = new Parameter(params[i]);
                             validParams[i] = true;
                         } catch (Throwable t) {
                             if (!allowUnsafe) {
@@ -2472,10 +2443,8 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 }
                 if (units != null) {
                     for (int i = 0; i < units.length; ++i) {
-                        ratingUnit = null;
                         validUnits[i] = false;
                         try {
-                            ratingUnit = new Units(units[i], true);
                             validUnits[i] = true;
                         } catch (Throwable t) {
                             if (!allowUnsafe) {
@@ -2586,7 +2555,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     @Override
-    public synchronized void resetDefaultValueTime() {
+    public void resetDefaultValueTime() {
         this.defaultValueTime = Const.UNDEFINED_TIME;
     }
 }

@@ -27,6 +27,8 @@ import hec.util.TextUtil;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -97,7 +99,41 @@ final class RatingXmlUtil {
         throw new AssertionError("Utility class");
     }
 
-    static String elementText(Element element) {
+    public static String getChildElementText(Element element, String tagName) {
+        Element child = getChildElement(element, tagName);
+        if (child == null) {
+            return null;
+        }
+        return getElementText(child);
+    }
+
+    public static Element getChildElement(Element element, String tagName) {
+        for (Node n = element.getFirstChild(); n != null; n = n.getNextSibling()) {
+            if (n.getNodeType() == Node.ELEMENT_NODE) {
+                Element elem = (Element) n;
+                if (elem.getTagName().equals(tagName)) {
+                    return elem;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static List<Element> getChildElements(Element element, String tagName) {
+        List<Element> elements = new ArrayList<>();
+        boolean matchAll = tagName.equals("*");
+        for (Node n = element.getFirstChild(); n != null; n = n.getNextSibling()) {
+            if (n.getNodeType() == Node.ELEMENT_NODE) {
+                Element elem = (Element) n;
+                if (matchAll || elem.getTagName().equals(tagName)) {
+                    elements.add(elem);
+                }
+            }
+        }
+        return elements;
+    }
+
+    public static String getElementText(Element element) {
         StringBuilder sb = new StringBuilder();
 
         for (Node n = element.getFirstChild(); n != null; n = n.getNextSibling()) {
@@ -106,11 +142,11 @@ final class RatingXmlUtil {
                 sb.append(n.getNodeValue());
             }
         }
-
-        return sb.toString().trim();
+        String text = sb.toString().trim();
+        return text.isEmpty() ? null : text;
     }
 
-    static String attributeText(Element element, String name) {
+    public static String getAttributeText(Element element, String name) {
         NamedNodeMap attrs = element.getAttributes();
         for (int i = 0; i < attrs.getLength(); i++) {
             Attr a = (Attr) attrs.item(i);
@@ -123,7 +159,7 @@ final class RatingXmlUtil {
         return "";
     }
 
-    static String elementToText(Element element) {
+    public static String elementToText(Element element) {
         Transformer t;
         try {
             t = TransformerFactory.newInstance().newTransformer();
@@ -136,7 +172,7 @@ final class RatingXmlUtil {
 
     }
 
-    static Element textToElement(String text) throws RatingException {
+    public static Element textToElement(String text) throws RatingException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);              // usually what you want
         Document doc;
@@ -156,30 +192,30 @@ final class RatingXmlUtil {
     static void populateCommonDataFromXml(Element ratingElement, AbstractRatingContainer arc) throws VerticalDatumException {
         HecTime hectime = new HecTime();
         String data;
-        arc.officeId = attributeText(ratingElement, "office-id");
-        arc.ratingSpecId = elementText((Element) ratingElement.getElementsByTagName("rating-spec-id").item(0));
-        arc.unitsId = elementText((Element) ratingElement.getElementsByTagName("units-id").item(0));
-        Element verticalDatumElement = (Element) ratingElement.getElementsByTagName("vertical-datum-info").item(0);
+        arc.officeId = getAttributeText(ratingElement, "office-id");
+        arc.ratingSpecId = getChildElementText(ratingElement, "rating-spec-id");
+        arc.unitsId = getChildElementText(ratingElement, "units-id");
+        Element verticalDatumElement = getChildElement(ratingElement, "vertical-datum-info");
         if (verticalDatumElement != null) {
             arc.setVerticalDatumContainer(new VerticalDatumContainer(RatingXmlUtil.elementToText(verticalDatumElement)));
         }
-        data = elementText((Element) ratingElement.getElementsByTagName("effective-date").item(0));
-        if (!data.isEmpty()) {
+        data = getChildElementText(ratingElement, "effective-date");
+        if (data != null) {
             hectime.set(data);
             arc.effectiveDateMillis = hectime.getTimeInMillis();
         }
-        data = elementText((Element) ratingElement.getElementsByTagName("create-date").item(0));
-        if (!data.isEmpty()) {
+        data = getChildElementText(ratingElement, "create-date");
+        if (data != null) {
             hectime.set(data);
             arc.createDateMillis = hectime.getTimeInMillis();
         }
-        data = elementText((Element) ratingElement.getElementsByTagName("transition-start-date").item(0));
-        if (!data.isEmpty()) {
+        data = getChildElementText(ratingElement, "transition-start-date");
+        if (data != null) {
             hectime.set(data);
             arc.transitionStartDateMillis = hectime.getTimeInMillis();
         }
-        arc.active = Boolean.parseBoolean(elementText((Element) ratingElement.getElementsByTagName("active").item(0)));
-        arc.description = elementText((Element) ratingElement.getElementsByTagName("description").item(0));
+        arc.active = Boolean.parseBoolean(getChildElementText(ratingElement, "active"));
+        arc.description = getChildElementText(ratingElement, "description");
     }
 
     /**

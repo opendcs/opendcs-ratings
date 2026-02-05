@@ -21,7 +21,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 
-import static org.opendcs.ratings.XmlUtil.elementText;
+import static org.opendcs.ratings.XmlUtil.getChildElementText;
 
 /**
  * Data container class for TableRating objects
@@ -264,9 +264,9 @@ public class TableRatingContainer extends AbstractRatingContainer {
 			Document doc = db.parse(is);
 			Element elem = doc.getDocumentElement();
 			if (elem.getTagName().equals("lookup-behaviors")) {
-				inRangeMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("in-range").item(0))).name();
-				outRangeLowMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("out-range-low").item(0))).name();
-				outRangeHighMethod = RatingMethod.fromString(elementText((Element) elem.getElementsByTagName("out-range-high").item(0))).name();
+				inRangeMethod = RatingMethod.fromString(getChildElementText(elem, "in-range")).name();
+				outRangeLowMethod = RatingMethod.fromString(getChildElementText(elem, "out-range-low")).name();
+				outRangeHighMethod = RatingMethod.fromString(getChildElementText(elem, "out-range-high")).name();
 			}
 		}
 		catch (Exception e) {
