@@ -20,8 +20,8 @@ import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.TransitionalRating;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.w3c.dom.Element;
 
-import org.jdom.Element;
 import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 import static org.opendcs.ratings.RatingConst.SEPARATOR3;
@@ -50,9 +50,9 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 */
 	public TransitionalRatingContainer() {}
 	/**
-	 * Public constructor from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param ratingElement The JDOM Element
-	 * @throws RatingException
+	 * Public constructor from a DOM Element. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param ratingElement The DOM Element
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(Element) instead
 	 */
 	@Deprecated
@@ -62,7 +62,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Public constructor from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -70,9 +70,9 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		populateFromXml(xmlText);
 	}
 	/**
-	 * Populates the TransitionalRatingContainer from a JDOM Element. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param ratingElement The jdom element
-	 * @throws RatingException
+	 * Populates the TransitionalRatingContainer from a DOM Element. The conditions, evaluations, and sourceRatings fields will be null
+	 * @param ratingElement The DOM element
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(Element) instead
 	 */
 	@Deprecated
@@ -84,7 +84,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Populates the TransitionalRatingContainer from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
-	 * @throws RatingException
+	 * @throws RatingException in error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -99,7 +99,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * @param ratings A collection of ratings that includes the necessary source ratings
 	 * @param specs A collection of rating specifications for the source ratings
 	 * @param templates A collection of rating templates for the source ratings.
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void populateSourceRatings(
 			Map<String, SortedSet<AbstractRatingContainer>> ratings,
@@ -107,7 +107,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 			Map<String, RatingTemplateContainer> templates) throws RatingException {
 
 		if (sourceRatingIds != null) {
-			List<SourceRatingContainer> srList = new ArrayList<SourceRatingContainer>();
+			List<SourceRatingContainer> srList = new ArrayList<>();
 			for (String specId : sourceRatingIds) {
 				SourceRatingContainer src = new SourceRatingContainer();
 				srList.add(src);
@@ -161,9 +161,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		}
 		if (sourceRatingIds != null) {
 			trc.sourceRatingIds = new String[sourceRatingIds.length];
-			for (int i = 0; i < sourceRatingIds.length; ++i) {
-				trc.sourceRatingIds[i] = sourceRatingIds[i];
-			}
+            System.arraycopy(sourceRatingIds, 0, trc.sourceRatingIds, 0, sourceRatingIds.length);
 		}
 	}
 
@@ -198,7 +196,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public AbstractRatingContainer clone() {
-		TransitionalRatingContainer trc = new TransitionalRatingContainer();
+        TransitionalRatingContainer trc = new TransitionalRatingContainer();
 		this.clone(trc);
 		return trc;
 	}

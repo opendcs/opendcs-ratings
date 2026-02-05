@@ -6,9 +6,6 @@
  *
  */
 
-/**
- * 
- */
 package org.opendcs.ratings.io;
 
 /**
@@ -95,7 +92,7 @@ public class SourceRatingContainer {
 		other.mathExpression = mathExpression;
 		if (units != null) {
 			other.units = new String[units.length];
-			for (int i = 0; i < units.length; ++i) other.units[i] = units[i];
+            System.arraycopy(units, 0, other.units, 0, units.length);
 		}
 		other.rsc = rsc == null ? null : rsc.clone();
 	}

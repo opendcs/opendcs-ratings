@@ -6,9 +6,6 @@
  *
  */
 
-/**
- *
- */
 package org.opendcs.ratings;
 
 import java.util.Arrays;
@@ -39,8 +36,6 @@ import mil.army.usace.hec.metadata.VerticalDatumException;
 
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-import static hec.lang.Const.UNDEFINED_INT;
 import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
@@ -73,7 +68,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Object that provides the Observable-by-composition functionality
 		 */
-		protected Observable observationTarget = null;
+		protected Observable observationTarget;
 		/**
 		 * Default constructor
 		 */
@@ -83,7 +78,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Public constructor from SourceRatingContainer object
 		 * @param src The SourceRatingContainer object to construct from
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public SourceRating(SourceRatingContainer src) throws RatingException {
 			this.observationTarget = new Observable();
@@ -93,7 +88,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 * Public constructor from a RatingSet object and units
 		 * @param ratingSet the RatingSet object to use
 		 * @param ratingUnits the rating units to use
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public SourceRating(RatingSet ratingSet, String[] ratingUnits) throws RatingException {
 			this.observationTarget = new Observable();
@@ -103,7 +98,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 * Public constructor from a RatingSet object and units
 		 * @param ratingSet the RatingSet object to use
 		 * @param ratingUnitsId the rating units to use
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public SourceRating(RatingSet ratingSet, String ratingUnitsId) throws RatingException {
 			this.observationTarget = new Observable();
@@ -112,7 +107,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Public constructor from a RatingSet object and default units
 		 * @param ratingSet the RatingSet object to use
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public SourceRating(RatingSet ratingSet) throws RatingException {
 			this.observationTarget = new Observable();
@@ -121,7 +116,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Initialize the object from a SourceRatingContainer object
 		 * @param src The SourceRatingContainer object to initialize from
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		void setData(SourceRatingContainer src) throws RatingException {
 			try {
@@ -176,7 +171,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param mathExpression the mathExpression to set
 		 * @param units the units as a string array
-		 * @throws ComputationException
+		 * @throws ComputationException on error
 		 */
 		public void setMathExpression(String mathExpression, String[] units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
@@ -187,7 +182,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param mathExpression the mathExpression to set
 		 * @param units the units as a string
-		 * @throws ComputationException
+		 * @throws ComputationException on error
 		 */
 		public void setMathExpression(String mathExpression, String units) throws ComputationException, RatingException {
 			mathExpression = mathExpression.replaceAll("[I|R](\\d+)", "\\$I$1");
@@ -204,7 +199,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string array
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public void setRatingSet(RatingSet ratings, String[] units) throws RatingException {
 			this.ratings = ratings;
@@ -217,7 +212,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * @param ratings the ratings to set
 		 * @param units the units as a string
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public void setRatingSet(RatingSet ratings, String units) throws RatingException {
 			this.ratings = ratings;
@@ -229,7 +224,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		}
 		/**
 		 * @param ratings the ratings to set, using the RatingUnits of the set
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		public void setRatingSet(RatingSet ratings) throws RatingException {
 			this.ratings = ratings;
@@ -255,7 +250,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Sets the ratingUnits array from a string array
 		 * @param units The string array to set the ratingUnits array from
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		protected void setRatingUnits(String[] units) throws RatingException {
 			if (ratings != null) {
@@ -275,7 +270,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		/**
 		 * Sets the ratingUnits array from a string
 		 * @param units The string to set the ratingUnits array from
-		 * @throws RatingException
+		 * @throws RatingException on error
 		 */
 		protected void setRatingUnits(String units) throws RatingException {
 			if (units == null) {
@@ -508,7 +503,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 					throw new RatingException(String.format("Expected %d units for math expression (%s), got %d", varCount+1, mathExpression.toString(), units.length));
 				}
 			}
-			dataUnits = units == null ? null : units;
+			dataUnits = units;
 		}
 		/* (non-Javadoc)
 		 * @see hec.data.IRating#getDefaultValueTime()
@@ -525,13 +520,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 			if (ratings != null) {
 				ratings.setDefaultValueTime(defaultValueTime);
 			}
-		}
-		/* (non-Javadoc)
-		 * @see hec.data.IRating#resetDefaultValuetime()
-		 */
-		@Override
-		public void resetDefaultValuetime() {
-			setDefaultValueTime(UNDEFINED_TIME);
 		}
 		/* (non-Javadoc)
 		 * @see hec.data.IRating#getRatingTime()
@@ -595,7 +583,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double rate(double indVal) throws RatingException {
-			double result = UNDEFINED_DOUBLE;
+			double result;
 			if (ratings != null) {
 				result = ratings.rate(indVal);
 			}
@@ -627,7 +615,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double rateOne2(double[] indVals) throws RatingException {
-			double result = UNDEFINED_DOUBLE;
+			double result;
 			if (ratings != null) {
 				result = ratings.rateOne(indVals);
 			}
@@ -654,7 +642,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] rate(double[] indVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.rate(indVals);
 			}
@@ -682,17 +670,17 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] rate(double[][] indVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.rate(indVals);
 			}
 			else if (mathExpression != null) {
 				try {
-					for (int i = 0; i < indVals.length; ++i) {
-						if (indVals[i] == null || indVals[i].length != indVals[0].length) {
-							throw new RatingException("Inconsistent independent values set");
-						}
-					}
+                    for (double[] indVal : indVals) {
+                        if (indVal == null || indVal.length != indVals[0].length) {
+                            throw new RatingException("Inconsistent independent values set");
+                        }
+                    }
 					if (vars == null) {
 						vars = mathExpression.getVariables();
 					}
@@ -718,7 +706,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double rate(long valTime, double indVal) throws RatingException {
-			double result = UNDEFINED_DOUBLE;
+			double result;
 			if (ratings != null) {
 				result = ratings.rate(valTime, indVal);
 			}
@@ -750,7 +738,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double rateOne2(long valTime, double[] indVals) throws RatingException {
-			double result = UNDEFINED_DOUBLE;
+			double result;
 			if (ratings != null) {
 				result = ratings.rateOne(valTime, indVals);
 			}
@@ -777,7 +765,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] rate(long valTime, double[] indVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.rate(valTime, indVals);
 			}
@@ -794,7 +782,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] rate(long[] valTimes, double[] indVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.rate(valTimes, indVals);
 			}
@@ -811,7 +799,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] rate(long valTime, double[][] indVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.rate(valTime, indVals);
 			}
@@ -828,7 +816,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.rate(valTimes, indVals);
 			}
@@ -845,7 +833,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public TimeSeriesContainer rate(TimeSeriesContainer tsc) throws RatingException {
-			TimeSeriesContainer results = null;
+			TimeSeriesContainer results;
 			if (ratings != null) {
 				results = ratings.rate(tsc);
 			}
@@ -872,7 +860,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public TimeSeriesContainer rate(TimeSeriesContainer[] tscs) throws RatingException {
-			TimeSeriesContainer results = null;
+			TimeSeriesContainer results;
 			if (ratings != null) {
 				results = ratings.rate(tscs);
 			}
@@ -970,9 +958,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 							parts[3] = intvlStr;
 							results.fullName = TextUtil.join(".", parts);
 						}
-						else {
-							// tscs[0].fullName is of unknown format, so leave it alone
-						}
 					}
 				}
 			}
@@ -986,7 +971,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public TimeSeriesMath rate(TimeSeriesMath tsm) throws RatingException {
-			TimeSeriesMath results = null;
+			TimeSeriesMath results;
 			if (ratings != null) {
 				results = ratings.rate(tsm);
 			}
@@ -1009,7 +994,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public TimeSeriesMath rate(TimeSeriesMath[] tsms) throws RatingException {
-			TimeSeriesMath results = null;
+			TimeSeriesMath results;
 			TimeSeriesContainer[] tscs = new TimeSeriesContainer[tsms.length];
 			try {
 				for (int i = 0; i < tscs.length; ++i) {
@@ -1028,7 +1013,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double reverseRate(double depVal) throws RatingException {
-			double result = UNDEFINED_DOUBLE;
+			double result;
 			if (ratings != null) {
 				result = ratings.reverseRate(depVal);
 			}
@@ -1045,7 +1030,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] reverseRate(double[] depVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.reverseRate(depVals);
 			}
@@ -1062,7 +1047,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double reverseRate(long valTime, double depVal) throws RatingException {
-			double result = UNDEFINED_DOUBLE;
+			double result;
 			if (ratings != null) {
 				result = ratings.reverseRate(valTime, depVal);
 			}
@@ -1079,7 +1064,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] reverseRate(long valTime, double[] depVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.reverseRate(valTime, depVals);
 			}
@@ -1096,7 +1081,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
-			double[] results = null;
+			double[] results;
 			if (ratings != null) {
 				results = ratings.reverseRate(valTimes, depVals);
 			}
@@ -1113,7 +1098,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public TimeSeriesContainer reverseRate(TimeSeriesContainer tsc) throws RatingException {
-			TimeSeriesContainer results = null;
+			TimeSeriesContainer results;
 			if (ratings != null) {
 				results = ratings.reverseRate(tsc);
 			}
@@ -1130,7 +1115,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
-			TimeSeriesMath results = null;
+			TimeSeriesMath results;
 			if (ratings != null) {
 				results = ratings.reverseRate(tsm);
 			}
@@ -1147,7 +1132,7 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		@Override
 		public int getIndParamCount() throws RatingException {
-			int count = UNDEFINED_INT;
+			int count;
 			if (ratings != null) {
 				count = ratings.getIndParamCount();
 			}
@@ -1185,25 +1170,20 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 * @param o The Observer object to add
 		 * @see java.util.Observer
 		 */
-		public void addObserver(Observer o) {
-			synchronized(observationTarget) {
-				observationTarget.addObserver(o);
-			}
+		public synchronized void addObserver(Observer o) {
+            observationTarget.addObserver(o);
 		}
 		/**
 		 * Deletes an Observer from this SourceRating. The Observer will no longer be notified of any changes to this SourceRating
 		 * @param o The Observer object to delete
 		 * @see java.util.Observer
 		 */
-		public void deleteObserver(Observer o) {
-			synchronized(observationTarget) {
-				observationTarget.deleteObserver(o);
-			}
+		public synchronized void deleteObserver(Observer o) {
+            observationTarget.deleteObserver(o);
 		}
 
 	/**
-	 * Returns the vertical datum container from the ratings if the ratings is not null.
-	 * @return
+	 * @return  the vertical datum container from the ratings if the ratings is not null.
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer() {
@@ -1217,11 +1197,16 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 	/**
 	 * Sets the vertical datum container on the ratings if the ratings is not null.
 	 *
-	 * @param vdc
+	 * @param vdc The VerticalDatumContainer
 	 */
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
 		if(ratings != null) {
 			ratings.setVerticalDatumContainer(vdc);
 		}
 	}
+
+    @Override
+    public void resetDefaultValueTime() {
+        getRatingSet().resetDefaultValueTime();
+    }
 }

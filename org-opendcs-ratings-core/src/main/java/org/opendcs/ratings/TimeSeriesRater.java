@@ -6,9 +6,6 @@
  *
  */
 
-/**
- * 
- */
 package org.opendcs.ratings;
 
 import java.text.SimpleDateFormat;

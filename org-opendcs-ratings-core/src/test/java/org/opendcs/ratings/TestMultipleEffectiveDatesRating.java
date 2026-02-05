@@ -58,7 +58,7 @@ public class TestMultipleEffectiveDatesRating
 		double[][] values = new double[2][2];
 		values[0][0] = 0.;values[0][1] = 269.882112744141;
 		values[1][0] = 50.; values[1][1] = 269.882112744141;
-		long[] times = new long[]{1388692800000l, 1388692800000l};
+		long[] times = new long[]{1388692800000L, 1388692800000L};
 
 		//set the units
 		ratingSetOneEffectiveDate.setDataUnits(new String[]{"%","m","cms"});

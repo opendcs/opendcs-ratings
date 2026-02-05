@@ -171,50 +171,51 @@ public class RatingSetTest
 		"</rating>"+
 		"</ratings>";
 
-	private static final String XML_WITH_NO_POINTS = "<ratings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"https://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd\">\n" +
-		"  <rating-template office-id=\"SWT\">\n" +
-		"    <parameters-id>Elev;Area</parameters-id>\n" +
-		"    <version>Workshop</version>\n" +
-		"    <ind-parameter-specs>\n" +
-		"      <ind-parameter-spec position=\"1\">\n" +
-		"        <parameter>Elev</parameter>\n" +
-		"        <in-range-method>LINEAR</in-range-method>\n" +
-		"        <out-range-low-method>HIGHER</out-range-low-method>\n" +
-		"        <out-range-high-method>LINEAR</out-range-high-method>\n" +
-		"      </ind-parameter-spec>\n" +
-		"    </ind-parameter-specs>\n" +
-		"    <dep-parameter>Area</dep-parameter>\n" +
-		"    <description>demo only</description>\n" +
-		"  </rating-template>\n" +
-		"  <rating-spec office-id=\"SWT\">\n" +
-		"    <rating-spec-id>COPA.Elev;Area.Workshop.Production</rating-spec-id>\n" +
-		"    <template-id>Elev;Area.Workshop</template-id>\n" +
-		"    <location-id>COPA</location-id>\n" +
-		"    <version>Production</version>\n" +
-		"    <source-agency>CESWT</source-agency>\n" +
-		"    <in-range-method>LINEAR</in-range-method>\n" +
-		"    <out-range-low-method>NULL</out-range-low-method>\n" +
-		"    <out-range-high-method>LINEAR</out-range-high-method>\n" +
-		"    <active>true</active>\n" +
-		"    <auto-update>false</auto-update>\n" +
-		"    <auto-activate>false</auto-activate>\n" +
-		"    <auto-migrate-extension>false</auto-migrate-extension>\n" +
-		"    <ind-rounding-specs>\n" +
-		"      <ind-rounding-spec position=\"1\">2222256782</ind-rounding-spec>\n" +
-		"    </ind-rounding-specs>\n" +
-		"    <dep-rounding-spec>2222233332</dep-rounding-spec>\n" +
-		"    <description>test rating</description>\n" +
-		"  </rating-spec>\n" +
-		"  <simple-rating office-id=\"SWT\">\n" +
-		"    <rating-spec-id>COPA.Elev;Area.Workshop.Production</rating-spec-id>\n" +
-		"    <units-id>ft;acre</units-id>\n" +
-		"    <effective-date>2014-11-18T19:22:00Z</effective-date>\n" +
-		"    <create-date>2014-11-18T19:23:00Z</create-date>\n" +
-		"    <active>true</active>\n" +
-		"    <description>test rating</description>\n" +
-		"    <rating-points/>\n" +
-		"  </simple-rating>\n" +
-		"</ratings>";
+	private static final String XML_WITH_NO_POINTS = """
+            <ratings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://www.hec.usace.army.mil/xmlSchema/cwms/Ratings.xsd">
+              <rating-template office-id="SWT">
+                <parameters-id>Elev;Area</parameters-id>
+                <version>Workshop</version>
+                <ind-parameter-specs>
+                  <ind-parameter-spec position="1">
+                    <parameter>Elev</parameter>
+                    <in-range-method>LINEAR</in-range-method>
+                    <out-range-low-method>HIGHER</out-range-low-method>
+                    <out-range-high-method>LINEAR</out-range-high-method>
+                  </ind-parameter-spec>
+                </ind-parameter-specs>
+                <dep-parameter>Area</dep-parameter>
+                <description>demo only</description>
+              </rating-template>
+              <rating-spec office-id="SWT">
+                <rating-spec-id>COPA.Elev;Area.Workshop.Production</rating-spec-id>
+                <template-id>Elev;Area.Workshop</template-id>
+                <location-id>COPA</location-id>
+                <version>Production</version>
+                <source-agency>CESWT</source-agency>
+                <in-range-method>LINEAR</in-range-method>
+                <out-range-low-method>NULL</out-range-low-method>
+                <out-range-high-method>LINEAR</out-range-high-method>
+                <active>true</active>
+                <auto-update>false</auto-update>
+                <auto-activate>false</auto-activate>
+                <auto-migrate-extension>false</auto-migrate-extension>
+                <ind-rounding-specs>
+                  <ind-rounding-spec position="1">2222256782</ind-rounding-spec>
+                </ind-rounding-specs>
+                <dep-rounding-spec>2222233332</dep-rounding-spec>
+                <description>test rating</description>
+              </rating-spec>
+              <simple-rating office-id="SWT">
+                <rating-spec-id>COPA.Elev;Area.Workshop.Production</rating-spec-id>
+                <units-id>ft;acre</units-id>
+                <effective-date>2014-11-18T19:22:00Z</effective-date>
+                <create-date>2014-11-18T19:23:00Z</create-date>
+                <active>true</active>
+                <description>test rating</description>
+                <rating-points/>
+              </simple-rating>
+            </ratings>""";
 
 	@Test
 	public void testRatingSetFromXml() throws Exception {
@@ -226,8 +227,7 @@ public class RatingSetTest
 		RatingValue[] tRating = ((TableRating)absRatings[0]).getRatingValues();
 		// this should not be null because we have 4 ind parameters. There should be a dep Table
 		assertNotNull(tRating[0].getDepValues(),"Table not read");
-		return;
-	}
+    }
 
 	@Test
 	public void testRatingSetFromXmlCompressed() throws Exception {

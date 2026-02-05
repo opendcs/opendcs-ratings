@@ -66,7 +66,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 * @param offsets The logarithmic interpolation offsets
 	 * @param active Specifies whether the rating is currently active
 	 * @param description The description of the rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public UsgsStreamTableRating(
 			RatingValue[] values,
@@ -128,7 +128,7 @@ public class UsgsStreamTableRating extends TableRating {
 
 		if (urc.offsets != null) {
 			this.offsets = new TableRating(urc.offsets);
-			if (urc.unitsId != null && urc.unitsId.length() > 0) {
+			if (urc.unitsId != null && !urc.unitsId.isEmpty()) {
 				String heightUnit = TextUtil.split(urc.unitsId, ";")[0];
 				this.offsets.ratingUnitsId = String.format("%s;%s", heightUnit, heightUnit);
 			}
@@ -136,7 +136,7 @@ public class UsgsStreamTableRating extends TableRating {
 		}
 		if (urc.shifts != null) {
 			setShifts(RatingSetFactory.ratingSet(urc.shifts));
-			if (urc.unitsId != null && urc.unitsId.length() > 0) {
+			if (urc.unitsId != null && !urc.unitsId.isEmpty()) {
 				String heightUnit = TextUtil.split(urc.unitsId, ";")[0];
 				for (AbstractRating shift : getShifts().getRatings()) {
 					shift.ratingUnitsId = String.format("%s;%s", heightUnit, heightUnit);
@@ -148,7 +148,7 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRating(String) instead
 	 */
 	@Deprecated
@@ -703,14 +703,13 @@ public class UsgsStreamTableRating extends TableRating {
 				if (ind_log) shifted = Math.pow(10, shifted) + offset;
 			}
 			double shift = getShiftFromShifted(valTime, shifted);
-			double unshifted = shifted - shift;
-			return unshifted;
+            return shifted - shift;
 		}
 	}
 	/**
 	 * Retrieves the current shifts, can return null
 	 * @return the shifts
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public RatingSet getShifts() throws RatingException {
 		synchronized(this) {
@@ -735,7 +734,7 @@ public class UsgsStreamTableRating extends TableRating {
 	/**
 	 * Sets the current shifts
 	 * @param shifts the shifts to set
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setShifts(RatingSet shifts) throws RatingException {
 		synchronized(this) {
@@ -930,7 +929,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 * @param valTime The time to get the shift for
 	 * @param height The unshifted stage to get the shift for
 	 * @return The stage shift
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected double getShiftFromUnshifted(long valTime, double height) throws RatingException {
 		synchronized(this) {
@@ -963,7 +962,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 * @param valTime The time to get the shift for
 	 * @param height The shifted stage to get the shift for
 	 * @return The stage shift
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected double getShiftFromShifted(long valTime, double height) throws RatingException {
 		synchronized(this) {
@@ -974,7 +973,7 @@ public class UsgsStreamTableRating extends TableRating {
 				double shift2 = getShiftFromUnshifted(valTime, unshifted);
 				double mean = (shift1 + shift2) / 2;
 				double diff = Math.abs(shift2 - shift1);
-				int i = 0;
+				int i;
 				int limit = 100;
 				for (i = 0; i < limit && diff * 1E8 > Math.abs(mean); ++i) {
 					shift1 = shift2;
@@ -995,7 +994,7 @@ public class UsgsStreamTableRating extends TableRating {
 	 * Retrieves the log interpolation offset for a specified stage
 	 * @param indVal The stage to retrieve the offset for
 	 * @return The log interpolation offset
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected double getOffset(double indVal) throws RatingException {
 		synchronized(this) {
@@ -1153,7 +1152,7 @@ public class UsgsStreamTableRating extends TableRating {
 	public TableRating addShift(Date shiftDate, List<RatingValueContainer> stageShiftValues, boolean shiftActive) throws RatingException
 	{
 		synchronized(this) {
-			TableRating retval = null;
+			TableRating retval;
 			RatingSet shiftsRef = getShifts();
 			long shiftDateTime = shiftDate.getTime();
 			//check if this rating already has a shift at the date time.
@@ -1169,7 +1168,7 @@ public class UsgsStreamTableRating extends TableRating {
 			}
 
 			//does this rating have any shifts?
-			RatingSetContainer shiftsRatingSetContainer = null;
+			RatingSetContainer shiftsRatingSetContainer;
 			if (shiftsRef == null)
 			{
 				//create a new shifts rating set container

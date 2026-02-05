@@ -6,9 +6,6 @@
  *
  */
 
-/**
- * 
- */
 package org.opendcs.ratings.io;
 
 /**

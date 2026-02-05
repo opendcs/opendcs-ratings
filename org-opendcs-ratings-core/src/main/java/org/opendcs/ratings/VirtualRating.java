@@ -6,9 +6,6 @@
  *
  */
 
-/**
- *
- */
 package org.opendcs.ratings;
 
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
@@ -24,16 +21,7 @@ import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,27 +55,9 @@ public class VirtualRating extends AbstractRating {
 	String[] outputs = null;
 
 	protected static void parseConnectionPoint(String connectionPoint, int[] results) {
-//		Matcher m = p.matcher(connectionPoint);
-//		if (m.matches()) {
-//			try {
-//				results[0] = Integer.parseInt(m.group(2))-1;
-//			}
-//			catch (Throwable t) {
-//				results[0] = -1;
-//			}
-//			try {
-//				results[1] = Integer.parseInt(m.group(4))-1;
-//			}
-//			catch (Throwable t) {
-//				results[1] = -1;
-//			}
-//		}
-		//----------------------------------------------------//
-		// NOTE : The code below is much faster than the code //
-		//        above but is restricted 9 source ratings    //
-		//        and 9 independent parameters for each (so   //
-		//        not *really* a restriction).                //
-		//----------------------------------------------------//
+        //-------------------------------------------------------------------//
+        // limited to 9 source ratings and 9 independent parameters for each //
+        //-------------------------------------------------------------------//
 		results[0] = results[1] = -1;
 		switch (connectionPoint.charAt(0)) {
 		case 'I' :
@@ -95,11 +65,9 @@ public class VirtualRating extends AbstractRating {
 			break;
 		case 'R' :
 			results[0] = connectionPoint.codePointAt(1) - '1';
-			switch (connectionPoint.charAt(2)) {
-			case 'I' :
-				results[1] = connectionPoint.codePointAt(3) - '1';
-				break;
-			}
+            if (connectionPoint.charAt(2) == 'I') {
+                results[1] = connectionPoint.codePointAt(3) - '1';
+            }
 			break;
 		}
 	}
@@ -107,13 +75,13 @@ public class VirtualRating extends AbstractRating {
 	 * Returns the COMPLETE connections string for the connection map and dependent parameter connection
 	 * @param connMap the connection map
 	 * @param depParamConn the dependent parameter connection
-	 * @return
+	 * @return the complete connections string
 	 */
 	public static String getConnectionsComplete(Map<String, Set<String>> connMap, String depParamConn) {
-		Set<Set<String>> conns = new HashSet<Set<String>>();
+		Set<Set<String>> conns = new HashSet<>();
 		for (String conn1 : connMap.keySet()) {
 			for (String conn2 : connMap.get(conn1)) {
-				Set<String> set = new HashSet<String>();
+				Set<String> set = new HashSet<>();
 				set.add(conn1);
 				set.add(conn2);
 				conns.add(set);
@@ -131,16 +99,7 @@ public class VirtualRating extends AbstractRating {
 			}
 			++i;
 		}
-		Arrays.sort(connArray, new Comparator<String[]>(){
-			@Override
-			public int compare(String[] arg0, String[] arg1) {
-				int result = arg0[0].compareTo(arg1[0]);
-				if (result == 0) {
-					result = arg0[1].compareTo(arg1[1]);
-				}
-				return result;
-			}
-		});
+		Arrays.sort(connArray, Comparator.comparing((String[] arg0) -> arg0[0]).thenComparing(arg0 -> arg0[1]));
 		StringBuilder sb = new StringBuilder();
 		for (String[] conn : connArray) {
 			if (conn[0].indexOf('I') == 0) {
@@ -157,11 +116,11 @@ public class VirtualRating extends AbstractRating {
 	 * Returns the NORMALIZED connections string for the connection map and dependent parameter connection
 	 * @param connMap the connection map
 	 * @param depParamConn the dependent parameter connection
-	 * @return
+	 * @return the normalized connections string
 	 */
 	public static String getConnectionsNormalized(Map<String, Set<String>> connMap, String depParamConn) {
 		String completeConnections = VirtualRating.getConnectionsComplete(connMap, depParamConn);
-		Map<String, String> skipped = new HashMap<String, String>();
+		Map<String, String> skipped = new HashMap<>();
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
 		for (String pair : TextUtil.split(completeConnections, ",")) {
@@ -185,21 +144,21 @@ public class VirtualRating extends AbstractRating {
 		}
 		StringBuilder re_added = new StringBuilder();
 		if (skipped.size() > 1) {
-			boolean done = false;
-			String[] inputs = skipped.keySet().toArray(new String[skipped.size()]);
-			String[] conns = skipped.values().toArray(new String[skipped.size()]);
+			boolean done;
+			String[] inputs = skipped.keySet().toArray(new String[0]);
+			String[] conns = skipped.values().toArray(new String[0]);
 			skipped.clear();
 			for (int i = 0; i < conns.length; ++i) {
 				skipped.put(conns[i], inputs[i]);
 			}
 			do {
-				conns = skipped.keySet().toArray(new String[skipped.size()]);
-				inputs = skipped.values().toArray(new String[skipped.size()]);
+				conns = skipped.keySet().toArray(new String[0]);
+				inputs = skipped.values().toArray(new String[0]);
 				Arrays.sort(inputs);
 				Arrays.sort(conns);
 				done = true;
 				for (int i = 0; i < conns.length; ++i) {
-					if (inputs[i] != skipped.get(conns[i])) {
+					if (!Objects.equals(inputs[i], skipped.get(conns[i]))) {
 						if (re_added.length() > 0) {
 							re_added.append(",");
 						}
@@ -232,7 +191,7 @@ public class VirtualRating extends AbstractRating {
 	/**
 	 * Constructor from VirtualRatingContainer object
 	 * @param vrc The VirtualRatingContainer object to construct from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public VirtualRating(VirtualRatingContainer vrc) throws RatingException {
 		init();
@@ -241,7 +200,7 @@ public class VirtualRating extends AbstractRating {
 	/**
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRating(String) instead
 	 */
 	@Deprecated
@@ -269,7 +228,7 @@ public class VirtualRating extends AbstractRating {
 	/**
 	 * Sets the connections map from a connections string. Also sets the rating units
 	 * @param connections The connections string to set the connections map from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setConnections(String connections) throws RatingException {
 		//----------------------------------------------------------------//
@@ -278,25 +237,25 @@ public class VirtualRating extends AbstractRating {
 		// they can be used bi-directionally (i.e., reverseRate())        //
 		//----------------------------------------------------------------//
 		synchronized(this) {
-			if (connections == null || connections.length() == 0) {
+			if (connections == null || connections.isEmpty()) {
 				this.connectionsString = null;
 				this.connectionsMap = null;
 			}
 			else {
-				Map<String, Set<String>> connMap = new HashMap<String, Set<String>>();
+				Map<String, Set<String>> connMap = new HashMap<>();
 				for (String pair : connections.trim().toUpperCase().split("\\s*,\\s*")) {
 					String[] parts = pair.split("\\s*=\\s*");
 					if (parts.length != 2) {
 						throw new RatingException("Invalid connections string: " + connections);
 					}
 					if (!connMap.containsKey(parts[0])) {
-						connMap.put(parts[0], new HashSet<String>());
+						connMap.put(parts[0], new HashSet<>());
 					}
 					if (!connMap.get(parts[0]).add(parts[1])) {
 						AbstractRating.logger.warning(String.format("Connection %s specified more than once", pair));
 					}
 					if (!connMap.containsKey(parts[1])) {
-						connMap.put(parts[1], new HashSet<String>());
+						connMap.put(parts[1], new HashSet<>());
 					}
 					if (!connMap.get(parts[1]).add(parts[0])) {
 						AbstractRating.logger.warning(String.format("Connection %s specified more than once", pair));
@@ -311,8 +270,8 @@ public class VirtualRating extends AbstractRating {
 				//--------------------------------------------//
 				// take note of unspecified connection points //
 				//--------------------------------------------//
-				List<String> unconnectedList = new ArrayList<String>();
-				String connectionPoint = null;
+				List<String> unconnectedList = new ArrayList<>();
+				String connectionPoint;
 				for (int r = 0; r < sourceRatings.length; ++r) {
 					for (int p = 0; p < sourceRatings[r].getIndParamCount(); ++p) {
 						connectionPoint = "R"+(r+1)+"I"+(p+1);
@@ -328,18 +287,18 @@ public class VirtualRating extends AbstractRating {
 				//-------------------------------------------------------------//
 				// add the default connections from the independent parameters //
 				//-------------------------------------------------------------//
-				List<String> automaticConnections = new Vector<String>();
+				List<String> automaticConnections = new Vector<>();
 				if (unconnectedList.size() > (depParamConn == null ? 1 : 0)) {
 					for (int i = 0; i < Math.min(unconnectedList.size(), getIndParamCount()); ++i) {
 						String indParam = "I"+(i+1);
 						connectionPoint = unconnectedList.get(0);
 						if (!connMap.containsKey(connectionPoint)) {
-							connMap.put(connectionPoint, new HashSet<String>());
+							connMap.put(connectionPoint, new HashSet<>());
 						}
 						connMap.get(connectionPoint).add(indParam);
 						if (!connMap.containsKey(indParam)) {
 							automaticConnections.add(indParam);
-							connMap.put(indParam, new HashSet<String>());
+							connMap.put(indParam, new HashSet<>());
 						}
 						connMap.get(indParam).add(connectionPoint);
 						unconnectedList.remove(connectionPoint);
@@ -376,10 +335,10 @@ public class VirtualRating extends AbstractRating {
 				if (depParamConn == null) {
 					depParamConn = unconnectedList.get(0);
 				}
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				int[] cpInfo = {-1, -1};
-				int r = cpInfo[0];
-				int p = cpInfo[1];
+				int r;
+				int p;
 				for (int i = 0; i < this.getIndParamCount(); ++i) {
 					String indParam = "I"+(i+1);
 					if (!depParamConn.equals(walkConnections(connMap, indParam))) {
@@ -387,12 +346,12 @@ public class VirtualRating extends AbstractRating {
 					}
 					parseConnectionPoint(connMap.get(indParam).iterator().next(), cpInfo);
 					r = cpInfo[0];
-					p = cpInfo[1] < 0 ? p = sourceRatings[r].getIndParamCount() : cpInfo[1];
+					p = cpInfo[1] < 0 ? sourceRatings[r].getIndParamCount() : cpInfo[1];
 					sb.append(i == 0 ? "" : SEPARATOR3).append(sourceRatings[r].ratingUnits[p]);
 				}
 				parseConnectionPoint(depParamConn, cpInfo);
 				r = cpInfo[0];
-				p = cpInfo[1] < 0 ? p = sourceRatings[r].ratingUnits.length-1 : cpInfo[1];
+				p = cpInfo[1] < 0 ? sourceRatings[r].ratingUnits.length-1 : cpInfo[1];
 				sb.append(SEPARATOR2).append(sourceRatings[r].ratingUnits[p]);
 				setRatingUnitsId(sb.toString());
 				connectionsMap = connMap;
@@ -403,14 +362,14 @@ public class VirtualRating extends AbstractRating {
 	}
 	/**
 	 * Arranges source ratings in deterministic order and removes unnecessary external connections
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void normalize() throws RatingException {
 		synchronized(this) {
 			//---------------------------------------//
 			// determine the new source rating order //
 			//---------------------------------------//
-			Pattern pat = Pattern.compile("(R|I)(\\d+)(D|I(\\d+))");
+			Pattern pat = Pattern.compile("([RI])(\\d+)(D|I(\\d+))");
 			int[] newPos = new int[sourceRatings.length];
 			Arrays.fill(newPos, -1);
 			//
@@ -430,43 +389,40 @@ public class VirtualRating extends AbstractRating {
 				String input = "I"+(i+1);
 				Set<String> set = connectionsMap.get(input);
 				if (set != null) {
-					String[] conns = set.toArray(new String[set.size()]);
+					String[] conns = set.toArray(new String[0]);
 					if (conns.length > 1) {
 						// this is an expensive sort, but assures the same order based on source rating names
-						Arrays.sort(conns, new Comparator<String>() {
-							@Override
-							public int compare(String arg0, String arg1) {
-								Matcher m = pat.matcher(arg0);
-								if (m.matches()) {
-									int i = Integer.parseInt(m.group(2)) - 1;
-									m = pat.matcher(arg1);
-									if (m.matches()) {
-										int j = Integer.parseInt(m.group(2)) - 1;
-										return sourceRatings[i].getName().compareTo(sourceRatings[j].getName());
-									}
-									else {
-										// shouldn't happen
-										return arg0.compareTo(arg1);
-									}
-								}
-								else {
-									// shouldn't happen
-									return arg0.compareTo(arg1);
-								}
-							}
-						});
+						Arrays.sort(conns, (arg0, arg1) -> {
+                            Matcher m1 = pat.matcher(arg0);
+                            if (m1.matches()) {
+                                int i1 = Integer.parseInt(m1.group(2)) - 1;
+                                m1 = pat.matcher(arg1);
+                                if (m1.matches()) {
+                                    int j = Integer.parseInt(m1.group(2)) - 1;
+                                    return sourceRatings[i1].getName().compareTo(sourceRatings[j].getName());
+                                }
+                                else {
+                                    // shouldn't happen
+                                    return arg0.compareTo(arg1);
+                                }
+                            }
+                            else {
+                                // shouldn't happen
+                                return arg0.compareTo(arg1);
+                            }
+                        });
 					}
-					for (int j = 0; j < conns.length; ++j) {
-						m = pat.matcher(conns[j]);
-						if (!m.matches()) {
-							throw new RatingException("Unexpected independent parameter connection for "+input+": " + conns[0]);
-						}
-						int ind = Integer.parseInt(m.group(2)) - 1;
-						if (newPos[ind] == -1) {
-							newPos[ind]= nextPos++;
-							break;
-						}
-					}
+                    for (String conn : conns) {
+                        m = pat.matcher(conn);
+                        if (!m.matches()) {
+                            throw new RatingException("Unexpected independent parameter connection for " + input + ": " + conns[0]);
+                        }
+                        int ind = Integer.parseInt(m.group(2)) - 1;
+                        if (newPos[ind] == -1) {
+                            newPos[ind] = nextPos++;
+                            break;
+                        }
+                    }
 				}
 			}
 			//
@@ -475,32 +431,26 @@ public class VirtualRating extends AbstractRating {
 			Object[][] sourcePos = new Object[sourceRatings.length][2];
 			for (int i = 0; i < sourceRatings.length; ++i) {
 				sourcePos[i][0] = sourceRatings[i].getName();
-				sourcePos[i][1] = new Integer(i);
+				sourcePos[i][1] = i;
 			}
-			Arrays.sort(sourcePos, new Comparator<Object[]>() {
-				@Override
-				public int compare(Object[] arg0, Object[] arg1) {
-					String s0 = (String)arg0[0];
-					String s1 = (String)arg1[0];
-					return s0.compareTo(s1);
-				}
-			});
-			for (int i = 0; i < sourcePos.length; ++i) {
-				int pos = (Integer)sourcePos[i][1];
-				if (newPos[pos] == -1) {
-					newPos[pos] = nextPos++;
-				}
-			}
+			Arrays.sort(sourcePos, (arg0, arg1) -> {
+                String s0 = (String)arg0[0];
+                String s1 = (String)arg1[0];
+                return s0.compareTo(s1);
+            });
+            for (Object[] sourcePo : sourcePos) {
+                int pos = (Integer) sourcePo[1];
+                if (newPos[pos] == -1) {
+                    newPos[pos] = nextPos++;
+                }
+            }
 			//------------------------------------//
 			// copy the connections map to modify //
 			//------------------------------------//
 			SourceRating[] newSourceRatings = new SourceRating[sourceRatings.length];
-			Map<String, Set<String>> newConnectionsMap = new HashMap<String, Set<String>>();
+			Map<String, Set<String>> newConnectionsMap = new HashMap<>();
 			for (String conn1 : connectionsMap.keySet()) {
-				HashSet<String> set = new HashSet<String>();
-				for (String conn2 : (HashSet<String>)connectionsMap.get(conn1)) {
-					set.add(conn2);
-				}
+                HashSet<String> set = new HashSet<>(connectionsMap.get(conn1));
 				newConnectionsMap.put(conn1, set);
 			}
 			//------------------------------//
@@ -513,7 +463,7 @@ public class VirtualRating extends AbstractRating {
 				newSourceRatings[newPos[i]] = sourceRatings[i];
 				String _old = "R"+(i+1);
 				String _new = "r"+(newPos[i]+1);
-				for (String conn1 : newConnectionsMap.keySet().toArray(new String[newConnectionsMap.size()])) {
+				for (String conn1 : newConnectionsMap.keySet().toArray(new String[0])) {
 					if (conn1.startsWith(_old)) {
 						HashSet<String>set = (HashSet<String>)newConnectionsMap.get(conn1);
 						newConnectionsMap.remove(conn1);
@@ -528,12 +478,12 @@ public class VirtualRating extends AbstractRating {
 			for (int i = 0; i < newPos.length; ++i) {
 				String _old = "R"+(i+1);
 				String _new = "r"+(newPos[i]+1);
-				for (String conn1 : newConnectionsMap.keySet().toArray(new String[newConnectionsMap.size()])) {
+				for (String conn1 : newConnectionsMap.keySet().toArray(new String[0])) {
 					HashSet<String>set = (HashSet<String>)newConnectionsMap.get(conn1);
 					if (set == null) {
 						continue;
 					}
-					for (String conn2 : set.toArray(new String[set.size()])) {
+					for (String conn2 : set.toArray(new String[0])) {
 						if (conn2.startsWith(_old)) {
 							set.remove(conn2);
 							set.add(conn2.replaceAll(_old, _new));
@@ -545,9 +495,9 @@ public class VirtualRating extends AbstractRating {
 			//----------------------------------//
 			// second pass - restore upper case //
 			//----------------------------------//
-			for (String conn1 : newConnectionsMap.keySet().toArray(new String[newConnectionsMap.size()])) {
+			for (String conn1 : newConnectionsMap.keySet().toArray(new String[0])) {
 				Set<String> set = newConnectionsMap.get(conn1);
-				for (String conn2 : set.toArray(new String[set.size()])) {
+				for (String conn2 : set.toArray(new String[0])) {
 					set.remove(conn2);
 					set.add(conn2.toUpperCase());
 				}
@@ -577,7 +527,7 @@ public class VirtualRating extends AbstractRating {
 	}
 	/**
 	 * @return a normalized copy of this virtual rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public VirtualRating normalizedCopy() throws RatingException {
 		try {
@@ -618,8 +568,8 @@ public class VirtualRating extends AbstractRating {
 	}
 	/**
 	 * Set the source ratings array
-	 * @param sources
-	 * @throws RatingException
+	 * @param sources The source ratings
+	 * @throws RatingException on error
 	 */
 	public void setSourceRatings(SourceRating[] sources) throws RatingException {
 		synchronized(this) {
@@ -660,7 +610,7 @@ public class VirtualRating extends AbstractRating {
 	 * @param map The connections path to traverse
 	 * @param startingPoint The connection point to start traversing from
 	 * @return The end point of the connections path starting from the starting location
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected String walkConnections(Map<String, Set<String>>map, String startingPoint)
 			throws RatingException {
@@ -675,64 +625,58 @@ public class VirtualRating extends AbstractRating {
 				VirtualRating.parseConnectionPoint(startingPoint, cpInfo);
 				int startingPointRating = cpInfo[0];
 				int startingPointPoint = cpInfo[1];
-				List<String> endingPoints = new ArrayList<String>();
-				for (Iterator<String> it = connections.iterator(); it.hasNext();) {
-					String connectionPoint = it.next();
-					if (connectionPoint.equals("D")) {
-						endingPoint = startingPoint;
-						break;
-					}
-					String connectionPoint1 = null;
-					VirtualRating.parseConnectionPoint(connectionPoint, cpInfo);
-					int r = cpInfo[0];
-					int p = cpInfo[1];
-					if (r < 0) {
-						//-------------------------------------------------------------------------------//
-						// starting point is the output of an internal rating that is connected to an    //
-						// input of the virtual rating - enumerate the inputs of the internal rating     //
-						// to find the first one not connected or connected to the virtual rating output //
-						//-------------------------------------------------------------------------------//
-						if (startingPointPoint == -1) {
-							String partialInput = "R"+(startingPointRating+1)+"I";
-							for (int i = 0; i < 9; ++i) {
-								String input = partialInput+(i+1);
-								if (!map.containsKey(input) || (map.get(input).size() == 1 && map.get(input).toArray(new String[1])[0].equals("D"))) {
-									endingPoint = input;
-									break;
-								}
-							}
-						}
-						if (endingPoint == null) {
-							throw new RatingException(String.format("Connection path from %s leads to independent parameter", startingPoint));
-						}
-						else {
-							break;
-						}
-					}
-					else if (r >= sourceRatings.length) {
-						throw new RatingException(String.format("Connection path from %s specifies rating beyond source rating count", startingPoint));
-					}
-					else if (r == startingPointRating) {
-						throw new RatingException("Connection path specifies a connection from one rating to itself");
-					}
-					if (p < 0) {
-						if (sourceRatings[r].mathExpression != null) {
-							throw new RatingException(String.format("Connection path from %s would reverse throgh a math expression", startingPoint));
-						}
-						else if (sourceRatings[r].getIndParamCount() > 1) {
-							throw new RatingException(String.format("Connection path from %s would reverse through a multiple-independent-parameter rating", startingPoint));
-						}
-						connectionPoint1 = "R"+(r+1)+"I1";
-					}
-					else {
-						connectionPoint1 = "R"+(r+1)+"D";
-					}
-					endingPoints.add(walkConnections(map, connectionPoint1));
-					if (endingPoints.size() > 1 && !endingPoints.get(endingPoints.size()-1).equals(endingPoints.get(0))) {
-						throw new RatingException(String.format("Connection point %s leads to multiple termination points", connectionPoint1));
-					}
-					endingPoint = endingPoints.get(0);
-				}
+				List<String> endingPoints = new ArrayList<>();
+                for (String connectionPoint : connections) {
+                    if (connectionPoint.equals("D")) {
+                        endingPoint = startingPoint;
+                        break;
+                    }
+                    String connectionPoint1;
+                    VirtualRating.parseConnectionPoint(connectionPoint, cpInfo);
+                    int r = cpInfo[0];
+                    int p = cpInfo[1];
+                    if (r < 0) {
+                        //-------------------------------------------------------------------------------//
+                        // starting point is the output of an internal rating that is connected to an    //
+                        // input of the virtual rating - enumerate the inputs of the internal rating     //
+                        // to find the first one not connected or connected to the virtual rating output //
+                        //-------------------------------------------------------------------------------//
+                        if (startingPointPoint == -1) {
+                            String partialInput = "R" + (startingPointRating + 1) + "I";
+                            for (int i = 0; i < 9; ++i) {
+                                String input = partialInput + (i + 1);
+                                if (!map.containsKey(input) || (map.get(input).size() == 1 && map.get(input).toArray(new String[1])[0].equals("D"))) {
+                                    endingPoint = input;
+                                    break;
+                                }
+                            }
+                        }
+                        if (endingPoint == null) {
+                            throw new RatingException(String.format("Connection path from %s leads to independent parameter", startingPoint));
+                        } else {
+                            break;
+                        }
+                    } else if (r >= sourceRatings.length) {
+                        throw new RatingException(String.format("Connection path from %s specifies rating beyond source rating count", startingPoint));
+                    } else if (r == startingPointRating) {
+                        throw new RatingException("Connection path specifies a connection from one rating to itself");
+                    }
+                    if (p < 0) {
+                        if (sourceRatings[r].mathExpression != null) {
+                            throw new RatingException(String.format("Connection path from %s would reverse throgh a math expression", startingPoint));
+                        } else if (sourceRatings[r].getIndParamCount() > 1) {
+                            throw new RatingException(String.format("Connection path from %s would reverse through a multiple-independent-parameter rating", startingPoint));
+                        }
+                        connectionPoint1 = "R" + (r + 1) + "I1";
+                    } else {
+                        connectionPoint1 = "R" + (r + 1) + "D";
+                    }
+                    endingPoints.add(walkConnections(map, connectionPoint1));
+                    if (endingPoints.size() > 1 && !endingPoints.get(endingPoints.size() - 1).equals(endingPoints.get(0))) {
+                        throw new RatingException(String.format("Connection point %s leads to multiple termination points", connectionPoint1));
+                    }
+                    endingPoint = endingPoints.get(0);
+                }
 			}
 			return endingPoint;
 		}
@@ -747,7 +691,7 @@ public class VirtualRating extends AbstractRating {
 
 	/**
 	 * Finds cyclical rating references in source ratings
-	 * @param specIds
+	 * @param specIds The rating specifications to check for cyclic references
 	 * @throws RatingException if cyclic reference is found
 	 */
 	protected void findCycles(List<String> specIds) throws RatingException {
@@ -756,9 +700,9 @@ public class VirtualRating extends AbstractRating {
 
 	/**
 	 * Finds cyclical rating references in source ratings
-	 * @param sources
-	 * @param specIds
-	 * @throws RatingException
+	 * @param sources The source ratings to check for cyclic references
+	 * @param specIds The rating specifications to check for cyclic references
+	 * @throws RatingException on error
 	 */
 	protected void findCycles(SourceRating[] sources, List<String> specIds) throws RatingException {
 		String specId = getOfficeId()+"/"+getRatingSpecId();
@@ -931,11 +875,11 @@ public class VirtualRating extends AbstractRating {
 			//------------------------------------------------------------------------//
 			// populate connection point values with the independent parameter values //
 			//------------------------------------------------------------------------//
-			Map<String, double[]> cpValues = new HashMap<String, double[]>();
+			Map<String, double[]> cpValues = new HashMap<>();
 			String[] dataUnits = this.dataUnits == null ? getRatingUnits() : this.dataUnits;
 			int[] cpInfo = {-1, -1};
-			int r = cpInfo[0];
-			int p = cpInfo[1];
+			int r;
+			int p;
 			for (int i = 0; i < indVals.length; ++i) {
 				if (indVals[i] == null) {
 					throw new RatingException(String.format("Independent paramter %d has no values", i+1));
@@ -948,7 +892,7 @@ public class VirtualRating extends AbstractRating {
 			//-----------------------------------------------------------------------//
 			// process the map until we are left with the dependent parameter values //
 			//-----------------------------------------------------------------------//
-			Set<String> sources = new HashSet<String>(cpValues.keySet());
+			Set<String> sources = new HashSet<>(cpValues.keySet());
 			while (!cpValues.containsKey(depParamConn)) {
 				//---------------------------------------------------------------------//
 				// populate connected connection points, converting units if necessary //
@@ -1096,14 +1040,14 @@ public class VirtualRating extends AbstractRating {
 			if (getIndParamCount() > 1) {
 				throw new RatingException("Cannot reverse through a rating with more than one independent paramter");
 			}
-			for (int i = 0; i < sourceRatings.length; ++i) {
-				if (sourceRatings[i].mathExpression != null) {
-					throw new RatingException("Cannot reverse through a virtual rating that contains a math expression for a source rating");
-				}
-				if (sourceRatings[i].getIndParamCount() > 1) {
-					throw new RatingException("Cannot reverse through a virutual rating that contains a source rating with more than one independent paramter");
-				}
-			}
+            for (SourceRating sourceRating : sourceRatings) {
+                if (sourceRating.mathExpression != null) {
+                    throw new RatingException("Cannot reverse through a virtual rating that contains a math expression for a source rating");
+                }
+                if (sourceRating.getIndParamCount() > 1) {
+                    throw new RatingException("Cannot reverse through a virutual rating that contains a source rating with more than one independent paramter");
+                }
+            }
 			//-------------------//
 			// prime the process //
 			//-------------------//
@@ -1111,14 +1055,14 @@ public class VirtualRating extends AbstractRating {
 			int unrated = 1;
 			int rated = 0;
 			int[] cpInfo = {-1, -1};
-			int r = cpInfo[0];
-			int p = cpInfo[1];
+			int r;
+			int p;
 			String ratedConn = depParamConn;
-			String unratedConn = null;
+			String unratedConn;
 			String terminus = connectionsMap.get("I1").iterator().next();
 			String[] dataUnits = this.dataUnits == null ? getRatingUnits() : this.dataUnits;
-			String ratedUnit = dataUnits[dataUnits.length-1];
-			String unratedUnit = null;
+			String ratedUnit;
+			String unratedUnit;
 			cpValues[0] = depVals;
 			boolean first = true;
 			//--------------------------------------------------------------------------------//
@@ -1143,8 +1087,7 @@ public class VirtualRating extends AbstractRating {
 					// special operation for first pass only //
 					//---------------------------------------//
 					first = false;
-					unratedConn = ratedConn;
-					parseConnectionPoint(depParamConn, cpInfo);
+                    parseConnectionPoint(depParamConn, cpInfo);
 					r = cpInfo[0];
 					p = cpInfo[1];
 					unratedUnit = sourceRatings[r].dataUnits[p < 0 ? 1 : p];

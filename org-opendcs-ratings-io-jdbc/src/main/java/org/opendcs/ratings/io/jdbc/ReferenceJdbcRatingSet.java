@@ -79,7 +79,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
      * @param valueSets  The value sets to rate
      * @param valueTimes The times associated with the values, in Java milliseconds
      * @return the rated value
-     * @throws RatingException
+     * @throws RatingException on error
      */
     @Override
     public synchronized double[] rate(double[][] valueSets, long[] valueTimes) throws RatingException {

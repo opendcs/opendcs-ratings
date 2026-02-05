@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 
 public class TestUsgsStreamTableRating
@@ -311,7 +310,7 @@ public class TestUsgsStreamTableRating
 		assertNull(shifts);
 		Calendar calendar = Calendar.getInstance();
 		calendar.clear();
-		calendar.set(2014, 9, 1);
+		calendar.set(2014, Calendar.OCTOBER, 1);
 		Date shiftDate = calendar.getTime();
 
 		List<RatingValueContainer> stageShiftValues = new ArrayList<>();
@@ -336,7 +335,7 @@ public class TestUsgsStreamTableRating
 		assertNotNull(newShift2);
 
 		AbstractRatingSet shiftsRatingSet = (AbstractRatingSet) streamTableRating.getShifts();
-		assertTrue(!shiftsRatingSet.activeRatings.isEmpty());
+        assertFalse(shiftsRatingSet.activeRatings.isEmpty());
 
 		double rateOne = streamTableRating.rateOne(System.currentTimeMillis(),16.0);
 
@@ -372,7 +371,7 @@ public class TestUsgsStreamTableRating
 		//add a shift and rate again.
 		Calendar calendar = Calendar.getInstance();
 		calendar.clear();
-		calendar.set(2014, 11, 1);
+		calendar.set(2014, Calendar.DECEMBER, 1);
 		Date shiftDate = calendar.getTime();
 
 		List<RatingValueContainer> stageShiftValues = new ArrayList<>();

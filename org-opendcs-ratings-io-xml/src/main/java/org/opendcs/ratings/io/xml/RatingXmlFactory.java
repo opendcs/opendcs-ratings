@@ -55,7 +55,7 @@ public final class RatingXmlFactory {
      *
      * @param xmlText The XML text to generate the rating object from
      * @return The generated rating object.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public static AbstractRating abstractRating(String xmlText) throws RatingException {
 
@@ -110,7 +110,7 @@ public final class RatingXmlFactory {
      * constructor from XML text
      *
      * @param xmlText The XML text to initialize from
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public static ExpressionRating expressionRating(String xmlText) throws RatingException {
         ExpressionRatingContainer container = RatingContainerXmlFactory.expressionRatingContainer(xmlText);

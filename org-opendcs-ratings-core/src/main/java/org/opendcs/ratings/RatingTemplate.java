@@ -20,17 +20,12 @@ import org.opendcs.ratings.RatingConst.RatingMethod;
 import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.RatingJdbcCompatUtil;
 import org.opendcs.ratings.io.RatingTemplateContainer;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import hec.data.rating.IRatingTemplate;
 import hec.data.rating.JDomRatingTemplate;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.CallableStatement;
-import java.sql.Clob;
+
 import java.sql.Connection;
-import java.sql.Types;
 import java.util.Arrays;
-import java.util.logging.Level;
+import java.util.Objects;
 import java.util.logging.Logger;
 import rma.lang.Modifiable;
 
@@ -217,12 +212,9 @@ public class RatingTemplate implements Modifiable
 			throw new RatingException("Number of in-range rating methods is not the same as the number of independent parameters.");
 		}
 		for (RatingMethod m : inRangeMethods) {
-			switch(m) {
-			case NEAREST :
-				throw new RatingException("Invalid in range template method: " + m.toString());
-			default :
-				break;
-			}
+            if (Objects.requireNonNull(m) == RatingMethod.NEAREST) {
+                throw new RatingException("Invalid in range template method: " + m);
+            }
 		}
 		this.inRangeMethods = inRangeMethods;
 	}
@@ -249,7 +241,7 @@ public class RatingTemplate implements Modifiable
 			switch(m) {
 			case LOWER :
 			case PREVIOUS :
-				throw new RatingException("Invalid out of range low template method: " + m.toString());
+				throw new RatingException("Invalid out of range low template method: " + m);
 			default :
 				break;
 			}
@@ -280,7 +272,7 @@ public class RatingTemplate implements Modifiable
 			switch(m) {
 			case HIGHER :
 			case NEXT :
-				throw new RatingException("Invalid out of range high template method: " + m.toString());
+				throw new RatingException("Invalid out of range high template method: " + m);
 			default :
 				break;
 			}
@@ -291,9 +283,7 @@ public class RatingTemplate implements Modifiable
 	 * @return The rating template identifier
 	 */
 	public String getTemplateId() {
-		StringBuilder sb = new StringBuilder(getParametersId());
-		sb.append(SEPARATOR1).append(templateVersion);
-		return sb.toString();
+        return getParametersId() + SEPARATOR1 + templateVersion;
 	}
 	/**
 	 * Sets the rating template identifier
@@ -574,16 +564,14 @@ public class RatingTemplate implements Modifiable
 	}
 
 	/**
-	 * Returns the unique identifying parts for the rating template.
-	 * @return
-	 * @throws DataSetException
+	 * @return the unique identifying parts for the rating template.
+	 * @throws DataSetException on error
 	 */
 	public IRatingTemplate getRatingTemplate() throws DataSetException
 	{
 		//String officeId = officeId;
 		String templateId = getTemplateId();
-		JDomRatingTemplate template = new JDomRatingTemplate(officeId, templateId);
-		return template;
+        return new JDomRatingTemplate(officeId, templateId);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)

@@ -125,8 +125,7 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 		}
 	}
 	/**
-	 * Returns whether this object has any vertical datum info
-	 * @return
+	 * @return whether this object has any vertical datum info
 	 */
 	public boolean hasVerticalDatum() {
 		return this.vdc != null;
@@ -217,34 +216,32 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
 		if (vdc == null) throw new VerticalDatumException("Object does not have vertical datum information");
 		datum = datum.trim().toUpperCase();
-		boolean change = false;
-		if (change) {
-			switch (datum) {
-			case "NGVD29" :
-			case "NAVD88" :
-				change = !vdc.currentDatum.equals(datum);
-				vdc.currentDatum = datum;
-				break;
-			case "NATIVE" :
-				change = !vdc.currentDatum.equals(vdc.getNativeVerticalDatum());
-				vdc.currentDatum = vdc.getNativeVerticalDatum();
-				break;
-			case "LOCAL" :
-				if (!vdc.nativeDatum.equals("LOCAL")) {
-					throw new VerticalDatumException("Object does not have LOCAL vertical datum");
-				}
-				change = !vdc.currentDatum.equals(vdc.localDatumName);
-				vdc.currentDatum = vdc.localDatumName;
-				break;
-			default :
-				if (!(vdc.nativeDatum.equals("LOCAL") && TextUtil.equals(datum, vdc.localDatumName))) {
-					throw new VerticalDatumException("Unexpected datum: " + datum);
-				}
-				change = !vdc.currentDatum.equals(vdc.getNativeVerticalDatum());
-				vdc.currentDatum = vdc.getNativeVerticalDatum();
-				break;
-			}
-		}
+		boolean change;
+        switch (datum) {
+            case "NGVD29" :
+            case "NAVD88" :
+                change = !vdc.currentDatum.equals(datum);
+                vdc.currentDatum = datum;
+                break;
+            case "NATIVE" :
+                change = !vdc.currentDatum.equals(vdc.getNativeVerticalDatum());
+                vdc.currentDatum = vdc.getNativeVerticalDatum();
+                break;
+            case "LOCAL" :
+                if (!vdc.nativeDatum.equals("LOCAL")) {
+                    throw new VerticalDatumException("Object does not have LOCAL vertical datum");
+                }
+                change = !vdc.currentDatum.equals(vdc.localDatumName);
+                vdc.currentDatum = vdc.localDatumName;
+                break;
+            default :
+                if (!(vdc.nativeDatum.equals("LOCAL") && TextUtil.equals(datum, vdc.localDatumName))) {
+                    throw new VerticalDatumException("Unexpected datum: " + datum);
+                }
+                change = !vdc.currentDatum.equals(vdc.getNativeVerticalDatum());
+                vdc.currentDatum = vdc.getNativeVerticalDatum();
+                break;
+        }
 		return change;
 	}
 	/* (non-Javadoc)
@@ -333,7 +330,7 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	}
 	/**
 	 * Intended to be overridden to allow sub-classes to return empty instances for cloning.
-	 * @return
+	 * @return a new empty AbstractRatingContainer object
 	 */
 	public AbstractRatingContainer getInstance() {
 		return new AbstractRatingContainer();
@@ -347,7 +344,7 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	 * Constructs an AbstractRatingContainer from the first &lt;rating&gt; or &lt;usgs-stream-rating&gt; element in an XML string or null if no such element is found.
 	 * @param xmlStr The XML string
 	 * @return The RatingTemplateContainer object
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -422,8 +419,7 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	}
 
 	/**
-	 * Returns the VerticalDatumContainer
-	 * @return
+	 * @return the VerticalDatumContainer
 	 */
 	@Override
 	public VerticalDatumContainer getVerticalDatumContainer() {
@@ -432,7 +428,7 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 
 	/**
 	 * Sets the VerticalDatumContainer
-	 * @param vdc
+	 * @param vdc The VerticalDatumContainer
 	 */
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
 		this.vdc = vdc;

@@ -99,7 +99,7 @@ public final class RatingJdbcFactory {
      * @param abstractRating    data object to store
      * @param conn              The connection to the CWMS database
      * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public static void store(AbstractRating abstractRating, Connection conn, boolean overwriteExisting) throws RatingException {
         String ratingXml = RatingContainerXmlFactory.toXml(abstractRating.getData(), "", 0);
@@ -112,13 +112,13 @@ public final class RatingJdbcFactory {
      * @param conn              The connection to the CWMS database
      * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
      * @param replaceBase       Flag specifying whether to replace the base curves of USGS-style stream ratings (false = only store shifts)
-     * @throws RatingException
+     * @throws RatingException on error
      */
     private static void storeXml(Connection conn, String xml, boolean overwriteExisting, boolean replaceBase) throws RatingException {
         try {
             Configuration configuration = getConfiguration(conn);
             String errors = CWMS_RATING_PACKAGE.call_STORE_RATINGS_XML__5(configuration, xml, overwriteExisting ? "F" : "T", replaceBase ? "T" : "F");
-            if (errors != null && errors.length() > 0) {
+            if (errors != null && !errors.isEmpty()) {
                 throw new RatingException(errors);
             }
         } catch (RuntimeException t) {

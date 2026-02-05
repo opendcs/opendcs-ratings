@@ -40,15 +40,15 @@ final class RatingUtil {
      * @param allowUnsafe Flag specifying whether to allow risky operations
      * @param warnUnsafe  Flag specifying whether to output messages about risky operations
      * @return An IndependentValuesContainer object.
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public static IndependentValuesContainer tscsToIvc(TimeSeriesContainer[] tscs, String[] units, TimeZone tz, boolean allowUnsafe,
                                                        boolean warnUnsafe) throws RatingException {
         IndependentValuesContainer ivc = new IndependentValuesContainer();
         int indParamCount = tscs.length;
         try {
-            List<Integer> commonTimes = new Vector<Integer>();
-            List<double[]> indVals = new Vector<double[]>();
+            List<Integer> commonTimes = new Vector<>();
+            List<double[]> indVals = new Vector<>();
             TimeSeriesContainerAligner tsca = new TimeSeriesContainerAligner(tscs);
             while (tsca.hasCurrent()) {
                 if (tsca.getAlignedCount() == indParamCount) {
@@ -65,7 +65,7 @@ final class RatingUtil {
                 }
                 tsca.alignNext();
             }
-            if (commonTimes.size() == 0) {
+            if (commonTimes.isEmpty()) {
                 throw new RatingException("No common times in TimeSeriesContainers.");
             }
 

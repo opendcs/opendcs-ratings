@@ -127,7 +127,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
      * @param officeId     The office identifier
      * @param ratingSpecId The rating specification identifier
      * @return A new ReferenceRating object
-     * @throws RatingException
+     * @throws RatingException on error
      */
     public static ReferenceRating fromDatabase(Connection conn, String officeId, String ratingSpecId) throws RatingException {
         return new ReferenceRating(conn, officeId, ratingSpecId);
@@ -137,8 +137,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
         this.ratingSpecId = ratingSpecId;
         this.officeId = officeId.toUpperCase();
         try {
-            Long ratingSpecCode = getRatingSpecCode(conn);
-            this.ratingSpecCode = ratingSpecCode;
+            this.ratingSpecCode = getRatingSpecCode(conn);
         } catch (RuntimeException e) {
             throw new RatingException(e);
         }
@@ -162,7 +161,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
         } catch (DataSetIllegalArgumentException e) {
             throw new IllegalArgumentException(e);
         }
-        List<Integer> elevPosList = new ArrayList<Integer>();
+        List<Integer> elevPosList = new ArrayList<>();
         for (int i = 0; i < parameters.length; ++i) {
             try {
                 new Parameter(parameters[i]);
@@ -198,16 +197,15 @@ public class ReferenceRating implements IRating, VerticalDatum {
                                           .where(AV_RATING_SPEC.AV_RATING_SPEC.OFFICE_ID.equalIgnoreCase(this.officeId))
                                           .and(AV_RATING_SPEC.AV_RATING_SPEC.RATING_ID.equalIgnoreCase(this.ratingSpecId))
                                           .getResult();
-        if (result.isEmpty()) {
+        if (result == null || result.isEmpty()) {
             throw new RatingException(String.format("No such rating: %s/%s", this.officeId, this.ratingSpecId));
         }
-        Long ratingSpecCode = result.get(0).component1();
-        return ratingSpecCode;
+        return result.get(0).component1();
     }
 
     /**
      * @return a the current database connection plus a flag specifying whether it was retrieved using the DbInfo
-     * @throws RatingException
+     * @throws RatingException on error
      */
     protected synchronized Connection getConnection() throws RatingException {
         if (parent != null) {
@@ -221,7 +219,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
      * Releases a database connection that was retrieved using the DbInfo
      *
      * @param ci The database connection information
-     * @throws RatingException
+     * @throws RatingException on error
      */
     protected void releaseConnection(Connection ci) throws RatingException {
         parent.releaseConnection(ci);
@@ -318,10 +316,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
                     if (!md1.getURL().equalsIgnoreCase(md2.getURL())) {
                         return false;
                     }
-                    if (!md1.getUserName().equalsIgnoreCase(md2.getUserName())) {
-                        return false;
-                    }
-                    return true;
+                    return md1.getUserName().equalsIgnoreCase(md2.getUserName());
                 } catch (Exception e) {
                     result = other.hashCode() == hashCode();
                 }
@@ -581,13 +576,6 @@ public class ReferenceRating implements IRating, VerticalDatum {
         this.defaultValueTime = defaultValueTime;
     }
 
-    /* (non-Javadoc)
-     * @see hec.data.IRating#resetDefaultValuetime()
-     */
-    @Override
-    public synchronized void resetDefaultValuetime() {
-        defaultValueTime = UNDEFINED_TIME;
-    }
 
     /* (non-Javadoc)
      * @see hec.data.IRating#getRatingTime()
@@ -610,7 +598,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
      */
     @Override
     public synchronized void resetRatingTime() {
-        ratingTime = System.currentTimeMillis() + 100 * 365 * 86400 * 1000;
+        ratingTime = System.currentTimeMillis() + 100L * 365 * 86400 * 1000;
     }
 
     /* (non-Javadoc)
@@ -781,9 +769,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     public double rateOne2(double[] indVals) throws RatingException {
         long[] valTimes = new long[] {getDefaultValueTime()};
         double[][] _indVals = new double[1][indVals.length];
-        for (int i = 0; i < indVals.length; ++i) {
-            _indVals[0][i] = indVals[i];
-        }
+        System.arraycopy(indVals, 0, _indVals[0], 0, indVals.length);
         return rate(valTimes, _indVals)[0];
     }
 
@@ -828,9 +814,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     public double rateOne2(long valTime, double[] indVals) throws RatingException {
         long[] valTimes = new long[] {valTime};
         double[][] _indVals = new double[1][indVals.length];
-        for (int i = 0; i < indVals.length; ++i) {
-            _indVals[0][i] = indVals[i];
-        }
+        System.arraycopy(indVals, 0, _indVals[0], 0, indVals.length);
         return rate(valTimes, _indVals)[0];
     }
 
@@ -1117,9 +1101,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /**
-     * Returns the VerticalDatumContainer
-     *
-     * @return
+     * @return the VerticalDatumContainer
      */
     @Override
     public VerticalDatumContainer getVerticalDatumContainer() {
@@ -1129,9 +1111,13 @@ public class ReferenceRating implements IRating, VerticalDatum {
     /**
      * Sets the VerticalDatumContainer
      *
-     * @param vdc
+     * @param vdc the VerticalDatumContainer
      */
     public void setVerticalDatumContainer(VerticalDatumContainer vdc) {
         this.vdc = vdc;
+    }
+
+    @Override
+    public void resetDefaultValueTime() {
     }
 }

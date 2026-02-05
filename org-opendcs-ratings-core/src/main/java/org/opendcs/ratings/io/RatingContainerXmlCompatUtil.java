@@ -22,7 +22,7 @@ import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.RatingRuntimeException;
 import java.util.List;
 import java.util.Set;
-import org.jdom.Element;
+import org.w3c.dom.Element;
 import rma.util.lookup.Lookup;
 
 public interface RatingContainerXmlCompatUtil {

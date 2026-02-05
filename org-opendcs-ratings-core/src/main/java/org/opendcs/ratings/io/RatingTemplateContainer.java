@@ -89,8 +89,8 @@ public class RatingTemplateContainer {
 						for (int i = 0; i < indParams.length; ++i) {
 							if ((other.indParams[i] == null) != (indParams[i] == null)) break test;
 							if (indParams[i] != null) {
-								if (!other.indParams[i].equals(indParams[i])) break test;;
-							}
+								if (!other.indParams[i].equals(indParams[i])) break test;
+                            }
 						}
 					}
 					if ((other.depParam == null) != (depParam == null)) break;
@@ -207,8 +207,8 @@ public class RatingTemplateContainer {
 	public RatingTemplateContainer() {}
 	/**
 	 * Public constructor from an XML snippet
-	 * @param xmlStr
-	 * @throws RatingObjectDoesNotExistException
+	 * @param xmlStr The string to initialize from
+	 * @throws RatingObjectDoesNotExistException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
 	 */
 	@Deprecated
@@ -230,7 +230,7 @@ public class RatingTemplateContainer {
 	/**
 	 * Generates a template XML string from this object
 	 * @param indent The amount to indent each level (initial level = 0)
-	 * @return
+	 * @return the template XML string
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
 	 */
 	@Deprecated
@@ -241,7 +241,7 @@ public class RatingTemplateContainer {
 	 * Generates a template XML string from this object
 	 * @param indent The amount to indent each level
 	 * @param level The initial level of indentation
-	 * @return
+	 * @return on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
 	 */
 	@Deprecated

@@ -35,8 +35,8 @@ public enum RatingMethodId
 	// rating curves so some options don't make sense. All the values make sense
 	// for the rating template but I put this here for consistency in case we
 	// changed our minde
-	String _dbId;
-	boolean[] _rangeIdentifier = new boolean[6];
+    final String _dbId;
+	final boolean[] _rangeIdentifier = new boolean[6];
 	public static final int SPECLO = 0;
 	public static final int SPECINRANGE = 1;
 	public static final int SPECHI = 2;
@@ -71,7 +71,7 @@ public enum RatingMethodId
 	}
 
 	/**
-	 * @param rangeIdentifierIdx
+	 * @param rangeIdentifierIdx The index indicating out-range-low, in-range, or out-range-high
 	 * @return a subset of the rating method ids that are valid for the given
 	 *         rangeIdentifierIdx (e.g. SPECLO, TEMPLATEHI etc...)
 	 */
@@ -89,7 +89,7 @@ public enum RatingMethodId
 
 			}
 		}
-		return rmidList.toArray(new RatingMethodId[rmidList.size()]);
+		return rmidList.toArray(new RatingMethodId[0]);
 	}
 
 	public boolean isRatingMethodValidForRangeIdentifier(int rangeIdentifierIdx)

@@ -16,11 +16,6 @@
 
 package org.opendcs.ratings.io.jdbc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 
 import org.opendcs.ratings.AbstractRatingSet;
 import org.opendcs.ratings.RatingException;
@@ -42,6 +37,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import usace.cwms.db.jooq.codegen.packages.CWMS_ENV_PACKAGE;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
 
@@ -123,7 +120,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 AbstractRatingSet abstractRatingSet = RatingJdbcFactory.ratingSet(RatingSet.DatabaseLoadMethod.LAZY, new TransientConnectionProvider(conn),
                     getInstance().getOfficeId(), tableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(tableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof LazyJdbcRatingSet);
+                assertInstanceOf(LazyJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(1, abstractRatingSet.getRatings().length);
                 TableRating rating = (TableRating) abstractRatingSet.getRatings()[0];
                 RatingValue[] ratingValues = rating.getRatingValues();
@@ -148,7 +145,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 RatingSet abstractRatingSet = RatingSet.fromDatabase(RatingSet.DatabaseLoadMethod.LAZY, conn,
                     getInstance().getOfficeId(), tableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(tableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof LazyJdbcRatingSet);
+                assertInstanceOf(LazyJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(1, abstractRatingSet.getRatings().length);
                 TableRating rating = (TableRating) abstractRatingSet.getRatings()[0];
                 RatingValue[] ratingValues = rating.getRatingValues();
@@ -173,7 +170,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 AbstractRatingSet abstractRatingSet = RatingJdbcFactory.ratingSet(RatingSet.DatabaseLoadMethod.LAZY, new TransientConnectionProvider(conn),
                     getInstance().getOfficeId(), tableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(tableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof LazyJdbcRatingSet);
+                assertInstanceOf(LazyJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(12.0, abstractRatingSet.rate(conn, new Date().getTime(), 392.0), 0.0);
                 assertEquals(392.0, abstractRatingSet.reverseRate(conn, new Date().getTime(), 12.0), 0.0);
             } catch (RatingException e) {
@@ -190,7 +187,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 RatingSet abstractRatingSet = RatingSet.fromDatabase(RatingSet.DatabaseLoadMethod.LAZY, conn,
                     getInstance().getOfficeId(), tableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(tableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof LazyJdbcRatingSet);
+                assertInstanceOf(LazyJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(12.0, abstractRatingSet.rate(conn, new Date().getTime(), 392.0), 0.0);
                 assertEquals(392.0, abstractRatingSet.reverseRate(conn, new Date().getTime(), 12.0), 0.0);
             } catch (RatingException e) {
@@ -207,7 +204,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 AbstractRatingSet abstractRatingSet = RatingJdbcFactory.ratingSet(RatingSet.DatabaseLoadMethod.REFERENCE, new TransientConnectionProvider(conn),
                     getInstance().getOfficeId(), tableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(tableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof ReferenceJdbcRatingSet);
+                assertInstanceOf(ReferenceJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(0, abstractRatingSet.getRatings().length);
                 abstractRatingSet.setDataUnits(conn, new String[]{"ft", "acre"});
                 assertEquals(12.0, abstractRatingSet.rate(new Date().getTime(), 392.0), 0.0);
@@ -226,7 +223,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 RatingSet abstractRatingSet = RatingSet.fromDatabase(RatingSet.DatabaseLoadMethod.REFERENCE, conn,
                     getInstance().getOfficeId(), tableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(tableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof ReferenceJdbcRatingSet);
+                assertInstanceOf(ReferenceJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(0, abstractRatingSet.getRatings().length);
 
                 abstractRatingSet.setDataUnits(conn, new String[]{"ft", "acre"});
@@ -246,7 +243,7 @@ final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
                 RatingSet abstractRatingSet = RatingSet.fromDatabase(RatingSet.DatabaseLoadMethod.LAZY, conn,
                         getInstance().getOfficeId(), usgsTableRatingSet.getRatingSpec().getRatingSpecId(), null, null, true);
                 assertNotEquals(usgsTableRatingSet, abstractRatingSet);
-                assertTrue(abstractRatingSet instanceof LazyJdbcRatingSet);
+                assertInstanceOf(LazyJdbcRatingSet.class, abstractRatingSet);
                 assertEquals(2.9, abstractRatingSet.rate(conn, new Date().getTime(), 1.5), 0.1);
                 assertEquals(1.5, abstractRatingSet.reverseRate(conn, new Date().getTime(), 2.9), 0.1);
             } catch (RatingException e) {
