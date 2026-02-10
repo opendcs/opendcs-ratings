@@ -1,15 +1,13 @@
 package org.opendcs.ratings;
 
+import hec.data.RoundingException;
+import mil.army.usace.hec.metadata.location.LocationTemplate;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
-
-import org.junit.jupiter.api.Test;
-
-
-import hec.data.RoundingException;
-import hec.data.location.LocationTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 

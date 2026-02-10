@@ -8,31 +8,19 @@
 
 package org.opendcs.ratings.io;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSpec;
+import org.opendcs.ratings.VirtualRating;
+import org.w3c.dom.Element;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.VirtualRating;
-import hec.util.TextUtil;
-import mil.army.usace.hec.metadata.VerticalDatumException;
-import org.w3c.dom.Element;
-
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.*;
 
 /**
  *
@@ -263,7 +251,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.io.AbstractRatingContainer#clone(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.io.AbstractRatingContainer#clone(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void clone(AbstractRatingContainer other) {

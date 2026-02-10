@@ -16,15 +16,11 @@
 
 package org.opendcs.ratings.io.cda;
 
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.ConcreteRatingSet;
-import org.opendcs.ratings.RatingConst;
-import org.opendcs.ratings.RatingSpec;
 import mil.army.usace.hec.cwms.http.client.ApiConnectionInfo;
 import mil.army.usace.hec.cwms.http.client.ApiConnectionInfoBuilder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.opendcs.ratings.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 

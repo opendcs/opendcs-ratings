@@ -8,26 +8,22 @@
 
 package org.opendcs.ratings;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.join;
-import static hec.util.TextUtil.split;
-
-import hec.data.DataSetException;
-
-import org.opendcs.ratings.RatingConst.RatingMethod;
+import mil.army.usace.hec.metadata.DataSetException;
+import org.opendcs.ratings.RatingConst.*;
 import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.RatingJdbcCompatUtil;
 import org.opendcs.ratings.io.RatingTemplateContainer;
-import hec.data.rating.IRatingTemplate;
-import hec.data.rating.JDomRatingTemplate;
+import org.opendcs.ratings.io.xml.DomRatingTemplate;
+import rma.lang.Modifiable;
 
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Logger;
-import rma.lang.Modifiable;
+
+import static hec.util.TextUtil.join;
+import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.RatingConst.*;
 
 /**
  * Implements CWMS-style rating template.  Holds information about parameters of rating objects.
@@ -571,7 +567,7 @@ public class RatingTemplate implements Modifiable
 	{
 		//String officeId = officeId;
 		String templateId = getTemplateId();
-        return new JDomRatingTemplate(officeId, templateId);
+        return new DomRatingTemplate(officeId, templateId);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)

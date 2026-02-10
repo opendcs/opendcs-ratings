@@ -8,10 +8,10 @@
 
 package org.opendcs.ratings.io;
 
-import static hec.lang.Const.UNDEFINED_DOUBLE;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static hec.lang.Const.UNDEFINED_DOUBLE;
 
 /**
  * Data container class for RatingValue

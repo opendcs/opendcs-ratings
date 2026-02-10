@@ -16,42 +16,14 @@
 
 package org.opendcs.ratings.io.xml;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingRuntimeException;
-import org.opendcs.ratings.RatingObjectDoesNotExistException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.RatingConst;
-import org.opendcs.ratings.RatingConst.RatingMethod;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.ExpressionRatingContainer;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSpecContainer;
-import org.opendcs.ratings.io.RatingTemplateContainer;
-import org.opendcs.ratings.io.RatingValueContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
-import org.opendcs.ratings.io.TransitionalRatingContainer;
-import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
-import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.lang.Const;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
-
+import org.opendcs.ratings.*;
+import org.opendcs.ratings.RatingConst.*;
+import org.opendcs.ratings.io.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Parser;
@@ -59,15 +31,14 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.ParserAdapter;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SPEC_VERSION;
-import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SUBPARAM;
-import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
-import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
-import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
-import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.*;
+
+import static org.opendcs.ratings.RatingConst.*;
 
 @SuppressWarnings("deprecation")
 public class RatingSetContainerXmlFactory extends XMLFilterImpl {
@@ -404,7 +375,7 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
                             switch (parts[2]) {
                                 case PARAMETERS_ID_STR:
                                     rtc.parametersId = data;
-                                    int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
+                                    int count = TextUtil.split(TextUtil.split(data, SEPARATOR2)[0], SEPARATOR3).length;
                                     rtc.indParams = new String[count];
                                     rtc.inRangeMethods = new String[count];
                                     rtc.outRangeLowMethods = new String[count];
@@ -412,7 +383,7 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
                                     break;
                                 case VERSION_STR:
                                     rtc.templateVersion = data;
-                                    rtc.templateId = rtc.parametersId + RatingConst.SEPARATOR1 + rtc.templateVersion;
+                                    rtc.templateId = rtc.parametersId + SEPARATOR1 + rtc.templateVersion;
                                     break;
                                 case DEP_PARAMETER_STR:
                                     rtc.depParam = data;
@@ -428,7 +399,7 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
                                     rspc.specId = data;
                                     break;
                                 case TEMPLATE_ID_STR:
-                                    int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
+                                    int count = TextUtil.split(TextUtil.split(data, SEPARATOR2)[0], SEPARATOR3).length;
                                     rspc.indRoundingSpecs = new String[count];
                                     break;
                                 case LOCATION_ID_STR:
@@ -1623,7 +1594,7 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
                                 String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
                                 String location = parts[0];
                                 String indParam = TextUtil.split(parts[1], SEPARATOR2)[0];
-                                String heightUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+                                String heightUnit = TextUtil.split(TextUtil.split(urc.unitsId, SEPARATOR2)[0], SEPARATOR3)[0];
                                 RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
                                 urc.inRangeMethod = rtc.inRangeMethods[0];
                                 urc.outRangeLowMethod = rtc.outRangeLowMethods[0];

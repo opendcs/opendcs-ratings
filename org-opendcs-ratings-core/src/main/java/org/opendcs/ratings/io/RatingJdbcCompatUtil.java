@@ -16,15 +16,10 @@
 
 package org.opendcs.ratings.io;
 
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingRuntimeException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.RatingTemplate;
-import java.sql.Connection;
+import org.opendcs.ratings.*;
 import rma.util.lookup.Lookup;
+
+import java.sql.Connection;
 
 public interface RatingJdbcCompatUtil {
 

@@ -8,11 +8,10 @@
 
 package org.opendcs.ratings;
 
-import java.util.Observer;
-
-
-import org.opendcs.ratings.io.RatingValueContainer;
 import hec.lang.Observable;
+import org.opendcs.ratings.io.RatingValueContainer;
+
+import java.util.Observer;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 

@@ -17,30 +17,23 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.CwmsRatingSet;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.SourceRating;
-import org.opendcs.ratings.TransitionalRating;
-import org.opendcs.ratings.UsgsStreamTableRating;
-import org.opendcs.ratings.VirtualRating;
-import org.opendcs.ratings.io.RatingSetStateContainer;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Objects;
-import java.util.logging.Level;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.opendcs.ratings.*;
+import org.opendcs.ratings.io.RatingSetStateContainer;
 import usace.cwms.db.jooq.codegen.tables.AV_RATING;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Objects;
+import java.util.logging.Level;
 
 /**
  * Implements CWMS-style ratings (time series of ratings)
@@ -639,7 +632,7 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
         if (dbInfo != null) {
             rssc.dbUrl = dbInfo.getUrl();
             rssc.dbUserName = dbInfo.getUserName();
-            rssc.dbOfficeId = dbInfo.getOfficeId();
+            rssc.officeId = dbInfo.getOfficeId();
         }
         if (persistentConnectionProvider != null) {
             rssc.conn = new JdbcRatingConnectionInfo(persistentConnectionProvider);
@@ -664,8 +657,8 @@ public abstract class JdbcRatingSet extends AbstractRatingSet implements CwmsRat
             if (rssc.conn != null) {
                 this.persistentConnectionProvider = rssc.conn.getConnectionInfo(ConnectionProvider.class);
             }
-            if (rssc.dbUrl != null || rssc.dbUserName != null || rssc.dbOfficeId != null) {
-                dbInfo = new DbInfo(rssc.dbUrl, rssc.dbUserName, rssc.dbOfficeId);
+            if (rssc.dbUrl != null || rssc.dbUserName != null || rssc.officeId != null) {
+                dbInfo = new DbInfo(rssc.dbUrl, rssc.dbUserName, rssc.officeId);
             } else {
                 dbInfo = null;
             }

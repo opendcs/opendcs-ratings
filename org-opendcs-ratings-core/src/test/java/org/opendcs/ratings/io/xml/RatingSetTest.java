@@ -15,22 +15,11 @@
 */
 package org.opendcs.ratings.io.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingValue;
-import org.opendcs.ratings.TableRating;
 import hec.util.TextUtil;
-
-
 import org.junit.jupiter.api.Test;
+import org.opendcs.ratings.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RatingSetTest
 {

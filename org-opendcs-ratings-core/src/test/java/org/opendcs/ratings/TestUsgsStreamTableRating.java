@@ -8,9 +8,15 @@
 
 package org.opendcs.ratings;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -22,15 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-
-import org.opendcs.ratings.io.RatingValueContainer;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class TestUsgsStreamTableRating

@@ -17,8 +17,9 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import java.sql.Connection;
 import org.opendcs.ratings.RatingException;
+
+import java.sql.Connection;
 
 public interface ConnectionProvider {
 

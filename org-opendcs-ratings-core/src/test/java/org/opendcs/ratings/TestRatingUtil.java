@@ -8,17 +8,15 @@
 
 package org.opendcs.ratings;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.TimeZone;
-
-import org.junit.jupiter.api.Test;
-
-
-import org.opendcs.ratings.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.heclib.util.HecTimeArray;
 import hec.io.TimeSeriesContainer;
+import org.junit.jupiter.api.Test;
+import org.opendcs.ratings.io.IndependentValuesContainer;
+
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestRatingUtil
 {

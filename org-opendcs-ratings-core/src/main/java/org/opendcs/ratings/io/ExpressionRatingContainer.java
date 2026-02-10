@@ -8,9 +8,9 @@
 package org.opendcs.ratings.io;
 
 
-import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.ExpressionRating;
+import org.opendcs.ratings.RatingException;
 import org.w3c.dom.Element;
 
 /**
@@ -107,7 +107,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 * (non-Javadoc)
 	 *
 	 * @see
-	 * hec.data.cwmsRating.io.AbstractRatingContainer#clone(hec.data.cwmsRating
+	 * org.opendcs.ratings.io.AbstractRatingContainer#clone(org.opendcs.ratings
 	 * .io.AbstractRatingContainer)
 	 */
 	@Override

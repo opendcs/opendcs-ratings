@@ -16,31 +16,26 @@
 
 package org.opendcs.ratings.io.jdbc;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-
-
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.RatingTemplate;
+import hec.util.TextUtil;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.RatingSetContainer;
 import org.opendcs.ratings.io.ReferenceRatingContainer;
-import hec.util.TextUtil;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.logging.Level;
 import org.opendcs.ratings.io.xml.RatingContainerXmlFactory;
 import org.opendcs.ratings.io.xml.RatingSetContainerXmlFactory;
 import org.opendcs.ratings.io.xml.RatingSpecXmlFactory;
 import org.opendcs.ratings.io.xml.RatingXmlFactory;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_UTIL_PACKAGE;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.logging.Level;
+
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 
 public final class RatingJdbcFactory {
 
@@ -50,13 +45,13 @@ public final class RatingJdbcFactory {
 
     static RatingSet.DatabaseLoadMethod getDatabaseLoadMethod(RatingSet.DatabaseLoadMethod loadMethod) {
         String specifiedLoadMethod =
-            (loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toUpperCase();
+            (loadMethod == null ? System.getProperty("org.opendcs.ratings.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toUpperCase();
         RatingSet.DatabaseLoadMethod databaseLoadMethod;
         try {
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.valueOf(specifiedLoadMethod);
         } catch (RuntimeException ex) {
             RatingSet.getLogger().log(Level.WARNING,
-                "Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
+                "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
                     "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"");
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.LAZY;
         }
@@ -149,7 +144,7 @@ public final class RatingJdbcFactory {
      * Returns the XML required to generate a new RatingSet object based on specified criteria
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -304,7 +299,7 @@ public final class RatingJdbcFactory {
      * Public constructor a CWMS database connection
      *
      * @param databaseLoadMethod The method used to load the object from the database. If null, the value of the property
-     *                           "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                           "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                           are null (or if an invalid value is specified) the Lazy method will be used.
      *                               <table border="1">
      *                           <caption>Loading Methods</caption>

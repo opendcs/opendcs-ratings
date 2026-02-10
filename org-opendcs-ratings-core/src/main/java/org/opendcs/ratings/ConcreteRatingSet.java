@@ -19,8 +19,9 @@ package org.opendcs.ratings;
 
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
-import java.sql.Connection;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import java.sql.Connection;
 
 public final class ConcreteRatingSet extends AbstractRatingSet {
 

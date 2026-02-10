@@ -8,9 +8,9 @@
 
 package org.opendcs.ratings.io;
 
-import java.util.Arrays;
-
 import hec.lang.Const;
+
+import java.util.Arrays;
 
 /**
  * @author Mike Perryman
@@ -33,7 +33,7 @@ public class RatingSetStateContainer {
 	/**
 	 * Office of database connection
 	 */
-	public String dbOfficeId = null;
+	public String officeId = null;
 	/**
 	 * The specified units of the data to rate
 	 */
@@ -63,7 +63,7 @@ public class RatingSetStateContainer {
 		if (conn       != null) hashCode +=  3 * conn.hashCode();
 		if (dbUrl      != null) hashCode +=  7 * dbUrl.hashCode();
 		if (dbUserName != null) hashCode += 11 * dbUserName.hashCode();
-		if (dbOfficeId != null) hashCode += 13 * dbOfficeId.hashCode();
+		if (officeId != null) hashCode += 13 * officeId.hashCode();
 		if (dataUnits  != null) hashCode += 17 * Arrays.hashCode(dataUnits);
 		if (allowUnsafe       ) hashCode += 19;
 		if (warnUnsafe        ) hashCode += 23;
@@ -79,7 +79,7 @@ public class RatingSetStateContainer {
 		if ((rssc.conn == null) != (conn == null) || (rssc.conn != null && !rssc.conn.equals(conn))) return false; 
 		if ((rssc.dbUrl == null) != (dbUrl == null) || (rssc.dbUrl != null && !rssc.dbUrl.equals(dbUrl))) return false;
 		if ((rssc.dbUserName == null) != (dbUserName == null) || (rssc.dbUserName != null && !rssc.dbUserName.equals(dbUserName))) return false;
-		if ((rssc.dbOfficeId == null) != (dbOfficeId == null) || (rssc.dbOfficeId != null && !rssc.dbOfficeId.equals(dbOfficeId))) return false;
+		if ((rssc.officeId == null) != (officeId == null) || (rssc.officeId != null && !rssc.officeId.equals(officeId))) return false;
 		if (rssc.dataUnits != null) {
 			if (dataUnits == null) return false;
 			if (rssc.dataUnits.length != dataUnits.length) return false;
@@ -100,7 +100,7 @@ public class RatingSetStateContainer {
 		rssc.conn = conn;
 		rssc.dbUrl = dbUrl;
 		rssc.dbUserName = dbUserName;
-		rssc.dbOfficeId = dbOfficeId;
+		rssc.officeId = officeId;
 		if (dataUnits != null) rssc.dataUnits = Arrays.copyOf(dataUnits, dataUnits.length);
 		rssc.allowUnsafe = allowUnsafe;
 		rssc.warnUnsafe = warnUnsafe;

@@ -8,30 +8,24 @@
 
 package org.opendcs.ratings;
 
-import static hec.lang.Const.UNDEFINED_TIME;
-
-import hec.data.DataSetException;
-
 import hec.data.RoundingException;
-import org.opendcs.ratings.io.RatingJdbcCompatUtil;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSetStateContainer;
-import org.opendcs.ratings.io.RatingSpecContainer;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
-import hec.data.rating.IRatingSpecification;
-import hec.data.rating.IRatingTemplate;
 import hec.hecmath.TextMath;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
+import mil.army.usace.hec.metadata.DataSetException;
+import mil.army.usace.hec.metadata.VerticalDatum;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.io.*;
+
 import java.sql.Connection;
 import java.util.HashSet;
 import java.util.Observer;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import mil.army.usace.hec.metadata.VerticalDatum;
-import mil.army.usace.hec.metadata.VerticalDatumContainer;
-import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import static hec.lang.Const.UNDEFINED_TIME;
 
 /**
  * Implements CWMS-style ratings (time series of ratings)
@@ -237,7 +231,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Method</caption>
@@ -269,7 +263,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Method</caption>
@@ -304,7 +298,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Method</caption>
@@ -338,7 +332,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Method</caption>
@@ -373,7 +367,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -409,7 +403,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -445,7 +439,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Generates a new RatingSet object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -511,7 +505,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Returns the XML required to generate a new RatingSet object based on specified criteria
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -648,7 +642,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public constructor from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -680,7 +674,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public constructor from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -713,7 +707,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public constructor from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -745,7 +739,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public constructor from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -831,7 +825,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Public constructor a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -1226,7 +1220,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
+     * @see org.opendcs.IRating#rate(hec.hecmath.TimeSeriesMath)
      */
     @Override
     public TimeSeriesMath rate(TimeSeriesMath tsm) throws RatingException {
@@ -1247,7 +1241,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath[])
+     * @see org.opendcs.IRating#rate(hec.hecmath.TimeSeriesMath[])
      */
     @Override
     public TimeSeriesMath rate(TimeSeriesMath[] tsms) throws RatingException {
@@ -1451,7 +1445,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#setName(java.lang.String)
+     * @see org.opendcs.IRating#setName(java.lang.String)
      */
     @Override
     public void setName(String name) throws RatingException {
@@ -1491,7 +1485,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents()
+     * @see org.opendcs.IRating#getRatingExtents()
      */
     @Override
     public double[][] getRatingExtents() throws RatingException {
@@ -1505,14 +1499,14 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param conn       The database connection to use if the rating was lazily loaded
      * @return The rating extents
      * @throws RatingException any errors calcualting the value
-     * @see hec.data.IRating#getRatingExtents(long)
+     * @see org.opendcs.IRating#getRatingExtents(long)
      */
     public double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {
         return this.composedRatingSet.getRatingExtents(ratingTime, conn);
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents(long)
+     * @see org.opendcs.IRating#getRatingExtents(long)
      */
     @Override
     public double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -1520,7 +1514,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getEffectiveDates()
+     * @see org.opendcs.IRating#getEffectiveDates()
      */
     @Override
     public long[] getEffectiveDates() {
@@ -1528,7 +1522,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getCreateDates()
+     * @see org.opendcs.IRating#getCreateDates()
      */
     @Override
     public long[] getCreateDates() {
@@ -1696,7 +1690,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
+     * @see org.opendcs.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
      */
     @Override
     public TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
@@ -2234,7 +2228,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * Sets the data from this object from a CWMS database connection
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Load Methods</caption>
@@ -2334,7 +2328,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNativeVerticalDatum()
      */
     @Override
     public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -2342,7 +2336,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentVerticalDatum()
      */
     @Override
     public String getCurrentVerticalDatum() throws VerticalDatumException {
@@ -2350,7 +2344,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isCurrentVerticalDatumEstimated()
      */
     @Override
     public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -2358,7 +2352,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNativeVerticalDatum()
      */
     @Override
     public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -2366,7 +2360,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNGVD29()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNGVD29()
      */
     @Override
     public boolean toNGVD29() throws VerticalDatumException {
@@ -2374,7 +2368,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNAVD88()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNAVD88()
      */
     @Override
     public boolean toNAVD88() throws VerticalDatumException {
@@ -2382,7 +2376,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toVerticalDatum(java.lang.String)
      */
     @Override
     public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -2390,7 +2384,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#forceVerticalDatum(java.lang.String)
      */
     @Override
     public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -2398,7 +2392,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset()
      */
     @Override
     public double getCurrentOffset() throws VerticalDatumException {
@@ -2406,7 +2400,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset(java.lang.String)
      */
     @Override
     public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -2414,7 +2408,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset()
      */
     @Override
     public double getNGVD29Offset() throws VerticalDatumException {
@@ -2422,7 +2416,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset(java.lang.String)
      */
     @Override
     public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -2430,7 +2424,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset()
      */
     @Override
     public double getNAVD88Offset() throws VerticalDatumException {
@@ -2438,7 +2432,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset(java.lang.String)
      */
     @Override
     public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -2446,7 +2440,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNGVD29OffsetEstimated()
      */
     @Override
     public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -2454,7 +2448,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNAVD88OffsetEstimated()
      */
     @Override
     public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -2462,7 +2456,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getVerticalDatumInfo()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getVerticalDatumInfo()
      */
     @Override
     public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -2470,7 +2464,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#setVerticalDatumInfo(java.lang.String)
      */
     @Override
     public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {

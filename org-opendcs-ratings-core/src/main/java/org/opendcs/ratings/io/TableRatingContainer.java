@@ -8,11 +8,11 @@
 
 package org.opendcs.ratings.io;
 
-import org.opendcs.ratings.RatingException;
+import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.TableRating;
-import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;

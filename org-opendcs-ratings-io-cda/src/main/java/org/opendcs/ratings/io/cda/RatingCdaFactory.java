@@ -16,32 +16,23 @@
 
 package org.opendcs.ratings.io.cda;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.join;
-
-
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.RatingTemplate;
+import mil.army.usace.hec.cwms.data.api.client.controllers.*;
+import mil.army.usace.hec.cwms.data.api.client.model.IndependentRoundingSpec;
+import mil.army.usace.hec.cwms.data.api.client.model.ParameterSpec;
+import mil.army.usace.hec.cwms.http.client.ApiConnectionInfo;
+import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.RatingSpecContainer;
 import org.opendcs.ratings.io.RatingTemplateContainer;
+import org.opendcs.ratings.io.xml.RatingSpecXmlFactory;
+import org.opendcs.ratings.io.xml.RatingXmlFactory;
+
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.logging.Level;
-import mil.army.usace.hec.cwms.http.client.ApiConnectionInfo;
-import mil.army.usace.hec.cwms.data.api.client.controllers.RatingController;
-import mil.army.usace.hec.cwms.data.api.client.controllers.RatingEndpointInput;
-import mil.army.usace.hec.cwms.data.api.client.controllers.RatingSpecController;
-import mil.army.usace.hec.cwms.data.api.client.controllers.RatingSpecEndpointInput;
-import mil.army.usace.hec.cwms.data.api.client.controllers.RatingTemplateController;
-import mil.army.usace.hec.cwms.data.api.client.controllers.RatingTemplateEndpointInput;
-import mil.army.usace.hec.cwms.data.api.client.model.IndependentRoundingSpec;
-import mil.army.usace.hec.cwms.data.api.client.model.ParameterSpec;
-import org.opendcs.ratings.io.xml.RatingSpecXmlFactory;
-import org.opendcs.ratings.io.xml.RatingXmlFactory;
+
+import static hec.util.TextUtil.join;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 
 public final class RatingCdaFactory
 {
@@ -52,18 +43,18 @@ public final class RatingCdaFactory
 
     private static RatingSet.DatabaseLoadMethod getDatabaseLoadMethod(RatingSet.DatabaseLoadMethod loadMethod) {
         String specifiedLoadMethod =
-            (loadMethod == null ? System.getProperty("hec.data.cwmsRating.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toUpperCase();
+            (loadMethod == null ? System.getProperty("org.opendcs.ratings.RatingSet.databaseLoadMethod", "lazy") : loadMethod.name()).toUpperCase();
         RatingSet.DatabaseLoadMethod databaseLoadMethod;
         try {
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.valueOf(specifiedLoadMethod);
         } catch (RuntimeException ex) {
             if (RatingSet.getLogger().isLoggable(Level.FINE)) {
                 RatingSet.getLogger().log(Level.WARNING, ex,
-                    () -> "Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
+                    () -> "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
                         "\nMust be one of " + Arrays.toString(RatingSet.DatabaseLoadMethod.values()));
             } else {
                 RatingSet.getLogger().log(Level.WARNING,
-                    () -> "Invalid value for property hec.data.cwmsRating.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
+                    () -> "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
                         "\nMust be one of " + Arrays.toString(RatingSet.DatabaseLoadMethod.values()));
             }
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.LAZY;
@@ -75,7 +66,7 @@ public final class RatingCdaFactory
      * Returns the XML required to generate a new RatingSet object based on specified criteria
      *
      * @param loadMethod   The method used to load the object from the database. If null, the value of the property
-     *                     "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                     "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                     are null (or if an invalid value is specified) the Lazy method will be used.
      *                         <table border="1">
      *                     <caption>Loading Methods</caption>
@@ -189,7 +180,7 @@ public final class RatingCdaFactory
      * Public constructor a CWMS database connection
      *
      * @param databaseLoadMethod The method used to load the object from the database. If null, the value of the property
-     *                           "hec.data.cwmsRating.RatingSet.databaseLoadMethod" is used. If both the argument and property value
+     *                           "org.opendcs.ratings.RatingSet.databaseLoadMethod" is used. If both the argument and property value
      *                           are null (or if an invalid value is specified) the Lazy method will be used.
      *                               <table border="1">
      *                           <caption>Loading Methods</caption>

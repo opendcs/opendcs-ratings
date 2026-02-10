@@ -16,44 +16,19 @@
 
 package org.opendcs.ratings.io.xml;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SPEC_VERSION;
-import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SUBPARAM;
-import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
-import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
-import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
-import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
-import static hec.lang.Const.UNDEFINED_TIME;
-import static org.opendcs.ratings.XmlUtil.*;
-import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
-
-
-import org.opendcs.ratings.RatingObjectDoesNotExistException;
-import org.opendcs.ratings.RatingRuntimeException;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.RatingMethodId;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.ExpressionRatingContainer;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSpecContainer;
-import org.opendcs.ratings.io.RatingValueContainer;
-import org.opendcs.ratings.io.SourceRatingContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
-import org.opendcs.ratings.io.TransitionalRatingContainer;
-import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
-import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.util.TextUtil;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.*;
+import org.opendcs.ratings.io.*;
 import org.w3c.dom.Element;
+
+import java.util.*;
+
+import static hec.lang.Const.UNDEFINED_TIME;
+import static org.opendcs.ratings.RatingConst.*;
+import static org.opendcs.ratings.XmlUtil.*;
 
 public final class RatingContainerXmlFactory {
 

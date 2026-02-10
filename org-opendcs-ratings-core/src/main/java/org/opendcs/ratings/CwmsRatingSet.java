@@ -17,12 +17,13 @@
 package org.opendcs.ratings;
 
 
-import org.opendcs.ratings.io.RatingSetContainer;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
+import mil.army.usace.hec.metadata.VerticalDatum;
+import org.opendcs.ratings.io.RatingSetContainer;
+
 import java.util.NavigableMap;
 import java.util.NavigableSet;
-import mil.army.usace.hec.metadata.VerticalDatum;
 
 public interface CwmsRatingSet extends VerticalDatum {
     void addRating(AbstractRating rating)  throws RatingException;

@@ -16,16 +16,16 @@
 
 package org.opendcs.ratings.io.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-
+import mil.army.usace.hec.metadata.constants.NumericalConstants;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
 import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+import org.w3c.dom.Element;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,10 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import mil.army.usace.hec.metadata.constants.NumericalConstants;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.w3c.dom.Element;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class UsgsStreamTableRatingContainerXmlTest {
 

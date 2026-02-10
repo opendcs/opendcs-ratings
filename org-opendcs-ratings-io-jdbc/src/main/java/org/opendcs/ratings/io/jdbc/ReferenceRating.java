@@ -16,47 +16,21 @@
 
 package org.opendcs.ratings.io.jdbc;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static hec.lang.Const.UNDEFINED_LONG;
-import static hec.lang.Const.UNDEFINED_TIME;
-
-import hec.data.DataSetIllegalArgumentException;
-import hec.data.Parameter;
-
-import hec.data.Units;
-import org.opendcs.ratings.IRating;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.TimeSeriesRater;
-import org.opendcs.ratings.io.ReferenceRatingContainer;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.TimeSeriesContainer;
 import hec.util.TextUtil;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import mil.army.usace.hec.metadata.VerticalDatum;
-import mil.army.usace.hec.metadata.VerticalDatumContainer;
-import mil.army.usace.hec.metadata.VerticalDatumException;
+import mil.army.usace.hec.metadata.*;
 import mil.army.usace.hec.metadata.constants.NumericalConstants;
 import org.jooq.Configuration;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.opendcs.ratings.IRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSet;
+import org.opendcs.ratings.TimeSeriesRater;
+import org.opendcs.ratings.io.ReferenceRatingContainer;
 import usace.cwms.db.jooq.codegen.packages.CWMS_LOC_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_UTIL_PACKAGE;
@@ -67,6 +41,20 @@ import usace.cwms.db.jooq.codegen.udt.records.DATE_TABLE_TYPE;
 import usace.cwms.db.jooq.codegen.udt.records.DOUBLE_TAB_T;
 import usace.cwms.db.jooq.codegen.udt.records.DOUBLE_TAB_TAB_T;
 import usace.cwms.db.jooq.codegen.udt.records.STR_TAB_T;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static hec.lang.Const.UNDEFINED_LONG;
+import static hec.lang.Const.UNDEFINED_TIME;
+import static org.opendcs.ratings.RatingConst.*;
 
 
 /**
@@ -156,7 +144,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
         ratingUnits = new String[parameters.length];
         try {
             for (int i = 0; i < parameters.length; ++i) {
-                ratingUnits[i] = (new Parameter(parameters[i])).getUnitsStringForSystem(Units.ENGLISH_ID);
+                ratingUnits[i] = (new Parameter(parameters[i])).getUnitsStringForSystem(UnitUtil.ENGLISH_ID);
             }
         } catch (DataSetIllegalArgumentException e) {
             throw new IllegalArgumentException(e);
@@ -249,7 +237,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
             ratingUnits = new String[parameters.length];
             try {
                 for (int i = 0; i < parameters.length; ++i) {
-                    ratingUnits[i] = (new Parameter(parameters[i])).getUnitsStringForSystem(Units.ENGLISH_ID);
+                    ratingUnits[i] = (new Parameter(parameters[i])).getUnitsStringForSystem(UnitUtil.ENGLISH_ID);
                 }
             } catch (DataSetIllegalArgumentException e) {
                 throw new IllegalArgumentException(e);
@@ -326,7 +314,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNativeVerticalDatum()
      */
     @Override
     public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -335,7 +323,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentVerticalDatum()
      */
     @Override
     public String getCurrentVerticalDatum() throws VerticalDatumException {
@@ -344,7 +332,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isCurrentVerticalDatumEstimated()
      */
     @Override
     public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -353,7 +341,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNativeVerticalDatum()
      */
     @Override
     public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -362,7 +350,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNGVD29()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNGVD29()
      */
     @Override
     public boolean toNGVD29() throws VerticalDatumException {
@@ -371,7 +359,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNAVD88()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNAVD88()
      */
     @Override
     public boolean toNAVD88() throws VerticalDatumException {
@@ -380,7 +368,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toVerticalDatum(java.lang.String)
      */
     @Override
     public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -389,7 +377,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#forceVerticalDatum(java.lang.String)
      */
     @Override
     public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -398,7 +386,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset()
      */
     @Override
     public double getCurrentOffset() throws VerticalDatumException {
@@ -407,7 +395,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset(java.lang.String)
      */
     @Override
     public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -416,7 +404,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset()
      */
     @Override
     public double getNGVD29Offset() throws VerticalDatumException {
@@ -425,7 +413,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset(java.lang.String)
      */
     @Override
     public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -434,7 +422,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset()
      */
     @Override
     public double getNAVD88Offset() throws VerticalDatumException {
@@ -443,7 +431,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset(java.lang.String)
      */
     @Override
     public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -452,7 +440,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNGVD29OffsetEstimated()
      */
     @Override
     public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -461,7 +449,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNAVD88OffsetEstimated()
      */
     @Override
     public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -470,7 +458,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getVerticalDatumInfo()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getVerticalDatumInfo()
      */
     @Override
     public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -479,7 +467,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#setVerticalDatumInfo(java.lang.String)
      */
     @Override
     public void setVerticalDatumInfo(String initStr) throws VerticalDatumException {
@@ -488,7 +476,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getName()
+     * @see org.opendcs.IRating#getName()
      */
     @Override
     public String getName() {
@@ -496,7 +484,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#setName(java.lang.String)
+     * @see org.opendcs.IRating#setName(java.lang.String)
      */
     @Override
     public void setName(String name) throws RatingException {
@@ -504,7 +492,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingParameters()
+     * @see org.opendcs.IRating#getRatingParameters()
      */
     @Override
     public String[] getRatingParameters() {
@@ -512,7 +500,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingUnits()
+     * @see org.opendcs.IRating#getRatingUnits()
      */
     @Override
     public String[] getRatingUnits() {
@@ -520,7 +508,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getDataUnits()
+     * @see org.opendcs.IRating#getDataUnits()
      */
     @Override
     public String[] getDataUnits() {
@@ -528,7 +516,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#setDataUnits(java.lang.String[])
+     * @see org.opendcs.IRating#setDataUnits(java.lang.String[])
      */
     @Override
     public synchronized void setDataUnits(String[] units) throws RatingException {
@@ -561,7 +549,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getDefaultValueTime()
+     * @see org.opendcs.IRating#getDefaultValueTime()
      */
     @Override
     public synchronized long getDefaultValueTime() {
@@ -569,7 +557,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#setDefaultValueTime(long)
+     * @see org.opendcs.IRating#setDefaultValueTime(long)
      */
     @Override
     public synchronized void setDefaultValueTime(long defaultValueTime) {
@@ -578,7 +566,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
 
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingTime()
+     * @see org.opendcs.IRating#getRatingTime()
      */
     @Override
     public synchronized long getRatingTime() {
@@ -586,7 +574,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#setRatingTime(long)
+     * @see org.opendcs.IRating#setRatingTime(long)
      */
     @Override
     public synchronized void setRatingTime(long ratingTime) {
@@ -594,7 +582,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#resetRatingTime()
+     * @see org.opendcs.IRating#resetRatingTime()
      */
     @Override
     public synchronized void resetRatingTime() {
@@ -602,7 +590,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents()
+     * @see org.opendcs.IRating#getRatingExtents()
      */
     @Override
     public synchronized double[][] getRatingExtents() throws RatingException {
@@ -610,7 +598,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents(long)
+     * @see org.opendcs.IRating#getRatingExtents(long)
      */
     @Override
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -648,7 +636,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getEffectiveDates()
+     * @see org.opendcs.IRating#getEffectiveDates()
      */
     @Override
     public synchronized long[] getEffectiveDates() {
@@ -694,7 +682,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getCreateDates()
+     * @see org.opendcs.IRating#getCreateDates()
      */
     @Override
     public synchronized long[] getCreateDates() {
@@ -742,7 +730,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(double)
+     * @see org.opendcs.IRating#rate(double)
      */
     @Override
     public double rate(double indVal) throws RatingException {
@@ -750,7 +738,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rateOne(double[])
+     * @see org.opendcs.IRating#rateOne(double[])
      */
     @Override
     public double rateOne(double... indVals) throws RatingException {
@@ -763,7 +751,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rateOne2(double[])
+     * @see org.opendcs.IRating#rateOne2(double[])
      */
     @Override
     public double rateOne2(double[] indVals) throws RatingException {
@@ -774,7 +762,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(double[])
+     * @see org.opendcs.IRating#rate(double[])
      */
     @Override
     public double[] rate(double[] indVals) throws RatingException {
@@ -782,7 +770,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(double[][])
+     * @see org.opendcs.IRating#rate(double[][])
      */
     @Override
     public double[] rate(double[][] indVals) throws RatingException {
@@ -790,7 +778,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(long, double)
+     * @see org.opendcs.IRating#rate(long, double)
      */
     @Override
     public double rate(long valTime, double indVal) throws RatingException {
@@ -800,7 +788,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rateOne(long, double[])
+     * @see org.opendcs.IRating#rateOne(long, double[])
      */
     @Override
     public double rateOne(long valTime, double... indVals) throws RatingException {
@@ -808,7 +796,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rateOne2(long, double[])
+     * @see org.opendcs.IRating#rateOne2(long, double[])
      */
     @Override
     public double rateOne2(long valTime, double[] indVals) throws RatingException {
@@ -819,7 +807,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(long, double[])
+     * @see org.opendcs.IRating#rate(long, double[])
      */
     @Override
     public double[] rate(long valTime, double[] indVals) throws RatingException {
@@ -829,7 +817,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(long[], double[])
+     * @see org.opendcs.IRating#rate(long[], double[])
      */
     @Override
     public double[] rate(long[] valTimes, double[] indVals) throws RatingException {
@@ -841,7 +829,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(long, double[][])
+     * @see org.opendcs.IRating#rate(long, double[][])
      */
     @Override
     public double[] rate(long valTime, double[][] indVals) throws RatingException {
@@ -851,7 +839,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(long[], double[][])
+     * @see org.opendcs.IRating#rate(long[], double[][])
      */
     @Override
     public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
@@ -932,7 +920,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
+     * @see org.opendcs.IRating#rate(hec.hecmath.TimeSeriesMath)
      */
     @Override
     public TimeSeriesMath rate(TimeSeriesMath tsm) throws RatingException {
@@ -947,7 +935,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath[])
+     * @see org.opendcs.IRating#rate(hec.hecmath.TimeSeriesMath[])
      */
     @Override
     public TimeSeriesMath rate(TimeSeriesMath[] tsms) throws RatingException {
@@ -1072,7 +1060,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
+     * @see org.opendcs.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
      */
     @Override
     public TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
@@ -1087,7 +1075,7 @@ public class ReferenceRating implements IRating, VerticalDatum {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getIndParamCount()
+     * @see org.opendcs.IRating#getIndParamCount()
      */
     @Override
     public synchronized int getIndParamCount() throws RatingException {

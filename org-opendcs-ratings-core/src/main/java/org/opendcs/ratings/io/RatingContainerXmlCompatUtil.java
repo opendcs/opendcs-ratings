@@ -17,13 +17,14 @@
 package org.opendcs.ratings.io;
 
 
-import org.opendcs.ratings.RatingObjectDoesNotExistException;
 import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
 import org.opendcs.ratings.RatingRuntimeException;
-import java.util.List;
-import java.util.Set;
 import org.w3c.dom.Element;
 import rma.util.lookup.Lookup;
+
+import java.util.List;
+import java.util.Set;
 
 public interface RatingContainerXmlCompatUtil {
 

@@ -24,11 +24,10 @@
 
 package org.opendcs.ratings;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-
-import org.opendcs.ratings.io.RatingTemplateContainer;
 import org.junit.jupiter.api.Test;
+import org.opendcs.ratings.io.RatingTemplateContainer;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 final class RatingTemplateTest {
     @Test

@@ -8,22 +8,22 @@
 
 package org.opendcs.ratings;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-
-
-import hec.data.Units;
-import hec.data.UnitsConversionException;
+import hec.lang.Observable;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.UnitUtil;
+import mil.army.usace.hec.metadata.UnitsConversionException;
 import org.opendcs.ratings.io.AbstractRatingContainer;
 import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.SourceRatingContainer;
 import org.opendcs.ratings.io.VirtualRatingContainer;
-import hec.lang.Observable;
-import hec.util.TextUtil;
+
 import java.sql.Connection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 
 /**
  * Rating that is comprised of other ratings and math expressions connected
@@ -748,7 +748,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#getRatingExtents(long)
+	 * @see org.opendcs.IRating#getRatingExtents(long)
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -756,7 +756,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(double)
+	 * @see org.opendcs.IRating#rate(double)
 	 */
 	@Override
 	public double rate(double indVal) throws RatingException {
@@ -764,7 +764,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne(double[])
+	 * @see org.opendcs.IRating#rateOne(double[])
 	 */
 	@Override
 	public double rateOne(double... indVals) throws RatingException {
@@ -772,7 +772,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne(double[])
+	 * @see org.opendcs.IRating#rateOne(double[])
 	 */
 	@Override
 	public double rateOne2(double[] indVals) throws RatingException {
@@ -785,7 +785,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(double[])
+	 * @see org.opendcs.IRating#rate(double[])
 	 */
 	@Override
 	public double[] rate(double[] indVals) throws RatingException {
@@ -793,7 +793,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(double[][])
+	 * @see org.opendcs.IRating#rate(double[][])
 	 */
 	@Override
 	public double[] rate(double[][] indVals) throws RatingException {
@@ -801,7 +801,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long, double)
+	 * @see org.opendcs.IRating#rate(long, double)
 	 */
 	@Override
 	public double rate(long valTime, double indVal) throws RatingException {
@@ -811,7 +811,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne(long, double[])
+	 * @see org.opendcs.IRating#rateOne(long, double[])
 	 */
 	@Override
 	public double rateOne(long valTime, double... indVals)
@@ -820,7 +820,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne(long, double[])
+	 * @see org.opendcs.IRating#rateOne(long, double[])
 	 */
 	@Override
 	public double rateOne2(long valTime, double[] indVals) throws RatingException {
@@ -833,7 +833,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long, double[])
+	 * @see org.opendcs.IRating#rate(long, double[])
 	 */
 	@Override
 	public double[] rate(long valTime, double[] indVals) throws RatingException {
@@ -843,7 +843,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long[], double[])
+	 * @see org.opendcs.IRating#rate(long[], double[])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[] indVals) throws RatingException {
@@ -851,7 +851,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long, double[][])
+	 * @see org.opendcs.IRating#rate(long, double[][])
 	 */
 	@Override
 	public double[] rate(long valTime, double[][] indVals) throws RatingException {
@@ -861,7 +861,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long[], double[][])
+	 * @see org.opendcs.IRating#rate(long[], double[][])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
@@ -920,7 +920,7 @@ public class VirtualRating extends AbstractRating {
 							double[] srcVals = cpValues.get(source);
 							double[] dstVals = Arrays.copyOf(srcVals, srcVals.length);
 							try {
-								Units.convertUnits(dstVals, srcUnit, dstUnit);
+								UnitUtil.convertUnits(dstVals, srcUnit, dstUnit);
 							}
 							catch (UnitsConversionException e) {
 								throw new RatingException(e);
@@ -989,7 +989,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#getData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#getData(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	protected void getData(AbstractRatingContainer arc) {
@@ -1009,7 +1009,7 @@ public class VirtualRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer arc) throws RatingException {
@@ -1118,7 +1118,7 @@ public class VirtualRating extends AbstractRating {
 				if (!unratedUnit.equals(ratedUnit)) {
 					double[] values = Arrays.copyOf(cpValues[unrated], cpValues[unrated].length);
 					try {
-						Units.convertUnits(values, ratedUnit, unratedUnit);
+						UnitUtil.convertUnits(values, ratedUnit, unratedUnit);
 					}
 					catch (UnitsConversionException e) {
 						throw new RatingException(e);
@@ -1151,7 +1151,7 @@ public class VirtualRating extends AbstractRating {
 			unratedUnit = dataUnits[0];
 			if (!ratedUnit.equals(unratedUnit)) {
 				try {
-					Units.convertUnits(cpValues[rated], ratedUnit, unratedUnit);
+					UnitUtil.convertUnits(cpValues[rated], ratedUnit, unratedUnit);
 				}
 				catch (UnitsConversionException e) {
 					throw new RatingException(e);
@@ -1170,7 +1170,7 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#getInstance(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#getInstance(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	public AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException {

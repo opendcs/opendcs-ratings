@@ -17,27 +17,13 @@
 package org.opendcs.ratings.io.xml;
 
 
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.ExpressionRating;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSetFactory;
-import org.opendcs.ratings.TableRating;
-import org.opendcs.ratings.TransitionalRating;
-import org.opendcs.ratings.UsgsStreamTableRating;
-import org.opendcs.ratings.VirtualRating;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.ExpressionRatingContainer;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
-import org.opendcs.ratings.io.TransitionalRatingContainer;
-import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
-import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.hecmath.HecMathException;
 import hec.hecmath.TextMath;
 import hec.io.TextContainer;
 import hec.util.TextUtil;
+import org.opendcs.ratings.*;
+import org.opendcs.ratings.io.*;
+
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
