@@ -6,8 +6,6 @@ cwms-data-api = "10.1.0"
 
 service-annotations = "2.0.1"
 
-jdom = "1.1.3"
-
 junit = "5.9.1"
 testcontainers = { strictly = "2.0.2"}
 ojdbc = "19.3.0.0"
@@ -24,8 +22,6 @@ cwms-data-api-client = { module = "mil.army.usace.hec:cwms-data-api-client", ver
 cwms-data-api-model = { module = "mil.army.usace.hec:cwms-data-api-model", version.ref = "cwms-data-api" }
 
 service-annotations = { module = "mil.army.usace.hec:service-annotations", version.ref = "service-annotations" }
-
-jdom = { module = "org.jdom:jdom", version.ref = "jdom"}
 
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit"}
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit"}
