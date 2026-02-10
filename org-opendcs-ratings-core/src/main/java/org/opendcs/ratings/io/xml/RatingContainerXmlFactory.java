@@ -25,6 +25,7 @@ import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
 import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
 import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
 import static hec.lang.Const.UNDEFINED_TIME;
+import static org.opendcs.ratings.XmlUtil.*;
 import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
 
 
@@ -66,7 +67,7 @@ public final class RatingContainerXmlFactory {
         //----------------------------//
         // first try the root element //
         //----------------------------//
-        Element elem = RatingXmlUtil.textToElement(xmlStr);
+        Element elem = textToElement(xmlStr);
         switch (elem.getLocalName()) {
             case "simple-rating":
             case "rating":

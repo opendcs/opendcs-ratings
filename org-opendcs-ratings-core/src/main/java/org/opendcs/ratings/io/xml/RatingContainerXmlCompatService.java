@@ -137,7 +137,7 @@ public final class RatingContainerXmlCompatService implements RatingContainerXml
 
     @Override
     public RatingSetContainer createRatingSetContainer(Element ratingElement) throws RatingException {
-        return createRatingSetContainer(RatingXmlUtil.elementToText(ratingElement));
+        return createRatingSetContainer(org.opendcs.ratings.XmlUtil.elementToText(ratingElement));
     }
 
     @Override

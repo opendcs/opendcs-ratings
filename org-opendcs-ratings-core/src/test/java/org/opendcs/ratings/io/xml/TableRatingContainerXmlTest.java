@@ -75,7 +75,7 @@ class TableRatingContainerXmlTest {
     @Test
     void testXmlDomSerialization() throws RatingException {
         String xml = tableRatingContainer.toXml("");
-        Element element = (Element) RatingXmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
+        Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
         TableRatingContainer newContainer = new TableRatingContainer(element);
         assertEquals(tableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }

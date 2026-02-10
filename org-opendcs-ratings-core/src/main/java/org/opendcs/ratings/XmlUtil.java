@@ -63,7 +63,8 @@ public class XmlUtil {
                 sb.append(n.getNodeValue());
             }
         }
-        return sb.toString().trim();
+        String text = sb.toString().trim();
+        return text.isEmpty() ? null : text;
     }
 
     public static String getAttributeText(Element element, String name) {

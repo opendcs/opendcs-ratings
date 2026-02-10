@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.opendcs.ratings.XmlUtil.*;
 import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
 
 final class RatingValueContainerXmlFactory {

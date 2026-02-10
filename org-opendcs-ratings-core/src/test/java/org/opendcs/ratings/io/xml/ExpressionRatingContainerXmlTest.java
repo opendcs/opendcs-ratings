@@ -64,7 +64,7 @@ class ExpressionRatingContainerXmlTest {
     @Test
     void testXmlDomSerialization() throws RatingException {
         String xml = expressionRatingContainer.toXml("");
-        Element element = (Element) RatingXmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
+        Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
         ExpressionRatingContainer newContainer = new ExpressionRatingContainer(element);
         assertEquals(expressionRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }

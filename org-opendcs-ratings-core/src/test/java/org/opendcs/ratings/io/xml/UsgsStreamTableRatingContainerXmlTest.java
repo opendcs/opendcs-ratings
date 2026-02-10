@@ -66,7 +66,7 @@ class UsgsStreamTableRatingContainerXmlTest {
     @Test
     void testXmlDomSerialization() throws RatingException {
         String xml = usgsStreamTableRatingContainer.toXml("");
-        Element element = (Element) RatingXmlUtil.textToElement(xml).getElementsByTagName("usgs-stream-rating").item(0);
+        Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("usgs-stream-rating").item(0);
         UsgsStreamTableRatingContainer newContainer = new UsgsStreamTableRatingContainer(element);
         assertEquals(usgsStreamTableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }

@@ -20,6 +20,7 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.XmlUtil.*;
 import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
 
 

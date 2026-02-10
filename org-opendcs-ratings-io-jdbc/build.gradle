@@ -29,7 +29,6 @@ test.finalizedBy jacocoTestReport
 
 dependencies {
     implementation project(":org-opendcs-ratings-core")
-    implementation project(":org-opendcs-ratings-io-xml")
     implementation (libs.jooq)
     implementation (libs.cwms.db.jooq.codegen) {
         exclude group: "org.jooq", module: "*"
