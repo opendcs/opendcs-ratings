@@ -23,7 +23,6 @@ test {
 
 dependencies {
     implementation project(":org-opendcs-ratings-core")
-    implementation project(":org-opendcs-ratings-io-xml")
     implementation libs.cwms.http.client
     implementation libs.cwms.data.api.client
     implementation libs.cwms.data.api.model

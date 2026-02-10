@@ -6,9 +6,6 @@
  *
  */
 
-/**
- * 
- */
 package org.opendcs.ratings;
 
 import static hec.util.TextUtil.replaceAll;
@@ -55,7 +52,7 @@ public class TransitionalRating extends AbstractRating {
 	/**
 	 * Constructor from TransitionalRatingContainer
 	 * @param trrc The TransitionalRatingContainer to construct from 
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public TransitionalRating(TransitionalRatingContainer trrc) throws RatingException {
 		init();
@@ -65,7 +62,7 @@ public class TransitionalRating extends AbstractRating {
 	/**
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRating(String) instead
 	 */
 	@Deprecated
@@ -108,7 +105,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 	/**
 	 * Sets the conditions array
-	 * @param conditions
+	 * @param conditions The conditions to set
 	 */
 	public void setConditions(Condition[] conditions) {
 		synchronized(this) {
@@ -117,8 +114,8 @@ public class TransitionalRating extends AbstractRating {
 	}
 	/**
 	 * Sets the conditions array from text representations (as in ratings XML)
-	 * @param conditionStrings
-	 * @throws ComputationException 
+	 * @param conditionStrings the conditions to set
+	 * @throws ComputationException on error
 	 */
 	public void setConditions(String[] conditionStrings) throws ComputationException {
 		synchronized(this) {
@@ -167,7 +164,7 @@ public class TransitionalRating extends AbstractRating {
 	/**
 	 * Sets the evaluations array  from text representations (as in ratings XML)
 	 * @param evaluationStrings
-	 * @throws ComputationException 
+	 * @throws ComputationException on error
 	 */
 	public void setEvaluations(String[] evaluationStrings) throws ComputationException {
 		synchronized(this) {
@@ -191,8 +188,8 @@ public class TransitionalRating extends AbstractRating {
 	}
 	/**
 	 * Set the source ratings array
-	 * @param sources
-	 * @throws RatingException 
+	 * @param sources The source ratings to set
+	 * @throws RatingException on error
 	 */
 	public void setSourceRatings(SourceRating[] sources) throws RatingException {
 		synchronized(this) {
@@ -218,8 +215,8 @@ public class TransitionalRating extends AbstractRating {
 	
 	/**
 	 * Finds cyclical rating references in source ratings
-	 * @param sources
-	 * @param specIds
+	 * @param sources The source ratings to analyze
+	 * @param specIds The specification IDs
 	 * @throws RatingException if cyclic reference is found
 	 */
 	protected void findCycles(SourceRating[] sources, List<String> specIds) throws RatingException {
@@ -393,23 +390,23 @@ public class TransitionalRating extends AbstractRating {
 			if (valTimes == null) {
 				throw new RatingException("No value times supplied");
 			}
-			for (int i = 0; i < indVals.length; ++i) {
-				if (indVals[i].length != valTimes.length) {
-					throw new RatingException("Inconsistent times and values arrays");
-				}
-			}
+            for (double[] indVal : indVals) {
+                if (indVal.length != valTimes.length) {
+                    throw new RatingException("Inconsistent times and values arrays");
+                }
+            }
 			double[] depVals = new double[valTimes.length];
 			int indParamCount = this.getIndParamCount();
 			double[] _indVals = null;
-			int inputNumber = -1;
+			int inputNumber;
 			int ratingNumber = -1;
-			int conditionNumber = -1;
+			int conditionNumber;
 			try {
 				//-----------------------------------//
 				// for each independent variable set //
 				//-----------------------------------//
 				for (int i = 0; i < valTimes.length; ++i) {
-					int evaluationNumber = -1;
+					int evaluationNumber;
 					//----------------------------//
 					// for each condition to test //
 					//----------------------------//
@@ -513,13 +510,13 @@ public class TransitionalRating extends AbstractRating {
 			if (conditions != null) {
 				trrc.conditions = new String[conditions.length];
 				for (int i = 0; i < conditions.length; ++i) {
-					trrc.conditions[i] = conditions[i].toString().replaceAll("\\$((I|R)\\d+)", "$1");
+					trrc.conditions[i] = conditions[i].toString().replaceAll("\\$(([IR])\\d+)", "$1");
 				}
 			}
 			if (evaluations != null) {
 				trrc.evaluations = new String[evaluations.length];
 				for (int i = 0; i < evaluations.length; ++i) {
-					trrc.evaluations[i] = evaluations[i].toString().replaceAll("\\$((I|R)\\d+)", "$1");
+					trrc.evaluations[i] = evaluations[i].toString().replaceAll("\\$(([IR])\\d+)", "$1");
 				}
 			}
 			if (sourceRatings != null) {
@@ -557,7 +554,7 @@ public class TransitionalRating extends AbstractRating {
 				conditions = new Condition[trrc.conditions.length];
 				try {
 					for (int i = 0; i < trrc.conditions.length; ++i) {
-						conditions[i] = new Condition(trrc.conditions[i].toUpperCase().replaceAll("((I|R)\\d+)", "\\$$1"));
+						conditions[i] = new Condition(trrc.conditions[i].toUpperCase().replaceAll("(([IR])\\d+)", "\\$$1"));
 					}
 				}
 				catch (ComputationException e) {
@@ -568,7 +565,7 @@ public class TransitionalRating extends AbstractRating {
 				evaluations = new MathExpression[trrc.evaluations.length];
 				try {
 					for (int i = 0; i < trrc.evaluations.length; ++i) {
-						evaluations[i] = new MathExpression(trrc.evaluations[i].toUpperCase().replaceAll("((I|R)\\d+)", "\\$$1"));
+						evaluations[i] = new MathExpression(trrc.evaluations[i].toUpperCase().replaceAll("(([IR])\\d+)", "\\$$1"));
 					}
 				}
 				catch (ComputationException e) {

@@ -13,12 +13,15 @@ import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.RatingConst.RatingMethod;
 import org.opendcs.ratings.TableRating;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
+import static org.opendcs.ratings.XmlUtil.getChildElementText;
 
 /**
  * Data container class for TableRating objects
@@ -54,9 +57,9 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 */
 	public TableRatingContainer() {}
 	/**
-	 * Public constructor from a jdom element
-	 * @param element the jdom element
-	 * @throws RatingException
+	 * Public constructor from a DOM element
+	 * @param element the DOM element
+	 * @throws RatingException on error
 	 * @deprecated Use =mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(Element) instead
 	 */
 	@Deprecated
@@ -66,7 +69,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Public constructor from an XML snippet
 	 * @param xmlText the XML snippet
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -74,9 +77,9 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		populateFromXml(xmlText);
 	}
 	/**
-	 * Populate this container from a jdom element
-	 * @param ratingElement The jdom element
-	 * @throws RatingException
+	 * Populate this container from a DOM element
+	 * @param ratingElement The DOM element
+	 * @throws RatingException or error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(Element) instead
 	 */
 	public void populateFromXml(Element ratingElement) throws RatingException {
@@ -87,7 +90,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Populate this container from an XML snippet
 	 * @param xmlText the XML snippet
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -217,8 +220,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
-		TableRating rating = new TableRating(this);
-		return rating;
+		return new TableRating(this);
 	}
 
 	/**
@@ -256,12 +258,15 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 */
 	public void setLookupMethods(String xml) {
 		try {
-			Document doc = new SAXBuilder().build(new StringReader(xml));
-			Element elem = doc.getRootElement();
-			if (elem.getName().equals("lookup-behaviors")) {
-				inRangeMethod = RatingMethod.fromString(elem.getChildText("in-range")).name();
-				outRangeLowMethod = RatingMethod.fromString(elem.getChildText("out-range-low")).name();
-				outRangeHighMethod = RatingMethod.fromString(elem.getChildText("out-range-high")).name();
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            InputSource is = new InputSource(new StringReader(xml)); 
+			Document doc = db.parse(is);
+			Element elem = doc.getDocumentElement();
+			if (elem.getTagName().equals("lookup-behaviors")) {
+				inRangeMethod = RatingMethod.fromString(getChildElementText(elem, "in-range")).name();
+				outRangeLowMethod = RatingMethod.fromString(getChildElementText(elem, "out-range-low")).name();
+				outRangeHighMethod = RatingMethod.fromString(getChildElementText(elem, "out-range-high")).name();
 			}
 		}
 		catch (Exception e) {
@@ -364,46 +369,40 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	@Override
 	public void addOffset(int paramNum, double offset) throws RatingException {
 		if (values != null) {
-			for (int i = 0; i < values.length; ++i) {
-				if (paramNum == 0) {
-					values[i].indValue += offset;
-				}
-				else if (paramNum == -1) {
-					if (values[i].depTable == null) {
-						values[i].depValue += offset;
-					}
-					else {
-						values[i].depTable.addOffset(paramNum, offset);
-					}
-				}
-				else {
-					if (values[i].depTable == null) {
-						throw new RatingException("Invalid parameter number");
-					}
-					values[i].depTable.addOffset(paramNum-1, offset);
-				}
-			}
+            for (RatingValueContainer value : values) {
+                if (paramNum == 0) {
+                    value.indValue += offset;
+                } else if (paramNum == -1) {
+                    if (value.depTable == null) {
+                        value.depValue += offset;
+                    } else {
+                        value.depTable.addOffset(paramNum, offset);
+                    }
+                } else {
+                    if (value.depTable == null) {
+                        throw new RatingException("Invalid parameter number");
+                    }
+                    value.depTable.addOffset(paramNum - 1, offset);
+                }
+            }
 		}
 		if (extensionValues != null) {
-			for (int i = 0; i < extensionValues.length; ++i) {
-				if (paramNum == 0) {
-					extensionValues[i].indValue += offset;
-				}
-				else if (paramNum == -1) {
-					if (extensionValues[i].depTable == null) {
-						extensionValues[i].depValue += offset;
-					}
-					else {
-						extensionValues[i].depTable.addOffset(paramNum, offset);
-					}
-				}
-				else {
-					if (extensionValues[i].depTable == null) {
-						throw new RatingException("Invalid parameter number");
-					}
-					extensionValues[i].depTable.addOffset(paramNum-1, offset);
-				}
-			}
+            for (RatingValueContainer extensionValue : extensionValues) {
+                if (paramNum == 0) {
+                    extensionValue.indValue += offset;
+                } else if (paramNum == -1) {
+                    if (extensionValue.depTable == null) {
+                        extensionValue.depValue += offset;
+                    } else {
+                        extensionValue.depTable.addOffset(paramNum, offset);
+                    }
+                } else {
+                    if (extensionValue.depTable == null) {
+                        throw new RatingException("Invalid parameter number");
+                    }
+                    extensionValue.depTable.addOffset(paramNum - 1, offset);
+                }
+            }
 		}
 	}
 }

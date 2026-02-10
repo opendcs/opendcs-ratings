@@ -10,7 +10,6 @@ package org.opendcs.ratings.io;
 
 
 import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSet;
 import org.opendcs.ratings.RatingSetFactory;
 import hec.io.DataContainer;
 import hec.io.DataContainerTransformer;
@@ -19,8 +18,7 @@ import hec.io.HecIoException;
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
-
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 /**
  * Data container class for RatingSet
@@ -43,8 +41,8 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 */
 	public RatingSetContainer() {}
 	/**
-	 * Public constructor from a JDOM Element.
-	 * @param ratingElement The JDOM Element. The document (root) node is expected to be
+	 * Public constructor from a DOM Element.
+	 * @param ratingElement The DOM Element. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
@@ -61,7 +59,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
 	 */
 	@Deprecated
@@ -69,8 +67,8 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		populateFromXml(xmlText);
 	}
 	/**
-	 * Populates this RatingSetContainer object from a JDOM Element.
-	 * @param ratingElement The JDOM Element. The document (root) node is expected to be
+	 * Populates this RatingSetContainer object from a DOM Element.
+	 * @param ratingElement The DOM Element. The document (root) node is expected to be
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
@@ -89,7 +87,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
 	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
 	 *        any other template and specification nodes are ignored.
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
 	 */
 	@Deprecated
@@ -129,7 +127,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 					abstractRatingContainers == null ? 0 : abstractRatingContainers.length);
 		}
 		catch (Throwable t) {
-			return ((Object)this).toString();
+			return this.toString();
 		}
 	}
 
@@ -179,9 +177,9 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 * @throws RatingException if not implemented for a specific rating container type or if paramNum is invalid for this container
 	 */
 	public void addOffset(int paramNum, double offset) throws RatingException {
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			abstractRatingContainers[i].addOffset(paramNum, offset);
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            abstractRatingContainer.addOffset(paramNum, offset);
+        }
 	}
 	/**
 	 * Returns whether this object has any vertical datum info
@@ -190,12 +188,12 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	public boolean hasVerticalDatum() {
 		boolean hasVerticalDatum = false;
 		if (abstractRatingContainers != null) {
-			for (int i = 0; i < abstractRatingContainers.length; ++i) {
-				if (abstractRatingContainers[i].hasVerticalDatum()) {
-					hasVerticalDatum = true;
-					break;
-				}
-			}
+            for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+                if (abstractRatingContainer.hasVerticalDatum()) {
+                    hasVerticalDatum = true;
+                    break;
+                }
+            }
 		}
 		return hasVerticalDatum;
 	}
@@ -209,19 +207,18 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		boolean isConsistent = true;
 		if (abstractRatingContainers != null && abstractRatingContainers.length > 1) {
 			VerticalDatumContainer vdc = null;
-			for (int i = 0; i < abstractRatingContainers.length; ++i) {
-				if (abstractRatingContainers[i].vdc != null) {
-					if (vdc == null) {
-						vdc = abstractRatingContainers[i].vdc;
-					}
-					else {
-						if (!abstractRatingContainers[i].vdc.equals(vdc)) {
-							isConsistent = false;
-							break;
-						}
-					}
-				}
-			}
+            for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+                if (abstractRatingContainer.vdc != null) {
+                    if (vdc == null) {
+                        vdc = abstractRatingContainer.vdc;
+                    } else {
+                        if (!abstractRatingContainer.vdc.equals(vdc)) {
+                            isConsistent = false;
+                            break;
+                        }
+                    }
+                }
+            }
 		}
 		return isConsistent;
 	}
@@ -233,22 +230,21 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		VerticalDatumContainer vdc = null;
 		if (abstractRatingContainers != null && abstractRatingContainers.length > 1) {
 
-			for (int i = 0; i < abstractRatingContainers.length; ++i) {
-				if (abstractRatingContainers[i].vdc != null) {
-					if (vdc == null) {
-						vdc = abstractRatingContainers[i].vdc;
-						break;
-					}
-				}
-			}
-			for (int i = 0; i < abstractRatingContainers.length; ++i) {
-				if (abstractRatingContainers[i].vdc == null) {
-					vdc = abstractRatingContainers[i].vdc = vdc;
-				}
-				else if (!abstractRatingContainers[i].vdc.equals(vdc)) {
-						throw new VerticalDatumException("Object contains multiple vertical datums");
-				}
-			}
+            for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+                if (abstractRatingContainer.vdc != null) {
+                    vdc = abstractRatingContainer.vdc;
+                    break;
+                }
+            }
+            for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+                if (abstractRatingContainer.vdc == null) {
+                    if (vdc != null) {
+                        throw new VerticalDatumException("Object contains multiple vertical datums");
+                    }
+                } else if (!abstractRatingContainer.vdc.equals(vdc)) {
+                    throw new VerticalDatumException("Object contains multiple vertical datums");
+                }
+            }
 		}
 		return vdc;
 	}
@@ -295,11 +291,11 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
 		boolean change = false;
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			if (abstractRatingContainers[i].toNativeVerticalDatum()) {
-				change = true;
-			}
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            if (abstractRatingContainer.toNativeVerticalDatum()) {
+                change = true;
+            }
+        }
 		return change;
 	}
 	/* (non-Javadoc)
@@ -312,11 +308,11 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
 		boolean change = false;
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			if (abstractRatingContainers[i].toNGVD29()) {
-				change = true;
-			}
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            if (abstractRatingContainer.toNGVD29()) {
+                change = true;
+            }
+        }
 		return change;
 	}
 	/* (non-Javadoc)
@@ -329,11 +325,11 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
 		boolean change = false;
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			if (abstractRatingContainers[i].toNAVD88()) {
-				change = true;
-			}
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            if (abstractRatingContainer.toNAVD88()) {
+                change = true;
+            }
+        }
 		return change;
 	}
 	/* (non-Javadoc)
@@ -346,11 +342,11 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
 		boolean change = false;
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			if (abstractRatingContainers[i].toVerticalDatum(datum)) {
-				change = true;
-			}
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            if (abstractRatingContainer.toVerticalDatum(datum)) {
+                change = true;
+            }
+        }
 		return change;
 	}
 	/* (non-Javadoc)
@@ -363,11 +359,11 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
 		boolean change = false;
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			if (abstractRatingContainers[i].forceVerticalDatum(datum)) {
-				change = true;
-			}
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            if (abstractRatingContainer.forceVerticalDatum(datum)) {
+                change = true;
+            }
+        }
 		return change;
 	}
 	/* (non-Javadoc)
@@ -477,9 +473,9 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			abstractRatingContainers[i].setVerticalDatumInfo(xmlStr);
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            abstractRatingContainer.setVerticalDatumInfo(xmlStr);
+        }
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -554,16 +550,16 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	/**
 	 * Sets the Vertical Datum Container on all abstract rating containers.
 	 *
-	 * @param vdc
+	 * @param vdc The Vertical Datum Container to set the rating containers to
 	 */
 	public void setVerticalDatumContainer(VerticalDatumContainer vdc) throws VerticalDatumException
 	{
 		if (abstractRatingContainers == null || abstractRatingContainers.length == 0) {
 			throw new VerticalDatumException("Object does not have vertical datum information");
 		}
-		for (int i = 0; i < abstractRatingContainers.length; ++i) {
-			abstractRatingContainers[i].setVerticalDatumContainer(vdc);
-		}
+        for (AbstractRatingContainer abstractRatingContainer : abstractRatingContainers) {
+            abstractRatingContainer.setVerticalDatumContainer(vdc);
+        }
 	}
 
 

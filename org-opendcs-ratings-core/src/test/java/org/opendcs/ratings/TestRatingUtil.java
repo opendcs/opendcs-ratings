@@ -10,7 +10,6 @@ package org.opendcs.ratings;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.net.URL;
 import java.util.TimeZone;
 
 import org.junit.jupiter.api.Test;
@@ -21,9 +20,6 @@ import hec.heclib.util.HecTime;
 import hec.heclib.util.HecTimeArray;
 import hec.io.TimeSeriesContainer;
 
-/**
- *
- */
 public class TestRatingUtil
 {
 	@Test

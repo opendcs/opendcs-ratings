@@ -29,7 +29,6 @@ dependencies {
         exclude group: "com.sun.media", module: "*"
         exclude group: "javax.media", module: "*"
     }
-    api(libs.jdom)
 }
 
 publishing {

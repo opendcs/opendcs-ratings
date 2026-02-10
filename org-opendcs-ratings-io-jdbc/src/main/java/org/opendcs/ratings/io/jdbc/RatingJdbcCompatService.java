@@ -25,7 +25,7 @@ import org.opendcs.ratings.RatingSpec;
 import org.opendcs.ratings.RatingTemplate;
 import org.opendcs.ratings.io.RatingJdbcCompatUtil;
 import java.sql.Connection;
-import java.sql.SQLException;
+
 import rma.services.annotations.ServiceProvider;
 
 @ServiceProvider(service = RatingJdbcCompatUtil.class)

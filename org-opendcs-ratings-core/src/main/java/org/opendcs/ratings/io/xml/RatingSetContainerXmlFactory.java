@@ -1,0 +1,1858 @@
+/*
+* Where Applicable, Copyright 2026 OpenDCS Consortium and/or its contributors
+* 
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy
+* of the License at
+* 
+*   http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software 
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations 
+* under the License.
+*/
+
+package org.opendcs.ratings.io.xml;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingRuntimeException;
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingConst;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.ExpressionRatingContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSpecContainer;
+import org.opendcs.ratings.io.RatingTemplateContainer;
+import org.opendcs.ratings.io.RatingValueContainer;
+import org.opendcs.ratings.io.TableRatingContainer;
+import org.opendcs.ratings.io.TransitionalRatingContainer;
+import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
+import hec.heclib.util.HecTime;
+import hec.lang.Const;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.Parser;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.ParserAdapter;
+import org.xml.sax.helpers.XMLFilterImpl;
+import org.xml.sax.helpers.XMLReaderFactory;
+import static org.opendcs.ratings.RatingConst.SEPARATOR1;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingConst.SEPARATOR3;
+import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SPEC_VERSION;
+import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_SUBPARAM;
+import static org.opendcs.ratings.RatingConst.USGS_OFFSETS_TEMPLATE_VERSION;
+import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SPEC_VERSION;
+import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_SUBPARAM;
+import static org.opendcs.ratings.RatingConst.USGS_SHIFTS_TEMPLATE_VERSION;
+
+@SuppressWarnings("deprecation")
+public class RatingSetContainerXmlFactory extends XMLFilterImpl {
+
+	//-----------------------------//
+	// strings expected in the XML //
+	//-----------------------------//
+	private static final String ACTIVE_STR = "active";
+	private static final String AUTO_ACTIVATE_STR = "auto-activate";
+	private static final String AUTO_MIGRATE_EXTENSION_STR = "auto-migrate-extension";
+	private static final String AUTO_UPDATE_STR	= "auto-update";
+	private static final String CASE_STR = "case";
+	private static final String CONNECTIONS_STR = "connections";
+	private static final String CREATE_DATE_STR = "create-date";
+	private static final String DEFAULT_STR = "default";
+	private static final String DEP_PARAMETER_STR = "dep-parameter";
+	private static final String DEP_ROUNDING_SPEC_STR = "dep-rounding-spec";
+	private static final String DEP_STR = "dep";
+	private static final String DESCRIPTION_STR = "description";
+	private static final String EFFECTIVE_DATE_STR = "effective-date";
+	private static final String EXTENSION_POINTS_STR = "extension-points";
+	private static final String FORMULA_STR = "formula";
+	private static final String HEIGHT_OFFSETS_STR = "height-offsets";
+	private static final String HEIGHT_SHIFTS_STR = "height-shifts";
+	private static final String IND_PARAMETER_SPECS_STR = "ind-parameter-specs";
+	private static final String IND_PARAMETER_SPEC_STR = "ind-parameter-spec";
+	private static final String IND_ROUNDING_SPECS_STR = "ind-rounding-specs";
+	private static final String IND_ROUNDING_SPEC_STR = "ind-rounding-spec";
+	private static final String IND_STR = "ind";
+	private static final String IN_RANGE_METHOD_STR = "in-range-method";
+	private static final String LOCATION_ID_STR = "location-id";
+	private static final String NOTE_STR = "note";
+	private static final String OFFICE_ID_STR = "office-id";
+	private static final String OTHER_IND_STR = "other-ind";
+	private static final String OUT_RANGE_HIGH_METHOD_STR = "out-range-high-method";
+	private static final String OUT_RANGE_LOW_METHOD_STR = "out-range-low-method";
+	private static final String PARAMETERS_ID_STR = "parameters-id";
+	private static final String PARAMETER_STR = "parameter";
+	private static final String POINT_STR = "point";
+	private static final String POSITION_STR = "position";
+	private static final String RATINGS_STR = "ratings";
+	private static final String RATING_EXPRESSION_STR = "rating-expression";
+	private static final String RATING_POINTS_STR = "rating-points";
+	private static final String RATING_SPEC_ID_STR = "rating-spec-id";
+	private static final String RATING_SPEC_STR = "rating-spec";
+	private static final String RATING_STR = "rating";
+	private static final String RATING_TEMPLATE_STR = "rating-template";
+	private static final String SELECT_STR = "select";
+	private static final String SIMPLE_RATING_STR = "simple-rating";
+	private static final String SOURCE_AGENCY_STR = "source-agency";
+	private static final String SOURCE_RATINGS_STR = "source-ratings";
+	private static final String SOURCE_RATING_STR = "source-rating";
+	private static final String TEMPLATE_ID_STR	= "template-id";
+	private static final String THEN_STR = "then";
+	private static final String TRANSITIONAL_RATING_STR = "transitional-rating";
+	private static final String TRANSITION_START_DATE_STR = "transition-start-date";
+	private static final String UNITS_ID_STR = "units-id";
+	private static final String USGS_STREAM_RATING_STR = "usgs-stream-rating";
+	private static final String VALUE_STR = "value";
+	private static final String VERSION_STR = "version";
+	private static final String VERTICAL_DATUM_INFO_STR = "vertical-datum-info";
+	private static final String VIRTUAL_RATING_STR = "virtual-rating";
+	private static final String WHEN_STR = "when";
+
+	//--------------------//
+	// instance variables //
+	//--------------------//
+	private final String[] parts = new String[6]; // deepest element is 5
+	private int partsLen = -1;
+	private final StringBuilder chars = new StringBuilder();
+	private RatingSetContainer rsc = null;
+	private RatingTemplateContainer rtc = null;
+	private Map<String, RatingTemplateContainer> rtcsById = null;
+	private RatingSpecContainer rspc = null;
+	private Map<String, RatingSpecContainer> rspcsById = null;
+	private AbstractRatingContainer arc = null;
+	private SortedSet<AbstractRatingContainer> arcs = null;
+	private Map<String, SortedSet<AbstractRatingContainer>> arcsById = null;
+	private ExpressionRatingContainer erc = null;
+	private TableRatingContainer trc = null;
+	private UsgsStreamTableRatingContainer urc = null;
+	private List<ShiftInfo> shiftInfo = null;
+	private VirtualRatingContainer vrc = null;
+	private TransitionalRatingContainer trrc = null;
+	private Map<Integer, String> sourceRatingIdsByPos = null;
+	private Map<Integer, String> conditions = null;
+	private Map<Integer, String> evaluations = null;
+	private String defaultEvaluation = null;
+	private StringBuilder verticalDatumInfo = null;
+	private List<VerticalDatumContainer> vdcs = null;
+	private boolean inVerticalDatumInfo = false;
+	private int pos = -1;
+	private final HecTime hectime = new HecTime();
+	private List<RatingPoints> ratingPoints = null;
+	private List<RatingPoints> extensionPoints = null;
+	private List<RatingPoints> offsetPoints = null;
+	private List<RatingPoints> shiftPoints = null;
+	private int ratingPointSetCount = 0;
+	private int extensionPointSetCount = 0;
+	private int offsetPointSetCount = 0;
+	private int shiftPointSetCount = 0;
+	private final boolean requireRatingPoints;
+
+	//----------------//
+	// helper classes //
+	//----------------//
+    static class PointValue {
+		public double ind = Const.UNDEFINED_DOUBLE;
+		public double dep = Const.UNDEFINED_DOUBLE;
+		public String note = null;
+	}
+
+	static class RatingPoints {
+		private int otherIndCount = 0;
+		private int pointCount = 0;
+		private double[] otherInds = null;
+		private List<PointValue> points = null;
+		public RatingPoints() {}
+		public void addOtherInd(double value) {
+			if (otherInds == null) otherInds = new double[10];
+			otherInds[otherIndCount++] = value;
+		}
+		public void addIndValue(double value) {
+			if (points == null) points = new ArrayList<>();
+			points.add(new PointValue());
+			points.get(pointCount++).ind = value;
+		}
+		public void addDepValue(double value) {
+			points.get(pointCount-1).dep = value;
+		}
+		public void addNote(String note) {
+			points.get(pointCount-1).note = note;
+		}
+		public int getOtherIndCount() {
+			return otherIndCount;
+		}
+		public double getOtherInd(int i) {
+			return otherInds[i];
+		}
+		public int getPointCount() {
+			return pointCount;
+		}
+		public double getIndValue(int i) {
+			return points.get(i).ind;
+		}
+		public double getDepValue(int i) {
+			return points.get(i).dep;
+		}
+		public String getNote(int i) {
+			return points.get(i).note;
+		}
+	}
+
+	static class ShiftInfo {
+		public long effectiveDate = Const.UNDEFINED_TIME;
+		public long transitionStartDate = Const.UNDEFINED_TIME;
+		public long createDate = Const.UNDEFINED_TIME;
+		public boolean active = false;
+	}
+
+	/**
+	 * Parses a RatingSetContainer XML instance from a string.
+	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
+	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
+	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
+	 *        any other template and specification nodes are ignored.
+	 * @throws RatingException any errors parsing the string
+	 */
+	public static RatingSetContainer ratingSetContainerFromXml(String xmlText) throws RatingException {
+		return ratingSetContainerFromXml(xmlText, false);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a string.
+	 * @param xmlText The string containing the XML
+	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException any errors parsing the string
+	 */
+	public static RatingSetContainer ratingSetContainerFromXml(String xmlText, boolean requireRatingPoints) throws RatingException {
+		return parseReader(new StringReader(xmlText), requireRatingPoints);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a File object.
+	 * @param file The File object containing the XML
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException any errors processing the input
+	 */
+	public static RatingSetContainer parseFile(File file) throws RatingException {
+		return parseFile(file, true);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a File object.
+	 * @param file The File object containing the XML
+	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException any errors parsing the file
+	 */
+	public static RatingSetContainer parseFile(File file, boolean requireRatingPoints) throws RatingException {
+		try {
+			return parseReader(new FileReader(file), requireRatingPoints);
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a file.
+	 * @param filename The name of the file containing the XML
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
+	 */
+	public static RatingSetContainer parseFile(String filename) throws RatingException {
+		return parseFile(filename, true);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a file.
+	 * @param filename The name of the file containing the XML
+	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
+	 */
+	public static RatingSetContainer parseFile(String filename, boolean requireRatingPoints) throws RatingException {
+		try {
+			return parseReader(new FileReader(filename), requireRatingPoints);
+		}
+		catch (Throwable t) {
+			if (t instanceof RatingException) throw (RatingException)t;
+			throw new RatingException(t);
+		}
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a Reader object.
+	 * @param r The Reader object to get the XML from
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
+	 */
+	public static RatingSetContainer parseReader(Reader r) throws RatingException {
+		return parseReader(r, true);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a Reader object.
+	 * @param r The Reader object to get the XML from
+	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
+	 */
+	public static RatingSetContainer parseReader(Reader r, boolean requireRatingPoints) throws RatingException {
+		return parseInputSource(new InputSource(r), requireRatingPoints);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a InputSource object.
+	 * @param is The InputSource object to get the XML from
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
+	 */
+	public static RatingSetContainer parseInputSource(InputSource is) throws RatingException {
+		return parseInputSource(is, true);
+	}
+	/**
+	 * Parses a RatingSetContainer XML instance from a InputSource object.
+	 * @param is The InputSource object to get the XML from
+	 * @param requireRatingPoints specifies whether rating points are required for successful parsing
+	 * @return The resulting RatingSetContainer object
+	 * @throws RatingException Any errors parsing the XML or use the parsed XML.
+	 */
+	public static RatingSetContainer parseInputSource(InputSource is, boolean requireRatingPoints) throws RatingException {
+		RatingSetContainerXmlFactory parser = null;
+		try {
+			parser = new RatingSetContainerXmlFactory(requireRatingPoints);
+			parser.parse(is);
+		}
+		catch (Throwable t) {
+			if (parser != null && parser.getRatingSetContainer() == null) {
+				throw new RatingObjectDoesNotExistException(t);
+			}
+			else {
+                throw new RatingException(t);
+			}
+		}
+		return parser.getRatingSetContainer();
+	}
+
+
+	/*
+	 * Private constructor
+	 * @throws SAXException
+	 */
+	private RatingSetContainerXmlFactory() throws SAXException {
+		this(true);
+	}
+	/*
+	 * Private constructor
+	 * @throws SAXException
+	 */
+	private RatingSetContainerXmlFactory(boolean requireRatingPoints) throws SAXException {
+		super(new ParserAdapter((Parser) XMLReaderFactory.createXMLReader()));
+		this.requireRatingPoints = requireRatingPoints;
+	}
+	/*
+	 * @return the RatingSetContainer object
+	 */
+	private RatingSetContainer getRatingSetContainer() {
+		return rsc;
+	}
+	/**
+	 * @throws RatingRuntimeException if XML doesn't match expected structure
+	 */
+	private void elementError() {
+		if (!inVerticalDatumInfo) { // don't worry about structure in here
+			StringBuilder message = new StringBuilder("Unexpected element: \"");
+			for (int i = 0; i < partsLen; ++i) {
+				message.append(i == 0 ? "" : "/").append(parts[i]);
+			}
+			message.append("\"");
+			throw new RatingRuntimeException(message.toString());
+		}
+	}
+	/**
+	 * Process data collected by characters() SAX method
+	 */
+	private void processCharacters() {
+		if (chars.length() > 0) {
+			String data = chars.toString().trim();
+			chars.setLength(0);
+			if (inVerticalDatumInfo) {
+				verticalDatumInfo.append(data);
+			}
+			else {
+				switch (partsLen) {
+				case 3 :
+                    switch (parts[1]) {
+                        case RATING_TEMPLATE_STR:
+                            switch (parts[2]) {
+                                case PARAMETERS_ID_STR:
+                                    rtc.parametersId = data;
+                                    int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
+                                    rtc.indParams = new String[count];
+                                    rtc.inRangeMethods = new String[count];
+                                    rtc.outRangeLowMethods = new String[count];
+                                    rtc.outRangeHighMethods = new String[count];
+                                    break;
+                                case VERSION_STR:
+                                    rtc.templateVersion = data;
+                                    rtc.templateId = rtc.parametersId + RatingConst.SEPARATOR1 + rtc.templateVersion;
+                                    break;
+                                case DEP_PARAMETER_STR:
+                                    rtc.depParam = data;
+                                    break;
+                                case DESCRIPTION_STR:
+                                    rtc.templateDescription = data;
+                                    break;
+                            }
+                            break;
+                        case RATING_SPEC_STR:
+                            switch (parts[2]) {
+                                case RATING_SPEC_ID_STR:
+                                    rspc.specId = data;
+                                    break;
+                                case TEMPLATE_ID_STR:
+                                    int count = TextUtil.split(TextUtil.split(data, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3).length;
+                                    rspc.indRoundingSpecs = new String[count];
+                                    break;
+                                case LOCATION_ID_STR:
+                                    rspc.locationId = data;
+                                    break;
+                                case VERSION_STR:
+                                    rspc.specVersion = data;
+                                    break;
+                                case SOURCE_AGENCY_STR:
+                                    rspc.sourceAgencyId = data;
+                                    break;
+                                case IN_RANGE_METHOD_STR:
+                                    rspc.inRangeMethod = data;
+                                    break;
+                                case OUT_RANGE_LOW_METHOD_STR:
+                                    rspc.outRangeLowMethod = data;
+                                    break;
+                                case OUT_RANGE_HIGH_METHOD_STR:
+                                    rspc.outRangeHighMethod = data;
+                                    break;
+                                case ACTIVE_STR:
+                                    rspc.active = Boolean.parseBoolean(data);
+                                    break;
+                                case AUTO_UPDATE_STR:
+                                    rspc.autoUpdate = Boolean.parseBoolean(data);
+                                    break;
+                                case AUTO_ACTIVATE_STR:
+                                    rspc.autoActivate = Boolean.parseBoolean(data);
+                                    break;
+                                case AUTO_MIGRATE_EXTENSION_STR:
+                                    rspc.autoMigrateExtensions = Boolean.parseBoolean(data);
+                                    break;
+                                case DEP_ROUNDING_SPEC_STR:
+                                    rspc.depRoundingSpec = data;
+                                    break;
+                                case DESCRIPTION_STR:
+                                    rspc.specDescription = data;
+                                    break;
+                            }
+                            break;
+                        case RATING_STR:
+                        case SIMPLE_RATING_STR:
+                        case USGS_STREAM_RATING_STR:
+                            if (parts[2].equals(RATING_SPEC_ID_STR)) {
+                                arc.ratingSpecId = data;
+                            } else if (parts[2].equals(UNITS_ID_STR)) {
+                                arc.unitsId = data;
+                            } else if (parts[2].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                arc.effectiveDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                arc.transitionStartDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(CREATE_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                arc.createDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(ACTIVE_STR)) {
+                                arc.active = Boolean.parseBoolean(data);
+                            } else if (parts[2].equals(DESCRIPTION_STR)) {
+                                arc.description = data;
+                            } else if (parts[2].equals(FORMULA_STR)) {
+                                if (!(parts[1].equals(RATING_STR) || parts[1].equals(SIMPLE_RATING_STR))) {
+                                    elementError();
+                                }
+                                erc = new ExpressionRatingContainer();
+                                arc.clone(erc);
+                                erc.expression = data;
+                            }
+                            break;
+                        case VIRTUAL_RATING_STR:
+                            if (parts[2].equals(RATING_SPEC_ID_STR)) {
+                                vrc.ratingSpecId = data;
+                            } else if (parts[2].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                vrc.effectiveDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                vrc.transitionStartDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(CREATE_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                vrc.createDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(ACTIVE_STR)) {
+                                vrc.active = Boolean.parseBoolean(data);
+                            } else if (parts[2].equals(DESCRIPTION_STR)) {
+                                vrc.description = data;
+                            } else if (parts[2].equals(CONNECTIONS_STR)) {
+                                vrc.connections = data;
+                            }
+                            break;
+                        case TRANSITIONAL_RATING_STR:
+                            if (parts[2].equals(RATING_SPEC_ID_STR)) {
+                                trrc.ratingSpecId = data;
+                            } else if (parts[2].equals(UNITS_ID_STR)) {
+                                trrc.unitsId = data;
+                            } else if (parts[2].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                trrc.effectiveDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                trrc.transitionStartDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(CREATE_DATE_STR) && !data.isEmpty()) {
+                                hectime.set(data);
+                                trrc.createDateMillis = hectime.getTimeInMillis();
+                            } else if (parts[2].equals(ACTIVE_STR)) {
+                                trrc.active = Boolean.parseBoolean(data);
+                            } else if (parts[2].equals(DESCRIPTION_STR)) {
+                                trrc.description = data;
+                            }
+                            break;
+                    }
+					break;
+				case 4 :
+                    switch (parts[1]) {
+                        case RATING_SPEC_STR:
+                            if (parts[2].equals(IND_ROUNDING_SPECS_STR) && parts[3].equals(IND_ROUNDING_SPEC_STR)) {
+                                rspc.indRoundingSpecs[pos] = data;
+                            }
+                            break;
+                        case USGS_STREAM_RATING_STR:
+                            if (parts[2].equals(HEIGHT_SHIFTS_STR)) {
+                                if (parts[3].equals(EFFECTIVE_DATE_STR) && !data.isEmpty()) {
+                                    hectime.set(data);
+                                    shiftInfo.get(shiftPointSetCount - 1).effectiveDate = hectime.getTimeInMillis();
+                                } else if (parts[3].equals(CREATE_DATE_STR) && !data.isEmpty()) {
+                                    hectime.set(data);
+                                    shiftInfo.get(shiftPointSetCount - 1).createDate = hectime.getTimeInMillis();
+                                } else if (parts[3].equals(TRANSITION_START_DATE_STR) && !data.isEmpty()) {
+                                    hectime.set(data);
+                                    shiftInfo.get(shiftPointSetCount - 1).transitionStartDate = hectime.getTimeInMillis();
+                                } else if (parts[3].equals(ACTIVE_STR) && !data.isEmpty()) {
+                                    hectime.set(data);
+                                    shiftInfo.get(shiftPointSetCount - 1).active = Boolean.parseBoolean(data);
+                                }
+                            }
+                            break;
+                        case TRANSITIONAL_RATING_STR:
+                            if (parts[2].equals(SOURCE_RATINGS_STR)) {
+                                if (parts[3].equals(RATING_SPEC_ID_STR)) {
+                                    if (sourceRatingIdsByPos == null) {
+                                        sourceRatingIdsByPos = new HashMap<>();
+                                    }
+                                    if (sourceRatingIdsByPos.containsKey(pos)) {
+                                        throw new RatingRuntimeException(String.format("Transitional rating %s specifies source rating %d more than once.", trrc.ratingSpecId, pos + 1));
+                                    }
+                                    sourceRatingIdsByPos.put(pos, trrc.officeId + "/" + data);
+                                }
+                            } else if (parts[2].equals(SELECT_STR)) {
+                                if (parts[3].equals(DEFAULT_STR)) {
+                                    if (defaultEvaluation != null) {
+                                        throw new RatingRuntimeException(String.format("Select structure or transitional rating %s specifies multiple default evalations", trrc.ratingSpecId));
+                                    }
+                                    defaultEvaluation = data;
+                                }
+                            }
+                            break;
+                    }
+					break;
+				case 5 :
+                    switch (parts[1]) {
+                        case RATING_TEMPLATE_STR:
+                            if (parts[2].equals(IND_PARAMETER_SPECS_STR) && parts[3].equals(IND_PARAMETER_SPEC_STR)) {
+                                switch (parts[4]) {
+                                    case PARAMETER_STR:
+                                        rtc.indParams[pos] = data;
+                                        break;
+                                    case IN_RANGE_METHOD_STR:
+                                        rtc.inRangeMethods[pos] = data;
+                                        break;
+                                    case OUT_RANGE_LOW_METHOD_STR:
+                                        rtc.outRangeLowMethods[pos] = data;
+                                        break;
+                                    case OUT_RANGE_HIGH_METHOD_STR:
+                                        rtc.outRangeHighMethods[pos] = data;
+                                        break;
+                                }
+                            }
+                            break;
+                        case RATING_STR:
+                        case SIMPLE_RATING_STR:
+                        case USGS_STREAM_RATING_STR:
+                            if (parts[3].equals(POINT_STR)) {
+                                switch (parts[2]) {
+                                    case RATING_POINTS_STR:
+                                        switch (parts[4]) {
+                                            case IND_STR:
+                                                ratingPoints.get(ratingPointSetCount - 1).addIndValue(Double.parseDouble(data));
+                                                break;
+                                            case DEP_STR:
+                                                ratingPoints.get(ratingPointSetCount - 1).addDepValue(Double.parseDouble(data));
+                                                break;
+                                            case NOTE_STR:
+                                                ratingPoints.get(ratingPointSetCount - 1).addNote(data);
+                                                break;
+                                        }
+                                        break;
+                                    case EXTENSION_POINTS_STR:
+                                        switch (parts[4]) {
+                                            case IND_STR:
+                                                extensionPoints.get(extensionPointSetCount - 1).addIndValue(Double.parseDouble(data));
+                                                break;
+                                            case DEP_STR:
+                                                extensionPoints.get(extensionPointSetCount - 1).addDepValue(Double.parseDouble(data));
+                                                break;
+                                            case NOTE_STR:
+                                                extensionPoints.get(extensionPointSetCount - 1).addNote(data);
+                                                break;
+                                        }
+                                        break;
+                                    case HEIGHT_OFFSETS_STR:
+                                        switch (parts[4]) {
+                                            case IND_STR:
+                                                offsetPoints.add(new RatingPoints());
+                                                offsetPoints.get(offsetPointSetCount - 1).addIndValue(Double.parseDouble(data));
+                                                break;
+                                            case DEP_STR:
+                                                offsetPoints.get(offsetPointSetCount - 1).addDepValue(Double.parseDouble(data));
+                                                break;
+                                            case NOTE_STR:
+                                                offsetPoints.get(offsetPointSetCount - 1).addNote(data);
+                                                break;
+                                        }
+                                        break;
+                                    case HEIGHT_SHIFTS_STR:
+                                        switch (parts[4]) {
+                                            case IND_STR:
+                                                shiftPoints.add(new RatingPoints());
+                                                shiftPoints.get(shiftPointSetCount - 1).addIndValue(Double.parseDouble(data));
+                                                break;
+                                            case DEP_STR:
+                                                shiftPoints.get(shiftPointSetCount - 1).addDepValue(Double.parseDouble(data));
+                                                break;
+                                            case NOTE_STR:
+                                                shiftPoints.get(shiftPointSetCount - 1).addNote(data);
+                                                break;
+                                        }
+                                        break;
+                                }
+                            }
+                            break;
+                        case VIRTUAL_RATING_STR:
+                            if (parts[2].equals(SOURCE_RATINGS_STR)) {
+                                if (parts[3].equals(SOURCE_RATING_STR)) {
+                                    if (parts[4].equals(RATING_SPEC_ID_STR) ||
+                                            parts[4].equals(RATING_EXPRESSION_STR)) {
+                                        sourceRatingIdsByPos.put(pos, arc.officeId + "/" + data);
+                                    }
+                                }
+                            }
+                            break;
+                        case TRANSITIONAL_RATING_STR:
+                            if (parts[2].equals(SELECT_STR)) {
+                                if (parts[3].equals(CASE_STR)) {
+                                    if (parts[4].equals(WHEN_STR)) {
+                                        if (conditions == null) {
+                                            conditions = new HashMap<>();
+                                        }
+                                        if (conditions.containsKey(pos)) {
+                                            throw new RatingRuntimeException(String.format("Transitional rating %s selection case %d is specified more than once, or case %d contains multiple <WHEN> elements", trrc.ratingSpecId, pos + 1, pos + 1));
+                                        }
+                                        conditions.put(pos, data);
+                                    } else if (parts[4].equals(THEN_STR)) {
+                                        if (evaluations == null) {
+                                            evaluations = new HashMap<>();
+                                        }
+                                        if (evaluations.containsKey(pos)) {
+                                            throw new RatingRuntimeException(String.format("Transitional rating %s selection case %d is specified more than once, or case %d contains multiple <THEN> elements", trrc.ratingSpecId, pos + 1, pos + 1));
+                                        }
+                                        evaluations.put(pos, data);
+                                    }
+                                }
+                            }
+                            break;
+                    }
+					break;
+				}
+			}
+		}
+	}
+	/*
+	 * SAX method - do some initialization
+	 */
+	@Override
+	public void startDocument() {
+		partsLen = 0;
+	}
+	/*
+	 * SAX method - generate the RatingSet object from the data
+	 */
+	@Override
+	public void endDocument() {
+
+//		if (rtcsById == null || rtcsById.size() == 0) {
+//			throw new RatingRuntimeException("No rating templates in data");
+//		}
+//		if(rspcsById == null || rspcsById.size() == 0) {
+//			throw new RatingRuntimeException("No rating specifications in data");
+//		}
+//		if(arcs == null || arcs.size() == 0) {
+//			throw new RatingRuntimeException("No ratings in data");
+//		}
+		int rtcCount = rtcsById == null ? 0 : rtcsById.size();
+		int rspcCount = rspcsById == null ? 0 : rspcsById.size();
+		int vrcCount = 0;
+		int trcCount = 0;
+		if (arcs != null) {
+			for (AbstractRatingContainer arc : arcs) {
+				if (arc instanceof VirtualRatingContainer) {
+					vrcCount++;
+				}
+				else if (arc instanceof TransitionalRatingContainer) {
+					trcCount++;
+				}
+			}
+		}
+		if (vdcs != null && !vdcs.isEmpty()) {
+			for (int i = 1; i < vdcs.size(); ++i) {
+				if (!vdcs.get(i).equals(vdcs.get(0))) {
+					throw new RatingRuntimeException("XML contains inconsistent vertical datum information");
+				}
+			}
+			for(AbstractRatingContainer abstractRatingContainer : arcs)
+			{
+				abstractRatingContainer.setVerticalDatumContainer(vdcs.get(0).clone());
+			}
+
+			vdcs = null;
+		}
+		if (vrcCount + trcCount > 0) {
+			//------------------------------------//
+			// determine the usage of each rating //
+			//------------------------------------//
+			final int NO_INFO = 1;
+			final int HAS_SOURCE_RATINGS = 2;
+			final int IS_SOURCE_RATING = 4;
+			Map<String, Integer> usageById = new HashMap<>();
+			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				String specId = rcs.first().toString();
+				usageById.put(specId, NO_INFO);
+			}
+			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				for (AbstractRatingContainer rc : rcs) {
+					if (rc instanceof VirtualRatingContainer) {
+						String specId = rc.toString();
+						usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
+						for (String srcSpecId : ((VirtualRatingContainer)rc).sourceRatingIds) {
+							srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
+							if (usageById.containsKey(srcSpecId)) {
+								usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
+							}
+						}
+					}
+					else if (rc instanceof TransitionalRatingContainer) {
+						String specId = rc.toString();
+						usageById.put(specId, usageById.get(specId) | HAS_SOURCE_RATINGS);
+						TransitionalRatingContainer trrc = (TransitionalRatingContainer)rc;
+						if (trrc.sourceRatingIds != null) {
+							for (String srcSpecId : trrc.sourceRatingIds) {
+								srcSpecId = TextUtil.split(srcSpecId, "{")[0].trim(); // cut off the units
+								if (usageById.containsKey(srcSpecId)) {
+									usageById.put(srcSpecId, usageById.get(srcSpecId) | IS_SOURCE_RATING);
+								}
+							}
+						}
+					}
+				}
+			}
+			List<String> noInfoIds = new ArrayList<>();
+			List<String> topLevelIds = new ArrayList<>();
+			for(SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				String specId = rcs.first().toString();
+				int usage = usageById.get(specId);
+				if (usage == NO_INFO) {
+					noInfoIds.add(specId);
+				}
+				else if ((usage & IS_SOURCE_RATING) != IS_SOURCE_RATING) {
+					topLevelIds.add(specId);
+				}
+			}
+			//--------------------------------------------//
+			// raise exceptions on invalid configurations //
+			//--------------------------------------------//
+			if (topLevelIds.size() > 1) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("XML includes more than one top level rating:");
+				for (int i = 0; i < topLevelIds.size(); ++i) {
+					sb.append("\n\t").append((i+1)).append(": ").append(topLevelIds.get(i));
+				}
+				throw new RatingRuntimeException(sb.toString());
+			}
+			else if (!noInfoIds.isEmpty()) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("XML includes one or more unused ratings:");
+				for (int i = 0; i < noInfoIds.size(); ++i) {
+					sb.append("\n\t").append((i+1)).append(": ").append(noInfoIds.get(i));
+				}
+				throw new RatingRuntimeException(sb.toString());
+			}
+			String topLevelSpecId = topLevelIds.get(0);
+			//-----------------------------//
+			// build the rating containers //
+			//-----------------------------//
+			arcs = arcsById.get(topLevelSpecId);
+			for (AbstractRatingContainer arc : arcs) {
+				if (arc instanceof VirtualRatingContainer) {
+					vrc = (VirtualRatingContainer)arc;
+					try {
+						vrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+					}
+					catch (RatingException e) {
+						throw new RatingRuntimeException(e);
+					}
+				}
+				else if (arc instanceof TransitionalRatingContainer) {
+					trrc = (TransitionalRatingContainer)arc;
+					try {
+						trrc.populateSourceRatings(arcsById, rspcsById, rtcsById);
+					}
+					catch (RatingException e) {
+						throw new RatingRuntimeException(e);
+					}
+				}
+			}
+			//------------------------------------//
+			// populate the rating spec container //
+			//------------------------------------//
+			String[] parts = TextUtil.split(topLevelSpecId, "/");
+			String officeId = parts[0];
+			String specId = parts[1];
+			parts = TextUtil.split(specId, SEPARATOR1);
+			String templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+			if (rspcsById.get(topLevelSpecId) == null) {
+				//----------------------------------------------------------------------------------//
+				// top level rating spec not in XML, so create a dummy one from the topLevelSpecId  //
+				//                                                                                  //
+				// this happens when the parser gets called from the populateFromXml(String) method //
+				// of the VirtualRatingContainer or TransitionalRatingContainer classes             //
+				//----------------------------------------------------------------------------------//
+				rspc = new RatingSpecContainer();
+				rspc.officeId = rspc.specOfficeId = officeId;
+				rspc.specId = specId;
+				rspc.templateId = templateId;
+				rspc.locationId = parts[0];
+				rspc.parametersId = parts[1];
+				rspc.templateVersion = parts[2];
+				rspc.specVersion = parts[3];
+				rspc.indParams = TextUtil.split(TextUtil.split(rspc.parametersId, SEPARATOR2)[0], SEPARATOR3);
+				rspc.depParam = TextUtil.split(rspc.parametersId, SEPARATOR2)[1];
+				rspc.inRangeMethods = new String[rspc.indParams.length];
+				rspc.outRangeLowMethods = new String[rspc.indParams.length];
+				rspc.outRangeHighMethods = new String[rspc.indParams.length];
+				rspc.indRoundingSpecs = new String[rspc.indParams.length];
+				for (int i = 0; i < rspc.indParams.length; ++i) {
+					rspc.inRangeMethods[i] = "LINEAR";
+					rspc.outRangeLowMethods[i] = "ERROR";
+					rspc.outRangeHighMethods[i] = "ERROR";
+					rspc.indRoundingSpecs[i] = "4444444444";
+				}
+				rspc.active = true;
+				rspc.autoUpdate = false;
+				rspc.autoActivate = false;
+				rspc.autoMigrateExtensions = false;
+				rspc.depRoundingSpec = "4444444444";
+				rspc.inRangeMethod = "LINEAR";
+				rspc.outRangeLowMethod = "NEAREST";
+				rspc.outRangeHighMethod = "NEAREST";
+			}
+			else {
+				rspc = rspcsById.get(topLevelSpecId).clone();
+			}
+			RatingTemplateContainer rtc = rtcsById.get(templateId);
+			if(rtc != null) {
+				rtc.clone(rspc);
+			}
+			//-----------------------------------//
+			// populate the rating set container //
+			//-----------------------------------//
+			rsc.ratingSpecContainer = rspc;
+			rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
+
+			//----------------------------------------------//
+			// output info about unused specs and templates //
+			//----------------------------------------------//
+            List<AbstractRatingContainer> containersUsed = new ArrayList<>(arcs);
+			for (int i = 0; i < containersUsed.size(); ++i) {
+				AbstractRatingContainer _arc = containersUsed.get(i);
+				if (_arc instanceof VirtualRatingContainer) {
+					VirtualRatingContainer _vrc = (VirtualRatingContainer)_arc;
+					for (int j = 0; j < _vrc.sourceRatings.length; ++j) {
+						if (_vrc.sourceRatings[j].rsc != null) {
+							for (int k = 0; k < _vrc.sourceRatings[j].rsc.abstractRatingContainers.length; ++k) {
+								if (!containersUsed.contains(_vrc.sourceRatings[j].rsc.abstractRatingContainers[k])) {
+									containersUsed.add(_vrc.sourceRatings[j].rsc.abstractRatingContainers[k]);
+								}
+							}
+						}
+					}
+				}
+				else if (_arc instanceof TransitionalRatingContainer) {
+					TransitionalRatingContainer _trc = (TransitionalRatingContainer)_arc;
+					for (int j = 0; j < _trc.sourceRatings.length; ++j) {
+						if (_trc.sourceRatings[j].rsc != null) {
+							for (int k = 0; k < _trc.sourceRatings[j].rsc.abstractRatingContainers.length; ++k) {
+								if (!containersUsed.contains(_trc.sourceRatings[j].rsc.abstractRatingContainers[k])) {
+									containersUsed.add(_trc.sourceRatings[j].rsc.abstractRatingContainers[k]);
+								}
+							}
+						}
+					}
+				}
+			}
+			Set<String> usedIds = new TreeSet<>();
+			for (AbstractRatingContainer _arc : containersUsed) {
+				specId = String.format("%s/%s", _arc.officeId, _arc.ratingSpecId);
+				parts = TextUtil.split(_arc.ratingSpecId, SEPARATOR1);
+				templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+				usedIds.add(specId);
+				usedIds.add(templateId);
+			}
+			StringBuilder sb1 = new StringBuilder();
+			StringBuilder sb2 = new StringBuilder();
+            for (String s : rspcsById.keySet()) {
+                specId = s;
+                if (!usedIds.contains(specId)) {
+                    sb2.append("\n\tspecification: ").append(specId);
+                }
+                parts = TextUtil.split(specId, SEPARATOR1);
+                templateId = TextUtil.join(SEPARATOR1, parts[1], parts[2]);
+                if (!usedIds.contains(templateId)) {
+                    sb1.append("\n\ttemplate     : ").append(templateId);
+                }
+            }
+			sb1.append(sb2);
+			if (sb1.length() > 0) {
+				AbstractRating.getLogger().info("XML conatins unused templates and/or specifications:" + sb1);
+			}
+			AbstractRating.getLogger().fine("Top level rating = " + topLevelIds.get(0));
+		}
+		else {
+			//------------------------------------------------------------------------------------------------//
+			// simple ratings only, must have only one template, one spec, and they should agree with ratings //
+			//------------------------------------------------------------------------------------------------//
+			if (rtcCount > 1) {
+				throw new RatingRuntimeException("XML specifies more than one rating template.");
+			}
+			if (rspcCount > 1) {
+				throw new RatingRuntimeException("XML specifies more than one rating specification.");
+			}
+			//------------------------------------//
+			// populate the rating spec container //
+			//------------------------------------//
+			if (rtcsById == null) {
+				throw new RatingRuntimeException("XML contains no rating templates");
+			}
+			if (rspcsById == null) {
+				throw new RatingRuntimeException("XML contains no rating specifications");
+			}
+			rtc = rtcsById.values().iterator().next();
+			String templateId = rtc.toString();
+			rspc = rspcsById.values().iterator().next();
+			String specId = rspc.toString();
+			String[] parts = TextUtil.split(specId, SEPARATOR1);
+			if (!(TextUtil.join(SEPARATOR1, parts[1], parts[2])).equals(templateId)) {
+				throw new RatingRuntimeException("Specification ("+specId+") does not agree with template ("+templateId+")");
+			}
+			rtc.clone(rspc);
+			//-----------------------------------//
+			// populate the rating set container //
+			//-----------------------------------//
+			rsc.ratingSpecContainer = rspc.clone();
+			if (arcs != null) {
+				rsc.abstractRatingContainers = arcs.toArray(new AbstractRatingContainer[0]);
+			}
+		}
+
+		partsLen = -1;
+		StringBuilder sb = new StringBuilder();
+		sb.append("\nRating Templates:\n");
+		if (rtcsById != null) {
+			for (RatingTemplateContainer rtc : rtcsById.values()) {
+				sb.append("\t").append(rtc.toString()).append("\n");
+			}
+		}
+		sb.append("\nRating Specs:\n");
+		if (rspcsById != null) {
+			for (RatingSpecContainer rspc : rspcsById.values()) {
+				sb.append("\t").append(rspc.toString()).append("\n");
+			}
+		}
+		sb.append("\nRatings:\n");
+		if (arcs != null) {
+			for (SortedSet<AbstractRatingContainer> rcs : arcsById.values()) {
+				for (AbstractRatingContainer rc : rcs) {
+					HecTime ht = new HecTime();
+					ht.setTimeInMillis(rc.effectiveDateMillis);
+					sb.append("\t").
+					   append(rc).
+					   append("@").
+					   append(ht.getXMLDateTime(0)).
+					   append(" ").
+					   append(" (").
+					   append(rc.getClass().getName()).
+					   append(")\n");
+
+				}
+			}
+		}
+		AbstractRating.getLogger().fine(sb.toString());
+	}
+	/*
+	 * SAX method - validate structure and process attributes
+	 */
+	@Override
+	public void startElement(String uri, String localName, String qName, Attributes attrs) {
+		if (inVerticalDatumInfo) {
+			verticalDatumInfo.append("<").append(localName);
+			for (int i = 0; i < attrs.getLength(); ++i) {
+				verticalDatumInfo.append(" ")
+				                 .append(attrs.getLocalName(i))
+				                 .append("=\"")
+				                 .append(attrs.getValue(i))
+                                 .append("\"");
+
+			}
+			verticalDatumInfo.append(">");
+		}
+		parts[partsLen++] = localName;
+		switch (partsLen) {
+		case 1 :
+			if (localName.equals(RATINGS_STR)) {
+				rsc = new RatingSetContainer();
+			}
+			else {
+				throw new RatingRuntimeException("Invalid document node name: " + parts[0]);
+			}
+			break;
+		case 2 :
+            switch (localName) {
+                case RATING_TEMPLATE_STR:
+                    if (rspc != null) {
+                        throw new RatingRuntimeException("Only one rating template may be processed");
+                    }
+                    rtc = new RatingTemplateContainer();
+                    rtc.officeId = attrs.getValue(OFFICE_ID_STR);
+                    break;
+                case RATING_SPEC_STR:
+                    rspc = new RatingSpecContainer();
+                    rspc.specOfficeId = rspc.officeId = attrs.getValue(OFFICE_ID_STR);
+                    if (rtc != null) {
+                        rtc.clone(rspc);
+                    }
+                    break;
+                case RATING_STR:
+                case SIMPLE_RATING_STR:
+                case USGS_STREAM_RATING_STR:
+                case VIRTUAL_RATING_STR:
+                case TRANSITIONAL_RATING_STR:
+                    arc = new AbstractRatingContainer();
+                    arc.officeId = attrs.getValue(OFFICE_ID_STR);
+                    break;
+                default:
+                    elementError();
+                    break;
+            }
+			break;
+		case 3 :
+            switch (parts[1]) {
+                case RATING_STR:
+                case SIMPLE_RATING_STR:
+                case USGS_STREAM_RATING_STR:
+                    switch (localName) {
+                        case RATING_POINTS_STR:
+                            if (parts[1].equals(RATING_STR) || parts[1].equals(SIMPLE_RATING_STR)) {
+                                trc = new TableRatingContainer();
+                                arc.clone(trc);
+                                if (ratingPoints == null) ratingPoints = new ArrayList<>();
+                                ratingPoints.add(new RatingPoints());
+                                ++ratingPointSetCount;
+                            } else {
+                                if (ratingPointSetCount == 0) {
+                                    urc = new UsgsStreamTableRatingContainer();
+                                    arc.clone(urc);
+                                    ratingPoints = new ArrayList<>();
+                                    ratingPoints.add(new RatingPoints());
+                                    ++ratingPointSetCount;
+                                } else {
+                                    throw new RatingRuntimeException("Multiple independent paramters are not allowed on USGS-style stream ratings");
+                                }
+                            }
+                            break;
+                        case FORMULA_STR:
+                            erc = new ExpressionRatingContainer();
+                            arc.clone(erc);
+                            break;
+                        case EXTENSION_POINTS_STR:
+                            switch (ratingPointSetCount) {
+                                case 0:
+                                    throw new RatingRuntimeException("Extension points cannot be specified without or before rating points");
+                                case 1:
+                                    if (extensionPointSetCount == 0) {
+                                        extensionPoints = new ArrayList<>();
+                                        extensionPoints.add(new RatingPoints());
+                                        ++extensionPointSetCount;
+                                    } else {
+                                        throw new RatingRuntimeException("Only one set of extension points is allowed");
+                                    }
+                                    break;
+                                default:
+                                    throw new RatingRuntimeException("Extension points are allowed only on single independent parameter ratings");
+                            }
+                            break;
+                        case HEIGHT_SHIFTS_STR:
+                            if (parts[1].equals(USGS_STREAM_RATING_STR)) {
+                                if (shiftPointSetCount == 0) {
+                                    shiftPoints = new ArrayList<>();
+                                    shiftInfo = new ArrayList<>();
+                                }
+                                shiftPoints.add(new RatingPoints());
+                                shiftInfo.add(new ShiftInfo());
+                                ++shiftPointSetCount;
+                            } else elementError();
+                            break;
+                        case HEIGHT_OFFSETS_STR:
+                            if (parts[1].equals(USGS_STREAM_RATING_STR)) {
+                                if (offsetPointSetCount == 0) {
+                                    offsetPoints = new ArrayList<>();
+                                    ++offsetPointSetCount;
+                                } else {
+                                    throw new RatingRuntimeException("Only one set offsets is allowed");
+                                }
+                            } else elementError();
+                            break;
+                        case RATING_SPEC_ID_STR:
+                            break;
+                        case VERTICAL_DATUM_INFO_STR:
+                            inVerticalDatumInfo = true;
+                            if (verticalDatumInfo == null) {
+                                verticalDatumInfo = new StringBuilder();
+                            } else {
+                                verticalDatumInfo.delete(0, verticalDatumInfo.length());
+                            }
+                            verticalDatumInfo.append("<" + VERTICAL_DATUM_INFO_STR);
+                            for (int i = 0; i < attrs.getLength(); ++i) {
+                                verticalDatumInfo.append(" ")
+                                        .append(attrs.getLocalName(i))
+                                        .append("=\"")
+                                        .append(attrs.getValue(i))
+                                        .append("\"");
+                            }
+                            verticalDatumInfo.append(">");
+                            break;
+                        case UNITS_ID_STR:
+                            break;
+                        case EFFECTIVE_DATE_STR:
+                            break;
+                        case TRANSITION_START_DATE_STR:
+                            break;
+                        case CREATE_DATE_STR:
+                            break;
+                        case ACTIVE_STR:
+                            break;
+                        case DESCRIPTION_STR:
+                            break;
+                        default:
+                            elementError();
+                            break;
+                    }
+                    break;
+                case VIRTUAL_RATING_STR:
+                    switch (localName) {
+                        case RATING_SPEC_ID_STR:
+                            vrc = new VirtualRatingContainer();
+                            arc.clone(vrc);
+                            break;
+                        case EFFECTIVE_DATE_STR:
+                            break;
+                        case TRANSITION_START_DATE_STR:
+                            break;
+                        case CREATE_DATE_STR:
+                            break;
+                        case ACTIVE_STR:
+                            break;
+                        case DESCRIPTION_STR:
+                            break;
+                        case CONNECTIONS_STR:
+                            break;
+                        case SOURCE_RATINGS_STR:
+                            break;
+                        default:
+                            elementError();
+                            break;
+                    }
+                    break;
+                case TRANSITIONAL_RATING_STR:
+                    switch (localName) {
+                        case RATING_SPEC_ID_STR:
+                            trrc = new TransitionalRatingContainer();
+                            arc.clone(trrc);
+                            break;
+                        case UNITS_ID_STR:
+                            break;
+                        case EFFECTIVE_DATE_STR:
+                            break;
+                        case TRANSITION_START_DATE_STR:
+                            break;
+                        case CREATE_DATE_STR:
+                            break;
+                        case ACTIVE_STR:
+                            break;
+                        case DESCRIPTION_STR:
+                            break;
+                        case SELECT_STR:
+                            break;
+                        case SOURCE_RATINGS_STR:
+                            break;
+                        default:
+                            elementError();
+                            break;
+                    }
+                    break;
+                case RATING_TEMPLATE_STR:
+                    switch (localName) {
+                        case PARAMETERS_ID_STR:
+                            break;
+                        case VERSION_STR:
+                            break;
+                        case IND_PARAMETER_SPECS_STR:
+                            break;
+                        case DEP_PARAMETER_STR:
+                            break;
+                        case DESCRIPTION_STR:
+                            break;
+                        default:
+                            elementError();
+                            break;
+                    }
+                    break;
+                case RATING_SPEC_STR:
+                    switch (localName) {
+                        case RATING_SPEC_ID_STR:
+                            break;
+                        case TEMPLATE_ID_STR:
+                            break;
+                        case LOCATION_ID_STR:
+                            break;
+                        case VERSION_STR:
+                            break;
+                        case SOURCE_AGENCY_STR:
+                            break;
+                        case IN_RANGE_METHOD_STR:
+                            break;
+                        case OUT_RANGE_LOW_METHOD_STR:
+                            break;
+                        case OUT_RANGE_HIGH_METHOD_STR:
+                            break;
+                        case ACTIVE_STR:
+                            break;
+                        case AUTO_UPDATE_STR:
+                            break;
+                        case AUTO_ACTIVATE_STR:
+                            break;
+                        case AUTO_MIGRATE_EXTENSION_STR:
+                            break;
+                        case IND_ROUNDING_SPECS_STR:
+                            break;
+                        case DEP_ROUNDING_SPEC_STR:
+                            break;
+                        case DESCRIPTION_STR:
+                            break;
+                        default:
+                            elementError();
+                            break;
+                    }
+                    break;
+                default:
+                    elementError();
+                    break;
+            }
+			break;
+		case 4 :
+            switch (parts[1]) {
+                case RATING_STR:
+                case SIMPLE_RATING_STR:
+                case USGS_STREAM_RATING_STR:
+                    switch (parts[2]) {
+                        case HEIGHT_OFFSETS_STR:
+                            if (!localName.equals(POINT_STR)) {
+                                elementError();
+                            }
+                            break;
+                        case RATING_POINTS_STR:
+                        case EXTENSION_POINTS_STR:
+                            if (localName.equals(OTHER_IND_STR)) {
+                                if (parts[2].equals(RATING_POINTS_STR)) {
+                                    ratingPoints.get(ratingPointSetCount - 1).addOtherInd(Double.parseDouble(attrs.getValue(VALUE_STR)));
+                                } else {
+                                    extensionPoints.get(extensionPointSetCount - 1).addOtherInd(Double.parseDouble(attrs.getValue(VALUE_STR)));
+                                }
+                            }
+                            break;
+                        case HEIGHT_SHIFTS_STR:
+                            switch (localName) {
+                                case EFFECTIVE_DATE_STR:
+                                    break;
+                                case TRANSITION_START_DATE_STR:
+                                    break;
+                                case CREATE_DATE_STR:
+                                    break;
+                                case ACTIVE_STR:
+                                    break;
+                                case DESCRIPTION_STR:
+                                    break;
+                                case POINT_STR:
+                                    break;
+                                default:
+                                    elementError();
+                                    break;
+                            }
+                            break;
+                        default:
+                            elementError();
+                            break;
+                    }
+                    break;
+                case VIRTUAL_RATING_STR:
+                    if (!(parts[2].equals(SOURCE_RATINGS_STR) && localName.equals(SOURCE_RATING_STR))) {
+                        elementError();
+                    }
+                    pos = Integer.parseInt(attrs.getValue(POSITION_STR));
+                    if (pos < 1) {
+                        throw new RatingRuntimeException("Virtual rating specifies invalid source rating postion: (" + pos + ").");
+                    }
+                    if (sourceRatingIdsByPos == null) {
+                        sourceRatingIdsByPos = new HashMap<>();
+                    } else if (sourceRatingIdsByPos.containsKey(pos)) {
+                        throw new RatingRuntimeException("Virtual rating specifies source rating postion " + pos + " more than once.");
+                    }
+                    break;
+                case TRANSITIONAL_RATING_STR:
+                    if (parts[2].equals(SELECT_STR)) {
+                        if (localName.equals(CASE_STR)) {
+                            pos = Integer.parseInt(attrs.getValue(POSITION_STR));
+                        } else if (!localName.equals(DEFAULT_STR)) {
+                            elementError();                        }
+                    } else if (parts[2].equals(SOURCE_RATINGS_STR)) {
+                        if (localName.equals(RATING_SPEC_ID_STR)) {
+                            pos = Integer.parseInt(attrs.getValue(POSITION_STR));
+                        } else elementError();
+                    } else elementError();
+                    break;
+                case RATING_TEMPLATE_STR:
+                    if (parts[2].equals(IND_PARAMETER_SPECS_STR)) {
+                        if (localName.equals(IND_PARAMETER_SPEC_STR)) {
+                            pos = Integer.parseInt(attrs.getValue(POSITION_STR)) - 1;
+                        } else elementError();
+                    } else elementError();
+                    break;
+                case RATING_SPEC_STR:
+                    if (parts[2].equals(IND_ROUNDING_SPECS_STR)) {
+                        if (localName.equals(IND_ROUNDING_SPEC_STR)) {
+                            pos = Integer.parseInt(attrs.getValue(POSITION_STR)) - 1;
+                        } else elementError();
+                    } else elementError();
+                    break;
+                default:
+                    elementError();
+                    break;
+            }
+			break;
+		case 5 :
+            switch (parts[1]) {
+                case RATING_TEMPLATE_STR:
+                    if (parts[2].equals(IND_PARAMETER_SPECS_STR)) {
+                        if (parts[3].equals(IND_PARAMETER_SPEC_STR)) {
+                            switch (localName) {
+                                case PARAMETER_STR:
+                                    break;
+                                case IN_RANGE_METHOD_STR:
+                                    break;
+                                case OUT_RANGE_LOW_METHOD_STR:
+                                    break;
+                                case OUT_RANGE_HIGH_METHOD_STR:
+                                    break;
+                                default:
+                                    elementError();
+                                    break;
+                            }
+                        } else elementError();
+                    } else elementError();
+                    break;
+                case RATING_STR:
+                case SIMPLE_RATING_STR:
+                case USGS_STREAM_RATING_STR:
+                    if (parts[2].equals(HEIGHT_OFFSETS_STR) || parts[2].equals(HEIGHT_SHIFTS_STR)) {
+                        if (parts[1].equals(RATING_STR) || parts[1].equals(SIMPLE_RATING_STR)) {
+                            elementError();
+                        }
+                        if (parts[3].equals(POINT_STR)) {
+                            switch (localName) {
+                                case IND_STR:
+                                    break;
+                                case DEP_STR:
+                                    break;
+                                case NOTE_STR:
+                                    break;
+                                default:
+                                    elementError();
+                                    break;
+                            }
+                        } else elementError();
+                    } else if (parts[2].equals(RATING_POINTS_STR) || parts[2].equals(EXTENSION_POINTS_STR)) {
+                        if (parts[3].equals(POINT_STR)) {
+                            switch (localName) {
+                                case IND_STR:
+                                    break;
+                                case DEP_STR:
+                                    break;
+                                case NOTE_STR:
+                                    break;
+                                default:
+                                    elementError();
+                                    break;
+                            }
+                        } else elementError();
+                    } else elementError();
+                    break;
+                case VIRTUAL_RATING_STR:
+                    if (parts[2].equals(SOURCE_RATINGS_STR)) {
+                        if (parts[3].equals(SOURCE_RATING_STR)) {
+                            if (!localName.equals(RATING_SPEC_ID_STR) && !localName.equals(RATING_EXPRESSION_STR)) {
+                                elementError();
+                            }
+                        } else elementError();
+                    } else elementError();
+                    break;
+                case TRANSITIONAL_RATING_STR:
+                    if (parts[2].equals(SELECT_STR)) {
+                        if (parts[3].equals(CASE_STR)) {
+                            if (!localName.equals(WHEN_STR) && !localName.equals(THEN_STR)) {
+                                elementError();
+                            }
+                        } else elementError();
+                    } else elementError();
+                    break;
+                default:
+                    elementError();
+                    break;
+            }
+			break;
+		default :
+			elementError();
+		}
+	}
+	/*
+	 * SAX method - validate well-formedness and process data components
+	 */
+	@Override
+	public void endElement(String uri, String localName, String qName) {
+		processCharacters();
+		if (inVerticalDatumInfo) {
+			verticalDatumInfo.append("</").append(localName).append(">");
+		}
+		if (!localName.equals(parts[partsLen-1])) {
+			throw new RatingRuntimeException("Expected end element " + parts[partsLen-1] + ", got " + localName);
+		}
+		switch (partsLen) {
+		case 2 :
+            switch (localName) {
+                case RATING_TEMPLATE_STR:
+                    try {
+                        RatingMethod[] inRangeMethods = new RatingMethod[rtc.indParams.length];
+                        RatingMethod[] outRangeLowMethods = new RatingMethod[rtc.indParams.length];
+                        RatingMethod[] outRangeHighMethods = new RatingMethod[rtc.indParams.length];
+                        for (int i = 0; i < rtc.indParams.length; ++i) {
+                            inRangeMethods[i] = RatingMethod.fromString(rtc.inRangeMethods[i]);
+                            outRangeLowMethods[i] = RatingMethod.fromString(rtc.outRangeLowMethods[i]);
+                            outRangeHighMethods[i] = RatingMethod.fromString(rtc.outRangeHighMethods[i]);
+                        }
+                        String id = rtc.toString();
+                        if (rtcsById == null) {
+                            rtcsById = new HashMap<>();
+                        } else if (rtcsById.containsKey(id)) {
+                            throw new RatingRuntimeException("Rating template specified multiple times: " + id);
+                        }
+                        rtcsById.put(rtc.toString(), rtc);
+                    } catch (Exception e) {
+                        throw new RatingRuntimeException(e);
+                    }
+                    rtc = null;
+                    break;
+                case RATING_SPEC_STR:
+                    String id = rspc.toString();
+                    if (rspcsById == null) {
+                        rspcsById = new HashMap<>();
+                    } else if (rspcsById.containsKey(id)) {
+                        throw new RatingRuntimeException("Rating specification specified multiple times: " + id);
+                    }
+                    rspcsById.put(id, rspc);
+                    rspc = null;
+                    break;
+                case RATING_STR:
+                case SIMPLE_RATING_STR:
+                case USGS_STREAM_RATING_STR:
+                case VIRTUAL_RATING_STR:
+                case TRANSITIONAL_RATING_STR:
+                    if (arcs == null) {
+                        arcs = new TreeSet<>();
+                        arcsById = new HashMap<>();
+                    }
+                    switch (localName) {
+                        case RATING_STR:
+                        case SIMPLE_RATING_STR:
+                            if (erc != null) {
+                                arcs.add(erc.clone());
+                                arc = erc;
+                                erc = null;
+                            } else {
+                                if (trc == null) {
+                                    trc = new TableRatingContainer();
+                                    arc.clone(trc);
+                                }
+                                String[] parts = TextUtil.split(trc.ratingSpecId, SEPARATOR1);
+                                RatingTemplateContainer thisRtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+                                trc.inRangeMethod = thisRtc.inRangeMethods[0];
+                                trc.outRangeLowMethod = thisRtc.outRangeLowMethods[0];
+                                trc.outRangeHighMethod = thisRtc.outRangeHighMethods[0];
+                                int width = 0;
+                                int depth = 0;
+                                for (int i = 0; i < ratingPointSetCount; ++i) {
+                                    RatingPoints pointSet = ratingPoints.get(i);
+                                    if (i == 0) {
+                                        width = pointSet.getOtherIndCount();
+                                    } else if (pointSet.getOtherIndCount() != width) {
+                                        throw new RatingRuntimeException("Inconsistent number of independent parameters");
+                                    }
+                                    depth += pointSet.getPointCount();
+                                }
+                                width += 2;
+                                double[][] points = new double[depth][];
+                                String[] notes = new String[depth];
+                                for (int i = 0; i < depth; ++i) {
+                                    points[i] = new double[width];
+                                    notes[i] = null;
+                                }
+                                for (int i = 0, d = 0; i < ratingPointSetCount; ++i) {
+                                    RatingPoints pointSet = ratingPoints.get(i);
+                                    for (int j = 0; j < pointSet.getPointCount(); ++j, ++d) {
+                                        for (int w = 0; w < width - 2; ++w) {
+                                            points[d][w] = pointSet.getOtherInd(w);
+                                        }
+                                        points[d][width - 2] = pointSet.getIndValue(j);
+                                        points[d][width - 1] = pointSet.getDepValue(j);
+                                        notes[d] = pointSet.getNote(j);
+                                    }
+                                }
+                                if (points.length == 0) {
+                                    if (requireRatingPoints) {
+                                        throw new RatingRuntimeException("No rating values!");
+                                    }
+                                    trc.values = null;
+                                } else {
+                                    trc.values = RatingValueContainer.makeContainers(
+                                            points,
+                                            notes,
+                                            thisRtc.inRangeMethods,
+                                            thisRtc.outRangeLowMethods,
+                                            thisRtc.outRangeHighMethods);
+                                }
+                                if (extensionPointSetCount == 1) {
+                                    if (width > 2) {
+                                        throw new RatingRuntimeException("Cannot have extension points with more than one independent parameter");
+                                    }
+                                    int pointCount = extensionPoints.get(0).getPointCount();
+                                    trc.extensionValues = new RatingValueContainer[pointCount];
+                                    for (int i = 0; i < pointCount; ++i) {
+                                        trc.extensionValues[i] = new RatingValueContainer();
+                                        trc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
+                                        trc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
+                                        trc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+                                    }
+                                }
+                                ratingPoints = null;
+                                ratingPointSetCount = 0;
+                                extensionPoints = null;
+                                extensionPointSetCount = 0;
+                                arcs.add(trc.clone());
+                                arc = trc;
+                                trc = null;
+                            }
+                            break;
+                        case USGS_STREAM_RATING_STR:
+                            if (urc != null) {
+                                String[] parts = TextUtil.split(urc.ratingSpecId, SEPARATOR1);
+                                String location = parts[0];
+                                String indParam = TextUtil.split(parts[1], SEPARATOR2)[0];
+                                String heightUnit = TextUtil.split(TextUtil.split(urc.unitsId, RatingConst.SEPARATOR2)[0], RatingConst.SEPARATOR3)[0];
+                                RatingTemplateContainer rtc = rtcsById.get(TextUtil.join(SEPARATOR1, parts[1], parts[2]));
+                                urc.inRangeMethod = rtc.inRangeMethods[0];
+                                urc.outRangeLowMethod = rtc.outRangeLowMethods[0];
+                                urc.outRangeHighMethod = rtc.outRangeHighMethods[0];
+                                int pointCount = ratingPoints.get(0).getPointCount();
+                                if (pointCount > 0) {
+                                    urc.values = new RatingValueContainer[pointCount];
+                                    for (int i = 0; i < pointCount; ++i) {
+                                        urc.values[i] = new RatingValueContainer();
+                                        urc.values[i].indValue = ratingPoints.get(0).getIndValue(i);
+                                        urc.values[i].depValue = ratingPoints.get(0).getDepValue(i);
+                                        urc.values[i].note = ratingPoints.get(0).getNote(i);
+                                    }
+                                    if (extensionPointSetCount == 1) {
+                                        pointCount = extensionPoints.get(0).getPointCount();
+                                        urc.extensionValues = new RatingValueContainer[pointCount];
+                                        for (int i = 0; i < pointCount; ++i) {
+                                            urc.extensionValues[i] = new RatingValueContainer();
+                                            urc.extensionValues[i].indValue = extensionPoints.get(0).getIndValue(i);
+                                            urc.extensionValues[i].depValue = extensionPoints.get(0).getDepValue(i);
+                                            urc.extensionValues[i].note = extensionPoints.get(0).getNote(i);
+                                        }
+                                    }
+                                    if (offsetPointSetCount > 0) {
+                                        urc.offsets = new TableRatingContainer();
+                                        RatingPoints pointSet = offsetPoints.get(0);
+                                        int offsetCount = pointSet.getPointCount();
+                                        urc.offsets.values = new RatingValueContainer[offsetCount];
+                                        for (int i = 0; i < offsetCount; ++i) {
+                                            urc.offsets.values[i] = new RatingValueContainer();
+                                            urc.offsets.values[i].indValue = pointSet.getIndValue(i);
+                                            urc.offsets.values[i].depValue = pointSet.getDepValue(i);
+                                            urc.offsets.values[i].note = pointSet.getNote(i);
+                                        }
+                                        urc.offsets.unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
+                                        urc.offsets.ratingSpecId = TextUtil.join(SEPARATOR1,
+                                                location,
+                                                String.format("%s%s%s-%s", indParam, SEPARATOR2, indParam, USGS_OFFSETS_SUBPARAM),
+                                                USGS_OFFSETS_TEMPLATE_VERSION,
+                                                USGS_OFFSETS_SPEC_VERSION);
+                                        urc.offsets.inRangeMethod = "PREVIOUS";
+                                        urc.offsets.outRangeLowMethod = "NEXT";
+                                        urc.offsets.outRangeHighMethod = "PREVIOUS";
+                                    }
+                                }
+                                if (shiftPointSetCount > 0) {
+                                    urc.shifts = new RatingSetContainer();
+                                    urc.shifts.ratingSpecContainer = new RatingSpecContainer();
+                                    urc.shifts.ratingSpecContainer.inRangeMethod = "LINEAR";
+                                    urc.shifts.ratingSpecContainer.outRangeLowMethod = "NEAREST";
+                                    urc.shifts.ratingSpecContainer.outRangeHighMethod = "NEAREST";
+                                    urc.shifts.ratingSpecContainer.indParams = new String[1];
+                                    urc.shifts.ratingSpecContainer.indParams[0] = indParam;
+                                    urc.shifts.ratingSpecContainer.depParam = String.format("%s-%s", indParam, USGS_SHIFTS_SUBPARAM);
+                                    urc.shifts.ratingSpecContainer.locationId = location;
+                                    urc.shifts.ratingSpecContainer.parametersId = String.format("%s%s%s", urc.shifts.ratingSpecContainer.indParams[0], SEPARATOR2, urc.shifts.ratingSpecContainer.depParam);
+                                    urc.shifts.ratingSpecContainer.templateVersion = USGS_SHIFTS_TEMPLATE_VERSION;
+                                    urc.shifts.ratingSpecContainer.templateId = String.format("%s.%s", urc.shifts.ratingSpecContainer.parametersId, urc.shifts.ratingSpecContainer.templateVersion);
+                                    urc.shifts.ratingSpecContainer.specVersion = USGS_SHIFTS_SPEC_VERSION;
+                                    urc.shifts.ratingSpecContainer.specId = TextUtil.join(SEPARATOR1,
+                                            urc.shifts.ratingSpecContainer.locationId,
+                                            urc.shifts.ratingSpecContainer.templateId,
+                                            urc.shifts.ratingSpecContainer.specVersion);
+                                    urc.shifts.ratingSpecContainer.inRangeMethods = new String[1];
+                                    urc.shifts.ratingSpecContainer.inRangeMethods[0] = "LINEAR";
+                                    urc.shifts.ratingSpecContainer.outRangeLowMethods = new String[1];
+                                    urc.shifts.ratingSpecContainer.outRangeLowMethods[0] = "NEAREST";
+                                    urc.shifts.ratingSpecContainer.outRangeHighMethods = new String[1];
+                                    urc.shifts.ratingSpecContainer.outRangeHighMethods[0] = "NEAREST";
+                                    urc.shifts.ratingSpecContainer.indRoundingSpecs = new String[1];
+                                    urc.shifts.ratingSpecContainer.indRoundingSpecs[0] = "4444444449";
+                                    urc.shifts.ratingSpecContainer.depRoundingSpec = "4444444449";
+                                    urc.shifts.abstractRatingContainers = new TableRatingContainer[shiftPointSetCount];
+                                    for (int i = 0, j = -1; i < shiftPointSetCount; ++i) {
+                                        RatingPoints pointSet = shiftPoints.get(i);
+                                        int shiftCount = pointSet.getPointCount();
+                                        urc.shifts.abstractRatingContainers[++j] = new TableRatingContainer();
+                                        urc.shifts.abstractRatingContainers[j].ratingSpecId = TextUtil.join(SEPARATOR1,
+                                                urc.shifts.ratingSpecContainer.locationId,
+                                                urc.shifts.ratingSpecContainer.templateId,
+                                                urc.shifts.ratingSpecContainer.specVersion);
+                                        urc.shifts.abstractRatingContainers[j].unitsId = String.format("%s%s%s", heightUnit, SEPARATOR2, heightUnit);
+                                        urc.shifts.abstractRatingContainers[j].effectiveDateMillis = shiftInfo.get(i).effectiveDate;
+                                        urc.shifts.abstractRatingContainers[j].transitionStartDateMillis = shiftInfo.get(i).transitionStartDate;
+                                        urc.shifts.abstractRatingContainers[j].createDateMillis = shiftInfo.get(i).createDate;
+                                        urc.shifts.abstractRatingContainers[j].active = shiftInfo.get(i).active;
+                                        ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).values = new RatingValueContainer[shiftCount];
+                                        ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).inRangeMethod = "LINEAR";
+                                        ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).outRangeLowMethod = "NEAREST";
+                                        ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).outRangeHighMethod = "NEAREST";
+                                        for (int k = 0; k < shiftCount; ++k) {
+                                            ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).values[k] = new RatingValueContainer();
+                                            ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).values[k].indValue = pointSet.getIndValue(k);
+                                            ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).values[k].depValue = pointSet.getDepValue(k);
+                                            ((TableRatingContainer) urc.shifts.abstractRatingContainers[j]).values[k].note = pointSet.getNote(k);
+                                        }
+                                    }
+                                }
+                                offsetPoints = null;
+                                offsetPointSetCount = 0;
+                                shiftPoints = null;
+                                shiftPointSetCount = 0;
+                                ratingPoints = null;
+                                ratingPointSetCount = 0;
+                                extensionPoints = null;
+                                extensionPointSetCount = 0;
+                                shiftInfo = null;
+                                arcs.add(urc.clone());
+                                arc = urc;
+                                urc = null;
+                            }
+                            break;
+                        case VIRTUAL_RATING_STR:
+                            if (vrc != null) {
+                                SortedSet<Integer> keys = new TreeSet<>(sourceRatingIdsByPos.keySet());
+                                vrc.sourceRatingIds = new String[keys.size()];
+                                Iterator<Integer> it = keys.iterator();
+                                for (int i = 0; it.hasNext(); ++i) {
+                                    if (it.next() != (i + 1)) {
+                                        throw new RatingRuntimeException("No position " + (i + 1) + " in source ratings.");
+                                    }
+                                    vrc.sourceRatingIds[i] = sourceRatingIdsByPos.get((i + 1));
+                                }
+                                sourceRatingIdsByPos.clear();
+                                arcs.add(vrc.clone());
+                                arc = vrc;
+                                vrc = null;
+                            }
+                            break;
+                        case TRANSITIONAL_RATING_STR:
+                            if (trrc != null) {
+                                SortedSet<Integer> keys = new TreeSet<>();
+                                if (conditions != null) {
+                                    keys.addAll(conditions.keySet());
+                                }
+                                trrc.conditions = new String[keys.size()];
+                                Iterator<Integer> it = keys.iterator();
+                                for (int i = 0; it.hasNext(); ++i) {
+                                    if (it.next() != (i + 1)) {
+                                        throw new RatingRuntimeException("No position " + (i + 1) + " in conditions.");
+                                    }
+                                    trrc.conditions[i] = conditions.get((i + 1));
+                                }
+
+                                if (conditions != null) {
+                                    conditions.clear();
+                                }
+
+                                keys.clear();
+                                if (evaluations != null) {
+                                    keys.addAll(evaluations.keySet());
+                                }
+
+                                if (keys.size() != trrc.conditions.length) {
+                                    throw new RatingRuntimeException(String.format("Transitional rating %s has inconsitent numbers of conditions and evaluations", trrc.ratingSpecId));
+                                }
+                                trrc.evaluations = new String[keys.size() + 1];
+                                it = keys.iterator();
+                                for (int i = 0; it.hasNext(); ++i) {
+                                    if (it.next() != (i + 1)) {
+                                        throw new RatingRuntimeException("No position " + (i + 1) + " in evaluations.");
+                                    }
+                                    trrc.evaluations[i] = evaluations.get((i + 1));
+                                }
+                                if (evaluations != null) {
+                                    evaluations.clear();
+                                }
+
+                                if (defaultEvaluation == null) {
+                                    throw new RatingRuntimeException(String.format("Transitional rating %s doesn't specify a default evaluation", trrc.ratingSpecId));
+                                }
+                                trrc.evaluations[trrc.evaluations.length - 1] = defaultEvaluation;
+                                defaultEvaluation = null;
+                                keys.clear();
+                                if (sourceRatingIdsByPos != null) {
+                                    keys.addAll(sourceRatingIdsByPos.keySet());
+                                    trrc.sourceRatingIds = new String[keys.size()];
+                                    it = keys.iterator();
+                                    for (int i = 0; it.hasNext(); ++i) {
+                                        if (it.next() != (i + 1)) {
+                                            throw new RatingRuntimeException("No position " + (i + 1) + " in source ratings.");
+                                        }
+                                        trrc.sourceRatingIds[i] = sourceRatingIdsByPos.get((i + 1));
+                                    }
+                                    sourceRatingIdsByPos.clear();
+                                }
+                                arcs.add(trrc.clone());
+                                arc = trrc;
+                                trrc = null;
+                            }
+                            break;
+                    }
+                    String specId = arc.toString();
+                    SortedSet<AbstractRatingContainer> arcSet = arcsById.get(specId);
+                    if (arcSet == null) {
+                        arcSet = new TreeSet<>();
+                        arcsById.put(arc.toString(), arcSet);
+                    }
+                    if (!arcSet.add(arc.clone())) {
+                        StringBuilder msg = new StringBuilder("XML Specifies rating ");
+                        HecTime ht = new HecTime();
+                        ht.setTimeInMillis(arc.effectiveDateMillis);
+                        msg.append(arc.toString()).append("@").append(ht.getXMLDateTime(0)).append(" more than once.");
+                        AbstractRating.getLogger().warning(msg.toString());
+                    }
+                    break;
+            }
+		case 3 :
+			if (localName.equals(VERTICAL_DATUM_INFO_STR)) {
+				inVerticalDatumInfo = false;
+				if (vdcs == null) {
+					vdcs = new ArrayList<>();
+				}
+				try {
+					vdcs.add(new VerticalDatumContainer(this.verticalDatumInfo.toString()));
+				}
+				catch (VerticalDatumException e) {
+					AbstractRating.getLogger().warning(e.getMessage());
+		}
+			}
+		}
+		parts[--partsLen] = null;
+	}
+	/*
+	 * SAX method - collect CDATA from elements
+	 */
+	@Override
+	public void characters(char[] ch, int start, int len) {
+		chars.append(ch, start, len);
+	}
+
+}

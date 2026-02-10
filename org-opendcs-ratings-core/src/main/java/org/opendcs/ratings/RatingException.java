@@ -11,7 +11,7 @@ public class RatingException extends Exception {
 	private static final long serialVersionUID = -1634053108648613361L;
 	/**
 	 * Constructor from message
-	 * @param message 
+	 * @param message The exception message
 	 */
 	public RatingException(String message) {super(message);}
 	/**
@@ -21,8 +21,8 @@ public class RatingException extends Exception {
 	public RatingException(Throwable cause) {super(cause);}
 	/**
 	 * Constructor from message and cause
-	 * @param message
-	 * @param cause
+	 * @param message The exception message
+	 * @param cause The upstream cause of the exception
 	 */
 	public RatingException(String message, Throwable cause) {super(message, cause);}
 

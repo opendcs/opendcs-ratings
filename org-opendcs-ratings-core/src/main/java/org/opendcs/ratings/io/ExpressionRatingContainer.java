@@ -11,8 +11,7 @@ package org.opendcs.ratings.io;
 import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.AbstractRating;
 import org.opendcs.ratings.ExpressionRating;
-
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 /**
  * Container for ExpressionRating data
@@ -30,9 +29,9 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 */
 	public ExpressionRatingContainer() {}
 	/**
-	 * Public constructor from a jdom element
-	 * @param ratingElement the jdom element
-	 * @throws RatingException
+	 * Public constructor from a DOM element
+	 * @param ratingElement the DOM element
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRatingContainer(Element) instead
 	 */
 	@Deprecated
@@ -42,7 +41,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	/**
 	 * public constructor from an XML snippet
 	 * @param xmlText the XML snippet
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -51,9 +50,9 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	}
 
 	/**
-	 * Populates data from an jdom element
-	 * @param ratingElement
-	 * @throws RatingException
+	 * Populates data from an DOM element
+	 * @param ratingElement The rating element to populate from
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRatingContainer(ExpressionRatingContainer, CharSequence, int) instead
 	 */
 	@Deprecated
@@ -65,8 +64,8 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	}
 	/**
 	 * Populates data from an XML snippet
-	 * @param xmlText
-	 * @throws RatingException
+	 * @param xmlText The XML text to populate from
+	 * @throws RatingException on error
 	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -134,8 +133,7 @@ public class ExpressionRatingContainer extends AbstractRatingContainer
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
-		ExpressionRating rating = new ExpressionRating(this);
-		return rating;
+        return new ExpressionRating(this);
 	}
 
 	/**

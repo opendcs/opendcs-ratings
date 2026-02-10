@@ -56,7 +56,7 @@ public class ExpressionRating extends AbstractRating {
 	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
 	 * @param description The description of the rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public ExpressionRating(
 			String expr,
@@ -72,7 +72,7 @@ public class ExpressionRating extends AbstractRating {
 	/**
 	 * Public Constructor from ExpressionRatingContainer
 	 * @param erc The ExpressionRatingContainer to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public ExpressionRating(ExpressionRatingContainer erc) throws RatingException {
 		synchronized(this) {
@@ -85,7 +85,7 @@ public class ExpressionRating extends AbstractRating {
 	/**
 	 * Public constructor from XML text
 	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRating(String) instead
 	 */
 	@Deprecated
@@ -96,8 +96,7 @@ public class ExpressionRating extends AbstractRating {
 	}
 
 	/**
-	 * Retrieves the mathematical expression for this rating
-	 * @return
+	 * @return the mathematical expression for this rating
 	 */
 	public String getExpression() {
 		synchronized(this) {
@@ -107,7 +106,7 @@ public class ExpressionRating extends AbstractRating {
 	/**
 	 * Sets this rating's mathematical expression
 	 * @param expr The mathematical expression
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void setExpression(String expr) throws RatingException {
 		synchronized(this) {
@@ -125,8 +124,7 @@ public class ExpressionRating extends AbstractRating {
 				expressionString = expr;
 			}
 			catch (Throwable t) {
-				if (t instanceof RatingException) throw (RatingException)t;
-				throw new RatingException(t);
+                throw new RatingException(t);
 			}
 		}
 	}
@@ -187,9 +185,7 @@ public class ExpressionRating extends AbstractRating {
 					if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 						dataUnits[i] = ratingUnits[i] = null;
 					}
-					else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
-					}
-					else {
+					else if(!Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
@@ -236,9 +232,7 @@ public class ExpressionRating extends AbstractRating {
 					if (dataUnits[i] == null || TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 						dataUnits[i] = ratingUnits[i] = null;
 					}
-					else if(Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
-					}
-					else {
+					else if(!Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
@@ -401,7 +395,7 @@ public class ExpressionRating extends AbstractRating {
 	 *        This may be later than the effective date
 	 * @param active Specifies whether the rating is currently active
 	 * @param description The description of the rating
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	protected void init(
 			String expr,

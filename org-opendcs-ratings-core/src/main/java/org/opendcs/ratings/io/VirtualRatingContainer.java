@@ -28,8 +28,7 @@ import org.opendcs.ratings.RatingSpec;
 import org.opendcs.ratings.VirtualRating;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.VerticalDatumException;
-
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;
@@ -56,9 +55,9 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 */
 	public VirtualRatingContainer() {}
 	/**
-	 * Public constructor from a JDOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement The JDOM Element
-	 * @throws RatingException
+	 * Public constructor from a DOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement The DOM Element
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */
 	@Deprecated
@@ -78,8 +77,8 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	}
 
 	/**
-	 * Populates the VirtualRatingContainer from a JDOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement The JDOM Element
+	 * Populates the VirtualRatingContainer from a DOM Element. The connections and sourceRatings fields will be null
+	 * @param ratingElement The DOM Element
 	 * @throws RatingException any issues with processing the XML data.
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
 	 */
@@ -92,7 +91,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	/**
 	 * Populates the VirtualRatingContainer from an XML snippet. The connections and sourceRatings fields will be null
 	 * @param xmlText The XML snippet
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(String) instead
 	 */
 	@Deprecated
@@ -107,16 +106,16 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * @param ratings A collection of ratings that includes the necessary source ratings
 	 * @param specs A collection of rating specifications for the source ratings
 	 * @param templates A collection of rating templates for the source ratings.
-	 * @throws RatingException
+	 * @throws RatingException on error
 	 */
 	public void populateSourceRatings(
 			Map<String, SortedSet<AbstractRatingContainer>> ratings,
 			Map<String, RatingSpecContainer> specs,
 			Map<String, RatingTemplateContainer> templates) throws RatingException {
 
-		List<SourceRatingContainer> srList = new ArrayList<SourceRatingContainer>();
-		List<String> specsToUse = new ArrayList<String>();
-		Map<String, String>unitsBySpecId = new HashMap<String, String>();
+		List<SourceRatingContainer> srList = new ArrayList<>();
+		List<String> specsToUse = new ArrayList<>();
+		Map<String, String>unitsBySpecId = new HashMap<>();
 		for (String specId : sourceRatingIds) {
 			String[] parts = TextUtil.split(specId, "{");
 			specId = parts[0].trim();
@@ -152,8 +151,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 			}
 			String units = unitsBySpecId.get(specId);
 			units = units.replace(SEPARATOR2, SEPARATOR3);
-			String[] parts = TextUtil.split(units, SEPARATOR3);
-			src.units = parts;
+            src.units = TextUtil.split(units, SEPARATOR3);
 		}
 		sourceRatings = srList.toArray(new SourceRatingContainer[0]);
 		int indParamCount = TextUtil.split(ratingSpecId, SEPARATOR3).length;
@@ -162,7 +160,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		//                                  groups   1 2       3     4 5
 		Pattern connectionPattern = Pattern.compile("(I(\\d+)|R(\\d+)(I(\\d+)|D)|D)");
 		Matcher[] m = new Matcher[2];
-		HashSet<String> connected = new HashSet<String>();
+		HashSet<String> connected = new HashSet<>();
 		//-------------------------------------------------------//
 		// first get the units of specified external connections //
 		//-------------------------------------------------------//
@@ -229,7 +227,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		//------------------------------------------------//
 		// now populate unassigned units in default order //
 		//------------------------------------------------//
-		LinkedList<Integer> unassignedUnits = new LinkedList<Integer>();
+		LinkedList<Integer> unassignedUnits = new LinkedList<>();
 		for (int i = 0; i < units.length; ++i) {
 			if (units[i] == null) {
 				unassignedUnits.add(i);
@@ -284,9 +282,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		}
 		if (sourceRatingIds != null) {
 			vrc.sourceRatingIds = new String[sourceRatingIds.length];
-			for (int i = 0; i < sourceRatingIds.length; ++i) {
-				vrc.sourceRatingIds[i] = sourceRatingIds[i];
-			}
+            System.arraycopy(sourceRatingIds, 0, vrc.sourceRatingIds, 0, sourceRatingIds.length);
 		}
 	}
 
@@ -337,8 +333,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 */
 	@Override
 	public AbstractRating newRating() throws RatingException {
-		VirtualRating rating = new VirtualRating(this);
-		return rating;
+        return new VirtualRating(this);
 	}
 
 	/* (non-Javadoc)

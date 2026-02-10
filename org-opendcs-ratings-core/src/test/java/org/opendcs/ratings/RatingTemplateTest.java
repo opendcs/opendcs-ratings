@@ -30,9 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.opendcs.ratings.io.RatingTemplateContainer;
 import org.junit.jupiter.api.Test;
 
-/**
- *
- */
 final class RatingTemplateTest {
     @Test
     public void testInvalidRatingMethods() throws RatingException {

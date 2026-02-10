@@ -18,32 +18,32 @@ public class RatingRuntimeException extends RuntimeException {
 	}
 
 	/**
-	 * @param message
+	 * @param message The exception message
 	 */
 	public RatingRuntimeException(String message) {
 		super(message);
 	}
 
 	/**
-	 * @param cause
+	 * @param cause The upstream cause of the exception
 	 */
 	public RatingRuntimeException(Throwable cause) {
 		super(cause);
 	}
 
 	/**
-	 * @param message
-	 * @param cause
+	 * @param message The exception message
+	 * @param cause The upstream cause of the exception
 	 */
 	public RatingRuntimeException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
 	/**
-	 * @param message
-	 * @param cause
-	 * @param enableSuppression
-	 * @param writableStackTrace
+	 * @param message The exception message
+	 * @param cause The upstream cause of the exception
+	 * @param enableSuppression whether to enable suppression of the exception
+	 * @param writableStackTrace whether the stack trace should be writable
 	 */
 	public RatingRuntimeException(String message, Throwable cause, boolean enableSuppression,
 			boolean writableStackTrace) {

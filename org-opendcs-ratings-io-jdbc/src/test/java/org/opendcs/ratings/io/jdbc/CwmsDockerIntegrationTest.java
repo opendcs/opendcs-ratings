@@ -20,7 +20,6 @@ import com.google.common.flogger.FluentLogger;
 import java.sql.SQLException;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainer;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainers;
-import mil.army.usace.hec.test.database.TeamCityUtilities;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.junit.jupiter.Container;
@@ -33,10 +32,10 @@ public abstract class CwmsDockerIntegrationTest
 	private static final String ORACLE_VERSION = System.getProperty("ratings.oracle.version", "ghcr.io/hydrologicengineeringcenter/cwms-database/cwms/database-ready-ora-23.5:" + VERSION);
 
 	@Container
-	private static CwmsDatabaseContainer<?> INSTANCE = CwmsDatabaseContainers.createDatabaseContainer(ORACLE_VERSION)
+	private static final CwmsDatabaseContainer<?> INSTANCE = CwmsDatabaseContainers.createDatabaseContainer(ORACLE_VERSION)
 			.withOfficeId("NAB")
 			.withOfficeEroc("e1")
-			.withLogConsumer(o -> logContainerOutput((OutputFrame) o));
+			.withLogConsumer(CwmsDockerIntegrationTest::logContainerOutput);
 	
 	
 	

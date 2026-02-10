@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
 import org.opendcs.ratings.RatingException;
@@ -33,9 +34,9 @@ import java.time.Instant;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mil.army.usace.hec.metadata.constants.NumericalConstants;
-import org.jdom.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Element;
 
 class TableRatingContainerXmlTest {
 
@@ -44,19 +45,23 @@ class TableRatingContainerXmlTest {
 
     @BeforeEach
     public void setup() throws IOException, RatingException {
-        try (InputStream inputStream = getClass().getResourceAsStream("table_rating.xml");
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-             Stream<String> stream = bufferedReader.lines()) {
-            String text = stream.collect(Collectors.joining("\n"));
-            tableRatingContainer = new TableRatingContainer(text);
+        try (InputStream inputStream = getClass().getResourceAsStream("table_rating.xml")) {
+            Assertions.assertNotNull(inputStream);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                 Stream<String> stream = bufferedReader.lines()) {
+                String text = stream.collect(Collectors.joining("\n"));
+                tableRatingContainer = new TableRatingContainer(text);
+            }
         }
-        try (InputStream inputStream = getClass().getResourceAsStream("table_rating_multi_ind_param.xml");
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-             Stream<String> stream = bufferedReader.lines()) {
-            String text = stream.collect(Collectors.joining("\n"));
-            multiIndParamTableRatingContainer = new TableRatingContainer(text);
+        try (InputStream inputStream = getClass().getResourceAsStream("table_rating_multi_ind_param.xml")) {
+            Assertions.assertNotNull(inputStream);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                 Stream<String> stream = bufferedReader.lines()) {
+                String text = stream.collect(Collectors.joining("\n"));
+                multiIndParamTableRatingContainer = new TableRatingContainer(text);
+            }
         }
     }
 
@@ -68,9 +73,9 @@ class TableRatingContainerXmlTest {
     }
 
     @Test
-    void testXmlJDomSerialization() throws RatingException {
+    void testXmlDomSerialization() throws RatingException {
         String xml = tableRatingContainer.toXml("");
-        Element element = RatingXmlUtil.textToJdomElement(xml).getChild("simple-rating");
+        Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
         TableRatingContainer newContainer = new TableRatingContainer(element);
         assertEquals(tableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
@@ -84,7 +89,7 @@ class TableRatingContainerXmlTest {
         assertEquals(Instant.parse("2017-09-26T20:06:00Z"), Instant.ofEpochMilli(tableRatingContainer.effectiveDateMillis));
         assertEquals(Instant.parse("2017-09-28T20:06:00Z"), Instant.ofEpochMilli(tableRatingContainer.transitionStartDateMillis));
         assertEquals(Instant.parse("2017-09-26T20:06:00Z"), Instant.ofEpochMilli(tableRatingContainer.createDateMillis));
-        assertEquals("", tableRatingContainer.description);
+        assertNull(tableRatingContainer.description);
         assertNull(tableRatingContainer.getVerticalDatumContainer());
 
         assertEquals(126, tableRatingContainer.values.length);
