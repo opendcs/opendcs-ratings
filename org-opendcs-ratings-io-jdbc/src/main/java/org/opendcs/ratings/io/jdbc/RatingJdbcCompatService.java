@@ -17,16 +17,11 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.RatingTemplate;
+import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.RatingJdbcCompatUtil;
-import java.sql.Connection;
-
 import rma.services.annotations.ServiceProvider;
+
+import java.sql.Connection;
 
 @ServiceProvider(service = RatingJdbcCompatUtil.class)
 public final class RatingJdbcCompatService implements RatingJdbcCompatUtil {

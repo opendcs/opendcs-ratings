@@ -16,16 +16,17 @@
 
 package org.opendcs.ratings.io.xml;
 
-import static hec.lang.Const.UNDEFINED_TIME;
-import static org.opendcs.ratings.XmlUtil.*;
-
-
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.VirtualRatingContainer;
 import hec.heclib.util.HecTime;
 import hec.util.TextUtil;
-import java.io.IOException;
-import java.io.StringReader;
+import mil.army.usace.hec.metadata.VerticalDatumContainer;
+import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.VirtualRatingContainer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -33,12 +34,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import mil.army.usace.hec.metadata.VerticalDatumContainer;
-import mil.army.usace.hec.metadata.VerticalDatumException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.io.StringReader;
+
+import static hec.lang.Const.UNDEFINED_TIME;
+import static org.opendcs.ratings.XmlUtil.*;
 
 final class RatingXmlUtil {
 

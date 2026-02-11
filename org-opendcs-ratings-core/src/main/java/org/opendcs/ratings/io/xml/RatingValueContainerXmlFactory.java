@@ -17,16 +17,15 @@
 package org.opendcs.ratings.io.xml;
 
 
+import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
-import org.opendcs.ratings.RatingException;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.opendcs.ratings.XmlUtil.*;
-import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
 
 final class RatingValueContainerXmlFactory {
 

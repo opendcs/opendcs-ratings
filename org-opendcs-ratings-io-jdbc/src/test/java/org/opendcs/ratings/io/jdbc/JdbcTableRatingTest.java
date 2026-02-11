@@ -17,11 +17,13 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingValue;
-import org.opendcs.ratings.TableRating;
+import org.jooq.impl.DSL;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.opendcs.ratings.*;
+import org.opendcs.ratings.io.xml.RatingXmlFactory;
+import usace.cwms.db.jooq.codegen.packages.CWMS_ENV_PACKAGE;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +33,6 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.opendcs.ratings.io.xml.RatingXmlFactory;
-import org.jooq.impl.DSL;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import usace.cwms.db.jooq.codegen.packages.CWMS_ENV_PACKAGE;
 
 import static org.junit.jupiter.api.Assertions.*;
 

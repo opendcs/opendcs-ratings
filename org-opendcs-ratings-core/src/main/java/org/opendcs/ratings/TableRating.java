@@ -8,33 +8,30 @@
 
 package org.opendcs.ratings;
 
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.VirtualRatingContainer;
-import java.io.StringReader;
-import java.util.*;
-
-
-import hec.data.Units;
-import org.opendcs.ratings.RatingConst.RatingMethod;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.RatingValueContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.UnitUtil;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Vector;
 
-import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
-import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.RatingConst.SEPARATOR2;
+import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_HIGH;
+import static org.opendcs.ratings.RatingOutOfRangeException.OutOfRangeEnum.OUT_OF_RANGE_LOW;
 import static org.opendcs.ratings.XmlUtil.getChildElementText;
 
 /**
@@ -358,7 +355,7 @@ public class TableRating extends AbstractRating {
 				if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 					dataUnits[i] = ratingUnits[i] = null;
 				}
-				else if(!Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])){
+				else if(!UnitUtil.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])){
 					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
 					if (!allowUnsafe) throw new RatingException(msg);
 					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
@@ -741,7 +738,7 @@ public class TableRating extends AbstractRating {
 		return trc;
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.RatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(org.opendcs.ratings.RatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
@@ -853,7 +850,7 @@ public class TableRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#getRatingExtents(long)
+	 * @see org.opendcs.IRating#getRatingExtents(long)
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {

@@ -17,17 +17,15 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.IRating;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingConst.RatingMethod;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.SourceRating;
-import org.opendcs.ratings.TableRating;
-import org.opendcs.ratings.TransitionalRating;
-import org.opendcs.ratings.UsgsStreamTableRating;
-import org.opendcs.ratings.VirtualRating;
 import hec.lang.Const;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.opendcs.ratings.*;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.xml.RatingXmlFactory;
+import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -35,11 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import org.opendcs.ratings.io.xml.RatingXmlFactory;
-import org.jooq.Configuration;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 
 public final class LazyJdbcRatingSet extends JdbcRatingSet {
 
@@ -337,7 +330,7 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents(long)
+     * @see org.opendcs.IRating#getRatingExtents(long)
      */
     @Override
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {

@@ -17,16 +17,17 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.ReferenceRatingContainer;
 import hec.io.TextContainer;
-import java.sql.Connection;
-import java.util.Arrays;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSpec;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.ReferenceRatingContainer;
+
+import java.sql.Connection;
+import java.util.Arrays;
 
 public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     /**
@@ -118,7 +119,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents()
+     * @see org.opendcs.IRating#getRatingExtents()
      */
     @Override
     public double[][] getRatingExtents() throws RatingException {
@@ -126,7 +127,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents(long)
+     * @see org.opendcs.IRating#getRatingExtents(long)
      */
     @Override
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -134,7 +135,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getEffectiveDates()
+     * @see org.opendcs.IRating#getEffectiveDates()
      */
     @Override
     public synchronized long[] getEffectiveDates() {
@@ -142,7 +143,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getCreateDates()
+     * @see org.opendcs.IRating#getCreateDates()
      */
     @Override
     public synchronized long[] getCreateDates() {
@@ -218,7 +219,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNativeVerticalDatum()
      */
     @Override
     public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -226,7 +227,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentVerticalDatum()
      */
     @Override
     public String getCurrentVerticalDatum() throws VerticalDatumException {
@@ -234,7 +235,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isCurrentVerticalDatumEstimated()
      */
     @Override
     public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -242,7 +243,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNativeVerticalDatum()
      */
     @Override
     public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -250,7 +251,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNGVD29()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNGVD29()
      */
     @Override
     public boolean toNGVD29() throws VerticalDatumException {
@@ -258,7 +259,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNAVD88()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNAVD88()
      */
     @Override
     public boolean toNAVD88() throws VerticalDatumException {
@@ -266,7 +267,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toVerticalDatum(java.lang.String)
      */
     @Override
     public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -274,7 +275,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#forceVerticalDatum(java.lang.String)
      */
     @Override
     public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -282,7 +283,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset()
      */
     @Override
     public double getCurrentOffset() throws VerticalDatumException {
@@ -290,7 +291,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset(java.lang.String)
      */
     @Override
     public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -298,7 +299,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset()
      */
     @Override
     public double getNGVD29Offset() throws VerticalDatumException {
@@ -306,7 +307,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset(java.lang.String)
      */
     @Override
     public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -314,7 +315,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset()
      */
     @Override
     public double getNAVD88Offset() throws VerticalDatumException {
@@ -322,7 +323,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset(java.lang.String)
      */
     @Override
     public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -330,7 +331,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNGVD29OffsetEstimated()
      */
     @Override
     public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -338,7 +339,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNAVD88OffsetEstimated()
      */
     @Override
     public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -346,7 +347,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getVerticalDatumInfo()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getVerticalDatumInfo()
      */
     @Override
     public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -354,7 +355,7 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#setVerticalDatumInfo(java.lang.String)
      */
     @Override
     public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {

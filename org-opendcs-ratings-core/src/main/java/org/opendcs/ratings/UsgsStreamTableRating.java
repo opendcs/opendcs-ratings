@@ -8,29 +8,20 @@
 
 package org.opendcs.ratings;
 
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
+import hec.data.RoundingException;
+import hec.data.UsgsRounder;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.DataSetException;
+import mil.army.usace.hec.metadata.location.LocationTemplate;
+import org.opendcs.ratings.RatingConst.RatingMethod;
+import org.opendcs.ratings.io.*;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-
-import hec.data.DataSetException;
-
-import hec.data.RoundingException;
-import hec.data.UsgsRounder;
-import org.opendcs.ratings.RatingConst.RatingMethod;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSpecContainer;
-import org.opendcs.ratings.io.RatingValueContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
-import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
-import hec.data.location.LocationTemplate;
-import hec.data.rating.IRatingSpecification;
-import hec.util.TextUtil;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.lang.Const.UNDEFINED_TIME;
@@ -864,7 +855,7 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.ICwmsRating#setData(hec.data.cwmsRating.RatingContainer)
+	 * @see org.opendcs.ratings.ICwmsRating#setData(org.opendcs.ratings.RatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {

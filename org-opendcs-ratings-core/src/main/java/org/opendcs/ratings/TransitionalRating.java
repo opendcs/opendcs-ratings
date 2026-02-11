@@ -8,22 +8,18 @@
 
 package org.opendcs.ratings;
 
-import static hec.util.TextUtil.replaceAll;
-
-
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
-import org.opendcs.ratings.io.SourceRatingContainer;
-import org.opendcs.ratings.io.TransitionalRatingContainer;
 import hec.hecmath.computation.ComputationException;
 import hec.hecmath.computation.Condition;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
+import org.opendcs.ratings.io.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static hec.util.TextUtil.replaceAll;
 
 /**
  * Rating that selects among multiple possible ratings depending on input parameter values.
@@ -262,7 +258,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#getRatingExtents(long)
+	 * @see org.opendcs.IRating#getRatingExtents(long)
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -270,7 +266,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(double)
+	 * @see org.opendcs.IRating#rate(double)
 	 */
 	@Override
 	public double rate(double indVal) throws RatingException {
@@ -278,7 +274,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne(double[])
+	 * @see org.opendcs.IRating#rateOne(double[])
 	 */
 	@Override
 	public double rateOne(double... indVals) throws RatingException {
@@ -291,7 +287,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne2(double[])
+	 * @see org.opendcs.IRating#rateOne2(double[])
 	 */
 	@Override
 	public double rateOne2(double[] indVals) throws RatingException {
@@ -304,7 +300,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(double[])
+	 * @see org.opendcs.IRating#rate(double[])
 	 */
 	@Override
 	public double[] rate(double[] indVals) throws RatingException {
@@ -312,7 +308,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(double[][])
+	 * @see org.opendcs.IRating#rate(double[][])
 	 */
 	@Override
 	public double[] rate(double[][] indVals) throws RatingException {
@@ -320,7 +316,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long, double)
+	 * @see org.opendcs.IRating#rate(long, double)
 	 */
 	@Override
 	public double rate(long valTime, double indVal) throws RatingException {
@@ -330,7 +326,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne(long, double[])
+	 * @see org.opendcs.IRating#rateOne(long, double[])
 	 */
 	@Override
 	public double rateOne(long valTime, double... indVals) throws RatingException {
@@ -338,7 +334,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rateOne2(long, double[])
+	 * @see org.opendcs.IRating#rateOne2(long, double[])
 	 */
 	@Override
 	public double rateOne2(long valTime, double[] indVals) throws RatingException {
@@ -351,7 +347,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long, double[])
+	 * @see org.opendcs.IRating#rate(long, double[])
 	 */
 	@Override
 	public double[] rate(long valTime, double[] indVals) throws RatingException {
@@ -361,7 +357,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long[], double[])
+	 * @see org.opendcs.IRating#rate(long[], double[])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[] indVals) throws RatingException {
@@ -369,7 +365,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long, double[][])
+	 * @see org.opendcs.IRating#rate(long, double[][])
 	 */
 	@Override
 	public double[] rate(long valTime, double[][] indVals) throws RatingException {
@@ -379,7 +375,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#rate(long[], double[][])
+	 * @see org.opendcs.IRating#rate(long[], double[][])
 	 */
 	@Override
 	public double[] rate(long[] valTimes, double[][] indVals) throws RatingException {
@@ -532,7 +528,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {
@@ -599,7 +595,7 @@ public class TransitionalRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#getInstance(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#getInstance(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	public AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException {

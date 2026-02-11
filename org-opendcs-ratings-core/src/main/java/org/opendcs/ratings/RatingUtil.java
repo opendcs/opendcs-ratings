@@ -17,12 +17,13 @@
 package org.opendcs.ratings;
 
 
-import hec.data.Units;
-import org.opendcs.ratings.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.io.TimeSeriesContainerAligner;
+import mil.army.usace.hec.metadata.UnitUtil;
+import org.opendcs.ratings.io.IndependentValuesContainer;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -56,7 +57,7 @@ final class RatingUtil {
                     double[] v = new double[indParamCount];
                     for (int i = 0; i < indParamCount; ++i) {
                         if (!tscs[i].units.equals(units[i])) {
-                            v[i] = Units.convertUnits(tsca.getValue(i), tscs[i].units, units[i]);
+                            v[i] = UnitUtil.convertUnits(tsca.getValue(i), tscs[i].units, units[i]);
                         } else {
                             v[i] = tsca.getValue(i);
                         }

@@ -16,38 +16,28 @@
 
 package org.opendcs.ratings.io.xml;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.split;
-import static org.opendcs.ratings.XmlUtil.*;
-import static org.opendcs.ratings.io.xml.RatingXmlUtil.*;
-
-
-import org.opendcs.ratings.RatingObjectDoesNotExistException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.RatingConst;
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSpec;
-import org.opendcs.ratings.RatingTemplate;
+import hec.util.TextUtil;
+import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.RatingSpecContainer;
 import org.opendcs.ratings.io.RatingTemplateContainer;
-import hec.util.TextUtil;
-
-import java.io.BufferedReader;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPathConstants;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPathConstants;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.List;
+
+import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.RatingConst.*;
+import static org.opendcs.ratings.XmlUtil.*;
 
 public final class RatingSpecXmlFactory {
 

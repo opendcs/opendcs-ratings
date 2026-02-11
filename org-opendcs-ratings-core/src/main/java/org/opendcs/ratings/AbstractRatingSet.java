@@ -8,23 +8,6 @@
 
 package org.opendcs.ratings;
 
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
-import static hec.util.TextUtil.replaceAll;
-import static hec.util.TextUtil.split;
-
-import hec.data.DataSetException;
-import hec.data.Parameter;
-
-import hec.data.Units;
-import org.opendcs.ratings.RatingConst.RatingMethod;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.IndependentValuesContainer;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSetStateContainer;
-import hec.data.rating.IRatingSpecification;
-import hec.data.rating.IRatingTemplate;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
@@ -33,23 +16,23 @@ import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.*;
+import org.opendcs.ratings.RatingConst.*;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.IndependentValuesContainer;
+import org.opendcs.ratings.io.RatingSetContainer;
+import org.opendcs.ratings.io.RatingSetStateContainer;
+
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NavigableSet;
-import java.util.Observer;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import mil.army.usace.hec.metadata.VerticalDatumContainer;
-import mil.army.usace.hec.metadata.VerticalDatumException;
+
+import static hec.util.TextUtil.replaceAll;
+import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.RatingConst.*;
 
 /**
  * Implements CWMS-style ratings (time series of ratings)
@@ -818,7 +801,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 }
             }
             if (tscParam != null) {
-                if (!Units.canConvertBetweenUnits(tsc.units, tscParam.getUnitsString())) {
+                if (!UnitUtil.canConvertBetweenUnits(tsc.units, tscParam.getUnitsString())) {
 
                     String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tsc.units, tscParam.getParameter());
                     if (!allowUnsafe) {
@@ -831,7 +814,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             }
             if (tscUnit != null) {
                 if (!tsc.units.equals(units[0])) {
-                    if (Units.canConvertBetweenUnits(tsc.units, units[0])) {
+                    if (UnitUtil.canConvertBetweenUnits(tsc.units, units[0])) {
                         convertTscUnit = true;
                     } else {
                         String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tsc.units, units[0]);
@@ -859,7 +842,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             }
             if (ratedUnit != null) {
                 if (!ratedUnitStr.equals(units[units.length - 1])) {
-                    if (Units.canConvertBetweenUnits(ratedUnitStr, units[units.length - 1])) {
+                    if (UnitUtil.canConvertBetweenUnits(ratedUnitStr, units[units.length - 1])) {
                         convertRatedUnit = true;
                     } else {
                         String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length - 1], ratedUnit);
@@ -894,7 +877,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             }
             if (convertTscUnit) {
                 indVals = Arrays.copyOf(tsc.values, tsc.values.length);
-                Units.convertUnits(indVals, tsc.units, units[0]);
+                UnitUtil.convertUnits(indVals, tsc.units, units[0]);
             } else {
                 indVals = tsc.values;
             }
@@ -903,7 +886,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             // construct the rated TimeSeriesContainer //
             //-----------------------------------------//
             if (convertRatedUnit) {
-                Units.convertUnits(depVals, units[units.length - 1], ratedUnitStr);
+                UnitUtil.convertUnits(depVals, units[units.length - 1], ratedUnitStr);
             }
             TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
             tsc.clone(ratedTsc);
@@ -1064,7 +1047,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     }
                 }
                 if (tscParam[i] != null) {
-                    if (!Units.canConvertBetweenUnits(tscs[i].units, tscParam[i].getUnitsString())) {
+                    if (!UnitUtil.canConvertBetweenUnits(tscs[i].units, tscParam[i].getUnitsString())) {
 
                         String msg = String.format("Unit \"%s\" is not valid for parameter \"%s\".", tscs[i].units, tscParam[i].getParameter());
                         if (!allowUnsafe) {
@@ -1076,7 +1059,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     }
                 }
                 if (!tscs[i].units.equals(units[i])) {
-                    if (!Units.canConvertBetweenUnits(tscs[i].units, units[i])) {
+                    if (!UnitUtil.canConvertBetweenUnits(tscs[i].units, units[i])) {
                         String msg = String.format("Cannot convert from \"%s\" to \"%s\".", tscs[i].units, units[i]);
                         if (!allowUnsafe) {
                             throw new RatingException(msg);
@@ -1102,7 +1085,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             }
             if (ratedUnit != null) {
                 if (!ratedUnitStr.equals(units[units.length - 1])) {
-                    if (Units.canConvertBetweenUnits(ratedUnitStr, units[units.length - 1])) {
+                    if (UnitUtil.canConvertBetweenUnits(ratedUnitStr, units[units.length - 1])) {
                         convertRatedUnit = true;
                     } else {
                         String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[units.length - 1], ratedUnit);
@@ -1124,7 +1107,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             // construct the rated TimeSeriesContainer //
             //-----------------------------------------//
             if (convertRatedUnit) {
-                Units.convertUnits(depVals, units[units.length - 1], ratedUnitStr);
+                UnitUtil.convertUnits(depVals, units[units.length - 1], ratedUnitStr);
             }
             TimeSeriesContainer ratedTsc = new TimeSeriesContainer();
             tscs[0].clone(ratedTsc);
@@ -1174,7 +1157,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath)
+     * @see org.opendcs.IRating#rate(hec.hecmath.TimeSeriesMath)
      */
     @Override
     public final TimeSeriesMath rate(TimeSeriesMath tsm) throws RatingException {
@@ -1203,7 +1186,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#rate(hec.hecmath.TimeSeriesMath[])
+     * @see org.opendcs.IRating#rate(hec.hecmath.TimeSeriesMath[])
      */
     @Override
     public final TimeSeriesMath rate(TimeSeriesMath[] tsms) throws RatingException {
@@ -1514,7 +1497,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#setName(java.lang.String)
+     * @see org.opendcs.IRating#setName(java.lang.String)
      */
     @Override
     public final synchronized void setName(String name) throws RatingException {
@@ -1578,7 +1561,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents()
+     * @see org.opendcs.IRating#getRatingExtents()
      */
     @Override
     public double[][] getRatingExtents() throws RatingException {
@@ -1586,7 +1569,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getRatingExtents(long)
+     * @see org.opendcs.IRating#getRatingExtents(long)
      */
     @Override
     public synchronized double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -1602,7 +1585,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getEffectiveDates()
+     * @see org.opendcs.IRating#getEffectiveDates()
      */
     @Override
     public synchronized long[] getEffectiveDates() {
@@ -1615,7 +1598,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#getCreateDates()
+     * @see org.opendcs.IRating#getCreateDates()
      */
     @Override
     public synchronized long[] getCreateDates() {
@@ -2050,7 +2033,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
+     * @see org.opendcs.IRating#reverseRate(hec.hecmath.TimeSeriesMath)
      */
     @Override
     public final synchronized TimeSeriesMath reverseRate(TimeSeriesMath tsm) throws RatingException {
@@ -2171,7 +2154,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNativeVerticalDatum()
      */
     @Override
     public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -2179,7 +2162,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentVerticalDatum()
      */
     @Override
     public String getCurrentVerticalDatum() throws VerticalDatumException {
@@ -2187,7 +2170,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isCurrentVerticalDatumEstimated()
      */
     @Override
     public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -2195,7 +2178,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNativeVerticalDatum()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNativeVerticalDatum()
      */
     @Override
     public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -2212,7 +2195,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNGVD29()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNGVD29()
      */
     @Override
     public boolean toNGVD29() throws VerticalDatumException {
@@ -2229,7 +2212,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toNAVD88()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toNAVD88()
      */
     @Override
     public boolean toNAVD88() throws VerticalDatumException {
@@ -2246,7 +2229,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#toVerticalDatum(java.lang.String)
      */
     @Override
     public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -2263,7 +2246,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#forceVerticalDatum(java.lang.String)
      */
     @Override
     public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -2281,7 +2264,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset()
      */
     @Override
     public double getCurrentOffset() throws VerticalDatumException {
@@ -2289,7 +2272,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset(java.lang.String)
      */
     @Override
     public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -2297,7 +2280,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset()
      */
     @Override
     public double getNGVD29Offset() throws VerticalDatumException {
@@ -2305,7 +2288,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset(java.lang.String)
      */
     @Override
     public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -2313,7 +2296,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset()
      */
     @Override
     public double getNAVD88Offset() throws VerticalDatumException {
@@ -2321,7 +2304,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset(java.lang.String)
      */
     @Override
     public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -2329,7 +2312,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNGVD29OffsetEstimated()
      */
     @Override
     public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -2337,7 +2320,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#isNAVD88OffsetEstimated()
      */
     @Override
     public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -2345,7 +2328,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#getVerticalDatumInfo()
+     * @see mil.army.usace.hec.metadata.VerticalDatum#getVerticalDatumInfo()
      */
     @Override
     public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -2353,7 +2336,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     }
 
     /* (non-Javadoc)
-     * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
+     * @see mil.army.usace.hec.metadata.VerticalDatum#setVerticalDatumInfo(java.lang.String)
      */
     @Override
     public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {
@@ -2460,7 +2443,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     if (validParams[i] && validUnits[i]) {
                         ratingParam = new Parameter(params[i]);
                         ratingUnit = new Units(units[i], true);
-                        if (!Units.canConvertBetweenUnits(ratingParam.getUnitsString(), ratingUnit.toString())) {
+                        if (!UnitUtil.canConvertBetweenUnits(ratingParam.getUnitsString(), ratingUnit.toString())) {
                             String msg = String.format("Unit \"%s\" is not consistent with parameter \"%s\".", units[i], params[i]);
                             if (!allowUnsafe) {
                                 throw new RatingException(msg);
@@ -2472,7 +2455,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     }
                 }
             }
-        } catch (RuntimeException t) {
+        } catch (RuntimeException | DataSetIllegalArgumentException t) {
             throw new RatingException(t);
         }
     }

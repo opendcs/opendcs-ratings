@@ -1,17 +1,8 @@
 package org.opendcs.ratings;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
-import java.util.TreeMap;
+import mil.army.usace.hec.metadata.location.LocationTemplate;
 
-
-import org.opendcs.ratings.io.RatingSpecContainer;
-import hec.data.location.LocationTemplate;
+import java.util.*;
 
 public final class RatingSpecCatalog {
 	private final NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> locSpecMap;
@@ -35,7 +26,7 @@ public final class RatingSpecCatalog {
 	private static NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> buildLocSpecMap(
 			Collection<RatingSpec> specs) {
 		NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> locSpecMap = new TreeMap<>(
-				LocationTemplate.LocationComparator);
+				LocationTemplate::compareTo);
 		if(specs != null) {
 			for(RatingSpec spec : specs) {
 				LocationTemplate locationRef = new LocationTemplate(spec.getOfficeId(), spec.getLocationId());
@@ -53,7 +44,7 @@ public final class RatingSpecCatalog {
 	private static NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> unmodifiableOf(
 			NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> input) throws RatingException {
 		NavigableMap<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> locSpecMap = new TreeMap<>(
-				LocationTemplate.LocationComparator);
+				LocationTemplate::compareTo);
 
 		Set<Map.Entry<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>>> entries = input.entrySet();
 		for(final Map.Entry<LocationTemplate, Map<RatingTemplate, Set<RatingSpec>>> entry : entries) {

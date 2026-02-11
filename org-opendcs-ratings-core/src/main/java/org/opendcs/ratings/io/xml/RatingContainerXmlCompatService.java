@@ -17,23 +17,14 @@
 package org.opendcs.ratings.io.xml;
 
 
-import org.opendcs.ratings.RatingObjectDoesNotExistException;
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.ExpressionRatingContainer;
 import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSpecContainer;
-import org.opendcs.ratings.io.RatingTemplateContainer;
-import org.opendcs.ratings.io.TableRatingContainer;
-import org.opendcs.ratings.io.TransitionalRatingContainer;
-import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
-import org.opendcs.ratings.io.VirtualRatingContainer;
-import java.util.List;
-import java.util.Set;
-
+import org.opendcs.ratings.RatingObjectDoesNotExistException;
+import org.opendcs.ratings.io.*;
 import org.w3c.dom.Element;
 import rma.services.annotations.ServiceProvider;
+
+import java.util.List;
+import java.util.Set;
 
 @ServiceProvider(service = RatingContainerXmlCompatUtil.class)
 public final class RatingContainerXmlCompatService implements RatingContainerXmlCompatUtil {

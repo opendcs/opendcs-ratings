@@ -8,18 +8,17 @@
 
 package org.opendcs.ratings;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.TimeZone;
-
-import hec.data.Parameter;
-
-import org.opendcs.ratings.io.IndependentValuesContainer;
 import hec.heclib.util.HecTime;
 import hec.io.Conversion;
 import hec.io.TimeSeriesContainer;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.Parameter;
+import org.opendcs.ratings.io.IndependentValuesContainer;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 import static org.opendcs.ratings.RatingConst.SEPARATOR2;

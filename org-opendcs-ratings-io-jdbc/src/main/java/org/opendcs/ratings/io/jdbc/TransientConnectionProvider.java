@@ -18,6 +18,7 @@ package org.opendcs.ratings.io.jdbc;
 
 
 import org.opendcs.ratings.RatingException;
+
 import java.sql.Connection;
 
 final class TransientConnectionProvider implements ConnectionProvider {

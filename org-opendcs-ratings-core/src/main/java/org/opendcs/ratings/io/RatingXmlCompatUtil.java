@@ -16,14 +16,9 @@
 
 package org.opendcs.ratings.io;
 
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingRuntimeException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.AbstractRatingSet;
-import org.opendcs.ratings.RatingSet;
-import org.opendcs.ratings.RatingSpec;
 import hec.hecmath.TextMath;
 import hec.io.TextContainer;
+import org.opendcs.ratings.*;
 import org.w3c.dom.Node;
 import rma.util.lookup.Lookup;
 

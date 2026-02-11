@@ -17,12 +17,13 @@
 package org.opendcs.ratings.io.jdbc;
 
 import com.google.common.flogger.FluentLogger;
-import java.sql.SQLException;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainer;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainers;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.junit.jupiter.Container;
+
+import java.sql.SQLException;
 
 
 public abstract class CwmsDockerIntegrationTest

@@ -8,10 +8,10 @@
 
 package org.opendcs.ratings.io;
 
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.AbstractRating;
-import org.opendcs.ratings.UsgsStreamTableRating;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.AbstractRating;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.UsgsStreamTableRating;
 import org.w3c.dom.Element;
 
 /**
@@ -90,7 +90,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.RatingTableContainer#clone(hec.data.cwmsRating.RatingContainer)
+	 * @see org.opendcs.ratings.RatingTableContainer#clone(org.opendcs.ratings.RatingContainer)
 	 */
 	@Override
 	public void clone(AbstractRatingContainer other) {

@@ -8,19 +8,18 @@
 
 package org.opendcs.ratings;
 
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
-import java.util.Arrays;
-
-
-import hec.data.Units;
-import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.ExpressionRatingContainer;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.Variable;
 import hec.hecmath.computation.VariableSet;
 import hec.lang.Observable;
 import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.UnitUtil;
+import org.opendcs.ratings.io.AbstractRatingContainer;
+import org.opendcs.ratings.io.ExpressionRatingContainer;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
+
+import java.util.Arrays;
 
 import static hec.lang.Const.UNDEFINED_DOUBLE;
 import static hec.util.TextUtil.replaceAll;
@@ -130,7 +129,7 @@ public class ExpressionRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see hec.data.IRating#getRatingExtents(long)
+	 * @see IRating#getRatingExtents(long)
 	 */
 	@Override
 	public double[][] getRatingExtents(long ratingTime) throws RatingException {
@@ -185,7 +184,7 @@ public class ExpressionRating extends AbstractRating {
 					if (TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 						dataUnits[i] = ratingUnits[i] = null;
 					}
-					else if(!Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+					else if(!UnitUtil.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
@@ -232,7 +231,7 @@ public class ExpressionRating extends AbstractRating {
 					if (dataUnits[i] == null || TextUtil.equals(dataUnits[i], ratingUnits[i])) {
 						dataUnits[i] = ratingUnits[i] = null;
 					}
-					else if(!Units.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
+					else if(!UnitUtil.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
 						if (!allowUnsafe) throw new RatingException(msg);
 						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
@@ -353,7 +352,7 @@ public class ExpressionRating extends AbstractRating {
 		}
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#setData(hec.data.cwmsRating.io.AbstractRatingContainer)
+	 * @see org.opendcs.ratings.AbstractRating#setData(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
 	public void setData(AbstractRatingContainer rc) throws RatingException {

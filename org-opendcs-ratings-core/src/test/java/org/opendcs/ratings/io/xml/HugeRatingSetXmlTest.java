@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.opendcs.ratings.io.xml.RatingXmlFactory.ratingSet;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.opendcs.ratings.io.xml.RatingXmlFactory.ratingSet;
 
 public class HugeRatingSetXmlTest {
 

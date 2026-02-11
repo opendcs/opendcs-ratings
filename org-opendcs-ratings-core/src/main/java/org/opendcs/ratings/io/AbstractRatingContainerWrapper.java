@@ -8,9 +8,9 @@
 
 package org.opendcs.ratings.io;
 
-import java.io.Serializable;
-
 import hec.io.DataContainer;
+
+import java.io.Serializable;
 
 public class AbstractRatingContainerWrapper  extends DataContainer implements Serializable{
 	private AbstractRatingContainer _abstractRatingContainer;

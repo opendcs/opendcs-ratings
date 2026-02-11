@@ -8,31 +8,23 @@
 
 package org.opendcs.ratings;
 
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.RatingJdbcCompatUtil;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
+import hec.data.RoundingException;
+import hec.data.UsgsRounder;
+import hec.util.TextUtil;
+import mil.army.usace.hec.metadata.DataSetException;
+import mil.army.usace.hec.metadata.DataSetIllegalArgumentException;
+import mil.army.usace.hec.metadata.Parameter;
+import org.opendcs.ratings.RatingConst.*;
+import org.opendcs.ratings.io.*;
+import org.opendcs.ratings.io.xml.DomRatingSpecification;
+import org.w3c.dom.Node;
+
 import java.sql.Connection;
 import java.util.logging.Logger;
 
-import hec.data.DataSetException;
-import hec.data.DataSetIllegalArgumentException;
-import hec.data.Parameter;
-
-import hec.data.RoundingException;
-import hec.data.UsgsRounder;
-import org.opendcs.ratings.RatingConst.RatingMethod;
-import org.opendcs.ratings.io.RatingSpecContainer;
-import org.opendcs.ratings.io.RatingTemplateContainer;
-import hec.data.rating.IRatingSpecification;
-import hec.data.rating.JDomRatingSpecification;
-import hec.util.TextUtil;
-
-import org.w3c.dom.Node;
-
-import static org.opendcs.ratings.RatingConst.SEPARATOR1;
-import static org.opendcs.ratings.RatingConst.SEPARATOR2;
-import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 import static hec.util.TextUtil.split;
+import static org.opendcs.ratings.RatingConst.*;
+
 /**
  * Implements the CWMS-style rating specification
  *
@@ -592,7 +584,7 @@ public class RatingSpec extends RatingTemplate {
 		return super.getInRangeMethods();
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.RatingTemplate#setInRangeMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
+	 * @see org.opendcs.ratings.RatingTemplate#setInRangeMethods(org.opendcs.ratings.RatingConst.RatingMethod[])
 	 */
 	@Override
 	public void setInRangeMethods(RatingMethod[] inRangeMethods)
@@ -607,7 +599,7 @@ public class RatingSpec extends RatingTemplate {
 		return super.getOutRangeLowMethods();
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.RatingTemplate#setOutRangeLowMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
+	 * @see org.opendcs.ratings.RatingTemplate#setOutRangeLowMethods(org.opendcs.ratings.RatingConst.RatingMethod[])
 	 */
 	@Override
 	public void setOutRangeLowMethods(RatingMethod[] outRangeLowMethods)
@@ -622,7 +614,7 @@ public class RatingSpec extends RatingTemplate {
 		return super.getOutRangeHighMethods();
 	}
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.RatingTemplate#setOutRangeHighMethods(hec.data.cwmsRating.RatingConst.RatingMethod[])
+	 * @see org.opendcs.ratings.RatingTemplate#setOutRangeHighMethods(org.opendcs.ratings.RatingConst.RatingMethod[])
 	 */
 	@Override
 	public void setOutRangeHighMethods(RatingMethod[] outRangeHighMethods)
@@ -889,7 +881,7 @@ public class RatingSpec extends RatingTemplate {
 	{
 		String officeId = getOfficeId();
 		String specificationId = getRatingSpecId();
-        return new JDomRatingSpecification(officeId, specificationId);
+        return new DomRatingSpecification(officeId, specificationId);
 	}
 
 	/**

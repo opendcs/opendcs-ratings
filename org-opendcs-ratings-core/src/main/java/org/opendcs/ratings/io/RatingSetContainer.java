@@ -9,15 +9,14 @@
 package org.opendcs.ratings.io;
 
 
-import org.opendcs.ratings.RatingException;
-import org.opendcs.ratings.RatingSetFactory;
 import hec.io.DataContainer;
 import hec.io.DataContainerTransformer;
 import hec.io.HecIoException;
-
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
+import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.RatingSetFactory;
 import org.w3c.dom.Element;
 
 /**
@@ -249,7 +248,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return vdc;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getNativeVerticalDatum()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getNativeVerticalDatum()
 	 */
 	@Override
 	public String getNativeVerticalDatum() throws VerticalDatumException {
@@ -260,7 +259,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getNativeVerticalDatum();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getCurrentVerticalDatum()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentVerticalDatum()
 	 */
 	@Override
 	public String getCurrentVerticalDatum() throws VerticalDatumException {
@@ -271,7 +270,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getCurrentVerticalDatum();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#isCurrentVerticalDatumEstimated()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#isCurrentVerticalDatumEstimated()
 	 */
 	@Override
 	public boolean isCurrentVerticalDatumEstimated() throws VerticalDatumException {
@@ -282,7 +281,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].isCurrentVerticalDatumEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#toNativeVerticalDatum()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#toNativeVerticalDatum()
 	 */
 	@Override
 	public boolean toNativeVerticalDatum() throws VerticalDatumException {
@@ -299,7 +298,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#toNGVD29()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#toNGVD29()
 	 */
 	@Override
 	public boolean toNGVD29() throws VerticalDatumException {
@@ -316,7 +315,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#toNAVD88()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#toNAVD88()
 	 */
 	@Override
 	public boolean toNAVD88() throws VerticalDatumException {
@@ -333,7 +332,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#toVerticalDatum(java.lang.String)
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#toVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean toVerticalDatum(String datum) throws VerticalDatumException {
@@ -350,7 +349,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#forceVerticalDatum(java.lang.String)
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#forceVerticalDatum(java.lang.String)
 	 */
 	@Override
 	public boolean forceVerticalDatum(String datum) throws VerticalDatumException {
@@ -367,7 +366,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return change;
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getCurrentOffset()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset()
 	 */
 	@Override
 	public double getCurrentOffset() throws VerticalDatumException {
@@ -378,7 +377,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getCurrentOffset();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getCurrentOffset(java.lang.String)
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getCurrentOffset(java.lang.String)
 	 */
 	@Override
 	public double getCurrentOffset(String unit) throws VerticalDatumException {
@@ -389,7 +388,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getCurrentOffset(unit);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getNGVD29Offset()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset()
 	 */
 	@Override
 	public double getNGVD29Offset() throws VerticalDatumException {
@@ -400,7 +399,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getNGVD29Offset();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getNGVD29Offset(java.lang.String)
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getNGVD29Offset(java.lang.String)
 	 */
 	@Override
 	public double getNGVD29Offset(String unit) throws VerticalDatumException {
@@ -411,7 +410,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getNGVD29Offset(unit);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getNAVD88Offset()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset()
 	 */
 	@Override
 	public double getNAVD88Offset() throws VerticalDatumException {
@@ -422,7 +421,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getNAVD88Offset();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getNAVD88Offset(java.lang.String)
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getNAVD88Offset(java.lang.String)
 	 */
 	@Override
 	public double getNAVD88Offset(String unit) throws VerticalDatumException {
@@ -433,7 +432,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getNAVD88Offset(unit);
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#isNGVD29OffsetEstimated()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#isNGVD29OffsetEstimated()
 	 */
 	@Override
 	public boolean isNGVD29OffsetEstimated() throws VerticalDatumException {
@@ -444,7 +443,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].isNGVD29OffsetEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#isNAVD88OffsetEstimated()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#isNAVD88OffsetEstimated()
 	 */
 	@Override
 	public boolean isNAVD88OffsetEstimated() throws VerticalDatumException {
@@ -455,7 +454,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].isNAVD88OffsetEstimated();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#getVerticalDatumInfo()
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#getVerticalDatumInfo()
 	 */
 	@Override
 	public String getVerticalDatumInfo() throws VerticalDatumException {
@@ -466,7 +465,7 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		return abstractRatingContainers[0].getVerticalDatumInfo();
 	}
 	/* (non-Javadoc)
-	 * @see hec.data.VerticalDatum#setVerticalDatumInfo(java.lang.String)
+	 * @see mil.army.usace.hec.metadata.VerticalDatum#setVerticalDatumInfo(java.lang.String)
 	 */
 	@Override
 	public void setVerticalDatumInfo(String xmlStr) throws VerticalDatumException {

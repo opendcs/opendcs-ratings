@@ -17,8 +17,8 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import org.opendcs.ratings.io.RatingConnectionInfo;
 import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingConnectionInfo;
 
 final class JdbcRatingConnectionInfo implements RatingConnectionInfo {
 
