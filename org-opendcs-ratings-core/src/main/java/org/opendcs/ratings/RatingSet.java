@@ -1499,7 +1499,7 @@ public class RatingSet implements IRating, Observer, VerticalDatum {
      * @param conn       The database connection to use if the rating was lazily loaded
      * @return The rating extents
      * @throws RatingException any errors calcualting the value
-     * @see org.opendcs.IRating#getRatingExtents(long)
+     * @see org.opendcs.ratings.IRating#getRatingExtents(long)
      */
     public double[][] getRatingExtents(long ratingTime, Connection conn) throws RatingException {
         return this.composedRatingSet.getRatingExtents(ratingTime, conn);
