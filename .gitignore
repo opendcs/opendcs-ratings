@@ -7,3 +7,10 @@ bin
 .teamcity/target
 .idea/
 gradle.properties
+.vscode
+**/build
+**/bin
+**/.vscode
+**/.settings
+**/.classpath
+**/.project
