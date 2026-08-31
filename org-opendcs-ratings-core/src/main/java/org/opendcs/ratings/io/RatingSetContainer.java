@@ -10,7 +10,6 @@ package org.opendcs.ratings.io;
 
 
 import hec.io.DataContainer;
-import hec.io.DataContainerTransformer;
 import hec.io.HecIoException;
 import mil.army.usace.hec.metadata.VerticalDatum;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
@@ -23,7 +22,7 @@ import org.w3c.dom.Element;
  * Data container class for RatingSet
  * @author Mike Perryman
  */
-public class RatingSetContainer implements VerticalDatum, DataContainerTransformer
+public class RatingSetContainer implements VerticalDatum
 {
 	/**
 	 * Contains the rating specification
@@ -39,63 +38,6 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 	 * Public empty Constructor
 	 */
 	public RatingSetContainer() {}
-	/**
-	 * Public constructor from a DOM Element.
-	 * @param ratingElement The DOM Element. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
-	 *
-	 */
-	@Deprecated
-	public RatingSetContainer(Element ratingElement) throws RatingException {
-		populateFromXml(ratingElement);
-	}
-	/**
-	 * Public constructor from an XML instance.
-	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @throws RatingException on error
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
-	 */
-	@Deprecated
-	public RatingSetContainer(String xmlText) throws RatingException {
-		populateFromXml(xmlText);
-	}
-	/**
-	 * Populates this RatingSetContainer object from a DOM Element.
-	 * @param ratingElement The DOM Element. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(Element ratingElement) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		RatingSetContainer rsc = service.createRatingSetContainer(ratingElement);
-		ratingSpecContainer = rsc.ratingSpecContainer;
-		abstractRatingContainers = rsc.abstractRatingContainers;
-	}
-	/**
-	 * Populates this RatingSetContainer object from an XML instance.
-	 * @param xmlText The XML instance to construct the RatingSet object from. The document (root) node is expected to be
-	 *        &lt;ratings&gt;, which is expected to have one or more &lt;rating&gt; or &lt;usgs-stream-rating&gt; child nodes, all of the same
-	 *        rating specification.  Appropriate &lt;rating-template&gt; and &lt;rating-spec&gt; nodes are required for the rating set;
-	 *        any other template and specification nodes are ignored.
-	 * @throws RatingException on error
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#createRatingSetContainerFromXml(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		RatingSetContainer rsc = service.createRatingSetContainer(xmlText);
-		ratingSpecContainer = rsc.ratingSpecContainer;
-		abstractRatingContainers = rsc.abstractRatingContainers;
-	}
 
 	/**
 	 * Creates another RatingSetContainer object and fills it with with data from this one
@@ -130,45 +72,6 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
 		}
 	}
 
-	/**
-	 *
-	 * @return xml representation of this RatingSetContainer
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
-
-	/**
-	 *
-	 * @return xml representation of this RatingSetContainer
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level) {
-		return toXml(indent, level, true);
-	}
-
-	/**
-	 *
-	 * @return xml representation of this RatingSetContainer
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
-		return toXml(indent, level, includeTemplate, true);
-	}
-
-	/**
-	 *
-	 * @return xml representation of this RatingSetContainer
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingSetXmlParser#toXml(RatingSetContainer, CharSequence, int, boolean, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level, boolean includeTemplate, boolean includeEmptyTableRatings) {
-		return RatingContainerXmlCompatUtil.getInstance().toXml(this, indent, level, includeTemplate, includeEmptyTableRatings);
-	}
 	/**
 	 * Add the specified offset to the values of the specified parameter.
 	 * @param paramNum Specifies which parameter to add the offset to. 0, 1 = first, second independent, etc... -1 = dependent parameter
@@ -561,15 +464,4 @@ public class RatingSetContainer implements VerticalDatum, DataContainerTransform
         }
 	}
 
-
-	@Override
-	public DataContainer toDataContainer() throws HecIoException
-	{
-		try {
-			return RatingSetFactory.ratingSet(this).getDssData();
-		}
-		catch(RatingException e) {
-			throw new HecIoException(e);
-		}
-	}
 }

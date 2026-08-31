@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.VirtualRatingContainer;
 
 import java.io.BufferedReader;
@@ -35,7 +36,8 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 class VirtualRatingContainerXmlTest {
-
+    
+    private static final RatingContainerXmlCompatUtil containerXmlUtils = RatingContainerXmlCompatUtil.getInstance();
     private VirtualRatingContainer virtual;
 
     @BeforeEach
@@ -46,15 +48,15 @@ class VirtualRatingContainerXmlTest {
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                  Stream<String> stream = bufferedReader.lines()) {
                 String text = stream.collect(Collectors.joining("\n"));
-                virtual = new VirtualRatingContainer(text);
+                virtual = containerXmlUtils.createVirtualRatingContainer(text);
             }
         }
     }
 
     @Test
     void testXmlSerialization() throws RatingException {
-        String xml = virtual.toXml("", 0);
-        VirtualRatingContainer newContainer = new VirtualRatingContainer(xml);
+        String xml = containerXmlUtils.toXml(virtual, "", 0);
+        VirtualRatingContainer newContainer = containerXmlUtils.createVirtualRatingContainer(xml);
         assertEquals(virtual, newContainer, "Serialized object should equal original when deserialized");
     }
 
@@ -62,7 +64,7 @@ class VirtualRatingContainerXmlTest {
     void testXmlDeserialization() {
         assertEquals("FSMI.Stage,Speed-Water Index;Flow.Linear.Dummy", virtual.ratingSpecId);
         assertEquals("SWT", virtual.officeId);
-        assertNull(virtual.unitsId);
+        assertEquals("ft,mph;cfs", virtual.unitsId);
         assertTrue(virtual.active);
         assertEquals(Instant.parse("1900-01-01T06:00:00Z"), Instant.ofEpochMilli(virtual.effectiveDateMillis));
         assertEquals(NumericalConstants.UNDEFINED_INSTANT, Instant.ofEpochMilli(virtual.transitionStartDateMillis));

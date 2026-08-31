@@ -165,18 +165,7 @@ public class TableRating extends AbstractRating {
 			vdc = trc.getVerticalDatumContainer().clone();
 		}
 	}
-	/**
-	 * Public constructor from XML text
-	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRating(String) instead
-	 */
-	@Deprecated
-	public TableRating(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		VirtualRatingContainer container = service.createVirtualRatingContainer(xmlText);
-		setData(container);
-	}
+
 	/**
 	 * Public Constructor
 	 * @param values The table of values that comprise the rating.
@@ -792,17 +781,7 @@ public class TableRating extends AbstractRating {
 				throw new RatingException(t);
 			}
 		}
-	}
-
-	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRating, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, indentLevel);
-	}
+	}	
 
 	public String getLookupMethods() {
 		synchronized(this) {
@@ -1172,14 +1151,7 @@ public class TableRating extends AbstractRating {
 				}
 			}
 		}
-	}
-
-	@Override
-	@Deprecated
-	public RatingValue[] getValues(Integer defaultInterval)
-	{
-		return getRatingValues();
-	}
+	}	
 
 	/**
 	 * @return The mixture of rating values and extension values used to perform lookups.

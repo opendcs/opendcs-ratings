@@ -25,7 +25,6 @@ import org.opendcs.ratings.io.SourceRatingContainer;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
-import java.util.Observer;
 import java.util.TimeZone;
 
 import static hec.lang.Const.UNDEFINED_TIME;
@@ -37,7 +36,7 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR3;
  *
  * @author Mike Perryman
  */
-public class SourceRating implements IRating, VerticalDatum, Observer {
+public class SourceRating implements IRating, VerticalDatum {
 
 		/**
 		 * A math expression to be evaluated instead of using the rating set.
@@ -197,9 +196,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		public void setRatingSet(RatingSet ratings, String[] units) throws RatingException {
 			this.ratings = ratings;
-			if (this.ratings != null) {
-				this.ratings.addObserver(this);
-			}
 			setRatingUnits(units);
 			mathExpression = null;
 		}
@@ -210,9 +206,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		 */
 		public void setRatingSet(RatingSet ratings, String units) throws RatingException {
 			this.ratings = ratings;
-			if (this.ratings != null) {
-				this.ratings.addObserver(this);
-			}
 			setRatingUnits(units);
 			mathExpression = null;
 		}
@@ -223,7 +216,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		public void setRatingSet(RatingSet ratings) throws RatingException {
 			this.ratings = ratings;
 			if (this.ratings != null) {
-				this.ratings.addObserver(this);
 				setRatingUnits(ratings.getRatingUnits());
 			}
 			mathExpression = null;
@@ -1153,29 +1145,6 @@ public class SourceRating implements IRating, VerticalDatum, Observer {
 		@Override
 		public int hashCode() {
 			return getClass().getName().hashCode() + getData().hashCode();
-		}
-		@Override
-		public void update(java.util.Observable o, Object arg) {
-			synchronized(this) {
-				observationTarget.setChanged();
-				observationTarget.notifyObservers();
-			}
-		}
-		/**
-		 * Adds an Observer to this SourceRating. The Observer will be notified of any changes to this SourceRating
-		 * @param o The Observer object to add
-		 * @see java.util.Observer
-		 */
-		public synchronized void addObserver(Observer o) {
-            observationTarget.addObserver(o);
-		}
-		/**
-		 * Deletes an Observer from this SourceRating. The Observer will no longer be notified of any changes to this SourceRating
-		 * @param o The Observer object to delete
-		 * @see java.util.Observer
-		 */
-		public synchronized void deleteObserver(Observer o) {
-            observationTarget.deleteObserver(o);
 		}
 
 	/**

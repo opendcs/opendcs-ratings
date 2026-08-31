@@ -36,10 +36,6 @@ public interface CwmsRatingSet extends VerticalDatum {
 
     int getActiveRatingCount();
 
-    void getConcreteRatings() throws RatingException;
-
-    void getConcreteRatings(long date) throws RatingException;
-
     long[] getCreateDates();
 
     RatingSetContainer getData();

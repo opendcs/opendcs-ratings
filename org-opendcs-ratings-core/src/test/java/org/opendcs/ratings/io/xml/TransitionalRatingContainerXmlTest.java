@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.TransitionalRatingContainer;
 
 import java.io.BufferedReader;
@@ -35,6 +36,8 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TransitionalRatingContainerXmlTest {
+    
+    private static final RatingContainerXmlCompatUtil containerXmlUtils = RatingContainerXmlCompatUtil.getInstance();
 
     private TransitionalRatingContainer transitional;
 
@@ -46,15 +49,15 @@ class TransitionalRatingContainerXmlTest {
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                  Stream<String> stream = bufferedReader.lines()) {
                 String text = stream.collect(Collectors.joining("\n"));
-                transitional = new TransitionalRatingContainer(text);
+                transitional = containerXmlUtils.createTransitionalRatingContainer(text);
             }
         }
     }
 
     @Test
     void testXmlSerialization() throws RatingException {
-        String xml = transitional.toXml("");
-        TransitionalRatingContainer newContainer = new TransitionalRatingContainer(xml);
+        String xml = containerXmlUtils.toXml(transitional, "", 0);
+        TransitionalRatingContainer newContainer = containerXmlUtils.createTransitionalRatingContainer(xml);
         assertEquals(transitional, newContainer, "Serialized object should equal original when deserialized");
     }
 

@@ -81,18 +81,6 @@ public class ExpressionRating extends AbstractRating {
 		}
 
 	}
-	/**
-	 * Public constructor from XML text
-	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#expressionRating(String) instead
-	 */
-	@Deprecated
-	public ExpressionRating(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		ExpressionRatingContainer expressionRatingContainer = service.createExpressionRatingContainer(xmlText);
-		setData(expressionRatingContainer);
-	}
 
 	/**
 	 * @return the mathematical expression for this rating
@@ -373,15 +361,6 @@ public class ExpressionRating extends AbstractRating {
 	}
 
 	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(String, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return RatingXmlCompatUtil.getInstance().toXml(this, indent, indentLevel);
-	}
-	/**
 	 * Initialization helper for constructors and generators
 	 * @param expr The Mathematical expression for the rating. Independent parameters are specified by ARG1 - ARG9
 	 *        (case insensitive).  The expression can be specified in infix (algebraic), prefix, postfix (RPN), or
@@ -416,12 +395,6 @@ public class ExpressionRating extends AbstractRating {
 			setDescription(description);
 			setExpression(expr);
 		}
-	}
-
-	@Override
-	public RatingValue[] getValues(Integer defaultInterval)
-	{
-		return null; //TODO: Implement me;
 	}
 
 	@Override

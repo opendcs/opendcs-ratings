@@ -17,7 +17,6 @@
 package org.opendcs.ratings.io.jdbc;
 
 
-import hec.io.TextContainer;
 import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.opendcs.ratings.AbstractRating;
@@ -26,7 +25,6 @@ import org.opendcs.ratings.RatingSpec;
 import org.opendcs.ratings.io.RatingSetContainer;
 import org.opendcs.ratings.io.ReferenceRatingContainer;
 
-import java.sql.Connection;
 import java.util.Arrays;
 
 public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
@@ -38,16 +36,6 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
     ReferenceJdbcRatingSet(ConnectionProvider conn, DbInfo dbInfo, ReferenceRating dbrating) {
         super(conn, dbInfo);
         this.dbrating = dbrating;
-    }
-
-    /**
-     * Sets the database connection for this RatingSet and any constituent RatingSet objects
-     *
-     * @param conn the connection
-     */
-    @Override
-    public synchronized void setDatabaseConnection(Connection conn) {
-        setTransientConnectionProvider(conn);
     }
 
     /**
@@ -180,13 +168,6 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
             } else {
                 throw new RatingException("Unable to transform a reference rating into a RatingSetContainer of type: " + rsc.getClass());
             }
-            if (rsc.state != null) {
-                setState(rsc.state);
-            }
-            if (observationTarget != null) {
-                observationTarget.setChanged();
-                observationTarget.notifyObservers();
-            }
         } catch (RuntimeException t) {
             throw new RatingException(t);
         }
@@ -202,21 +183,6 @@ public final class ReferenceJdbcRatingSet extends JdbcRatingSet {
         return rsc;
     }
 
-    /**
-     * Retrieves a TextContainer containing the data of this object, suitable for storing to DSS.
-     *
-     * @return The TextContainer
-     * @throws RatingException any errors reading from dss or processing the data
-     */
-    @Override
-    public TextContainer getDssData() throws RatingException {
-        throw new RatingException("Reference ratings cannot return DSS Data.");
-    }
-
-    @Override
-    public boolean hasVerticalDatum() {
-        return getData().hasVerticalDatum();
-    }
 
     /* (non-Javadoc)
      * @see mil.army.usace.hec.metadata.VerticalDatum#getNativeVerticalDatum()

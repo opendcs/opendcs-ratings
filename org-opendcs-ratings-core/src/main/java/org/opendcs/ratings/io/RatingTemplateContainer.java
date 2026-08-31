@@ -206,50 +206,7 @@ public class RatingTemplateContainer {
 	 * Public empty constructor
 	 */
 	public RatingTemplateContainer() {}
-	/**
-	 * Public constructor from an XML snippet
-	 * @param xmlStr The string to initialize from
-	 * @throws RatingObjectDoesNotExistException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	public RatingTemplateContainer(String xmlStr) throws RatingObjectDoesNotExistException {
-		populateFromXml(xmlStr);
-	}
 
-	/**
-	 * Populates a RatingTemplateContainer from the first &lt;rating-template&gt; element in an XML string or null if no such element is found.
-	 * @param xmlStr The XML string
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingTemplateContainer(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		RatingTemplateContainer ratingTemplateContainer = service.createRatingTemplateContainer(xmlStr);
-		ratingTemplateContainer.clone(this);
-	}
-	/**
-	 * Generates a template XML string from this object
-	 * @param indent The amount to indent each level (initial level = 0)
-	 * @return the template XML string
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	public String toTemplateXml(CharSequence indent) {
-		return toTemplateXml(indent, 0);
-	}
-	/**
-	 * Generates a template XML string from this object
-	 * @param indent The amount to indent each level
-	 * @param level The initial level of indentation
-	 * @return on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplateContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	public String toTemplateXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level);
-	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

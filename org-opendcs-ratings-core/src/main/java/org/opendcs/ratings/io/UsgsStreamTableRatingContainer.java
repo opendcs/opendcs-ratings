@@ -33,26 +33,7 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	 * Public empty constructor
 	 */
 	public UsgsStreamTableRatingContainer() {}
-	/**
-	 * Public constructor from a DOM element
-	 * @param ratingElement The DOM element
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public UsgsStreamTableRatingContainer(Element ratingElement) throws RatingException {
-		populateFromXml(ratingElement);
-	}
-	/**
-	 * Public constructor from an XML snippet
-	 * @param xmlText The XML snippet
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(String) instead
-	 */
-	@Deprecated
-	public UsgsStreamTableRatingContainer(String xmlText) throws RatingException {
-		populateFromXml(xmlText);
-	}
+
 	/* (non-Javadoc)
 	 * @see org.opendcs.ratings.io.TableRatingContainer#equals(java.lang.Object)
 	 */
@@ -114,28 +95,6 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 	@Override
 	public AbstractRating newRating() throws RatingException {
 		return new UsgsStreamTableRating(this);
-	}
-	/**
-	 * Populates the UsgsStreamRatingContainer object from a DOM element
-	 * @param ratingElement the DOM element
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public void populateFromXml(Element ratingElement) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		UsgsStreamTableRatingContainer usgsStreamTableRatingContainer = service.createUsgsStreamTableRatingContainer(ratingElement);
-		usgsStreamTableRatingContainer.clone(this);
-	}
-	/**
-	 * Populates the UsgsStreamRatingContainer object from an XML snippet
-	 * @param xmlText the XML snippet
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRatingContainer(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		UsgsStreamTableRatingContainer usgsStreamTableRatingContainer = service.createUsgsStreamTableRatingContainer(xmlText);
-		usgsStreamTableRatingContainer.clone(this);
 	}
 	/* (non-Javadoc)
 	 * @see org.opendcs.ratings.io.TableRatingContainer#toNativeVerticalDatum()
@@ -233,25 +192,6 @@ public class UsgsStreamTableRatingContainer extends TableRatingContainer {
 			vdc.toNAVD88();
 		}
 		return change;
-	}
-
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(UsgsStreamTableRatingContainer, CharSequence, int) instead
-	 */
-	@Override
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
-
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(UsgsStreamTableRatingContainer, CharSequence, int) instead
-	 */
-	@Override
-	public String toXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level);
 	}
 
 	/* (non-Javadoc)

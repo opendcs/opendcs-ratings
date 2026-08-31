@@ -10,6 +10,7 @@ package org.opendcs.ratings;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestMultipleEffectiveDatesRating
 {
+	private static final RatingXmlCompatUtil xmlUtils = RatingXmlCompatUtil.getInstance();
 
     @Disabled
 	@Test
@@ -39,7 +41,7 @@ public class TestMultipleEffectiveDatesRating
 		while ((line = br.readLine()) != null) {
 			sb.append(line.trim());
 		}
-		RatingSet ratingSetOneEffectiveDate = RatingSet.fromXml(sb.toString());
+		RatingSet ratingSetOneEffectiveDate = xmlUtils.createRatingSet(sb.toString());
 		br.close();
 
 		// Retrieve complete RatingSet from local xml file with two effective dates
@@ -51,7 +53,7 @@ public class TestMultipleEffectiveDatesRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet ratingSetTwoEffectiveDates = RatingSet.fromXml(sb.toString());
+		RatingSet ratingSetTwoEffectiveDates = xmlUtils.createRatingSet(sb.toString());
 		br.close();
 
 		//rating data

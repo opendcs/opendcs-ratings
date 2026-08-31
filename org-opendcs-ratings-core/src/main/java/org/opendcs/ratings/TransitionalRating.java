@@ -12,7 +12,6 @@ import hec.hecmath.computation.ComputationException;
 import hec.hecmath.computation.Condition;
 import hec.hecmath.computation.MathExpression;
 import hec.hecmath.computation.VariableSet;
-import hec.lang.Observable;
 import org.opendcs.ratings.io.*;
 
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ public class TransitionalRating extends AbstractRating {
 	 * Default constructor
 	 */
 	public TransitionalRating() {
-		init();
 	}
 	/**
 	 * Constructor from TransitionalRatingContainer
@@ -51,31 +49,10 @@ public class TransitionalRating extends AbstractRating {
 	 * @throws RatingException on error
 	 */
 	public TransitionalRating(TransitionalRatingContainer trrc) throws RatingException {
-		init();
+		this();
 		setData(trrc);
-	}
+	}	
 
-	/**
-	 * Public constructor from XML text
-	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRating(String) instead
-	 */
-	@Deprecated
-	public TransitionalRating(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		TransitionalRatingContainer container = service.createTransitionalRatingContainer(xmlText);
-		setData(container);
-	}
-
-	/**
-	 * performs common initialization tasks
-	 */
-	protected void init() {
-		synchronized(this) {
-			if (observationTarget == null) observationTarget = new Observable();
-		}
-	}
 	/**
 	 * @return the conditions array
 	 */
@@ -191,9 +168,6 @@ public class TransitionalRating extends AbstractRating {
 		synchronized(this) {
 			findCycles(sources, new ArrayList<>());
 			sourceRatings = Arrays.copyOf(sources, sources.length);
-			for (SourceRating sr : sources) {
-				sr.addObserver(this);
-			}
 		}
 	}
 	
@@ -246,15 +220,6 @@ public class TransitionalRating extends AbstractRating {
 				}
 			}
 		}
-	}
-
-	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TransitionalRating, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return RatingXmlCompatUtil.getInstance().toXml(this, indent, indentLevel);
 	}
 
 	/* (non-Javadoc)
@@ -584,14 +549,6 @@ public class TransitionalRating extends AbstractRating {
 	@Override
 	public double[] reverseRate(long[] valTimes, double[] depVals) throws RatingException {
 		throw new RatingException("Cannot reverse through a transitional rating");
-	}
-
-	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#getValues(java.lang.Integer)
-	 */
-	@Override
-	public RatingValue[] getValues(Integer defaultInterval) {
-		throw new UnsupportedOperationException("getValues is not supported for transitional ratings");
 	}
 
 	/* (non-Javadoc)

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
 import org.w3c.dom.Element;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TableRatingContainerXmlTest {
 
+    private static final RatingContainerXmlCompatUtil containerXmlUtils = RatingContainerXmlCompatUtil.getInstance();
     private TableRatingContainer tableRatingContainer;
     private TableRatingContainer multiIndParamTableRatingContainer;
 
@@ -49,7 +51,7 @@ class TableRatingContainerXmlTest {
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                  Stream<String> stream = bufferedReader.lines()) {
                 String text = stream.collect(Collectors.joining("\n"));
-                tableRatingContainer = new TableRatingContainer(text);
+                tableRatingContainer = containerXmlUtils.createTableRatingContainer(text);
             }
         }
         try (InputStream inputStream = getClass().getResourceAsStream("table_rating_multi_ind_param.xml")) {
@@ -58,23 +60,23 @@ class TableRatingContainerXmlTest {
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                  Stream<String> stream = bufferedReader.lines()) {
                 String text = stream.collect(Collectors.joining("\n"));
-                multiIndParamTableRatingContainer = new TableRatingContainer(text);
+                multiIndParamTableRatingContainer = containerXmlUtils.createTableRatingContainer(text);
             }
         }
     }
 
     @Test
     void testXmlSerialization() throws RatingException {
-        String xml = tableRatingContainer.toXml("");
-        TableRatingContainer newContainer = new TableRatingContainer(xml);
+        String xml = containerXmlUtils.toXml(tableRatingContainer, "", 0);
+        TableRatingContainer newContainer = containerXmlUtils.createTableRatingContainer(xml);
         assertEquals(tableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
 
     @Test
     void testXmlDomSerialization() throws RatingException {
-        String xml = tableRatingContainer.toXml("");
+        String xml = containerXmlUtils.toXml(tableRatingContainer, "", 0);
         Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
-        TableRatingContainer newContainer = new TableRatingContainer(element);
+        TableRatingContainer newContainer = containerXmlUtils.createTableRatingContainer(element);
         assertEquals(tableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
 

@@ -70,28 +70,6 @@ public class RatingTemplate implements Modifiable
 	 * The number of independent parameters for ratings associated with this template
 	 */
 	private int indParamCount = 0;
-	/**
-	 * Generates a new RatingTemplate object from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
-	 * @param templateId The rating template identifier
-	 * @throws RatingException any issues retrieving the data or processing what's returned
-	 * @return the rating template in XML form
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#getRatingSpecXmlFromDatabase(Connection, String, String) instead
-	 */
-	public static String getXmlfromDatabase(Connection conn, String officeId, String templateId) throws RatingException {
-		return RatingJdbcCompatUtil.getInstance().getTemplateXmlFromDatabase(conn, officeId, templateId);
-	}
-
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingTemplate(Connection, String, String) instead
-	 */
-	@Deprecated
-	public static RatingTemplate fromDatabase(Connection conn, String officeId, String templateId) throws RatingException
-	{
-		return RatingJdbcCompatUtil.getInstance().templateFromDatabase(conn, officeId, templateId);
-	}
 
 	/**
 	 * Disabled public zero-arg constructor
@@ -132,22 +110,7 @@ public class RatingTemplate implements Modifiable
 	public RatingTemplate(RatingTemplateContainer rtc) throws RatingException {
 		setData(rtc);
 	}
-	/**
-	 * Public constructor from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
-	 * @param templateId The rating template identifier
-	 * @throws RatingException any issues with retrieving the data.
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingTemplate(Connection, String, String) instead
-	 */
-	@Deprecated
-	public RatingTemplate(
-			Connection conn,
-			String officeId,
-			String templateId)
-			throws RatingException {
-		setData(conn, officeId, templateId);
-	}
+
 	/**
 	 * Retrieves the parameters identifier portion of the template
 	 * @return The parameters identifier portion
@@ -358,35 +321,7 @@ public class RatingTemplate implements Modifiable
 		getData(rtc);
 		return rtc;
 	}
-	/**
-	 * Sets the data for this object from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
-	 * @param templateId The rating template identifier
-	 * @throws RatingException any issues retrieving or using the specified data.
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingTemplate(Connection, String, String) instead
-	 */
-	@Deprecated
-	public synchronized void setData (
-			Connection conn,
-			String officeId,
-			String templateId)
-			throws RatingException {
-		RatingTemplate ratingTemplate = RatingJdbcCompatUtil.getInstance().templateFromDatabase(conn, officeId, templateId);
-		setData(ratingTemplate.getData());
-	}
-	/**
-	 * Sets the data from this object from an XML instance
-	 * @param xmlText The XML instance
-	 * @throws RatingException any errors processing the XML data.
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingTemplate(String) instead.
-	 */
-	@Deprecated
-	public void setData(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		RatingTemplateContainer container = service.createRatingTemplateContainer(xmlText);
-		setData(container);
-	}
+
 	/**
 	 * Sets the data from this object from a RatingTemplateContainer
 	 * @param rtc The RatingTemplateContainer with the data
@@ -481,18 +416,6 @@ public class RatingTemplate implements Modifiable
 		}
 		rtc.templateDescription = description;
 	}
-	/**
-	 * Generates an XML document fragment from this rating specification.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplate, CharSequence, int) instead.
-	 */
-	@Deprecated
-	public String toXmlString(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, level);
-	}
 
 	/**
 	 * A flag to indicate that this rating curve has been modified.
@@ -546,17 +469,6 @@ public class RatingTemplate implements Modifiable
 	 */
 	public void setTemplateDescription(String description) {
 		this.description = description;
-	}
-	/**
-	 * Stores the rating template to a CWMS database
-	 * @param conn The connection to the CWMS database
-	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException any issues storing this to the database
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(RatingTemplate, Connection, boolean) instead.
-	 */
-	@Deprecated
-	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingJdbcCompatUtil.getInstance().storeToDatabase(this, conn, overwriteExisting);
 	}
 
 	/**

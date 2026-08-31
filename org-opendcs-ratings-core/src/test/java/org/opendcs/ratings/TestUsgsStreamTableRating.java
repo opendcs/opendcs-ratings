@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.opendcs.ratings.io.RatingValueContainer;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
 
 import java.io.BufferedReader;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestUsgsStreamTableRating
 {
-
+	private static final RatingXmlCompatUtil xmlUtils = RatingXmlCompatUtil.getInstance();
 	private static UsgsStreamTableRating _rating;
 
 	@BeforeAll
@@ -131,7 +132,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -165,7 +166,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -199,7 +200,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -230,7 +231,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -261,7 +262,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);
@@ -300,7 +301,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		AbstractRating rating = ratings[0];
 		UsgsStreamTableRating streamTableRating = (UsgsStreamTableRating) rating;
@@ -355,7 +356,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		AbstractRating rating = ratings[0];
 		UsgsStreamTableRating streamTableRating = (UsgsStreamTableRating) rating;
@@ -364,7 +365,7 @@ public class TestUsgsStreamTableRating
 		double[] ratingExtent = ratingExtents[0];
 		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
-		logger.info(streamTableRating.toXmlString("  ", 1));
+		logger.info(xmlUtils.toXml(streamTableRating, "  ", 1));
 
 		//add a shift and rate again.
 		Calendar calendar = Calendar.getInstance();
@@ -389,7 +390,7 @@ public class TestUsgsStreamTableRating
 		ratingExtent = ratingExtents[0];
 		logger.info(ratingExtent[0] + "  " + ratingExtents[1][0]);
 		rateOne = testRatingSet.rateOne(time, ((ratingExtent[0] + ratingExtents[1][0]) / 2));
-		logger.info(streamTableRating.toXmlString("  ", 1));
+		logger.info(xmlUtils.toXml(streamTableRating, "  ", 1));
 	}
 
     @Disabled
@@ -406,7 +407,7 @@ public class TestUsgsStreamTableRating
 		{
 			sb.append(line.trim());
 		}
-		RatingSet testRatingSet = RatingSet.fromXml(sb.toString());
+		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR, 0);

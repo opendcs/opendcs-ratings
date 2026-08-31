@@ -14,7 +14,6 @@ import hec.io.Conversion;
 import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
-import hec.lang.Observable;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.*;
 import org.opendcs.ratings.RatingConst.*;
@@ -22,8 +21,8 @@ import org.opendcs.ratings.io.AbstractRatingContainer;
 import org.opendcs.ratings.io.IndependentValuesContainer;
 import org.opendcs.ratings.io.RatingSetContainer;
 import org.opendcs.ratings.io.RatingSetStateContainer;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 
-import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -43,6 +42,9 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
 
     protected static final Logger LOGGER = Logger.getLogger(AbstractRatingSet.class.getPackage().getName());
 
+
+    private static final RatingXmlCompatUtil xmlUtils = RatingXmlCompatUtil.getInstance();
+
     /**
      * Flag specifying whether new RatingSet objects will by default allow "risky" behavior such as using mismatched units, unknown parameters, etc.
      */
@@ -51,10 +53,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * Flag specifying whether new RatingSet objects will by default output messages about "risky" behavior such as using mismatched units, unknown parameters, etc.
      */
     protected static boolean alwaysWarnUnsafe = true;
-    /**
-     * Object that provides the Observable-by-composition functionality
-     */
-    protected Observable observationTarget;
+
     /**
      * The CWMS-style rating specification (including rating template)
      */
@@ -94,7 +93,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     protected AbstractRatingSet() {
         allowUnsafe = alwaysAllowUnsafe;
         warnUnsafe = alwaysWarnUnsafe;
-        observationTarget = new Observable();
     }
 
     /**
@@ -184,7 +182,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      */
     @Override
     public final void addRating(AbstractRating rating) throws RatingException {
-        addRatings(rating);
+        addRatings(new AbstractRating[]{rating});
     }
 
     /**
@@ -194,7 +192,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @throws RatingException @see #addRatings(Iterable)
      */
     @Override
-    public final void addRatings(AbstractRating... ratings) throws RatingException {
+    public final void addRatings(AbstractRating[] ratings) throws RatingException {
         addRatings(Arrays.asList(ratings));
     }
 
@@ -245,14 +243,15 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     StringBuilder sb = new StringBuilder("Cannot add ratings with different rating template or specification definitions.\n");
                     sb.append("Existing :").append((String) oldSpecs.get(specId)[0]).append("\n").append("Incoming :")
                       .append((String) newSpecs.get(specId)[0]).append("\n");
-                    String oldXml = ((RatingSpec) oldSpecs.get(specId)[1]).toTemplateXml("  ", 3);
-                    String newXml = ((RatingSpec) newSpecs.get(specId)[1]).toTemplateXml("  ", 3);
+                    
+                    String oldXml = xmlUtils.toXml((RatingSpec) oldSpecs.get(specId)[1], "  ", 3, true);
+                    String newXml = xmlUtils.toXml((RatingSpec) newSpecs.get(specId)[1], "  ", 3, true);
                     if (!newXml.equals(oldXml)) {
                         sb.append("Definitions for template \"").append(((RatingSpec) oldSpecs.get(specId)[1]).getTemplateId())
                           .append("\" differ.\nExisting Definition :\n").append(oldXml).append("New Definition :\n").append(newXml);
                     }
-                    oldXml = ((RatingSpec) oldSpecs.get(specId)[1]).toSpecXml("  ", 3);
-                    newXml = ((RatingSpec) newSpecs.get(specId)[1]).toSpecXml("  ", 3);
+                    oldXml = xmlUtils.toXml((RatingSpec) oldSpecs.get(specId)[1], "  ", 3, false);
+                    newXml = xmlUtils.toXml((RatingSpec) newSpecs.get(specId)[1], "  ", 3, false);
                     if (!newXml.equals(oldXml)) {
                         sb.append("Definitions for specification \"").append(((RatingSpec) oldSpecs.get(specId)[1]).getRatingSpecId())
                           .append("\"differ.\nExisting Definition :\n").append(oldXml).append("New Definition :\n").append(newXml);
@@ -300,13 +299,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 activeRatings.put(rating.getEffectiveDate(), rating);
                 activeRatings.get(rating.getEffectiveDate()).ratingSpec = ratingSpec;
             }
-            rating.deleteObserver(this);
-            rating.addObserver(this);
             validate();
-        }
-        if (observationTarget != null) {
-            observationTarget.setChanged();
-            observationTarget.notifyObservers();
         }
     }
 
@@ -322,13 +315,8 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         if (cwmsRating == null) {
             throw new RatingException("Rating with specified effective date does not exist; cannot remove rating");
         }
-        cwmsRating.deleteObserver(this);
         ratings.remove(effectiveDate);
         activeRatings.remove(effectiveDate);
-        if (observationTarget != null) {
-            observationTarget.setChanged();
-            observationTarget.notifyObservers();
-        }
     }
 
     /**
@@ -336,15 +324,8 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      */
     @Override
     public synchronized final void removeAllRatings() {
-        for (ICwmsRating cwmsRating : ratings.values()) {
-            cwmsRating.deleteObserver(this);
-        }
         ratings.clear();
         activeRatings.clear();
-        if (observationTarget != null) {
-            observationTarget.setChanged();
-            observationTarget.notifyObservers();
-        }
     }
 
     /**
@@ -370,7 +351,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         }
         rating.ratingSpec = ratingSpec;
         rating.setDataUnits(getDataUnits());
-        rating.setDefaultValueTime(getDefaultValuetime());
+        rating.setDefaultValueTime(getDefaultValueTime());
         rating.setRatingTime(getRatingTime());
         rating.setName(getName());
         rating.setAllowUnsafe(doesAllowUnsafe());
@@ -385,17 +366,11 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 }
             }
         }
-        ratings.put(effectiveDate, rating).deleteObserver(this);
+        ratings.put(effectiveDate, rating);
         if (rating.isActive()) {
             activeRatings.put(effectiveDate, rating);
         }
-        rating.deleteObserver(this);
-        rating.addObserver(this);
         validate();
-        if (observationTarget != null) {
-            observationTarget.setChanged();
-            observationTarget.notifyObservers();
-        }
     }
 
     /**
@@ -444,18 +419,12 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
             throw new RatingException("Cannot replace ratings with different units.");
         }
         for (AbstractRating rating : ratings) {
-            this.ratings.put(rating.getEffectiveDate(), rating).deleteObserver(this);
+            this.ratings.put(rating.getEffectiveDate(), rating);
             if (rating.isActive() && rating.createDate <= ratingTime) {
                 activeRatings.put(rating.getEffectiveDate(), rating);
             }
-            rating.deleteObserver(this);
-            rating.addObserver(this);
         }
         validate();
-        if (observationTarget != null) {
-            observationTarget.setChanged();
-            observationTarget.notifyObservers();
-        }
     }
 
     /**
@@ -1381,18 +1350,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         return count;
     }
 
-    /**
-     * Retrieves the default value time. This is used for rating values that have no inherent times.
-     *
-     * @return The default value time
-     * @deprecated Use {@link AbstractRatingSet#getDefaultValueTime()} instead
-     */
-    @Deprecated
-    @Override
-    public final synchronized long getDefaultValuetime() {
-        return defaultValueTime;
-    }
-
     /* (non-Javadoc)
      * @see org.opendcs.ratings.IRating#getRatingTime()
      */
@@ -1713,7 +1670,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
      * @see org.opendcs.ratings.IRating#rate(long, double[])
      */
     @Override
-    public final synchronized double rateOne2(long valTime, double... indVals) throws RatingException {
+    public final synchronized double rateOne2(long valTime, double[] indVals) throws RatingException {
         return rateOne(indVals, valTime);
     }
 
@@ -2055,37 +2012,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         return ratingSpec != null ? ratingSpec.getIndParamCount() : ratings.firstEntry().getValue().getIndParamCount();
     }
 
-    /* (non-Javadoc)
-     * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
-     */
-    @Override
-    public void update(java.util.Observable arg0, Object arg1) {
-        observationTarget.setChanged();
-        observationTarget.notifyObservers();
-    }
-
-    /**
-     * Adds an Observer to this RatingSet. The Observer will be notified of any changes to this RatingSet
-     *
-     * @param o The Observer object to add
-     * @see Observer
-     */
-    @Override
-    public synchronized final void addObserver(Observer o) {
-        observationTarget.addObserver(o);
-    }
-
-    /**
-     * Deletes an Observer from this RatingSet. The Observer will no longer be notified of any changes to this RatingSet
-     *
-     * @param o The Observer object to delete
-     * @see Observer
-     */
-    @Override
-    public synchronized final void deleteObserver(Observer o) {
-        observationTarget.deleteObserver(o);
-    }
-
     /**
      * Retrieves a RatingSetContainer containing the data of this object.
      *
@@ -2128,10 +2054,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 for (int i = 0; i < rsc.abstractRatingContainers.length; ++i) {
                     addRating(rsc.abstractRatingContainers[i].newRating());
                 }
-            }
-            if (observationTarget != null) {
-                observationTarget.setChanged();
-                observationTarget.notifyObservers();
             }
         } catch (RuntimeException t) {
             throw new RatingException(t);
@@ -2489,52 +2411,6 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
         for (AbstractRating ar : ratings.values()) {
             ar.setVerticalDatumContainer(vdc);
         }
-    }
-
-    /**
-     * Retrieves a TextContainer containing the data of this object, suitable for storing to DSS.
-     *
-     * @return The TextContainer
-     * @throws RatingException any errors reading from dss or processing the data
-     */
-    @Override
-    public synchronized TextContainer getDssData() throws RatingException {
-        throw new RatingException("getDssData() unsupported. Use factory methods instead");
-    }
-
-    @Override
-    public String toCompressedXmlString() throws RatingException {
-        throw new RatingException("toCompressedXmlString() unsupported. Use factory methods instead");
-    }
-
-    @Override
-    public String toXmlString(CharSequence indent) throws RatingException {
-        throw new RatingException("toXmlString(CharSequence) unsupported. Use factory methods instead");
-    }
-
-    @Deprecated
-    @Override
-    public void getConcreteRatings(Connection conn) throws RatingException {
-        //No-op
-    }
-
-    @Deprecated
-    @Override
-    public void getConcreteRatings(long date) throws RatingException {
-        //No-op
-    }
-
-    @Deprecated
-    @Override
-    public void getConcreteRatings() throws RatingException {
-        //No-op
-    }
-
-    @Deprecated
-    @Override
-    public RatingSetStateContainer getState() {
-        //Only supported by JdbcRatingSet implementation
-        return null;
     }
 
     @Override

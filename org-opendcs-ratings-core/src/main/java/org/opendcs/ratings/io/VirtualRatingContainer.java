@@ -42,52 +42,7 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 	 * Public empty constructor
 	 */
 	public VirtualRatingContainer() {}
-	/**
-	 * Public constructor from a DOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement The DOM Element
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public VirtualRatingContainer(Element ratingElement) throws RatingException {
-		populateFromXml(ratingElement);
-	}
 
-	/**
-	 * Public constructor from an XML snippet. The connections and sourceRatings fields will be null
-	 * @param xmlText The XML snippet
-	 * @throws RatingException any issues with processing the XML data.
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public VirtualRatingContainer(String xmlText) throws RatingException {
-		populateFromXml(xmlText);
-	}
-
-	/**
-	 * Populates the VirtualRatingContainer from a DOM Element. The connections and sourceRatings fields will be null
-	 * @param ratingElement The DOM Element
-	 * @throws RatingException any issues with processing the XML data.
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public void populateFromXml(Element ratingElement) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		VirtualRatingContainer virtualRatingContainer = service.createVirtualRatingContainer(ratingElement);
-		virtualRatingContainer.clone(this);
-	}
-	/**
-	 * Populates the VirtualRatingContainer from an XML snippet. The connections and sourceRatings fields will be null
-	 * @param xmlText The XML snippet
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRatingContainer(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		VirtualRatingContainer virtualRatingContainer = service.createVirtualRatingContainer(xmlText);
-		virtualRatingContainer.clone(this);
-	}
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
 	 *
@@ -418,31 +373,4 @@ public class VirtualRatingContainer extends AbstractRatingContainer {
 		super.setVerticalDatumInfo(xmlStr);
 	}
 
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRatingContainer, CharSequence, int) instead
-	 */
-	@Override
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
-
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRatingContainer, CharSequence, int) instead
-	 */
-	@Override
-	public String toXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level);
-	}
-
-	/**
-	 *
-	 * @deprecated will be removed as this should be internal API only
-	 */
-	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		service.getSourceRatingsXml(this, indent, level, templateStrings, specStrings, ratingStrings);
-	}
 }

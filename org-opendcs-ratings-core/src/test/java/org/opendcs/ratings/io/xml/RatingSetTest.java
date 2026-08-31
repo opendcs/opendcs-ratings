@@ -18,6 +18,7 @@ package org.opendcs.ratings.io.xml;
 import hec.util.TextUtil;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.*;
+import org.opendcs.ratings.io.RatingXmlCompatUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -206,10 +207,13 @@ public class RatingSetTest
               </simple-rating>
             </ratings>""";
 
+	private static final RatingXmlCompatUtil xmlUtils = RatingXmlCompatUtil.getInstance();
+
 	@Test
 	public void testRatingSetFromXml() throws Exception {
-		RatingSet.fromXml(XML_TEXT);
-		RatingSet ratingSet = RatingSet.fromXml(XML_TEXT_1);
+		var ret = xmlUtils.createRatingSet(XML_TEXT);
+		assertNotNull(ret);
+		RatingSet ratingSet = xmlUtils.createRatingSet(XML_TEXT_1);
 		AbstractRating[] absRatings = ratingSet.getRatings();
 
 		int iCount = absRatings[0].getIndParamCount();
