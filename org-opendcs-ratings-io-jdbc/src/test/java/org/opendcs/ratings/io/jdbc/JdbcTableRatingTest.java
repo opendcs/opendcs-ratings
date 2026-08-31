@@ -19,6 +19,7 @@ package org.opendcs.ratings.io.jdbc;
 
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.xml.RatingXmlFactory;
@@ -36,6 +37,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled("Test setup is incomplete, locations need to be made.")
 final class JdbcTableRatingTest extends CwmsDockerIntegrationTest {
 
     private AbstractRatingSet tableRatingSet;
