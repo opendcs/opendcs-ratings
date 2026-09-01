@@ -22,6 +22,8 @@ import mil.army.usace.hec.metadata.VerticalDatumContainer;
 import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.*;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 import org.w3c.dom.Element;
 
 import java.util.*;
@@ -31,6 +33,7 @@ import static org.opendcs.ratings.RatingConst.*;
 import static org.opendcs.ratings.XmlUtil.*;
 
 public final class RatingContainerXmlFactory {
+    private static final Logger log = OpenDcsLoggerFactory.getLogger();
 
     private RatingContainerXmlFactory() {
         throw new AssertionError("Factory utility class");
@@ -694,7 +697,7 @@ public final class RatingContainerXmlFactory {
         if (tableRatingContainer.extensionValues != null) {
             boolean multiParam = tableRatingContainer.extensionValues[0].depTable != null;
             if (multiParam) {
-                AbstractRating.getLogger().severe("Multiple independent parameter ratings cannot use extension values, ignoring");
+                log.error("Multiple independent parameter ratings cannot use extension values, ignoring");
             } else {
                 sb.append(prefix).append(indent).append("<extension-points>\n");
                 for (int i = 0; i < tableRatingContainer.extensionValues.length; ++i) {

@@ -18,7 +18,6 @@ import org.opendcs.ratings.io.*;
 
 import java.util.HashSet;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import static hec.lang.Const.UNDEFINED_TIME;
 
@@ -27,9 +26,8 @@ import static hec.lang.Const.UNDEFINED_TIME;
  *
  * @author Mike Perryman
  */
+@SuppressWarnings("java:S1448")
 public class RatingSet implements IRating, VerticalDatum {
-
-    protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
     private AbstractRatingSet composedRatingSet;
 
@@ -93,10 +91,6 @@ public class RatingSet implements IRating, VerticalDatum {
      */
     public static void setAlwaysWarnUnsafe(Boolean alwaysWarnUnsafe) {
         AbstractRatingSet.setAlwaysWarnUnsafe(alwaysWarnUnsafe);
-    }
-
-    public static Logger getLogger() {
-        return logger;
     }
 
     /**

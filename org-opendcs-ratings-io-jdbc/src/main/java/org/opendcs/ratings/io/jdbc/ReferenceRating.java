@@ -31,6 +31,9 @@ import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.RatingSet;
 import org.opendcs.ratings.TimeSeriesRater;
 import org.opendcs.ratings.io.ReferenceRatingContainer;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
+
 import usace.cwms.db.jooq.codegen.packages.CWMS_LOC_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_UTIL_PACKAGE;
@@ -49,8 +52,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static hec.lang.Const.UNDEFINED_LONG;
 import static hec.lang.Const.UNDEFINED_TIME;
@@ -67,7 +68,7 @@ import static org.opendcs.ratings.RatingConst.*;
  */
 public class ReferenceRating implements IRating, VerticalDatum {
 
-    protected static final Logger logger = Logger.getLogger(ReferenceRating.class.getPackage().getName());
+    protected static final Logger log = OpenDcsLoggerFactory.getLogger();
 
     long defaultValueTime = UNDEFINED_TIME;
 
@@ -171,8 +172,8 @@ public class ReferenceRating implements IRating, VerticalDatum {
                 if (verticalDatumInfo != null) {
                     vdc = new VerticalDatumContainer(verticalDatumInfo);
                 }
-            } catch (Exception e) {
-                RatingSet.getLogger().warning(String.format("Vertical datum initialzation failed: %s", e.getMessage()));
+            } catch (Exception ex) {
+                log.atWarn().setCause(ex).log("Vertical datum initialzation failed.");
             }
         }
         resetRatingTime();
@@ -661,22 +662,12 @@ public class ReferenceRating implements IRating, VerticalDatum {
             } finally {
                 try {
                     releaseConnection(conn);
-                } catch (RatingException e) {
-                    if (logger.isLoggable(Level.WARNING)) {
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        e.printStackTrace(pw);
-                        logger.log(Level.WARNING, sw.toString());
-                    }
+                } catch (RatingException ex) {
+                    log.atWarn().setCause(ex).log("Error releasing connection.");
                 }
             }
-        } catch (Exception e) {
-            if (logger.isLoggable(Level.WARNING)) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                logger.log(Level.WARNING, sw.toString());
-            }
+        } catch (Exception ex) {
+            log.atWarn().setCause(ex).log("Error getting all EffectiveDates.");
         }
         return dates;
     }
@@ -709,22 +700,13 @@ public class ReferenceRating implements IRating, VerticalDatum {
             } finally {
                 try {
                     releaseConnection(conn);
-                } catch (RatingException e) {
-                    if (logger.isLoggable(Level.WARNING)) {
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        e.printStackTrace(pw);
-                        logger.log(Level.WARNING, sw.toString());
-                    }
+                } catch (RatingException ex) {
+                    log.atWarn().setCause(ex).log("Error releasing connection.");
                 }
             }
-        } catch (Exception e) {
-            if (logger.isLoggable(Level.WARNING)) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                logger.log(Level.WARNING, sw.toString());
-            }
+        } catch (Exception ex) {
+            
+            log.atWarn().setCause(ex).log("Error getting all Createtion Dates.");
         }
         return dates;
     }

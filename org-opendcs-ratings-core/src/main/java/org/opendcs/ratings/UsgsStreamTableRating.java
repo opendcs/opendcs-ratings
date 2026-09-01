@@ -15,6 +15,8 @@ import mil.army.usace.hec.metadata.DataSetException;
 import mil.army.usace.hec.metadata.location.LocationTemplate;
 import org.opendcs.ratings.RatingConst.RatingMethod;
 import org.opendcs.ratings.io.*;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -31,6 +33,7 @@ import static hec.lang.Const.UNDEFINED_TIME;
  * @author Mike Perryman
  */
 public class UsgsStreamTableRating extends TableRating {
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	/**
 	 * The time series of shift ratings
 	 */
@@ -938,7 +941,7 @@ public class UsgsStreamTableRating extends TableRating {
 				}
 				shift = mean;
 				if (i == limit) {
-					logger.warning("Could not converge on shift for shifted value " + height + " in " + limit + " iterations.");
+					log.warn("Could not converge on shift for shifted value {} in {} iterations.", height, limit);
 				}
 			}
 			return shift;

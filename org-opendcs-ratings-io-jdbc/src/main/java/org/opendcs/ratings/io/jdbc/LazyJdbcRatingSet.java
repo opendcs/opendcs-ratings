@@ -24,6 +24,9 @@ import org.jooq.impl.DSL;
 import org.opendcs.ratings.*;
 import org.opendcs.ratings.RatingConst.RatingMethod;
 import org.opendcs.ratings.io.xml.RatingXmlFactory;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
+
 import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 
 import java.sql.Connection;
@@ -35,6 +38,7 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 
 public final class LazyJdbcRatingSet extends JdbcRatingSet {
+    private static final Logger log = OpenDcsLoggerFactory.getLogger();
 
     LazyJdbcRatingSet(ConnectionProvider conn, DbInfo dbInfo) throws RatingException {
         super(conn, dbInfo);
@@ -67,19 +71,20 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                     sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                     Connection conn = getConnection();
                     try {
-                        if (getLogger().isLoggable(Level.FINE)) {
-                            getLogger().fine(
-                                String.format("Retrieving rating from %s: %s @ %s UTC", conn.getMetaData().getURL(), getName(), sdf.format(key)));
+                        if (log.isTraceEnabled()) {
+                            log.trace("Retrieving rating from {}: {} @ {} UTC",
+                                      conn.getMetaData().getURL(), getName(), sdf.format(key));
                         }
                         DSLContext dsl = DSL.using(conn);
                         Configuration configuration = dsl.configuration();
                         String xmlText = CWMS_RATING_PACKAGE.call_RETRIEVE_RATINGS_XML(configuration, rating.getRatingSpecId(),
                             new Timestamp(rating.getEffectiveDate()), new Timestamp(rating.getEffectiveDate()), "UTC", rating.getOfficeId());
-                        getLogger().log(Level.FINE, "Retrieve XML:\n" + xmlText);
+                        log.trace("Retrieve XML: {}", xmlText);
                         int pos = xmlText.indexOf("<ratings ");
                         if (pos == -1 || xmlText.indexOf('<', pos + 1) == -1) {
-                            getLogger().log(Level.WARNING, "Cannot get concrete rating for " + rating.getRatingSpecId() + " for effective date " +
-                                sdf.format(rating.getEffectiveDate()) + " UTC. Removing effective date from rating set");
+                            log.warn("Cannot get concrete rating for {} for effective date {} UTC." + 
+                                     " Removing effective date from rating set",
+                                     rating.getRatingSpecId(), sdf.format(rating.getEffectiveDate()));
                             ratings.remove(rating.getEffectiveDate());
                             activeRatings.remove(rating.getEffectiveDate());
                         } else {
@@ -536,8 +541,10 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                     if(shifts instanceof JdbcRatingSet) {
                         ((JdbcRatingSet) shifts).setDbInfo(dbInfo);
                     }
-                } catch (RatingException e) {
-                    getLogger().log(Level.WARNING, "Unable to set database info for shift rating set: " + rating.getName(), e);
+                } catch (RatingException ex) {
+                    log.atWarn()
+                       .setCause(ex)
+                       .log("Unable to set database info for shift rating set: {}", rating.getName());
                 }
             } else if (rating instanceof VirtualRating) {
                 SourceRating[] sourceRatings = ((VirtualRating) rating).getSourceRatings();
@@ -568,8 +575,10 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                     if(shifts instanceof JdbcRatingSet) {
                         ((JdbcRatingSet) shifts).setDbInfo(dbInfo);
                     }
-                } catch (RatingException e) {
-                    getLogger().log(Level.WARNING, "Unable to set database info for shift rating set: " + rating.getName(), e);
+                } catch (RatingException ex) {
+                    log.atWarn()
+                       .setCause(ex)
+                       .log("Unable to set database info for shift rating set: {}", rating.getName());
                 }
             } else if (rating instanceof VirtualRating) {
                 SourceRating[] sourceRatings = ((VirtualRating) rating).getSourceRatings();
@@ -606,8 +615,10 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
             if (rating instanceof UsgsStreamTableRating) {
                 try {
                     RatingSet shifts = ((UsgsStreamTableRating) rating).getShifts();
-                } catch (RatingException e) {
-                    getLogger().log(Level.WARNING, "Unable to set database connection for shift rating set: " + rating.getName(), e);
+                } catch (RatingException ex) {
+                    log.atWarn()
+                       .setCause(ex)
+                       .log("Unable to set database connection for shift rating set: {}", rating.getName());
                 }
             } else if (rating instanceof VirtualRating) {
                 SourceRating[] sourceRatings = ((VirtualRating) rating).getSourceRatings();

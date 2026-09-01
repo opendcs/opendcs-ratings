@@ -16,10 +16,11 @@
 
 package org.opendcs.ratings.io.jdbc;
 
-import com.google.common.flogger.FluentLogger;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainer;
 import mil.army.usace.hec.test.database.CwmsDatabaseContainers;
 import org.junit.jupiter.api.BeforeAll;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.junit.jupiter.Container;
 
@@ -28,7 +29,7 @@ import java.sql.SQLException;
 
 public abstract class CwmsDockerIntegrationTest
 {
-	private static final FluentLogger LOGGER = FluentLogger.forEnclosingClass();
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	private static final String VERSION = "latest-dev";
 	private static final String ORACLE_VERSION = System.getProperty("ratings.oracle.version", "ghcr.io/hydrologicengineeringcenter/cwms-database/cwms/database-ready-ora-23.5:" + VERSION);
 
@@ -69,11 +70,11 @@ public abstract class CwmsDockerIntegrationTest
 		switch (type)
 		{
 			case STDOUT:
-				LOGGER.atFinest().log(outputFrame.getUtf8String());
+				log.trace(outputFrame.getUtf8String()); break;
 			case STDERR:
-				LOGGER.atFine().log(outputFrame.getUtf8String());
+				log.debug(outputFrame.getUtf8String()); break;
 			default:
-				LOGGER.atFiner().log(outputFrame.getUtf8String());
+				log.trace(outputFrame.getUtf8String()); break;
 		}
 	}
 }

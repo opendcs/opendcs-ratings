@@ -15,6 +15,8 @@ import mil.army.usace.hec.metadata.UnitsConversionException;
 import org.opendcs.ratings.io.AbstractRatingContainer;
 import org.opendcs.ratings.io.SourceRatingContainer;
 import org.opendcs.ratings.io.VirtualRatingContainer;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -30,7 +32,7 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR3;
  * @author Mike Perryman
  */
 public class VirtualRating extends AbstractRating {
-
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	/**
 	 * The string specifying how the inputs, source ratings, and output are connected
 	 */
@@ -239,13 +241,13 @@ public class VirtualRating extends AbstractRating {
 						connMap.put(parts[0], new HashSet<>());
 					}
 					if (!connMap.get(parts[0]).add(parts[1])) {
-						AbstractRating.logger.warning(String.format("Connection %s specified more than once", pair));
+						log.warn("Connection {} specified more than once", pair);
 					}
 					if (!connMap.containsKey(parts[1])) {
 						connMap.put(parts[1], new HashSet<>());
 					}
 					if (!connMap.get(parts[1]).add(parts[0])) {
-						AbstractRating.logger.warning(String.format("Connection %s specified more than once", pair));
+						log.warn("Connection {} specified more than once", pair);
 					}
 				}
 				if (connMap.containsKey("D")) {

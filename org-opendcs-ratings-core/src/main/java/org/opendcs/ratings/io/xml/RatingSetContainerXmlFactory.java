@@ -24,6 +24,8 @@ import mil.army.usace.hec.metadata.VerticalDatumException;
 import org.opendcs.ratings.*;
 import org.opendcs.ratings.RatingConst.*;
 import org.opendcs.ratings.io.*;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Parser;
@@ -42,7 +44,7 @@ import static org.opendcs.ratings.RatingConst.*;
 
 @SuppressWarnings("deprecation")
 public class RatingSetContainerXmlFactory extends XMLFilterImpl {
-
+    private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	//-----------------------------//
 	// strings expected in the XML //
 	//-----------------------------//
@@ -933,9 +935,9 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
             }
 			sb1.append(sb2);
 			if (sb1.length() > 0) {
-				AbstractRating.getLogger().info("XML conatins unused templates and/or specifications:" + sb1);
+				log.info("XML conatins unused templates and/or specifications: {}", sb1);
 			}
-			AbstractRating.getLogger().fine("Top level rating = " + topLevelIds.get(0));
+			log.atTrace().log(() -> "Top level rating = " + topLevelIds.get(0));
 		}
 		else {
 			//------------------------------------------------------------------------------------------------//
@@ -1006,7 +1008,7 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 				}
 			}
 		}
-		AbstractRating.getLogger().fine(sb.toString());
+		log.atTrace().log(sb::toString);
 	}
 	/*
 	 * SAX method - validate structure and process attributes
@@ -1798,7 +1800,7 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
                         HecTime ht = new HecTime();
                         ht.setTimeInMillis(arc.effectiveDateMillis);
                         msg.append(arc.toString()).append("@").append(ht.getXMLDateTime(0)).append(" more than once.");
-                        AbstractRating.getLogger().warning(msg.toString());
+                        log.warn(msg.toString());
                     }
                     break;
             }
@@ -1811,8 +1813,8 @@ public class RatingSetContainerXmlFactory extends XMLFilterImpl {
 				try {
 					vdcs.add(new VerticalDatumContainer(this.verticalDatumInfo.toString()));
 				}
-				catch (VerticalDatumException e) {
-					AbstractRating.getLogger().warning(e.getMessage());
+				catch (VerticalDatumException ex) {
+                    log.atWarn().setCause(ex).log(ex.getMessage());
 		}
 			}
 		}

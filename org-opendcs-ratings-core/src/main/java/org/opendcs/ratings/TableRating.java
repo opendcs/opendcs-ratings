@@ -13,6 +13,8 @@ import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.UnitUtil;
 import org.opendcs.ratings.RatingConst.RatingMethod;
 import org.opendcs.ratings.io.*;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -40,6 +42,7 @@ import static org.opendcs.ratings.XmlUtil.getChildElementText;
  * @author Mike Perryman
  */
 public class TableRating extends AbstractRating {
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	/**
 	 * The rating values
 	 */
@@ -346,8 +349,12 @@ public class TableRating extends AbstractRating {
 				}
 				else if(!UnitUtil.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])){
 					String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+					if (!allowUnsafe) {
+						throw new RatingException(msg);
+					}
+					if (warnUnsafe) {
+						log.warn(msg + "  Rating will be performed on unconverted values."); // NOSONAR
+					}
 				}
 			}
 			return rate(pIndVals, dataUnits, ratingUnits, p_offset);

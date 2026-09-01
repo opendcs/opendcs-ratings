@@ -27,17 +27,20 @@ import org.opendcs.ratings.io.xml.RatingContainerXmlFactory;
 import org.opendcs.ratings.io.xml.RatingSetContainerXmlFactory;
 import org.opendcs.ratings.io.xml.RatingSpecXmlFactory;
 import org.opendcs.ratings.io.xml.RatingXmlFactory;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
+
 import usace.cwms.db.jooq.codegen.packages.CWMS_RATING_PACKAGE;
 import usace.cwms.db.jooq.codegen.packages.CWMS_UTIL_PACKAGE;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.logging.Level;
 
 import static org.opendcs.ratings.RatingConst.SEPARATOR1;
 
 public final class RatingJdbcFactory {
+    private static final Logger log = OpenDcsLoggerFactory.getLogger();
 
     private RatingJdbcFactory() {
         throw new AssertionError("Utility class");
@@ -49,10 +52,10 @@ public final class RatingJdbcFactory {
         RatingSet.DatabaseLoadMethod databaseLoadMethod;
         try {
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.valueOf(specifiedLoadMethod);
-        } catch (RuntimeException ex) {
-            RatingSet.getLogger().log(Level.WARNING,
-                "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
-                    "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"");
+        } catch (RuntimeException ex) {            
+            log.atWarn().setCause(ex).log(
+                "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: {}" + // NOSONAR
+                    "\nMust be one of \"Eager\", \"Lazy\", or \"Reference\".\nUsing \"Lazy\"", specifiedLoadMethod);
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.LAZY;
         }
         return databaseLoadMethod;
@@ -213,7 +216,7 @@ public final class RatingJdbcFactory {
             } finally {
                 conn.closeConnection(connection);
             }
-            RatingSet.getLogger().log(Level.FINE, "Retrieved XML:\n" + xmlText);
+            log.trace("Retrieved XML: {}", xmlText);
             return xmlText;
         } catch (RuntimeException t) {
             throw new RatingException(t);
@@ -239,12 +242,12 @@ public final class RatingJdbcFactory {
         //-----------------------------------------------//
         // load only spec and rating times from database //
         //-----------------------------------------------//
-        RatingSet.getLogger().log(Level.FINE, "Retrieving XML from database");
+        log.trace("Retrieving XML from database");
         String xmlText =
             CWMS_RATING_PACKAGE.call_RETRIEVE_RATINGS_XML_DATA(getConfiguration(conn), dataTimes ? "T" : "F", ratingSpecId, startTime, endTime, "UTC",
                 true, true, true, true, "F", officeId);
-        RatingSet.getLogger().log(Level.FINE, "XML retrieved from database");
-        RatingSet.getLogger().log(Level.FINE, "XML length = " + xmlText);
+        log.trace("XML retrieved from database");
+        log.trace("XML length {}", xmlText);
         return xmlText;
     }
 

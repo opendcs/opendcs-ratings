@@ -25,6 +25,8 @@ import org.opendcs.ratings.io.RatingSpecContainer;
 import org.opendcs.ratings.io.RatingTemplateContainer;
 import org.opendcs.ratings.io.xml.RatingSpecXmlFactory;
 import org.opendcs.ratings.io.xml.RatingXmlFactory;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -36,6 +38,7 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR3;
 
 public final class RatingCdaFactory
 {
+    private static final Logger log = OpenDcsLoggerFactory.getLogger();
 
     private RatingCdaFactory() {
         throw new AssertionError("Utility class");
@@ -48,15 +51,10 @@ public final class RatingCdaFactory
         try {
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.valueOf(specifiedLoadMethod);
         } catch (RuntimeException ex) {
-            if (RatingSet.getLogger().isLoggable(Level.FINE)) {
-                RatingSet.getLogger().log(Level.WARNING, ex,
-                    () -> "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
-                        "\nMust be one of " + Arrays.toString(RatingSet.DatabaseLoadMethod.values()));
-            } else {
-                RatingSet.getLogger().log(Level.WARNING,
-                    () -> "Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: " + specifiedLoadMethod +
-                        "\nMust be one of " + Arrays.toString(RatingSet.DatabaseLoadMethod.values()));
-            }
+            log.atWarn()
+               .setCause(log.isTraceEnabled() ? ex : null)
+               .log("Invalid value for property org.opendcs.ratings.RatingSet.databaseLoadMethod: {}. Must be one of {}",
+                    specifiedLoadMethod, Arrays.toString(RatingSet.DatabaseLoadMethod.values()));
             databaseLoadMethod = RatingSet.DatabaseLoadMethod.LAZY;
         }
         return databaseLoadMethod;
@@ -127,7 +125,7 @@ public final class RatingCdaFactory
                 default:
                     throw new RatingException("Database load method: " + databaseLoadMethod + " is currently unsupported for CDA client");
             }
-            RatingSet.getLogger().log(Level.FINE, () -> "Retrieved XML:\n" + xmlText);
+            log.trace("Retrieved XML: {}", xmlText);
             return xmlText;
         } catch (RuntimeException t) {
             throw new RatingException(t);

@@ -10,17 +10,12 @@ package org.opendcs.ratings;
 
 import mil.army.usace.hec.metadata.DataSetException;
 import org.opendcs.ratings.RatingConst.*;
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
-import org.opendcs.ratings.io.RatingJdbcCompatUtil;
 import org.opendcs.ratings.io.RatingTemplateContainer;
 import org.opendcs.ratings.io.xml.DomRatingTemplate;
 import rma.lang.Modifiable;
 
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.logging.Logger;
-
 import static hec.util.TextUtil.join;
 import static hec.util.TextUtil.split;
 import static org.opendcs.ratings.RatingConst.*;
@@ -32,8 +27,6 @@ import static org.opendcs.ratings.RatingConst.*;
  */
 public class RatingTemplate implements Modifiable
 {
-
-	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
 	/**
 	 * The templateVersion text of the rating template
