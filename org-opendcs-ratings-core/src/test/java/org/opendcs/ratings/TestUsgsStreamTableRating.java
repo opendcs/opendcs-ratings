@@ -249,7 +249,7 @@ public class TestUsgsStreamTableRating
 		assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
 
-    @Disabled("need to fined the xml file, or just make one up.")
+    @Disabled("need to find the xml file, or just make one up.")
 	@Test
 	public final void testStreamRatingInMiddleOfExtents() throws Exception
 	{
