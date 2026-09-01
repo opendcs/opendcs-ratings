@@ -87,16 +87,6 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 	 * Public empty constructor
 	 */
 	public RatingSpecContainer() {}
-	/**
-	 * Public constructor from an XML snippet
-	 * @param xmlStr The XML snippet
-	 * @throws RatingObjectDoesNotExistException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpecContainer(String) instead
-	 */
-	@Deprecated
-	public RatingSpecContainer(String xmlStr) throws RatingObjectDoesNotExistException {
-		populateFromXml(xmlStr);
-	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -218,73 +208,7 @@ public class RatingSpecContainer extends RatingTemplateContainer {
 		clone(other);
 		return other;
 	}
-	/**
-	 * Populates the RatingSpecContainer from the first &lt;rating-spec&gt; element in an XML string or null if no such element is found.
-	 * @param xmlStr The XML string
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpecContainer(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlStr) throws RatingObjectDoesNotExistException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		RatingSpecContainer ratingSpecContainer = service.createRatingSpecContainer(xmlStr);
-		ratingSpecContainer.clone(this);
-	}
-	/**
-	 * Generates an XML string (template and spec) from this object
-	 * @param indent The amount to indent each level (initial leve = 0)
-	 * @return the generated XML
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpecContainer, CharSequence, int, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
 
-	/**
-	 * Generates an XML string (template and spec) from this object
-	 * @param indent The amount to indent each level
-	 * @param level The initial level of indentation
-	 * @return the generated XML
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpecContainer, CharSequence, int, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level, includeTemplate);
-	}
-
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpecContainer, CharSequence, int, boolean) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level) {
-		return toXml(indent, level, true);
-	}
-
-	/**
-	 * Generates a specification XML string from this object
-	 * @param indent The amount to indent each level (initial level = 0)
-	 * @return the generated XML
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpecContainer, CharSequence, int, boolean) instead
-	 */
-	@Deprecated
-	public String toSpecXml(CharSequence indent) {
-		return toSpecXml(indent, 0);
-	}
-
-	/**
-	 * Generates a specification XML string from this object
-	 * @param indent The amount to indent each level
-	 * @param level The initial level of indentation
-	 * @return the generated XML
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpecContainer, CharSequence, int, boolean) instead
-	 */
-	@Deprecated
-	public String toSpecXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toSpecXml(this, indent, level);
-	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

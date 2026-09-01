@@ -42,50 +42,7 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 	 * Public empty constructor
 	 */
 	public TransitionalRatingContainer() {}
-	/**
-	 * Public constructor from a DOM Element. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param ratingElement The DOM Element
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public TransitionalRatingContainer(Element ratingElement) throws RatingException {
-		populateFromXml(ratingElement);
-	}
-	/**
-	 * Public constructor from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param xmlText The XML snippet
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(String) instead
-	 */
-	@Deprecated
-	public TransitionalRatingContainer(String xmlText) throws RatingException {
-		populateFromXml(xmlText);
-	}
-	/**
-	 * Populates the TransitionalRatingContainer from a DOM Element. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param ratingElement The DOM element
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public void populateFromXml(Element ratingElement) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		TransitionalRatingContainer transitionalRatingContainer = service.createTransitionalRatingContainer(ratingElement);
-		transitionalRatingContainer.clone(this);
-	}
-	/**
-	 * Populates the TransitionalRatingContainer from an XML snippet. The conditions, evaluations, and sourceRatings fields will be null
-	 * @param xmlText The XML snippet
-	 * @throws RatingException in error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#transitionalRatingContainer(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		TransitionalRatingContainer transitionalRatingContainer = service.createTransitionalRatingContainer(xmlText);
-		transitionalRatingContainer.clone(this);
-	}
+
 	/**
 	 * Populates the source ratings of this object from the soureRatingIds field and input parameters
 	 *
@@ -311,34 +268,4 @@ public class TransitionalRatingContainer extends AbstractRatingContainer {
 		}
 		super.setVerticalDatumInfo(xmlStr);
 	}
-
-	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TransitionalRatingContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
-
-	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TransitionalRatingContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level);
-	}
-
-	/**
-	 *
-	 * @deprecated will be removed as this should be internal API only
-	 */
-	@Deprecated
-	public void getSoucreRatingsXml(CharSequence indent, int level, Set<String> templateStrings, Set<String> specStrings, List<String> ratingStrings) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		service.getSourceRatingsXml(this, indent, level, templateStrings, specStrings, ratingStrings);
-	}
-
 }

@@ -56,49 +56,7 @@ public class TableRatingContainer extends AbstractRatingContainer {
 	 * Public empty constructor
 	 */
 	public TableRatingContainer() {}
-	/**
-	 * Public constructor from a DOM element
-	 * @param element the DOM element
-	 * @throws RatingException on error
-	 * @deprecated Use =mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(Element) instead
-	 */
-	@Deprecated
-	public TableRatingContainer(Element element) throws RatingException {
-		populateFromXml(element);
-	}
-	/**
-	 * Public constructor from an XML snippet
-	 * @param xmlText the XML snippet
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(String) instead
-	 */
-	@Deprecated
-	public TableRatingContainer(String xmlText) throws RatingException {
-		populateFromXml(xmlText);
-	}
-	/**
-	 * Populate this container from a DOM element
-	 * @param ratingElement The DOM element
-	 * @throws RatingException or error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(Element) instead
-	 */
-	public void populateFromXml(Element ratingElement) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		TableRatingContainer tableRatingContainer = service.createTableRatingContainer(ratingElement);
-		tableRatingContainer.clone(this);
-	}
-	/**
-	 * Populate this container from an XML snippet
-	 * @param xmlText the XML snippet
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#tableRatingContainer(String) instead
-	 */
-	@Deprecated
-	public void populateFromXml(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		TableRatingContainer tableRatingContainer = service.createTableRatingContainer(xmlText);
-		tableRatingContainer.clone(this);
-	}
+
 	/* (non-Javadoc)
 	 * @see org.opendcs.ratings.io.AbstractRatingContainer#equals(java.lang.Object)
 	 */
@@ -223,26 +181,6 @@ public class TableRatingContainer extends AbstractRatingContainer {
 		return new TableRating(this);
 	}
 
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TableRatingContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
-
-	/**
-	 *
-	 * @deprecated Use =mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(TableRatingContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level);
-	}
 	/**
 	 * @return an XML string containing the lookup behaviors inherited from the rating template
 	 */

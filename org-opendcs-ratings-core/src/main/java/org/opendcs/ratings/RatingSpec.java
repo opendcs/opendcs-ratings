@@ -115,34 +115,6 @@ public class RatingSpec extends RatingTemplate {
 	}
 
 	/**
-	 * Retrieves a RatingTemplate XML instance from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
-	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException Any SQL errors retreiving the data
-	 * @return XML string from the database
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#getRatingSpecXmlFromDatabase(Connection, String, String) instead
-	 */
-	@Deprecated
-	public static String getXmlfromDatabase(
-			Connection conn,
-			String officeId,
-			String ratingSpecId)
-			throws RatingException {
-		return RatingJdbcCompatUtil.getInstance().getSpecXmlFromDatabase(conn, officeId, ratingSpecId);
-	}
-
-	/**
-	 *
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
-	 */
-	@Deprecated
-	public static RatingSpec fromDatabase(Connection conn, String officeId, String ratingSpecId) throws RatingException
-	{
-		return RatingJdbcCompatUtil.getInstance().specFromDatabase(conn, officeId, ratingSpecId);
-	}
-
-	/**
 	 * Public Constructor
 	 * @param officeId The office that owns the rating specification
 	 * @param ratingSpecId The rating specification identifier
@@ -205,47 +177,7 @@ public class RatingSpec extends RatingTemplate {
 	public RatingSpec(RatingSpecContainer rsc) throws RatingException {
 		setData(rsc);
 	}
-	/**
-	 * Public constructor from the CWMS database
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
-	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
-	 */
-	@Deprecated
-	public RatingSpec (
-			Connection conn,
-			String officeId,
-			String ratingSpecId)
-			throws RatingException {
-		setData(conn, officeId, ratingSpecId);
-	}
-	/**
-	 * Public constructor from XML nodes
-	 * @param templateNode The template XML node
-	 * @param specNode The specification XML node
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(Node, Node) instead.
-	 */
-	@Deprecated
-	public RatingSpec(Node templateNode, Node specNode) throws RatingException {
-		setData(new RatingSpec(templateNode, specNode).getData());
-	}
 
-	/**
-	 * Public constructor from XML strings
-	 * @param templateXml The template XML text
-	 * @param specXml The specification XML text
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
-	 */
-	@Deprecated
-	public RatingSpec(String templateXml , String specXml) throws RatingException {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		RatingSpec ratingSpec = service.createRatingSpec(templateXml, specXml);
-		setData(ratingSpec.getData());
-	}
 	/**
 	 * Retrieves the identifier of the office that owns this rating specification
 	 * @return The identifier of the office that owns this rating specification
@@ -709,169 +641,6 @@ public class RatingSpec extends RatingTemplate {
 			throw new RatingException(t);
 		}
 	}
-	/**
-	 * Sets the data from this object from a the database
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used.
-	 * @param ratingSpecId The rating specification identifier
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#ratingSpec(Connection, String, String) instead
-	 */
-	@Deprecated
-	public synchronized void setData (
-			Connection conn,
-			String officeId,
-			String ratingSpecId)
-			throws RatingException {
-		RatingSpec ratingSpec = RatingJdbcCompatUtil.getInstance().specFromDatabase(conn, officeId, ratingSpecId);
-		setData(ratingSpec.getData());
-	}
-
-	/**
-	 * Sets the data for this object from XML Text
-	 * @param templateXml The template XML text
-	 * @param specXml The specification XML text
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
-	 */
-	@Deprecated
-	public void setData(String templateXml, String specXml) throws RatingException {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		RatingSpecContainer container = service.createRatingSpec(templateXml, specXml).getData();
-		setData(container);
-	}
-
-	/**
-	 * Sets the data for this object from XML nodes
-	 * @param templateNode The template XML node
-	 * @param specNode The specification XML node
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#ratingSpec(String, String) instead.
-	 */
-	@Deprecated
-	public void setData(Node templateNode, Node specNode) throws RatingException {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		RatingTemplateContainer container = service.createRatingSpec(templateNode, specNode).getData();
-		setData(container);
-	}
-
-	/**
-	 * Generates an XML document from this rating specification containing only the
-	 * &lt;rating-spec&gt; element.
-	 * @param indent The character(s) for each level of indentation
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	public String toSpecXml(CharSequence indent) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, 0, false);
-	}
-
-	/**
-	 * Generates an XML document fragment from this rating specification containing only the
-	 * &lt;rating-spec&gt; element.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	public String toSpecXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, level, false);
-	}
-
-	/**
-	 * Generates an XML document from this rating specification containing only the
-	 * &lt;rating-template&gt; element.
-	 * @param indent The character(s) for each level of indentation
-	 * @return The XML document
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplate, CharSequence, int) instead.
-	 */
-	public String toTemplateXml(CharSequence indent) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, 0);
-	}
-
-	/**
-	 * Generates an XML document fragment from this rating specification containing only the
-	 * &lt;rating-template&gt; element.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingTemplate, CharSequence, int) instead.
-	 */
-	public String toTemplateXml(CharSequence indent, int level) {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, level);
-	}
-
-	/**
-	 * Generates an XML document from this rating specification containing both
-	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
-	 * @param indent The character(s) for each level of indentation
-	 * @return The XML document
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent) {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, 0, false);
-	}
-
-	/**
-	 * Generates an XML document fragment from this rating specification containing both
-	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level) {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level, false);
-	}
-
-	/**
-	 * Generates an XML document fragment from this rating specification.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level, boolean includeTemplate) {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level, includeTemplate);
-	}
-
-	/**
-	 * Generates an XML document fragment from this rating specification containing both
-	 * &lt;rating-template&gt; and &lt;rating-spec&gt; elements.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	@Deprecated
-	@Override
-	public String toXmlString(CharSequence indent, int level) {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level, false);
-	}
-
-	/**
-	 * Generates an XML document fragment from this rating specification.
-	 * @param indent The character(s) for each level of indentation
-	 * @param level The base indentation level for the document fragment
-	 * @return The XML document fragment
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingSpecXmlFactory#toXml(RatingSpec, CharSequence, int, boolean) instead.
-	 */
-	@Deprecated
-	public String toXmlString(CharSequence indent, int level, boolean includeTemplate) {
-		RatingXmlCompatUtil service = RatingXmlCompatUtil.getInstance();
-		return service.toXml(this, indent, level, includeTemplate);
-	}
 
 	/**
 	 * @return  the unique identifying parts for the rating specification.
@@ -884,34 +653,6 @@ public class RatingSpec extends RatingTemplate {
         return new DomRatingSpecification(officeId, specificationId);
 	}
 
-	/**
-	 * Stores the rating specification (without template) to a CWMS database
-	 * @param conn The connection to the CWMS database
-	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, RatingSpec, boolean, boolean) instead
-	 */
-	@Deprecated
-	@Override
-	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingJdbcCompatUtil.getInstance().storeToDatabase(this, conn, overwriteExisting, false);
-	}
-
-	/**
-	 *
-	 * @param conn the JDBC connection
-	 * @param overwriteExisting whether to overwrite any existing rating spec
-	 * @param storeTemplate whether to store the template information
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, RatingSpec, boolean, boolean) instead
-	 */
-	@Deprecated
-	public void storeToDatabase(Connection conn, boolean overwriteExisting, boolean storeTemplate) throws RatingException {
-		RatingJdbcCompatUtil.getInstance().storeToDatabase(this, conn, overwriteExisting, storeTemplate);
-	}
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		return obj == this || (obj != null && obj.getClass() == getClass() && getData().equals(((RatingSpec)obj).getData()));

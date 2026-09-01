@@ -342,40 +342,6 @@ public class AbstractRatingContainer implements VerticalDatum, Comparable<Abstra
 	}
 
 	/**
-	 * Constructs an AbstractRatingContainer from the first &lt;rating&gt; or &lt;usgs-stream-rating&gt; element in an XML string or null if no such element is found.
-	 * @param xmlStr The XML string
-	 * @return The RatingTemplateContainer object
-	 * @throws RatingException on error
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(String) instead
-	 */
-	@Deprecated
-	public static AbstractRatingContainer buildFromXml(String xmlStr) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.createAbstractRatingContainer(xmlStr);
-	}
-
-	/**
-	 * Generates an XML string from this object. The subclass overrides should normally be called instead of this.
-	 * @param indent The amount to indent each level
-	 * @return the generated XML
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(AbstractRatingContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent) {
-		return toXml(indent, 0);
-	}
-	/**
-	 * Generates an XML string from this object. The subclass overrides should normally be called instead of this.
-	 * @param indent The amount to indent each level
-	 * @param level The initial level of indentation
-	 * @return the generated XML
-	 * @deprecated use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRatingContainer(AbstractRatingContainer, CharSequence, int) instead
-	 */
-	@Deprecated
-	public String toXml(CharSequence indent, int level) {
-		return RatingContainerXmlCompatUtil.getInstance().toXml(this, indent, level);
-	}
-	/**
 	 * Add the specified offset to the values of the specified parameter.
 	 * @param paramNum Specifies which parameter to add the offset to. 0, 1 = first, second independent, etc... -1 = dependent parameter
 	 * @param offset The offset to add

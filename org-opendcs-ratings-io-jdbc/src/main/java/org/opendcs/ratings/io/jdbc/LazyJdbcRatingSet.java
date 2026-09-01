@@ -40,31 +40,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
         super(conn, dbInfo);
         validate();
     }
-
-    @Override
-    public void getConcreteRatings(long date) throws RatingException {
-        if (activeRatings.containsKey(date)) {
-            Entry<Long, AbstractRating> entry = activeRatings.floorEntry(date);
-            getConcreteRating(entry);
-        }
-    }
-
-    /**
-     * Loads all rating values from table ratings that haven't already been loaded.
-     *
-     * @throws RatingException on error
-     */
-    @Override
-    public void getConcreteRatings(Connection conn) throws RatingException {
-        setDatabaseConnection(conn);
-        long[] effectiveDates = getEffectiveDates();
-        for (long effectiveDate : effectiveDates) {
-            Entry<Long, AbstractRating> entry = activeRatings.floorEntry(effectiveDate);
-            getConcreteRating(entry);
-        }
-        clearDatabaseConnection();
-    }
-
     /**
      * Loads all rating values from table ratings that haven't already been loaded.
      *
@@ -116,10 +91,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
 
                         }
                         refreshRatings();
-                        if (observationTarget != null) {
-                            observationTarget.setChanged();
-                            observationTarget.notifyObservers();
-                        }
                     } finally {
                         releaseConnection(conn);
                     }
@@ -550,16 +521,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
         return Y;
     }
 
-    /* (non-Javadoc)
-     * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
-     */
-    @Override
-    public void update(java.util.Observable arg0, Object arg1) {
-        refreshRatings();
-        observationTarget.setChanged();
-        observationTarget.notifyObservers();
-    }
-
     /**
      * Sets the database info required to retrieve a database connection
      *
@@ -645,9 +606,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
             if (rating instanceof UsgsStreamTableRating) {
                 try {
                     RatingSet shifts = ((UsgsStreamTableRating) rating).getShifts();
-                    if (shifts != null) {
-                        shifts.setDatabaseConnection(conn);
-                    }
                 } catch (RatingException e) {
                     getLogger().log(Level.WARNING, "Unable to set database connection for shift rating set: " + rating.getName(), e);
                 }
@@ -656,9 +614,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                 if (sourceRatings != null) {
                     for (SourceRating sourceRating : ((VirtualRating) rating).getSourceRatings()) {
                         RatingSet ratingSet = sourceRating.getRatingSet();
-                        if (ratingSet != null) {
-                            ratingSet.setDatabaseConnection(conn);
-                        }
                     }
                 }
             } else if (rating instanceof TransitionalRating) {
@@ -666,9 +621,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
                 if (sourceRatings != null) {
                     for (SourceRating sourceRating : ((TransitionalRating) rating).getSourceRatings()) {
                         RatingSet ratingSet = sourceRating.getRatingSet();
-                        if (ratingSet != null) {
-                            ratingSet.setDatabaseConnection(conn);
-                        }
                     }
                 }
             }
@@ -696,12 +648,6 @@ public final class LazyJdbcRatingSet extends JdbcRatingSet {
             if (rating.isActive() && rating.getCreateDate() < ratingTime) {
                 activeRatings.put(effectiveDate, rating);
             }
-            rating.deleteObserver(this);
-            rating.addObserver(this);
-        }
-        if (observationTarget != null) {
-            observationTarget.setChanged();
-            observationTarget.notifyObservers();
         }
     }
 }

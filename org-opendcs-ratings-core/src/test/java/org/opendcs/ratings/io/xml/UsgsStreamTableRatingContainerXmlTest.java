@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.RatingException;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.TableRatingContainer;
 import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
@@ -38,7 +39,8 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UsgsStreamTableRatingContainerXmlTest {
-
+    
+    private static final RatingContainerXmlCompatUtil containerXmlUtils = RatingContainerXmlCompatUtil.getInstance();
     private UsgsStreamTableRatingContainer usgsStreamTableRatingContainer;
 
     @BeforeEach
@@ -49,23 +51,23 @@ class UsgsStreamTableRatingContainerXmlTest {
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                  Stream<String> stream = bufferedReader.lines()) {
                 String text = stream.collect(Collectors.joining("\n"));
-                usgsStreamTableRatingContainer = new UsgsStreamTableRatingContainer(text);
+                usgsStreamTableRatingContainer = containerXmlUtils.createUsgsStreamTableRatingContainer(text);
             }
         }
     }
 
     @Test
     void testXmlSerialization() throws RatingException {
-        String xml = usgsStreamTableRatingContainer.toXml("");
-        UsgsStreamTableRatingContainer newContainer = new UsgsStreamTableRatingContainer(xml);
+        String xml = containerXmlUtils.toXml(usgsStreamTableRatingContainer, "", 0);
+        UsgsStreamTableRatingContainer newContainer = containerXmlUtils.createUsgsStreamTableRatingContainer(xml);
         assertEquals(usgsStreamTableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
 
     @Test
     void testXmlDomSerialization() throws RatingException {
-        String xml = usgsStreamTableRatingContainer.toXml("");
+        String xml = containerXmlUtils.toXml(usgsStreamTableRatingContainer, "", 0);
         Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("usgs-stream-rating").item(0);
-        UsgsStreamTableRatingContainer newContainer = new UsgsStreamTableRatingContainer(element);
+        UsgsStreamTableRatingContainer newContainer = containerXmlUtils.createUsgsStreamTableRatingContainer(element);
         assertEquals(usgsStreamTableRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
 

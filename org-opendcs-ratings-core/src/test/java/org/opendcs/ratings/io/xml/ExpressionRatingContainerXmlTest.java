@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendcs.ratings.RatingException;
 import org.opendcs.ratings.io.ExpressionRatingContainer;
+import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.w3c.dom.Element;
 
 import java.io.BufferedReader;
@@ -37,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ExpressionRatingContainerXmlTest {
 
+    private static final RatingContainerXmlCompatUtil containerXmlUtils = RatingContainerXmlCompatUtil.getInstance();
+
     private ExpressionRatingContainer expressionRatingContainer;
 
     @BeforeEach
@@ -47,23 +50,23 @@ class ExpressionRatingContainerXmlTest {
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                  Stream<String> stream = bufferedReader.lines()) {
                 String text = stream.collect(Collectors.joining("\n"));
-                expressionRatingContainer = new ExpressionRatingContainer(text);
+                expressionRatingContainer = containerXmlUtils.createExpressionRatingContainer(text);
             }
         }
     }
 
     @Test
     void testXmlSerialization() throws RatingException {
-        String xml = expressionRatingContainer.toXml("");
-        ExpressionRatingContainer newContainer = new ExpressionRatingContainer(xml);
+        String xml = containerXmlUtils.toXml(expressionRatingContainer, "", 3);
+        ExpressionRatingContainer newContainer = containerXmlUtils.createExpressionRatingContainer(xml);
         assertEquals(expressionRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
 
     @Test
     void testXmlDomSerialization() throws RatingException {
-        String xml = expressionRatingContainer.toXml("");
+        String xml = containerXmlUtils.toXml(expressionRatingContainer, "", 0);
         Element element = (Element) org.opendcs.ratings.XmlUtil.textToElement(xml).getElementsByTagName("simple-rating").item(0);
-        ExpressionRatingContainer newContainer = new ExpressionRatingContainer(element);
+        ExpressionRatingContainer newContainer = containerXmlUtils.createExpressionRatingContainer(element);
         assertEquals(expressionRatingContainer, newContainer, "Serialized object should equal original when deserialized");
     }
 

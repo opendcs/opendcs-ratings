@@ -117,35 +117,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	/**
 	 * Flag specifying whether this object outputs messages about "risky" operations such as using mismatched units, unknown parameters, etc.
 	 */
-	protected boolean warnUnsafe = true;
-	/**
-	 * Generates a new AbstractRating object from XML text
-	 * @param xmlText The XML text to generate the rating object from
-	 * @return The generated rating object.
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#abstractRating instead
-	 */
-	@Deprecated
-	public static AbstractRating fromXml(String xmlText) throws RatingException {
-		return RatingXmlCompatUtil.getInstance().fromXml(xmlText);
-	}
-
-	/**
-	 * Generates a new AbstractRating object from a CWMS database connection
-	 * @param conn The connection to a CWMS database
-	 * @param officeId The identifier of the office owning the rating. If null, the office associated with the connect user is used. 
-	 * @param ratingSpecId The rating specification identifier
-	 * @param effectiveDate Specifies (in milliseconds) a time to be an upper bound on the effective date.
-	 *                      The rating with the latest effective date on or before this time is retrieved. If null, the latest rating is retrieved.
-	 * @return The new AbstractRating object
-	 * @throws RatingException
-	 * Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#retrieve(Connection, String, String, Long) instead;
-	 */
-	@Deprecated
-	public static AbstractRating fromDatabase(Connection conn, String officeId, String ratingSpecId, Long effectiveDate) throws RatingException {
-		RatingJdbcCompatUtil service = RatingJdbcCompatUtil.getInstance();
-		return service.fromDatabase(conn, officeId, ratingSpecId, effectiveDate);
-	}
+	protected boolean warnUnsafe = true;	
 
 	public static boolean compatibleUnits(String[] units1, String[] units2) {
 		boolean compatible = false;
@@ -1058,15 +1030,6 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	}
 	
 	/**
-	 * Returns an array of Rating Values. The defaultInteger will be used by function based rating curves to
-	 * generate points a fixed number of dependent values apart
-	 * @param defaultInterval The interval in minutes for ExpresionRating objects
-	 * @return The rated values
-	 */
-	public abstract RatingValue[] getValues(Integer defaultInterval);
-	
-	
-	/**
 	 * @return the rating specification.
 	 * @throws DataSetException on error
 	 */
@@ -1122,18 +1085,7 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
     public static Logger getLogger() {
     	return logger;
     }
-	/**
-	 * Stores the rating  to a CWMS database
-	 * @param conn The connection to the CWMS database
-	 * @param overwriteExisting Flag specifying whether to overwrite any existing rating data
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.jdbc.RatingJdbcFactory#store(Connection, boolean) instead;
-	 */
-	@Deprecated
-	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		RatingJdbcCompatUtil service = RatingJdbcCompatUtil.getInstance();
-		service.storeToDatabase(this, conn, overwriteExisting);
-	}
+
 	/**
 	 * Returns whether this rating has vertical datum information
 	 * @return whether this rating has vertical datum information
@@ -1153,13 +1105,6 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 	 */
 	@Override
 	public abstract int hashCode();
-
-	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public abstract String toXmlString(CharSequence indent, int indentLevel) throws RatingException;
 
 	/**
 	 * @return the VerticalDatumContainer

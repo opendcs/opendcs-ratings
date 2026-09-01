@@ -133,21 +133,8 @@ public class UsgsStreamTableRating extends TableRating {
 					shift.ratingUnitsId = String.format("%s;%s", heightUnit, heightUnit);
 				}
 			}
-			this.shifts.addObserver(this);
 		}
-	}
-	/**
-	 * Public constructor from XML text
-	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#usgsStreamTableRating(String) instead
-	 */
-	@Deprecated
-	public UsgsStreamTableRating(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		UsgsStreamTableRatingContainer container = service.createUsgsStreamTableRatingContainer(xmlText);
-		setData(container);
-	}
+	}	
 
 	/* (non-Javadoc)
 	 * @see org.opendcs.ratings.RatingTable#rate(double)
@@ -245,10 +232,8 @@ public class UsgsStreamTableRating extends TableRating {
 				if (valTimes[i] == UNDEFINED_TIME && shifts != null && shifts.getRatingCount() > 0) {
 					throw new RatingException("Value time is undefined in the presence of dated shifts - cannot rate.");
 				}
-//				System.out.println("usgs-rate : height = " + indVals[i]);
 				double shift = getShiftFromUnshifted(valTimes[i], indVals[i]);
 				double ind_val = indVals[i] + shift;
-//				System.out.println("usgs-rate : height = " + ind_val);
 				boolean out_range_low = false;
 				boolean out_range_high = false;
 				int lo = 0;
@@ -284,7 +269,6 @@ public class UsgsStreamTableRating extends TableRating {
 					switch (outRangeLowMethod) {
 					case NULL:
 						Y[i] = UNDEFINED_DOUBLE;
-//						System.out.println("usgs-rate : dep_val 1 = " + Y[i]);
 						continue;
 					case ERROR:
 						throw new RatingException("Value is out of range low.");
@@ -301,7 +285,6 @@ public class UsgsStreamTableRating extends TableRating {
 					case HIGHER:
 					case CLOSEST:
 						Y[i] = effectiveValues[0].getDepValue();
-//						System.out.println("usgs-rate : dep_val 2 = " + Y[i]);
 						continue;
 					case LOWER:
 						throw new RatingException("No lower value in table.");
@@ -320,7 +303,6 @@ public class UsgsStreamTableRating extends TableRating {
 					switch (outRangeHighMethod) {
 					case NULL:
 						Y[i] = UNDEFINED_DOUBLE;
-//						System.out.println("usgs-rate : dep_val 3 = " + Y[i]);
 						continue;
 					case ERROR:
 						throw new RatingException("Value is out of range high.");
@@ -337,7 +319,6 @@ public class UsgsStreamTableRating extends TableRating {
 					case CLOSEST:
 					case LOWER:
 						Y[i] =  effectiveValues[effectiveValues.length - 1].getDepValue();
-//						System.out.println("usgs-rate : dep_val 4 = " + Y[i]);
 						continue;
 					case HIGHER:
 						throw new RatingException("No higher value in table.");
@@ -358,7 +339,6 @@ public class UsgsStreamTableRating extends TableRating {
 				switch (method) {
 				case NULL:
 					Y[i] = UNDEFINED_DOUBLE;
-//					System.out.println("usgs-rate : dep_val 5 = " + Y[i]);
 					continue;
 				case ERROR:
 					throw new RatingException("No such value in table.");
@@ -369,28 +349,23 @@ public class UsgsStreamTableRating extends TableRating {
 				double hi_dep_val = effectiveValues[hi].getDepValue();
 				if (eq(ind_val, lo_ind_val)) {
 					Y[i] = lo_dep_val;
-//					System.out.println("usgs-rate : dep_val 6 = " + Y[i]);
 					continue;
 				}
 				if (eq(ind_val, hi_ind_val)) {
 					Y[i] = hi_dep_val;
-//					System.out.println("usgs-rate : dep_val = 7 " + Y[i]);
 					continue;
 				}
 				switch (method) {
 				case PREVIOUS:
 				case LOWER:
 					Y[i] = lo_dep_val;
-//					System.out.println("usgs-rate : dep_val = 8 " + Y[i]);
 					continue;
 				case NEXT:
 				case HIGHER:
 					Y[i] = hi_dep_val;
-//					System.out.println("usgs-rate : dep_val 9 = " + Y[i]);
 					continue;
 				case CLOSEST:
 					Y[i] =  lt(Math.abs(ind_val - lo_ind_val), Math.abs(hi_ind_val - ind_val)) ? lo_dep_val : hi_dep_val;
-//					System.out.println("usgs-rate : dep_val 10 = " + Y[i]);
 					continue;
 				default:
 					break;
@@ -440,7 +415,6 @@ public class UsgsStreamTableRating extends TableRating {
 				double y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 				if (dep_log) y = Math.pow(10, y);
 				Y[i] = y;
-//				System.out.println("usgs-rate : dep_val 11 = " + Y[i]);
 			}
 			return Y;
 		}
@@ -908,14 +882,6 @@ public class UsgsStreamTableRating extends TableRating {
 	}
 
 	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(UsgsStreamTableRating, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		return RatingXmlCompatUtil.getInstance().toXml(this, indent, indentLevel);
-	}
-	/**
 	 * Retrieves the stage shift for an unshifted stage at a specified time
 	 * @param valTime The time to get the shift for
 	 * @param height The unshifted stage to get the shift for
@@ -925,7 +891,6 @@ public class UsgsStreamTableRating extends TableRating {
 	protected double getShiftFromUnshifted(long valTime, double height) throws RatingException {
 		synchronized(this) {
 			double shift = 0;
-//			System.out.println("getShift : height = " + height);
 			try {
 				if (this.shiftRounder == null) {
 					if (ratingSpec == null) {
@@ -937,14 +902,12 @@ public class UsgsStreamTableRating extends TableRating {
 				}
 			if (shifts != null && shifts.getActiveRatingCount() > 0) {
 				shift = shifts.rate(height, valTime);
-//					System.out.println("getShift : shift  = " + shift);
 					shift = shiftRounder.round(shift, true);
 				}
 			}
 			catch (RoundingException e) {
 				throw new RatingException(e);
 			}
-//			System.out.println("getShift : shift  = " + shift);
 			return shift;
 		}
 	}
@@ -1002,7 +965,6 @@ public class UsgsStreamTableRating extends TableRating {
 					offset = offsets.rate(indVal);
 				}
 			}
-//			System.out.println("getOffset : offset = " + offset);
 			return offset;
 		}
 	}

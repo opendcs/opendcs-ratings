@@ -13,11 +13,9 @@ import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.UnitUtil;
 import mil.army.usace.hec.metadata.UnitsConversionException;
 import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.SourceRatingContainer;
 import org.opendcs.ratings.io.VirtualRatingContainer;
 
-import java.sql.Connection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -197,18 +195,7 @@ public class VirtualRating extends AbstractRating {
 		init();
 		setData(vrc);
 	}
-	/**
-	 * Public constructor from XML text
-	 * @param xmlText The XML text to initialize from
-	 * @throws RatingException on error
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#virtualRating(String) instead
-	 */
-	@Deprecated
-	public VirtualRating(String xmlText) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		VirtualRatingContainer container = service.createVirtualRatingContainer(xmlText);
-		setData(container);
-	}
+
 	/**
 	 * performs common initialization tasks
 	 */
@@ -592,12 +579,6 @@ public class VirtualRating extends AbstractRating {
 					}
 				}
 
-				//add observers once we know everything is acceptable.
-				for (SourceRating source : clonedSources)
-				{
-					source.addObserver(this);
-				}
-
 				inputs = newInputs;
 				outputs = newOutputs;
 				sourceRatings = clonedSources;
@@ -735,16 +716,6 @@ public class VirtualRating extends AbstractRating {
 				}
 			}
 		}
-	}
-
-	/**
-	 * @deprecated Use mil.army.usace.hec.cwms.rating.io.xml.RatingXmlFactory#toXml(VirtualRating, CharSequence, int) instead
-	 */
-	@Deprecated
-	@Override
-	public String toXmlString(CharSequence indent, int indentLevel) throws RatingException {
-		RatingContainerXmlCompatUtil service = RatingContainerXmlCompatUtil.getInstance();
-		return service.toXml(getData(), indent, indentLevel);
 	}
 
 	/* (non-Javadoc)
@@ -1162,14 +1133,6 @@ public class VirtualRating extends AbstractRating {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#getValues(java.lang.Integer)
-	 */
-	@Override
-	public RatingValue[] getValues(Integer defaultInterval) {
-		throw new UnsupportedOperationException("getValues is not supported for virtual ratings");
-	}
-
-	/* (non-Javadoc)
 	 * @see org.opendcs.ratings.AbstractRating#getInstance(org.opendcs.ratings.io.AbstractRatingContainer)
 	 */
 	@Override
@@ -1213,16 +1176,5 @@ public class VirtualRating extends AbstractRating {
 	public int hashCode() {
 		return getClass().getName().hashCode() + getData().hashCode();
 	}
-	/* (non-Javadoc)
-	 * @see org.opendcs.ratings.AbstractRating#storeToDatabase(java.sql.Connection, boolean)
-	 */
-	@Override
-	public void storeToDatabase(Connection conn, boolean overwriteExisting) throws RatingException {
-		if(!isNormalized()) {
-			normalizedCopy().storeToDatabase(conn, overwriteExisting);
-		}
-		else {
-			super.storeToDatabase(conn, overwriteExisting);
-		}
-	}
+
 }

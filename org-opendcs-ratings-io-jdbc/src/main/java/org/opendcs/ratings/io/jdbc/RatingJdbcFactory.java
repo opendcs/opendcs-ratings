@@ -428,9 +428,6 @@ public final class RatingJdbcFactory {
         JdbcRatingSet.DbInfo dbInfo = getDbInfo(conn);
         LazyJdbcRatingSet lazyJdbcRatingSet = new LazyJdbcRatingSet(conn, dbInfo);
         lazyJdbcRatingSet.setData(ratingSetContainer);
-        if (ratingSetContainer.state != null) {
-            lazyJdbcRatingSet.setState(ratingSetContainer.state);
-        }
         return lazyJdbcRatingSet;
     }
 
