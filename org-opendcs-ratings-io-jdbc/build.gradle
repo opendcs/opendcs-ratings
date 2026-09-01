@@ -39,6 +39,7 @@ dependencies {
     testImplementation(libs.testcontainers.jdbc)
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.cwms)
+    testRuntimeOnly(libs.ch.qos.logback)
 }
 configurations.testImplementation.extendsFrom(configurations.runtimeOnly)
 

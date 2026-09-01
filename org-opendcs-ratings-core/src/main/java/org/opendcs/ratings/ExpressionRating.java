@@ -18,6 +18,8 @@ import org.opendcs.ratings.io.AbstractRatingContainer;
 import org.opendcs.ratings.io.ExpressionRatingContainer;
 import org.opendcs.ratings.io.RatingContainerXmlCompatUtil;
 import org.opendcs.ratings.io.RatingXmlCompatUtil;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 
@@ -29,6 +31,7 @@ import static hec.util.TextUtil.replaceAll;
  * @author Mike Perryman
  */
 public class ExpressionRating extends AbstractRating {
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	/**
 	 * The mathematical expression used to create this rating
 	 */
@@ -174,8 +177,12 @@ public class ExpressionRating extends AbstractRating {
 					}
 					else if(!UnitUtil.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+						if (!allowUnsafe) {
+							throw new RatingException(msg);
+						}
+						if (warnUnsafe) {
+							log.warn(msg + "  Rating will be performed on unconverted values."); // NOSONAR
+						}
 					}
 				}
 				double[] rated = new double[pIndVals.length];
@@ -221,8 +228,12 @@ public class ExpressionRating extends AbstractRating {
 					}
 					else if(!UnitUtil.canConvertBetweenUnits(dataUnits[i], ratingUnits[i])) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", dataUnits[i], ratingUnits[i]);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg + "  Rating will be performed on unconverted values.");
+						if (!allowUnsafe) {
+							throw new RatingException(msg);
+						}
+						if (warnUnsafe) {
+							log.warn(msg + "  Rating will be performed on unconverted values."); // NOSONAR
+						}
 					}
 				}
 				double[] rated = new double[pIndVals.length];

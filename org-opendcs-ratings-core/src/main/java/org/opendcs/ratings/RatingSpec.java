@@ -17,10 +17,6 @@ import mil.army.usace.hec.metadata.Parameter;
 import org.opendcs.ratings.RatingConst.*;
 import org.opendcs.ratings.io.*;
 import org.opendcs.ratings.io.xml.DomRatingSpecification;
-import org.w3c.dom.Node;
-
-import java.sql.Connection;
-import java.util.logging.Logger;
 
 import static hec.util.TextUtil.split;
 import static org.opendcs.ratings.RatingConst.*;
@@ -31,8 +27,6 @@ import static org.opendcs.ratings.RatingConst.*;
  * @author Mike Perryman
  */
 public class RatingSpec extends RatingTemplate {
-
-	protected static final Logger logger = Logger.getLogger(RatingSet.class.getPackage().getName());
 
 	/**
 	 * The identifier of the location for the rating specification

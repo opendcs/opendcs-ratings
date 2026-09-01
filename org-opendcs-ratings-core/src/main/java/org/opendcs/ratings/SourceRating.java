@@ -22,6 +22,8 @@ import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.*;
 import org.opendcs.ratings.io.IndependentValuesContainer;
 import org.opendcs.ratings.io.SourceRatingContainer;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -36,8 +38,9 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR3;
  *
  * @author Mike Perryman
  */
+@SuppressWarnings("java:S1448")
 public class SourceRating implements IRating, VerticalDatum {
-
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 		/**
 		 * A math expression to be evaluated instead of using the rating set.
 		 */
@@ -155,8 +158,10 @@ public class SourceRating implements IRating, VerticalDatum {
 					mathExpressionString = mathExpression.toNotation(Notation.INFIX);
 					mathExpressionString = mathExpressionString.replaceAll("\\$([I|R]\\d+)", "$1");
 				}
-				catch (ComputationException e) {
-					AbstractRating.logger.warning(e.getMessage());
+				catch (ComputationException ex) {
+					log.atWarn()
+					   .setCause(ex)
+					   .log("Unable to process mathExpresses '{}'", mathExpression.toString());
 				}
 			}
 			return mathExpressionString;

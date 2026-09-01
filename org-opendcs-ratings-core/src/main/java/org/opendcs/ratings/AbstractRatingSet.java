@@ -11,7 +11,6 @@ package org.opendcs.ratings;
 import hec.heclib.util.HecTime;
 import hec.hecmath.TimeSeriesMath;
 import hec.io.Conversion;
-import hec.io.TextContainer;
 import hec.io.TimeSeriesContainer;
 import hec.lang.Const;
 import hec.util.TextUtil;
@@ -20,14 +19,13 @@ import org.opendcs.ratings.RatingConst.*;
 import org.opendcs.ratings.io.AbstractRatingContainer;
 import org.opendcs.ratings.io.IndependentValuesContainer;
 import org.opendcs.ratings.io.RatingSetContainer;
-import org.opendcs.ratings.io.RatingSetStateContainer;
 import org.opendcs.ratings.io.RatingXmlCompatUtil;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static hec.util.TextUtil.replaceAll;
 import static hec.util.TextUtil.split;
@@ -38,9 +36,10 @@ import static org.opendcs.ratings.RatingConst.*;
  *
  * @author Mike Perryman
  */
+@SuppressWarnings("java:S1448") // true, but that's going to be a while.
 public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingSet {
 
-    protected static final Logger LOGGER = Logger.getLogger(AbstractRatingSet.class.getPackage().getName());
+    protected static final Logger log = OpenDcsLoggerFactory.getLogger();
 
 
     private static final RatingXmlCompatUtil xmlUtils = RatingXmlCompatUtil.getInstance();
@@ -290,8 +289,10 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                 String currentDatum = rating.getCurrentVerticalDatum();
                 ar.setVerticalDatumInfo(getVerticalDatumInfo());
                 ar.vdc.forceVerticalDatum(currentDatum);
-            } catch (VerticalDatumException e) {
-                LOGGER.log(Level.FINE, "Could not set vertical datum info on rating being added to rating set.", e);
+            } catch (VerticalDatumException ex) {
+                log.atTrace()
+                   .setCause(ex)
+                   .log("Could not set vertical datum info on rating being added to rating set.");
             }
             ar.setAllowUnsafe(doesAllowUnsafe());
             ar.setWarnUnsafe(doesWarnUnsafe());
@@ -725,7 +726,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(msg);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(msg + "  Value times will be treated as UTC.");
+                        log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
                     }
                     tz = null;
                 }
@@ -745,7 +746,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     throw new RatingException(t);
                 }
                 if (warnUnsafe) {
-                    LOGGER.warning(t.getMessage());
+                    log.atWarn().setCause(t).log(t.getMessage());
                 }
             }
             if (tscParam != null) {
@@ -755,7 +756,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(msg);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(msg);
+                        log.warn(msg);
                     }
                 }
             }
@@ -766,7 +767,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     throw new RatingException(t);
                 }
                 if (warnUnsafe) {
-                    LOGGER.warning(t.getMessage());
+                    log.atWarn().setCause(t).log(t.getMessage());
                 }
             }
             if (tscParam != null) {
@@ -777,7 +778,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(msg);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(msg);
+                        log.warn(msg);
                     }
                 }
             }
@@ -791,7 +792,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             throw new RatingException(msg);
                         }
                         if (warnUnsafe) {
-                            LOGGER.warning(msg + "  Rating will be performed on unconverted values.");
+                            log.warn(msg + "  Rating will be performed on unconverted values."); // NOSONAR
                         }
                     }
                 }
@@ -806,7 +807,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     throw new RatingException(t);
                 }
                 if (warnUnsafe) {
-                    LOGGER.warning(t.getMessage());
+                    log.atWarn().setCause(t).log(t.getMessage());
                 }
             }
             if (ratedUnit != null) {
@@ -819,7 +820,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             throw new RatingException(msg);
                         }
                         if (warnUnsafe) {
-                            LOGGER.warning(msg + "  Rated values will be unconverted.");
+                            log.warn(msg + "  Rated values will be unconverted."); // NOSONAR
                         }
                     }
                 }
@@ -935,7 +936,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(msg);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(msg + "  Rated values will be irregular interval.");
+                        log.warn(msg + "  Rated values will be irregular interval."); // NOSONAR
                     }
                     ratedInterval = 0;
                     break;
@@ -952,7 +953,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(msg);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(msg + "  Value times will be treated as UTC.");
+                        log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
                     }
                     tzid = null;
                     break;
@@ -967,7 +968,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(msg);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(msg + "  Value times will be treated as UTC.");
+                        log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
                     }
                     tz = null;
                 }
@@ -988,7 +989,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(t);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(t.getMessage());
+                        log.atWarn().setCause(t).log(t.getMessage());
                     }
                 }
                 if (tscParam[i] != null) {
@@ -1001,7 +1002,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             throw new RatingException(msg);
                         }
                         if (warnUnsafe) {
-                            LOGGER.warning(msg);
+                            log.warn(msg);
                         }
                     }
                 }
@@ -1012,7 +1013,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                         throw new RatingException(t);
                     }
                     if (warnUnsafe) {
-                        LOGGER.warning(t.getMessage());
+                        log.atWarn().setCause(t).log(t.getMessage());
                     }
                 }
                 if (tscParam[i] != null) {
@@ -1023,7 +1024,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             throw new RatingException(msg);
                         }
                         if (warnUnsafe) {
-                            LOGGER.warning(msg);
+                            log.warn(msg);
                         }
                     }
                 }
@@ -1034,7 +1035,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             throw new RatingException(msg);
                         }
                         if (warnUnsafe) {
-                            LOGGER.warning(msg + "  Rating will be performed on unconverted values.");
+                            log.warn(msg + "  Rating will be performed on unconverted values."); // NOSONAR
                         }
                     }
                 }
@@ -1049,7 +1050,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     throw new RatingException(t);
                 }
                 if (warnUnsafe) {
-                    LOGGER.warning(t.getMessage());
+                    log.atWarn().setCause(t).log(t.getMessage());
                 }
             }
             if (ratedUnit != null) {
@@ -1062,7 +1063,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                             throw new RatingException(msg);
                         }
                         if (warnUnsafe) {
-                            LOGGER.warning(msg + "  Rated values will be unconverted.");
+                            log.warn(msg + "  Rated values will be unconverted."); // NOSONAR
                         }
                     }
                 }
@@ -1961,7 +1962,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                     throw new RatingException(msg);
                 }
                 if (warnUnsafe) {
-                    LOGGER.warning(msg + "  Value times will be treated as UTC.");
+                    log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
                 }
                 tz = null;
             }
@@ -2069,8 +2070,8 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
     public boolean hasVerticalDatum() {
         try {
             return getNativeVerticalDatum() != null;
-        } catch (Exception e) {
-            LOGGER.warning(e.getMessage());
+        } catch (Exception ex) {
+            log.atWarn().setCause(ex).log("Unable to inspect vertical datum.");
             return false;
         }
     }
@@ -2341,7 +2342,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                                 throw new RatingException(t);
                             }
                             if (warnUnsafe) {
-                                LOGGER.warning(t.getMessage());
+                                log.atWarn().setCause(t).log(t.getMessage());
                             }
                         }
                     }
@@ -2356,7 +2357,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                                 throw new RatingException(t);
                             }
                             if (warnUnsafe) {
-                                LOGGER.warning(t.getMessage());
+                                log.atWarn().setCause(t).log(t.getMessage());
                             }
                         }
                     }
@@ -2371,7 +2372,7 @@ public abstract class AbstractRatingSet extends RatingSet implements CwmsRatingS
                                 throw new RatingException(msg);
                             }
                             if (warnUnsafe) {
-                                LOGGER.warning(msg + "  Rating will be performed on unconverted values.");
+                                log.warn(msg + "  Rating will be performed on unconverted values."); // NOSONAR
                             }
                         }
                     }

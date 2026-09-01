@@ -14,6 +14,8 @@ import hec.io.TimeSeriesContainer;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.Parameter;
 import org.opendcs.ratings.io.IndependentValuesContainer;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -28,7 +30,7 @@ import static org.opendcs.ratings.RatingConst.SEPARATOR2;
  * @author Mike Perryman
  */
 public class TimeSeriesRater {
-	
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 	protected IRating ratingObj;
 	protected boolean allowUnsafe = true;
 	protected boolean warnUnsafe  = true;
@@ -62,8 +64,12 @@ public class TimeSeriesRater {
 				for (int i = 1; i < tscs.length; ++i) {
 					if (tscs[i].interval != tscs[0].interval) {
 						String msg = "TimeSeriesContainers have inconsistent intervals.";
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) AbstractRating.logger.warning(msg + "  Rated values will be irregular interval.");
+						if (!allowUnsafe) {
+							throw new RatingException(msg);
+						}
+						if (warnUnsafe) {
+							log.warn(msg + "  Rated values will be irregular interval."); // NOSONAR
+						}
 						ratedInterval = 0;
 						break;
 					}
@@ -75,8 +81,12 @@ public class TimeSeriesRater {
 				for (int i = 1; i < tscs.length; ++i) {
 					if (!TextUtil.equals(tscs[i].timeZoneID, tzid)) {
 						String msg = "TimeSeriesContainers have inconsistent time zones.";
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) AbstractRating.logger.warning(msg + "  Value times will be treated as UTC.");
+						if (!allowUnsafe) {
+							throw new RatingException(msg);
+						}
+						if (warnUnsafe) {
+							log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
+						}
 						tzid = null;
 						break;
 					}
@@ -86,8 +96,12 @@ public class TimeSeriesRater {
 					tz = TimeZone.getTimeZone(tzid);
 					if (!tz.getID().equals(tzid)) {
 						String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tzid);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) AbstractRating.logger.warning(msg + "  Value times will be treated as UTC.");
+						if (!allowUnsafe) {
+							throw new RatingException(msg);
+						}
+						if (warnUnsafe) {
+							log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
+						}
 						tz = null;
 					}
 				}
@@ -100,14 +114,22 @@ public class TimeSeriesRater {
 						tscParam = new Parameter(tscs[i].parameter);
 					}
 					catch (Throwable t) {
-						if (!allowUnsafe) throw new RatingException(t);
-						if (warnUnsafe) AbstractRating.logger.warning(t.getMessage());
+						if (!allowUnsafe) {
+							throw new RatingException(t);
+						}
+						if (warnUnsafe) {
+							log.atWarn().setCause(t).log(t.getMessage());
+						}
 					}
 					if (tscParam != null) {
 						if (!tscParam.getParameter().equals(params[i])) {
 							String msg = String.format("Parameter \"%s\" does not match rating parameter \"%s\".", tscParam.getParameter(), params[i]);
-							if (!allowUnsafe) throw new RatingException(msg);
-							if (warnUnsafe) AbstractRating.logger.warning(msg);
+							if (!allowUnsafe) {
+								throw new RatingException(msg);
+							}
+							if (warnUnsafe) {
+								log.warn(msg);
+							}
 						}
 					}
 					newDataUnits[i] = tscs[i].units;
@@ -177,8 +199,12 @@ public class TimeSeriesRater {
 				tz = TimeZone.getTimeZone(tsc.timeZoneID);
 				if (!tz.getID().equals(tsc.timeZoneID)) {
 					String msg = String.format("TimeSeriesContainers have invalid time zone \"%s\".", tsc.timeZoneID);
-					if (!allowUnsafe) throw new RatingException(msg);
-					if (warnUnsafe) AbstractRating.logger.warning(msg + "  Value times will be treated as UTC.");
+					if (!allowUnsafe) {
+						throw new RatingException(msg);
+					}
+					if (warnUnsafe) {
+						log.warn(msg + "  Value times will be treated as UTC."); // NOSONAR
+					}
 					tz = null;
 				}
 			}

@@ -17,6 +17,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.opendcs.ratings.io.RatingValueContainer;
 import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import org.opendcs.ratings.io.UsgsStreamTableRatingContainer;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,13 +29,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 public class TestUsgsStreamTableRating
 {
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
+
 	private static final RatingXmlCompatUtil xmlUtils = RatingXmlCompatUtil.getInstance();
 	private static UsgsStreamTableRating _rating;
 
@@ -140,13 +143,13 @@ public class TestUsgsStreamTableRating
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		long time = cal.getTimeInMillis();
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
 		AbstractRating rating = ratings[0];
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] ratingExtent = ratingExtents[0];
-		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
-		logger.info("rating at: " + (ratingExtent[0] - 10.0));
+		log.info("{} {}", ratingExtent[0], ratingExtent[1]);
+		log.info("rating at: {}", (ratingExtent[0] - 10.0));
 		Assertions.assertThrows(RatingException.class, () -> { // out of range - low
+			@SuppressWarnings("unused")
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] - 10.0);
 		});
 
@@ -174,13 +177,13 @@ public class TestUsgsStreamTableRating
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		long time = cal.getTimeInMillis();
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
 		AbstractRating rating = ratings[0];
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
-		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
-		logger.info("rating at: " + (ratingExtent[0] + 10.0));
-		assertThrows( RatingException.class, () ->{ // out of range - high
+		log.info("{} {}", ratingExtent[0], ratingExtent[1]);
+		log.info("rating at: {}", (ratingExtent[0] + 10.0));
+		assertThrows(RatingException.class, () ->{ // out of range - high
+			@SuppressWarnings("unused")
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] + 10.0);
 		});
 
@@ -208,11 +211,10 @@ public class TestUsgsStreamTableRating
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		long time = cal.getTimeInMillis();
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
 		AbstractRating rating = ratings[0];
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] ratingExtent = ratingExtents[0];
-		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
+		log.info("{} {}", ratingExtent[0], ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
 		assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
@@ -239,28 +241,29 @@ public class TestUsgsStreamTableRating
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		long time = cal.getTimeInMillis();
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
 		AbstractRating rating = ratings[0];
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
-		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
+		log.info("{} {}", ratingExtent[0], ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
 		assertEquals(ratingExtent[1], rateOne, 0.001);
 	}
 
-    @Disabled
+    @Disabled("need to find the xml file, or just make one up.")
 	@Test
 	public final void testStreamRatingInMiddleOfExtents() throws Exception
 	{
 		// Retrieve complete RatingSet from local xml file
 		String path = "C:/temp/92F_Stage_Flow_BASE_PRODUCTION-2012.xml";
 		File f = new File(path);
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		String line;
 		StringBuilder sb = new StringBuilder();
-		while ((line = br.readLine()) != null)
+		try (BufferedReader br = new BufferedReader(new FileReader(f)))
 		{
-			sb.append(line.trim());
+			String line;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line.trim());
+			}
 		}
 		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
@@ -270,15 +273,15 @@ public class TestUsgsStreamTableRating
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		long time = cal.getTimeInMillis();
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
 		AbstractRating rating = ratings[0];
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] minRatingExtent = ratingExtents[0];
 		double[] maxRatingExtent = ratingExtents[1];
 		double midIndep = (minRatingExtent[0] + maxRatingExtent[0]) / 2.0;
 		double midDep = (minRatingExtent[1] + maxRatingExtent[1]) / 2.0;
-		logger.info(midIndep + "  " + midDep);
+		log.info("{} {}", midIndep, midDep);
 		double rateOne = testRatingSet.rateOne(time, midIndep);
+
 		UsgsStreamTableRating streamTableRating = (UsgsStreamTableRating) rating;
 		RatingSet shifts = streamTableRating.getShifts();
 
@@ -289,17 +292,17 @@ public class TestUsgsStreamTableRating
 	@Test
 	public final void testCreatingShifts() throws Exception
 	{
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
-
 		// Retrieve complete RatingSet from local xml file
 		String path = "C:/temp/92F_Stage_Flow_BASE_PRODUCTION-2012-noshifts.xml";
 		File f = new File(path);
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		String line;
 		StringBuilder sb = new StringBuilder();
-		while ((line = br.readLine()) != null)
+		try (BufferedReader br = new BufferedReader(new FileReader(f)))
 		{
-			sb.append(line.trim());
+			String line;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line.trim());
+			}
 		}
 		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
@@ -344,17 +347,17 @@ public class TestUsgsStreamTableRating
 	@Test
 	public final void testRateOneManyShifts() throws Exception
 	{
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
-
 		// Retrieve complete RatingSet from local xml file
 		String path = "C:/temp/92F_Stage_Flow_BASE_PRODUCTION-2012-manyshifts.xml";
 		File f = new File(path);
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		String line;
 		StringBuilder sb = new StringBuilder();
-		while ((line = br.readLine()) != null)
+		try (BufferedReader br = new BufferedReader(new FileReader(f)))
 		{
-			sb.append(line.trim());
+			String line;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line.trim());
+			}
 		}
 		RatingSet testRatingSet = xmlUtils.createRatingSet(sb.toString());
 		AbstractRating[] ratings = testRatingSet.getRatings();
@@ -363,9 +366,9 @@ public class TestUsgsStreamTableRating
 		long time = 1415230649194L;//System.currentTimeMillis();
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] ratingExtent = ratingExtents[0];
-		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
+		log.info("{} {}", ratingExtent[0],  ratingExtent[1]);
 		double rateOne = testRatingSet.rateOne(time, ratingExtent[0]);
-		logger.info(xmlUtils.toXml(streamTableRating, "  ", 1));
+		log.trace(xmlUtils.toXml(streamTableRating, "  ", 1));
 
 		//add a shift and rate again.
 		Calendar calendar = Calendar.getInstance();
@@ -388,9 +391,9 @@ public class TestUsgsStreamTableRating
 
 		ratingExtents = rating.getRatingExtents(shiftDate.getTime());
 		ratingExtent = ratingExtents[0];
-		logger.info(ratingExtent[0] + "  " + ratingExtents[1][0]);
+		log.info("{} {}", ratingExtent[0], ratingExtents[1][0]);
 		rateOne = testRatingSet.rateOne(time, ((ratingExtent[0] + ratingExtents[1][0]) / 2));
-		logger.info(xmlUtils.toXml(streamTableRating, "  ", 1));
+		log.trace(xmlUtils.toXml(streamTableRating, "  ", 1));
 	}
 
     @Disabled
@@ -415,13 +418,13 @@ public class TestUsgsStreamTableRating
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		long time = cal.getTimeInMillis();
-		Logger logger = Logger.getLogger(TestUsgsStreamTableRating.class.getName());
 		AbstractRating rating = ratings[0];
 		double[][] ratingExtents = rating.getRatingExtents(time);
 		double[] ratingExtent = ratingExtents[ratingExtents.length - 1];
-		logger.info(ratingExtent[0] + "  " + ratingExtent[1]);
-		logger.info("rating at: " + (ratingExtent[0] + 10.0));
+		log.info("{} {}", ratingExtent[0], ratingExtent[1]);
+		log.info("rating at: {}", (ratingExtent[0] + 10.0));
 		Assertions.assertThrows( RatingException.class, () -> { // out of range - high
+			@SuppressWarnings("unused")
 			double rateOne = testRatingSet.rateOne(time, ratingExtent[0] + 10.0);
 		});
 

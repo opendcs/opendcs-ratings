@@ -20,6 +20,8 @@ import hec.util.TextUtil;
 import org.opendcs.ratings.*;
 import org.opendcs.ratings.io.RatingSpecContainer;
 import org.opendcs.ratings.io.RatingTemplateContainer;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,18 +42,14 @@ import static org.opendcs.ratings.RatingConst.*;
 import static org.opendcs.ratings.XmlUtil.*;
 
 public final class RatingSpecXmlFactory {
+    private static final Logger log = OpenDcsLoggerFactory.getLogger();
 
     private RatingSpecXmlFactory() {
         throw new AssertionError("Utility class");
     }
 
     private static void logThrowable(Throwable t) {
-        // still uses java.util.logging - should move to fluentLogger
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        t.printStackTrace(pw);
-        pw.flush();
-        AbstractRating.getLogger().severe(sw.toString());
+        log.atError().setCause(t).log("Error during XML operations.");
     }
     /**
      * constructors a RatingSpecContainer from an XML snippet
@@ -175,11 +173,11 @@ public final class RatingSpecXmlFactory {
             }
         }
         catch (Throwable t) {
-            AbstractRating.getLogger().severe(t.getMessage());
+            logThrowable(t);
             throw new RuntimeException(t);
         }
         if (noTemplateException != null) {
-            AbstractRating.getLogger().finer(noTemplateException.getMessage());
+            log.atTrace().setCause(noTemplateException).log(noTemplateException.getMessage());
         }
         return ratingSpecContainer;
     }
@@ -366,7 +364,7 @@ public final class RatingSpecXmlFactory {
                     String.format("%s.%s", ratingTemplateContainer.parametersId, ratingTemplateContainer.templateVersion);
             }
         } catch (Throwable t) {
-            AbstractRating.getLogger().severe(t.getMessage());
+            log.atError().setCause(t).log(t.getMessage());
             throw new RuntimeException(t);
         }
         return ratingTemplateContainer;

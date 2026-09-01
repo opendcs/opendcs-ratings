@@ -15,15 +15,14 @@ import hec.lang.Observable;
 import hec.util.TextUtil;
 import mil.army.usace.hec.metadata.*;
 import org.opendcs.ratings.io.AbstractRatingContainer;
-import org.opendcs.ratings.io.RatingJdbcCompatUtil;
-import org.opendcs.ratings.io.RatingXmlCompatUtil;
 import org.opendcs.ratings.io.xml.DomRatingSpecification;
+import org.opendcs.ratings.util.OpenDcsLoggerFactory;
+import org.slf4j.Logger;
+
 import rma.lang.Modifiable;
 
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Observer;
-import java.util.logging.Logger;
 
 import static hec.lang.Const.UNDEFINED_TIME;
 import static hec.util.TextUtil.replaceAll;
@@ -37,7 +36,7 @@ import static org.opendcs.ratings.RatingConst.*;
  */
 public abstract class AbstractRating implements Observer, ICwmsRating , VerticalDatum, Modifiable{
 
-	protected static final Logger logger = Logger.getLogger(AbstractRating.class.getPackage().getName());
+	private static final Logger log = OpenDcsLoggerFactory.getLogger();
 
 	/**
 	 * Object that provides the Observable-by-composition functionality
@@ -240,8 +239,8 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 			try {
 				setDataUnits(TextUtil.split(TextUtil.replaceAll(dataUnitsId, SEPARATOR2, SEPARATOR3), SEPARATOR3));
 			}
-			catch (RatingException e) {
-				logger.warning("Invalid data units string : " + dataUnitsId);
+			catch (RatingException ex) {
+				log.atWarn().setCause(ex).log("Invalid data units string {}", dataUnitsId);
 			}
 		}
 		
@@ -328,15 +327,23 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 					parameterUnit = new Parameter(parameters[i]).getDefaultUnits();
 				}
 				catch (Throwable t) {
-					if (!allowUnsafe) throw new RatingException(t);
-					if (warnUnsafe) logger.warning(t.getMessage());
+					if (!allowUnsafe) {
+						throw new RatingException(t);
+					}
+					if (warnUnsafe) {
+						log.atWarn().setCause(t).log("Unsafe operation failed.");
+					}
 					parameterUnit = null;
 				}
 				if (parameterUnit != null) {
 					if(!UnitUtil.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
 						String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit);
-						if (!allowUnsafe) throw new RatingException(msg);
-						if (warnUnsafe) logger.warning(msg);
+						if (!allowUnsafe) {
+							throw new RatingException(msg);
+						}
+						if (warnUnsafe) {
+							log.warn(msg);
+						}
 					}
 				}
 			}
@@ -386,8 +393,12 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 					dataUnit = new Units(units[i]);
 				}
 				catch (Throwable t) {
-					if (!allowUnsafe) throw new RatingException(t);
-					if (warnUnsafe) logger.warning(t.getMessage());
+					if (!allowUnsafe) {
+						throw new RatingException(t);
+					}
+					if (warnUnsafe) {
+						log.atWarn().setCause(t).log("Unable operation failed.");
+					}
 					dataUnit = null;
 				}
 				if (dataUnit != null) {
@@ -399,20 +410,26 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 							parameterUnit = new Parameter(parameters[i]).getDefaultUnits();
 						}
 						catch (Throwable t) {
-							if (!allowUnsafe) throw new RatingException(t);
-							if (warnUnsafe) logger.warning(t.getMessage());
+							if (!allowUnsafe) {
+								throw new RatingException(t);
+							}
+							if (warnUnsafe) {
+								log.atWarn().setCause(t).log("Unsafe operation failed.");
+							}
 							parameterUnit = null;
 						}
 						if (parameterUnit != null && !units[i].equals(parameterUnit.toString())) {
 							if(!UnitUtil.canConvertBetweenUnits(units[i], parameterUnit.toString())) {
 								String msg = String.format("Cannot convert from \"%s\" to \"%s\".", units[i], parameterUnit);
-								if (!allowUnsafe) throw new RatingException(msg);
+								if (!allowUnsafe) {
+									throw new RatingException(msg);
+								}
 								if (warnUnsafe) {
 									if (i == parameters.length - 1) {
-										logger.warning(msg + "  Rated values will be unconverted.");
+										log.warn(msg + "  Rated values will be unconverted."); // NOSONAR
 									}
 									else {
-										logger.warning(msg + "  Rating will be performed using unconverted values.");
+										log.warn(msg + "  Rating will be performed using unconverted values."); // NOSONAR
 									}
 								}
 							}
@@ -428,10 +445,10 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
 								if (!allowUnsafe) throw new RatingException(msg);
 								if (warnUnsafe) {
 									if (i == ratingUnits.length - 1) {
-										logger.warning(msg + "  Rated values will be unconverted.");
+										log.warn(msg + "  Rated values will be unconverted."); // NOSONAR
 									}
 									else {
-										logger.warning(msg + "  Rating will be performed using unconverted values.");
+										log.warn(msg + "  Rating will be performed using unconverted values."); // NOSONAR
 									}
 								}
 							}
@@ -1081,10 +1098,6 @@ public abstract class AbstractRating implements Observer, ICwmsRating , Vertical
     }	
     
     public abstract AbstractRating getInstance(AbstractRatingContainer ratingContainer) throws RatingException;
-    
-    public static Logger getLogger() {
-    	return logger;
-    }
 
 	/**
 	 * Returns whether this rating has vertical datum information
